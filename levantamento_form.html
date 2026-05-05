@@ -453,10 +453,9 @@ var shUrl = params.get('sh') || '';
 if(fazendaParam){
   document.getElementById('heroFarm').style.display = 'flex';
   document.getElementById('heroFarmName').textContent = fazendaParam;
-  // Pre-fill nome field
+  // Pre-fill nome field with only fazenda name
   var nomeFld = document.getElementById('nomeProd');
-  if(proprietarioParam) nomeFld.value = proprietarioParam + ' — ' + fazendaParam;
-  else nomeFld.placeholder = fazendaParam;
+  nomeFld.value = fazendaParam;
 }
 
 // ── STATE ────────────────────────────────────────────────────

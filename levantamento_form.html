@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Levantamento — Rogério Avelino</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --v:#1B4D1B;--vm:#2D7A2D;--vc:#4CAF50;--lm:#76C442;
+  --o:#C8A040;--ol:#F0C84A;--bg:#F7F4EE;--bge:#E8E3D8;
+  --tx:#1A2A1A;--sub:#4A6A4A;--w:#fff;--red:#C0392B;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--tx);min-height:100vh;}
+
+/* HERO */
+.hero{background:var(--v);padding:0;position:relative;overflow:hidden;}
+.hero::before{content:'';position:absolute;inset:0;background:url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");}
+.hero-inner{position:relative;z-index:1;padding:28px 24px 24px;}
+.logo-area{display:flex;align-items:center;gap:12px;margin-bottom:20px;}
+.logo-circle{width:44px;height:44px;border-radius:10px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;font-size:22px;}
+.logo-text{font-family:Syne;font-size:13px;font-weight:800;color:var(--ol);line-height:1.2;}
+.logo-sub{font-size:9px;color:rgba(255,255,255,.5);letter-spacing:1.5px;text-transform:uppercase;}
+.hero-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(240,200,74,.12);border:1px solid rgba(240,200,74,.3);border-radius:20px;padding:4px 12px;font-size:10px;color:var(--ol);font-weight:600;letter-spacing:1px;text-transform:uppercase;margin-bottom:14px;}
+.hero h1{font-family:Syne;font-size:24px;font-weight:800;color:#fff;line-height:1.25;margin-bottom:8px;}
+.hero h1 span{color:var(--ol);}
+.hero p{font-size:13px;color:rgba(255,255,255,.65);line-height:1.6;max-width:420px;}
+.hero-farm{margin-top:16px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);border-radius:10px;padding:10px 14px;display:flex;align-items:center;gap:10px;}
+.hero-farm .farm-icon{font-size:20px;}
+.hero-farm .farm-name{font-family:Syne;font-size:14px;font-weight:700;color:#fff;}
+.hero-farm .farm-label{font-size:10px;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:1px;}
+
+/* PROGRESS */
+.progress-bar{background:rgba(255,255,255,.1);height:3px;position:relative;}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(--lm),var(--ol));transition:width .5s ease;width:0%;}
+
+/* STEPS NAV */
+.steps-nav{display:flex;background:rgba(0,0,0,.2);overflow:hidden;}
+.step-tab{flex:1;padding:10px 6px;text-align:center;font-size:9px;font-weight:600;color:rgba(255,255,255,.35);text-transform:uppercase;letter-spacing:.8px;cursor:pointer;transition:all .2s;border-top:2px solid transparent;font-family:Syne;}
+.step-tab.active{color:var(--ol);border-top-color:var(--ol);background:rgba(240,200,74,.08);}
+.step-tab.done{color:var(--vc);}
+
+/* MAIN */
+.main{max-width:640px;margin:0 auto;padding:24px 16px 40px;}
+
+/* SECTION */
+.section{display:none;animation:fadeUp .35s ease;}
+.section.active{display:block;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+
+.section-header{margin-bottom:20px;}
+.section-icon{font-size:28px;margin-bottom:8px;}
+.section-title{font-family:Syne;font-size:18px;font-weight:800;color:var(--v);margin-bottom:4px;}
+.section-desc{font-size:12.5px;color:var(--sub);line-height:1.6;}
+
+/* DESTAQUE */
+.destaque{background:linear-gradient(135deg,#FFF8E1,#FFF3CD);border-left:3px solid var(--ol);border-radius:0 8px 8px 0;padding:12px 14px;margin-bottom:20px;font-size:12px;color:#555;line-height:1.6;}
+.destaque strong{color:var(--o);}
+
+/* FORM */
+.fg{margin-bottom:16px;}
+.fl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--sub);display:block;margin-bottom:6px;}
+.fi,.fs,.fta{width:100%;border:1.5px solid var(--bge);border-radius:9px;padding:11px 14px;font-family:'DM Sans';font-size:13px;color:var(--tx);background:#fff;outline:none;transition:all .2s;-webkit-appearance:none;}
+.fi:focus,.fs:focus,.fta:focus{border-color:var(--vc);background:#fff;box-shadow:0 0 0 3px rgba(76,175,80,.1);}
+.fta{resize:vertical;min-height:80px;}
+.fi::placeholder,.fta::placeholder{color:#bbb;}
+
+/* RADIO CARDS */
+.radio-group{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.radio-card{position:relative;}
+.radio-card input{position:absolute;opacity:0;width:0;height:0;}
+.radio-card label{display:flex;flex-direction:column;align-items:center;gap:4px;padding:12px 8px;border:1.5px solid var(--bge);border-radius:10px;cursor:pointer;transition:all .2s;background:#fff;text-align:center;}
+.radio-card label .rc-icon{font-size:20px;}
+.radio-card label .rc-text{font-size:11px;font-weight:600;color:var(--sub);}
+.radio-card input:checked + label{border-color:var(--vc);background:#F0F8F0;box-shadow:0 0 0 3px rgba(76,175,80,.1);}
+.radio-card input:checked + label .rc-text{color:var(--vm);}
+
+/* SLIDER */
+.slider-wrap{padding:4px 0;}
+.slider{width:100%;-webkit-appearance:none;height:6px;border-radius:3px;background:linear-gradient(90deg,var(--vc) var(--pct,50%),var(--bge) var(--pct,50%));outline:none;}
+.slider::-webkit-slider-thumb{-webkit-appearance:none;width:22px;height:22px;border-radius:50%;background:var(--v);border:3px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.2);cursor:pointer;}
+.slider-labels{display:flex;justify-content:space-between;font-size:10px;color:var(--sub);margin-top:6px;}
+.slider-val{text-align:center;font-family:Syne;font-size:20px;font-weight:800;color:var(--v);margin-top:8px;}
+
+/* TAGS */
+.tags{display:flex;flex-wrap:wrap;gap:6px;}
+.tag-btn{padding:7px 14px;border:1.5px solid var(--bge);border-radius:20px;font-size:11px;font-weight:600;color:var(--sub);cursor:pointer;transition:all .2s;background:#fff;font-family:'DM Sans';}
+.tag-btn.sel{border-color:var(--vc);background:#F0F8F0;color:var(--vm);}
+
+/* GRID 2 */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+
+/* NAV BUTTONS */
+.nav-btns{display:flex;gap:10px;margin-top:28px;}
+.btn-back{background:#fff;border:1.5px solid var(--bge);color:var(--sub);padding:13px 20px;border-radius:10px;font-family:'DM Sans';font-size:13px;font-weight:600;cursor:pointer;flex:0 0 auto;}
+.btn-next{background:var(--vc);border:none;color:#fff;padding:13px 24px;border-radius:10px;font-family:Syne;font-size:13px;font-weight:700;cursor:pointer;flex:1;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:8px;}
+.btn-next:hover{background:var(--v);}
+.btn-submit{background:linear-gradient(135deg,var(--vm),var(--v));border:none;color:#fff;padding:15px 24px;border-radius:10px;font-family:Syne;font-size:14px;font-weight:800;cursor:pointer;width:100%;margin-top:28px;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:10px;}
+
+/* SUCCESS */
+.success{text-align:center;padding:40px 20px;}
+.success-icon{font-size:64px;margin-bottom:16px;}
+.success h2{font-family:Syne;font-size:22px;font-weight:800;color:var(--v);margin-bottom:8px;}
+.success p{font-size:13px;color:var(--sub);line-height:1.7;margin-bottom:24px;}
+.success-card{background:var(--v);border-radius:12px;padding:16px;color:#fff;margin-bottom:12px;}
+.success-card h3{font-family:Syne;font-size:13px;font-weight:700;color:var(--ol);margin-bottom:4px;}
+.success-card p{font-size:11px;opacity:.75;}
+
+/* REQUIRED */
+.req{color:var(--red);}
+
+@media(max-width:400px){
+  .radio-group{grid-template-columns:1fr 1fr;}
+  .g2{grid-template-columns:1fr;}
+  .hero h1{font-size:20px;}
+}
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="hero-inner">
+    <div class="logo-area">
+      <div class="logo-circle">🐄</div>
+      <div>
+        <div class="logo-text">ROGÉRIO AVELINO</div>
+        <div class="logo-sub">Gestão Pecuária Lucrativa</div>
+      </div>
+    </div>
+    <div class="hero-badge">📋 Levantamento Inicial</div>
+    <h1>Vamos entender<br>o <span>sonho da sua fazenda</span></h1>
+    <p>Responda com calma — suas respostas são a base do diagnóstico técnico personalizado.</p>
+    <div class="hero-farm" id="heroFarm" style="display:none">
+      <div class="farm-icon">🌾</div>
+      <div>
+        <div class="farm-label">Propriedade</div>
+        <div class="farm-name" id="heroFarmName"></div>
+      </div>
+    </div>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+  <div class="steps-nav">
+    <div class="step-tab active" data-step="0">🌟 Sonho</div>
+    <div class="step-tab" data-step="1">🌾 Fazenda</div>
+    <div class="step-tab" data-step="2">🐄 Rebanho</div>
+    <div class="step-tab" data-step="3">💰 Financeiro</div>
+    <div class="step-tab" data-step="4">✅ Enviar</div>
+  </div>
+</div>
+
+<div class="main">
+
+<!-- STEP 0 — SONHO -->
+<div class="section active" id="step0">
+  <div class="section-header">
+    <div class="section-icon">🌟</div>
+    <div class="section-title">O Sonho do Produtor</div>
+    <div class="section-desc">Antes de qualquer número, quero entender o que você quer construir com essa fazenda.</div>
+  </div>
+  <div class="destaque"><strong>💡 Por que isso importa:</strong> Assim como um arquiteto não faz um traço sem o projeto pronto, não tomamos uma decisão sem entender o sonho do dono. <strong>Você é o arquiteto da sua fazenda.</strong></div>
+
+  <div class="fg">
+    <label class="fl">Seu nome e o da fazenda <span class="req">*</span></label>
+    <input class="fi" id="nomeProd" placeholder="Ex: João Silva — Fazenda Boa Vista">
+  </div>
+  <div class="fg">
+    <label class="fl">Qual é o grande sonho com essa fazenda? <span class="req">*</span></label>
+    <textarea class="fta" id="sonho" placeholder="Ex: Quero passar a fazenda para os filhos com resultado positivo, sem dívida e com escala..." style="min-height:100px;"></textarea>
+  </div>
+  <div class="g2">
+    <div class="fg">
+      <label class="fl">Horizonte de tempo (anos)</label>
+      <div class="slider-wrap">
+        <input type="range" class="slider" id="horizonte" min="1" max="10" value="3" oninput="updSlider(this,'horizVal','anos')">
+        <div class="slider-labels"><span>1 ano</span><span>10 anos</span></div>
+        <div class="slider-val"><span id="horizVal">3</span> anos</div>
+      </div>
+    </div>
+    <div class="fg">
+      <label class="fl">Principal dor hoje <span class="req">*</span></label>
+      <input class="fi" id="dor" placeholder="Ex: Não sei se estou tendo lucro">
+    </div>
+  </div>
+  <div class="fg">
+    <label class="fl">O que quer parar de fazer?</label>
+    <input class="fi" id="parar" placeholder="Ex: Tomar decisão no escuro">
+  </div>
+  <div class="fg">
+    <label class="fl">O que mais te preocupa hoje?</label>
+    <input class="fi" id="preocupa" placeholder="Ex: Custo alto, mortalidade, resultado negativo">
+  </div>
+  <div class="fg">
+    <label class="fl">Meta esperada com a consultoria</label>
+    <input class="fi" id="metaSonho" placeholder="Ex: Saber o custo real e aumentar lotação">
+  </div>
+  <div class="nav-btns">
+    <button class="btn-next" onclick="nextStep()">Próximo — Dados da Fazenda <span>→</span></button>
+  </div>
+</div>
+
+<!-- STEP 1 — FAZENDA -->
+<div class="section" id="step1">
+  <div class="section-header">
+    <div class="section-icon">🌾</div>
+    <div class="section-title">Dados da Propriedade</div>
+    <div class="section-desc">Informações básicas sobre a fazenda — área, sistema e manejo.</div>
+  </div>
+
+  <div class="fg">
+    <label class="fl">Sistema Produtivo <span class="req">*</span></label>
+    <div class="radio-group" style="grid-template-columns:1fr 1fr 1fr;">
+      <div class="radio-card"><input type="radio" name="sistema" id="sCria" value="cria"><label for="sCria"><span class="rc-icon">🐣</span><span class="rc-text">Cria</span></label></div>
+      <div class="radio-card"><input type="radio" name="sistema" id="sRecria" value="recria_engorda" checked><label for="sRecria"><span class="rc-icon">📈</span><span class="rc-text">Recria &amp; Engorda</span></label></div>
+      <div class="radio-card"><input type="radio" name="sistema" id="sCiclo" value="ciclo_completo"><label for="sCiclo"><span class="rc-icon">🔄</span><span class="rc-text">Ciclo Completo</span></label></div>
+    </div>
+  </div>
+
+  <div class="g2">
+    <div class="fg">
+      <label class="fl">Município / Estado <span class="req">*</span></label>
+      <input class="fi" id="municipio" placeholder="Ex: Imperatriz / MA">
+    </div>
+    <div class="fg">
+      <label class="fl">Raça Principal</label>
+      <input class="fi" id="raca" placeholder="Ex: Nelore, Angus...">
+    </div>
+  </div>
+  <div class="g2">
+    <div class="fg">
+      <label class="fl">Área Total (ha)</label>
+      <input class="fi" type="number" id="areaTotal" placeholder="Ex: 136">
+    </div>
+    <div class="fg">
+      <label class="fl">Área de Pastagem (ha)</label>
+      <input class="fi" type="number" id="areaProd" placeholder="Ex: 17">
+    </div>
+  </div>
+  <div class="g2">
+    <div class="fg">
+      <label class="fl">Valor do ha (R$)</label>
+      <input class="fi" type="number" id="valorHa" placeholder="Ex: 10.000">
+    </div>
+    <div class="fg">
+      <label class="fl">Nº de Piquetes</label>
+      <input class="fi" type="number" id="piquetes" placeholder="Ex: 4">
+    </div>
+  </div>
+  <div class="fg">
+    <label class="fl">Manejo de Pastagem</label>
+    <div class="tags" id="manejoTags">
+      <button class="tag-btn" onclick="selTag(this,'manejo')">Contínuo (sem rotação)</button>
+      <button class="tag-btn" onclick="selTag(this,'manejo')">Rotacionado simples</button>
+      <button class="tag-btn" onclick="selTag(this,'manejo')">Rotacionado intensivo</button>
+      <button class="tag-btn" onclick="selTag(this,'manejo')">ILP</button>
+    </div>
+  </div>
+  <div class="fg">
+    <label class="fl">Frequência de Pesagem</label>
+    <div class="tags" id="pesagemTags">
+      <button class="tag-btn" onclick="selTag(this,'pesagem')">Não pesa</button>
+      <button class="tag-btn" onclick="selTag(this,'pesagem')">Só na compra/venda</button>
+      <button class="tag-btn" onclick="selTag(this,'pesagem')">2x ao ano</button>
+      <button class="tag-btn" onclick="selTag(this,'pesagem')">4x ao ano</button>
+      <button class="tag-btn" onclick="selTag(this,'pesagem')">Mensal</button>
+    </div>
+  </div>
+  <div class="nav-btns">
+    <button class="btn-back" onclick="prevStep()">← Voltar</button>
+    <button class="btn-next" onclick="nextStep()">Próximo — Rebanho <span>→</span></button>
+  </div>
+</div>
+
+<!-- STEP 2 — REBANHO -->
+<div class="section" id="step2">
+  <div class="section-header">
+    <div class="section-icon">🐄</div>
+    <div class="section-title">Dados do Rebanho</div>
+    <div class="section-desc">Inventário atual — números aproximados já ajudam muito.</div>
+  </div>
+
+  <div class="g2">
+    <div class="fg">
+      <label class="fl">Total de Cabeças <span class="req">*</span></label>
+      <input class="fi" type="number" id="totalCab" placeholder="Ex: 81">
+    </div>
+    <div class="fg">
+      <label class="fl">Peso Médio Geral (kg)</label>
+      <input class="fi" type="number" id="pesoMedio" placeholder="Ex: 285">
+    </div>
+  </div>
+  <div class="g2">
+    <div class="fg">
+      <label class="fl">Vacas Matrizes</label>
+      <input class="fi" type="number" id="matrizes" placeholder="Ex: 40">
+    </div>
+    <div class="fg">
+      <label class="fl">Touros</label>
+      <input class="fi" type="number" id="touros" placeholder="Ex: 2">
+    </div>
+  </div>
+  <div class="g2">
+    <div class="fg">
+      <label class="fl">Valor Médio por Cabeça (R$)</label>
+      <input class="fi" type="number" id="valorCab" placeholder="Ex: 4.000">
+    </div>
+    <div class="fg">
+      <label class="fl">Lotação (UA/ha)</label>
+      <input class="fi" type="number" step="0.01" id="lotacao" placeholder="Ex: 1.5">
+    </div>
+  </div>
+  <div class="fg">
+    <label class="fl">Forrageira Predominante</label>
+    <div class="tags" id="forrageiraTags">
+      <button class="tag-btn" onclick="selTag(this,'forrageira')">Brachiaria</button>
+      <button class="tag-btn" onclick="selTag(this,'forrageira')">Mombaça</button>
+      <button class="tag-btn" onclick="selTag(this,'forrageira')">Marandu</button>
+      <button class="tag-btn" onclick="selTag(this,'forrageira')">Piatã</button>
+      <button class="tag-btn" onclick="selTag(this,'forrageira')">Outra</button>
+    </div>
+  </div>
+  <div class="fg">
+    <label class="fl">GMD atual estimado (kg/dia)</label>
+    <div class="slider-wrap">
+      <input type="range" class="slider" id="gmdSlider" min="0.1" max="0.8" step="0.01" value="0.4" oninput="updSlider(this,'gmdVal',' kg/dia',2)">
+      <div class="slider-labels"><span>0,1 kg/dia</span><span>0,8 kg/dia</span></div>
+      <div class="slider-val"><span id="gmdVal">0.40</span> kg/dia</div>
+    </div>
+  </div>
+  <div class="fg">
+    <label class="fl">Mortalidade anual estimada (%)</label>
+    <div class="tags" id="mortTags">
+      <button class="tag-btn" onclick="selTag(this,'mort')">Menos de 1%</button>
+      <button class="tag-btn" onclick="selTag(this,'mort')">1-2%</button>
+      <button class="tag-btn" onclick="selTag(this,'mort')">2-5%</button>
+      <button class="tag-btn" onclick="selTag(this,'mort')">Acima de 5%</button>
+      <button class="tag-btn" onclick="selTag(this,'mort')">Não sei</button>
+    </div>
+  </div>
+  <div class="nav-btns">
+    <button class="btn-back" onclick="prevStep()">← Voltar</button>
+    <button class="btn-next" onclick="nextStep()">Próximo — Financeiro <span>→</span></button>
+  </div>
+</div>
+
+<!-- STEP 3 — FINANCEIRO -->
+<div class="section" id="step3">
+  <div class="section-header">
+    <div class="section-icon">💰</div>
+    <div class="section-title">Gestão Financeira</div>
+    <div class="section-desc">Aproximado já está ótimo — o importante é ter uma referência para o diagnóstico.</div>
+  </div>
+
+  <div class="g2">
+    <div class="fg">
+      <label class="fl">Faturamento Anual (R$)</label>
+      <input class="fi" type="number" id="fat" placeholder="Ex: 300.000">
+    </div>
+    <div class="fg">
+      <label class="fl">Custo Operacional Anual (R$)</label>
+      <input class="fi" type="number" id="custoOp" placeholder="Ex: 70.000">
+    </div>
+  </div>
+  <div class="g2">
+    <div class="fg">
+      <label class="fl">Valor Arroba Região (R$/@)</label>
+      <input class="fi" type="number" id="arroba" placeholder="Ex: 300">
+    </div>
+    <div class="fg">
+      <label class="fl">Margem atual sobre venda (%)</label>
+      <input class="fi" type="number" id="margem" placeholder="Ex: 20">
+    </div>
+  </div>
+  <div class="fg">
+    <label class="fl">Controle Financeiro atual</label>
+    <div class="tags" id="controleTags">
+      <button class="tag-btn" onclick="selTag(this,'controle')">Não tenho controle</button>
+      <button class="tag-btn" onclick="selTag(this,'controle')">Caderno/anotações</button>
+      <button class="tag-btn" onclick="selTag(this,'controle')">Planilha básica</button>
+      <button class="tag-btn" onclick="selTag(this,'controle')">Sistema com DRE</button>
+    </div>
+  </div>
+  <div class="fg">
+    <label class="fl">Separa contas pessoais das da fazenda?</label>
+    <div class="radio-group">
+      <div class="radio-card"><input type="radio" name="separa" id="sepNao" value="nao"><label for="sepNao"><span class="rc-icon">😅</span><span class="rc-text">Não — tudo misturado</span></label></div>
+      <div class="radio-card"><input type="radio" name="separa" id="sepParcial" value="parcial"><label for="sepParcial"><span class="rc-icon">🤔</span><span class="rc-text">Parcialmente</span></label></div>
+      <div class="radio-card"><input type="radio" name="separa" id="sepSim" value="sim"><label for="sepSim"><span class="rc-icon">✅</span><span class="rc-text">Sim, separo</span></label></div>
+    </div>
+  </div>
+  <div class="fg">
+    <label class="fl">Protocolo Sanitário</label>
+    <div class="tags" id="protocoloTags">
+      <button class="tag-btn" onclick="selTag(this,'protocolo')">Não tenho protocolo</button>
+      <button class="tag-btn" onclick="selTag(this,'protocolo')">Só obrigatórias (aftosa)</button>
+      <button class="tag-btn" onclick="selTag(this,'protocolo')">Protocolo básico</button>
+      <button class="tag-btn" onclick="selTag(this,'protocolo')">Calendário com veterinário</button>
+    </div>
+  </div>
+  <div class="fg">
+    <label class="fl">Observações adicionais (opcional)</label>
+    <textarea class="fta" id="obs" placeholder="Qualquer informação que achar importante compartilhar..."></textarea>
+  </div>
+  <div class="nav-btns">
+    <button class="btn-back" onclick="prevStep()">← Voltar</button>
+    <button class="btn-next" onclick="nextStep()">Revisar e Enviar <span>→</span></button>
+  </div>
+</div>
+
+<!-- STEP 4 — REVISÃO -->
+<div class="section" id="step4">
+  <div class="section-header">
+    <div class="section-icon">✅</div>
+    <div class="section-title">Tudo certo?</div>
+    <div class="section-desc">Revise as informações principais antes de enviar.</div>
+  </div>
+  <div id="reviewContent"></div>
+  <button class="btn-submit" onclick="enviar()">
+    <span>🚀</span> Enviar Levantamento para Rogério
+  </button>
+  <div class="nav-btns" style="margin-top:12px;">
+    <button class="btn-back" onclick="prevStep()">← Voltar e editar</button>
+  </div>
+</div>
+
+<!-- SUCCESS -->
+<div class="section" id="stepSuccess">
+  <div class="success">
+    <div class="success-icon">🎉</div>
+    <h2>Levantamento enviado!</h2>
+    <p>Obrigado! Recebi todas as suas informações e vou preparar o diagnóstico técnico personalizado da sua fazenda com base nos Benchmarks Inttegra.</p>
+    <div class="success-card">
+      <h3>📞 Próximo passo</h3>
+      <p>Entrarei em contato em breve para agendar a apresentação do diagnóstico.</p>
+    </div>
+    <div class="success-card" style="background:rgba(27,77,27,.15);border:1px solid var(--vc);">
+      <h3 style="color:var(--vm);">💡 Enquanto isso...</h3>
+      <p style="color:var(--sub);">Pense nas 3 maiores dificuldades da fazenda hoje. Vou trazer os dados que mostram exatamente onde está o potencial de melhoria.</p>
+    </div>
+  </div>
+</div>
+
+</div><!-- /main -->
+
+<script>
+// ── URL PARAMS ──────────────────────────────────────────────
+var params = new URLSearchParams(window.location.search);
+var fazendaParam = params.get('fazenda') || '';
+var proprietarioParam = params.get('prop') || '';
+var shUrl = params.get('sh') || '';
+
+// Pre-fill fazenda
+if(fazendaParam){
+  document.getElementById('heroFarm').style.display = 'flex';
+  document.getElementById('heroFarmName').textContent = fazendaParam;
+  // Pre-fill nome field
+  var nomeFld = document.getElementById('nomeProd');
+  if(proprietarioParam) nomeFld.value = proprietarioParam + ' — ' + fazendaParam;
+  else nomeFld.placeholder = fazendaParam;
+}
+
+// ── STATE ────────────────────────────────────────────────────
+var cur = 0;
+var total = 5;
+var tags = {};
+
+// ── SLIDER ───────────────────────────────────────────────────
+function updSlider(el, valId, unit, dec){
+  dec = dec || 0;
+  var v = parseFloat(el.value).toFixed(dec);
+  document.getElementById(valId).textContent = v;
+  var min = parseFloat(el.min), max = parseFloat(el.max), val = parseFloat(el.value);
+  var pct = ((val - min) / (max - min)) * 100;
+  el.style.setProperty('--pct', pct + '%');
+}
+// Init sliders
+updSlider(document.getElementById('horizonte'), 'horizVal', ' anos');
+updSlider(document.getElementById('gmdSlider'), 'gmdVal', ' kg/dia', 2);
+
+// ── TAGS ─────────────────────────────────────────────────────
+function selTag(btn, group){
+  document.querySelectorAll('#'+group+'Tags .tag-btn, [id$="Tags"] .tag-btn').forEach(function(b){
+    if(b.closest('[id="'+group+'Tags"]')) b.classList.remove('sel');
+  });
+  // Actually just toggle within same parent
+  btn.parentElement.querySelectorAll('.tag-btn').forEach(function(b){ b.classList.remove('sel'); });
+  btn.classList.add('sel');
+  tags[group] = btn.textContent;
+}
+
+// ── NAV ──────────────────────────────────────────────────────
+function nextStep(){
+  if(cur === 0){
+    if(!document.getElementById('nomeProd').value.trim()){
+      alert('Por favor informe seu nome e o da fazenda.');
+      document.getElementById('nomeProd').focus();
+      return;
+    }
+    if(!document.getElementById('sonho').value.trim()){
+      alert('Por favor descreva o grande sonho com a fazenda.');
+      document.getElementById('sonho').focus();
+      return;
+    }
+    if(!document.getElementById('dor').value.trim()){
+      alert('Por favor informe a principal dor hoje.');
+      document.getElementById('dor').focus();
+      return;
+    }
+  }
+  if(cur < total - 1){
+    document.getElementById('step'+cur).classList.remove('active');
+    cur++;
+    if(cur === 4) buildReview();
+    document.getElementById('step'+cur).classList.add('active');
+    updProgress();
+    window.scrollTo({top:0,behavior:'smooth'});
+  }
+}
+
+function prevStep(){
+  if(cur > 0){
+    document.getElementById('step'+cur).classList.remove('active');
+    cur--;
+    document.getElementById('step'+cur).classList.add('active');
+    updProgress();
+    window.scrollTo({top:0,behavior:'smooth'});
+  }
+}
+
+function updProgress(){
+  var pct = (cur / (total-1)) * 100;
+  document.getElementById('progressFill').style.width = pct + '%';
+  document.querySelectorAll('.step-tab').forEach(function(t,i){
+    t.classList.remove('active','done');
+    if(i === cur) t.classList.add('active');
+    else if(i < cur) t.classList.add('done');
+  });
+}
+
+// ── REVIEW ───────────────────────────────────────────────────
+function gv(id){ var e=document.getElementById(id); return e ? e.value : ''; }
+function gRadio(name){ var e=document.querySelector('input[name="'+name+'"]:checked'); return e ? e.value : ''; }
+
+function buildReview(){
+  var sistema = gRadio('sistema') || 'recria_engorda';
+  var sisNome = {cria:'Cria',recria_engorda:'Recria & Engorda',ciclo_completo:'Ciclo Completo'}[sistema]||sistema;
+  var html = '';
+  var sections = [
+    {title:'🌟 Sonho', items:[
+      ['Produtor / Fazenda', gv('nomeProd')],
+      ['Sonho', gv('sonho')],
+      ['Principal dor', gv('dor')],
+      ['Horizonte', gv('horizonte')+' anos'],
+    ]},
+    {title:'🌾 Fazenda', items:[
+      ['Sistema', sisNome],
+      ['Município', gv('municipio')],
+      ['Área Total', gv('areaTotal')+'ha'],
+      ['Área Pastagem', gv('areaProd')+'ha'],
+      ['Manejo', tags['manejo']||'—'],
+    ]},
+    {title:'🐄 Rebanho', items:[
+      ['Total Cabeças', gv('totalCab')],
+      ['Peso Médio', gv('pesoMedio')+'kg'],
+      ['GMD estimado', gv('gmdSlider')+' kg/dia'],
+      ['Mortalidade', tags['mort']||'—'],
+    ]},
+    {title:'💰 Financeiro', items:[
+      ['Faturamento', gv('fat')?'R$'+parseInt(gv('fat')).toLocaleString('pt-BR'):'—'],
+      ['Controle financeiro', tags['controle']||'—'],
+      ['Separa contas', gRadio('separa')||'—'],
+      ['Protocolo sanitário', tags['protocolo']||'—'],
+    ]},
+  ];
+  sections.forEach(function(sec){
+    html += '<div style="background:#fff;border:1px solid var(--bge);border-radius:10px;padding:14px;margin-bottom:12px;">';
+    html += '<div style="font-family:Syne;font-size:11px;font-weight:700;color:var(--v);margin-bottom:10px;">'+sec.title+'</div>';
+    sec.items.forEach(function(item){
+      if(item[1] && item[1] !== 'undefined' && item[1] !== '0' && item[1] !== '0kg'){
+        html += '<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px dashed var(--bge);font-size:11.5px;">';
+        html += '<span style="color:var(--sub);">'+item[0]+'</span>';
+        html += '<span style="font-weight:600;color:var(--tx);max-width:55%;text-align:right;">'+item[1]+'</span></div>';
+      }
+    });
+    html += '</div>';
+  });
+  document.getElementById('reviewContent').innerHTML = html;
+}
+
+// ── ENVIAR ────────────────────────────────────────────────────
+function enviar(){
+  var data = {
+    op: 'add',
+    table: 'levantamentos',
+    data: {
+      id: 'lev_form_' + Date.now(),
+      fazNome: fazendaParam || gv('nomeProd'),
+      nomeProd: gv('nomeProd'),
+      sonho: gv('sonho'),
+      horizonte: gv('horizonte'),
+      dor: gv('dor'),
+      parar: gv('parar'),
+      preocupa: gv('preocupa'),
+      metaSonho: gv('metaSonho'),
+      municipio: gv('municipio'),
+      sistema: gRadio('sistema')||'recria_engorda',
+      raca: gv('raca'),
+      areaTotal: gv('areaTotal'),
+      areaProd: gv('areaProd'),
+      valorHa: gv('valorHa'),
+      piquetes: gv('piquetes'),
+      manejo: tags['manejo']||'',
+      pesagem: tags['pesagem']||'',
+      totalCab: gv('totalCab'),
+      pesoMedio: gv('pesoMedio'),
+      matrizes: gv('matrizes'),
+      touros: gv('touros'),
+      valorCab: gv('valorCab'),
+      lotacao: gv('lotacao'),
+      forrageira: tags['forrageira']||'',
+      gmd: gv('gmdSlider'),
+      mortalidade: tags['mort']||'',
+      fat: gv('fat'),
+      custoOp: gv('custoOp'),
+      arroba: gv('arroba'),
+      margem: gv('margem'),
+      controle: tags['controle']||'',
+      separaConta: gRadio('separa')||'',
+      protocolo: tags['protocolo']||'',
+      obs: gv('obs'),
+      origem: 'formulario_online',
+      criadoEm: new Date().toISOString()
+    }
+  };
+
+  // Tentar enviar para Google Sheets se tiver URL
+  var targetUrl = shUrl || 'https://script.google.com/macros/s/AKfycbw955Yrce0_Je7wUWDvuZmZvp9p0MiiRmaIDEt281hU2M1ydR2BGBHl9fi1FdTK0ilNMA/exec';
+
+  if(targetUrl){
+    fetch(targetUrl, {
+      method:'POST',
+      headers:{'Content-Type':'text/plain'},
+      body: JSON.stringify(data)
+    }).catch(function(){});
+  }
+
+  // Notificação WhatsApp
+  var wppNum = '5563991082453';
+  var msg = '🐄 *NOVO LEVANTAMENTO COMPLETO*\n\n';
+  msg += '👤 *Produtor:* ' + gv('nomeProd') + '\n';
+  msg += '📍 *Município:* ' + gv('municipio') + '\n';
+  msg += '🌾 *Sistema:* ' + (gRadio('sistema')||'—') + '\n';
+  msg += '🌟 *Sonho:* ' + gv('sonho') + '\n';
+  msg += '😟 *Principal dor:* ' + gv('dor') + '\n';
+  msg += '🐄 *Cabeças:* ' + gv('totalCab') + '\n';
+  msg += '📐 *Área total:* ' + gv('areaTotal') + ' ha\n';
+  msg += '💰 *Faturamento:* R$' + (parseInt(gv('fat'))||0).toLocaleString('pt-BR') + '\n';
+  msg += '\n_Levantamento completo enviado pelo link personalizado_';
+  window.open('https://wa.me/' + wppNum + '?text=' + encodeURIComponent(msg), '_blank');
+
+  // Mostrar sucesso
+  document.getElementById('step4').classList.remove('active');
+  document.getElementById('stepSuccess').classList.add('active');
+  document.getElementById('progressFill').style.width = '100%';
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+</script>
+</body>
+</html>

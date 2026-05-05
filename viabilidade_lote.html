@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0">
+<title>Viabilidade de Lote — Rogério Avelino</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet">
+<style>
+:root{--v:#1B4D1B;--vm:#2D7A2D;--vc:#4CAF50;--lm:#76C442;--ol:#F0C84A;--o:#C8A040;--bg:#F7F4EE;--bge:#E8E3D8;--tx:#1A2A1A;--sub:#4A6A4A;--red:#C0392B;--az:#1565C0;}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--tx);min-height:100vh;max-width:520px;margin:0 auto;}
+
+.hero{background:var(--v);padding:28px 20px 36px;position:relative;overflow:hidden;}
+.hero::after{content:'';position:absolute;bottom:-1px;left:0;right:0;height:28px;background:var(--bg);border-radius:28px 28px 0 0;}
+.hero-pattern{position:absolute;inset:0;opacity:.04;background-image:repeating-linear-gradient(45deg,#fff 0,#fff 1px,transparent 0,transparent 50%);background-size:20px 20px;}
+.logo{position:relative;z-index:1;display:flex;align-items:center;gap:10px;margin-bottom:20px;}
+.logo-img{width:38px;height:38px;border-radius:9px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;font-size:18px;}
+.logo-name{font-family:Syne;font-size:11px;font-weight:800;color:var(--ol);}
+.logo-sub{font-size:9px;color:rgba(255,255,255,.4);letter-spacing:1.2px;text-transform:uppercase;}
+.hero-badge{display:inline-flex;align-items:center;gap:5px;background:rgba(240,200,74,.15);border:1px solid rgba(240,200,74,.3);border-radius:20px;padding:4px 12px;font-size:10px;color:var(--ol);font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:12px;position:relative;z-index:1;}
+.hero h1{font-family:Syne;font-size:22px;font-weight:800;color:#fff;line-height:1.25;margin-bottom:6px;position:relative;z-index:1;}
+.hero h1 em{color:var(--ol);font-style:normal;}
+.hero p{font-size:12.5px;color:rgba(255,255,255,.6);line-height:1.6;position:relative;z-index:1;}
+
+.main{padding:16px 14px 40px;}
+
+/* SECTION */
+.section{background:#fff;border-radius:14px;padding:18px 16px;margin-bottom:12px;box-shadow:0 2px 10px rgba(0,0,0,.05);}
+.sec-title{font-family:Syne;font-size:12px;font-weight:800;color:var(--v);text-transform:uppercase;letter-spacing:.8px;margin-bottom:14px;display:flex;align-items:center;gap:7px;}
+.sec-title span{font-size:16px;}
+
+/* GRID */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;}
+
+/* FIELD */
+.fg{margin-bottom:0;}
+.fl{font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:var(--sub);display:block;margin-bottom:5px;}
+.fi-wrap{position:relative;}
+.fi{width:100%;border:1.5px solid var(--bge);border-radius:9px;padding:10px 12px;font-family:'DM Sans';font-size:14px;font-weight:600;color:var(--tx);background:#FAFAFA;outline:none;transition:all .2s;-webkit-appearance:none;}
+.fi:focus{border-color:var(--vc);background:#fff;box-shadow:0 0 0 3px rgba(76,175,80,.1);}
+.fi-prefix{position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:12px;color:var(--sub);font-weight:600;pointer-events:none;}
+.fi.has-prefix{padding-left:28px;}
+.fi-suffix{position:absolute;right:10px;top:50%;transform:translateY(-50%);font-size:11px;color:var(--sub);pointer-events:none;}
+
+/* BTN CALCULAR */
+.btn-calc{width:100%;padding:16px;border-radius:12px;border:none;background:linear-gradient(135deg,var(--vm),var(--v));color:#fff;font-family:Syne;font-size:15px;font-weight:800;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:16px;}
+.btn-calc:active{transform:scale(.98);}
+
+/* RESULTADO */
+.resultado{display:none;}
+.res-header{background:linear-gradient(135deg,var(--vm),var(--v));border-radius:14px;padding:18px;margin-bottom:12px;color:#fff;text-align:center;}
+.res-veredito{font-family:Syne;font-size:20px;font-weight:800;margin-bottom:4px;}
+.res-sub{font-size:12px;opacity:.75;}
+.res-badge{display:inline-block;padding:5px 16px;border-radius:20px;font-family:Syne;font-size:13px;font-weight:800;margin-top:10px;}
+.badge-sim{background:var(--lm);color:var(--v);}
+.badge-cuidado{background:var(--ol);color:#7A5000;}
+.badge-nao{background:var(--red);color:#fff;}
+
+.res-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;}
+.res-card{background:#fff;border-radius:11px;padding:13px 12px;box-shadow:0 1px 6px rgba(0,0,0,.07);}
+.res-card.destaque{background:var(--v);color:#fff;}
+.res-card.alerta{background:#FFF3E0;border:1px solid #FFB74D;}
+.rc-label{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:var(--sub);margin-bottom:4px;}
+.res-card.destaque .rc-label{color:rgba(255,255,255,.6);}
+.res-card.alerta .rc-label{color:#E65100;}
+.rc-val{font-family:Syne;font-size:20px;font-weight:800;color:var(--v);line-height:1;}
+.res-card.destaque .rc-val{color:var(--ol);}
+.res-card.alerta .rc-val{color:#E65100;}
+.rc-sub{font-size:10px;color:var(--sub);margin-top:2px;}
+.res-card.destaque .rc-sub{color:rgba(255,255,255,.6);}
+
+/* BREAKDOWN */
+.breakdown{background:#fff;border-radius:12px;padding:16px;margin-bottom:12px;box-shadow:0 1px 6px rgba(0,0,0,.07);}
+.bk-title{font-family:Syne;font-size:11px;font-weight:700;color:var(--v);margin-bottom:10px;text-transform:uppercase;letter-spacing:.6px;}
+.bk-row{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px dashed var(--bge);font-size:12px;}
+.bk-row:last-child{border-bottom:none;font-weight:700;}
+.bk-label{color:var(--sub);}
+.bk-val{font-weight:600;color:var(--tx);}
+.bk-val.pos{color:var(--vm);}
+.bk-val.neg{color:var(--red);}
+.bk-val.big{font-family:Syne;font-size:14px;}
+
+/* GMD CHART */
+.gmd-chart{background:#fff;border-radius:12px;padding:16px;margin-bottom:12px;box-shadow:0 1px 6px rgba(0,0,0,.07);}
+.gmd-title{font-family:Syne;font-size:11px;font-weight:700;color:var(--v);margin-bottom:12px;text-transform:uppercase;letter-spacing:.6px;}
+.gmd-bar-wrap{margin-bottom:8px;}
+.gmd-bar-label{display:flex;justify-content:space-between;font-size:10px;color:var(--sub);margin-bottom:4px;}
+.gmd-bar-bg{background:var(--bge);border-radius:4px;height:10px;overflow:hidden;}
+.gmd-bar-fill{height:100%;border-radius:4px;transition:width .8s ease;}
+
+/* WPP BTN */
+.btn-wpp{width:100%;padding:15px;border-radius:12px;border:none;background:#25D366;color:#fff;font-family:Syne;font-size:14px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:8px;}
+.btn-novo{width:100%;padding:13px;border-radius:12px;border:1.5px solid var(--bge);background:#fff;color:var(--sub);font-family:Syne;font-size:13px;font-weight:700;cursor:pointer;}
+
+.footer{text-align:center;padding:16px;font-size:10.5px;color:#aaa;}
+.footer strong{color:var(--sub);}
+
+@media(max-width:360px){.g2,.g3{grid-template-columns:1fr;}.res-grid{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="hero-pattern"></div>
+  <div class="logo">
+    <div class="logo-img">🐄</div>
+    <div>
+      <div class="logo-name">ROGÉRIO AVELINO</div>
+      <div class="logo-sub">Gestão Pecuária Lucrativa</div>
+    </div>
+  </div>
+  <div class="hero-badge">🧮 Calculadora Gratuita</div>
+  <h1>Esse lote <em>vai dar resultado?</em></h1>
+  <p>Calcule antes de comprar — GMD necessário, margem real, retorno esperado e tempo de permanência.</p>
+</div>
+
+<div class="main">
+
+  <!-- DADOS DO LOTE -->
+  <div class="section">
+    <div class="sec-title"><span>🐄</span> Dados do Lote</div>
+    <div class="g2" style="gap:10px;margin-bottom:10px;">
+      <div class="fg">
+        <label class="fl">Nº de Animais</label>
+        <div class="fi-wrap">
+          <input class="fi" type="number" id="nCab" placeholder="Ex: 50" oninput="calcLive()">
+        </div>
+      </div>
+      <div class="fg">
+        <label class="fl">Peso Médio Entrada (kg)</label>
+        <div class="fi-wrap">
+          <input class="fi" type="number" id="pesoEnt" placeholder="Ex: 240" oninput="calcLive()">
+          <span class="fi-suffix">kg</span>
+        </div>
+      </div>
+    </div>
+    <div class="g2" style="gap:10px;margin-bottom:10px;">
+      <div class="fg">
+        <label class="fl">Peso Meta de Saída (kg)</label>
+        <div class="fi-wrap">
+          <input class="fi" type="number" id="pesoSai" placeholder="Ex: 420" oninput="calcLive()">
+          <span class="fi-suffix">kg</span>
+        </div>
+      </div>
+      <div class="fg">
+        <label class="fl">Valor de Compra (R$/cab)</label>
+        <div class="fi-wrap">
+          <span class="fi-prefix">R$</span>
+          <input class="fi has-prefix" type="number" id="vlrCompra" placeholder="Ex: 3.200" oninput="calcLive()">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MANEJO -->
+  <div class="section">
+    <div class="sec-title"><span>📊</span> GMD e Manejo</div>
+    <div class="g2" style="gap:10px;margin-bottom:10px;">
+      <div class="fg">
+        <label class="fl">GMD Esperado (kg/dia)</label>
+        <div class="fi-wrap">
+          <input class="fi" type="number" step="0.01" id="gmd" placeholder="Ex: 0.500" oninput="calcLive()">
+          <span class="fi-suffix">kg/d</span>
+        </div>
+      </div>
+      <div class="fg">
+        <label class="fl">Mortalidade (%)</label>
+        <div class="fi-wrap">
+          <input class="fi" type="number" step="0.1" id="mort" placeholder="Ex: 1.5" value="1.5" oninput="calcLive()">
+          <span class="fi-suffix">%</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CUSTOS -->
+  <div class="section">
+    <div class="sec-title"><span>💰</span> Custos Operacionais (por cabeça/dia)</div>
+    <div class="g2" style="gap:10px;margin-bottom:10px;">
+      <div class="fg">
+        <label class="fl">Suplemento (R$/cab/dia)</label>
+        <div class="fi-wrap">
+          <span class="fi-prefix">R$</span>
+          <input class="fi has-prefix" type="number" step="0.01" id="suplem" placeholder="Ex: 1.20" oninput="calcLive()">
+        </div>
+      </div>
+      <div class="fg">
+        <label class="fl">Pasto/Arrendamento (R$/cab/dia)</label>
+        <div class="fi-wrap">
+          <span class="fi-prefix">R$</span>
+          <input class="fi has-prefix" type="number" step="0.01" id="pasto" placeholder="Ex: 0.80" oninput="calcLive()">
+        </div>
+      </div>
+    </div>
+    <div class="g2" style="gap:10px;margin-bottom:10px;">
+      <div class="fg">
+        <label class="fl">Sanidade (R$/cab/dia)</label>
+        <div class="fi-wrap">
+          <span class="fi-prefix">R$</span>
+          <input class="fi has-prefix" type="number" step="0.01" id="sanidade" placeholder="Ex: 0.30" oninput="calcLive()">
+        </div>
+      </div>
+      <div class="fg">
+        <label class="fl">Outros (mão de obra etc.)</label>
+        <div class="fi-wrap">
+          <span class="fi-prefix">R$</span>
+          <input class="fi has-prefix" type="number" step="0.01" id="outros" placeholder="Ex: 0.50" oninput="calcLive()">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- VENDA -->
+  <div class="section">
+    <div class="sec-title"><span>🤝</span> Venda</div>
+    <div class="g2" style="gap:10px;">
+      <div class="fg">
+        <label class="fl">Valor da Arroba (R$/@)</label>
+        <div class="fi-wrap">
+          <span class="fi-prefix">R$</span>
+          <input class="fi has-prefix" type="number" id="vlrArr" placeholder="Ex: 310" oninput="calcLive()">
+        </div>
+      </div>
+      <div class="fg">
+        <label class="fl">Rendimento de Carcaça (%)</label>
+        <div class="fi-wrap">
+          <input class="fi" type="number" id="rend" placeholder="Ex: 52" value="52" oninput="calcLive()">
+          <span class="fi-suffix">%</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <button class="btn-calc" onclick="calcular()">
+    <span>🧮</span> Calcular Viabilidade
+  </button>
+
+  <!-- RESULTADO -->
+  <div class="resultado" id="resultado">
+
+    <div class="res-header" id="resHeader">
+      <div class="res-veredito" id="resVeredito">—</div>
+      <div class="res-sub" id="resSub">—</div>
+      <div class="res-badge" id="resBadge">—</div>
+    </div>
+
+    <div class="res-grid">
+      <div class="res-card destaque">
+        <div class="rc-label">Lucro por Cabeça</div>
+        <div class="rc-val" id="rLucroCab">—</div>
+        <div class="rc-sub">resultado líquido</div>
+      </div>
+      <div class="res-card destaque">
+        <div class="rc-label">Lucro Total do Lote</div>
+        <div class="rc-val" id="rLucroTotal">—</div>
+        <div class="rc-sub">resultado líquido</div>
+      </div>
+      <div class="res-card">
+        <div class="rc-label">Tempo de Permanência</div>
+        <div class="rc-val" id="rDias">—</div>
+        <div class="rc-sub" id="rMeses">—</div>
+      </div>
+      <div class="res-card">
+        <div class="rc-label">Receita por Cabeça</div>
+        <div class="rc-val" id="rReceita">—</div>
+        <div class="rc-sub">na venda</div>
+      </div>
+      <div class="res-card">
+        <div class="rc-label">Custo Total/Cab</div>
+        <div class="rc-val" id="rCustoTotal">—</div>
+        <div class="rc-sub">compra + operacional</div>
+      </div>
+      <div class="res-card">
+        <div class="rc-label">Margem sobre Venda</div>
+        <div class="rc-val" id="rMargem">—</div>
+        <div class="rc-sub">meta: 30%+</div>
+      </div>
+      <div class="res-card">
+        <div class="rc-label">Custo Operacional/Cab</div>
+        <div class="rc-val" id="rCustoOp">—</div>
+        <div class="rc-sub">sem compra</div>
+      </div>
+      <div class="res-card">
+        <div class="rc-label">ROI do Lote</div>
+        <div class="rc-val" id="rRoi">—</div>
+        <div class="rc-sub">retorno sobre investimento</div>
+      </div>
+    </div>
+
+    <!-- GMD ANÁLISE -->
+    <div class="gmd-chart">
+      <div class="gmd-title">📊 Análise de GMD — Benchmarks Inttegra</div>
+      <div class="gmd-bar-wrap">
+        <div class="gmd-bar-label"><span>Seu GMD</span><span id="bGmdSeu">—</span></div>
+        <div class="gmd-bar-bg"><div class="gmd-bar-fill" id="bGmdSeuBar" style="background:var(--az);width:0%"></div></div>
+      </div>
+      <div class="gmd-bar-wrap">
+        <div class="gmd-bar-label"><span>Média Inttegra</span><span>0,403 kg/dia</span></div>
+        <div class="gmd-bar-bg"><div class="gmd-bar-fill" style="background:var(--ol);width:50%"></div></div>
+      </div>
+      <div class="gmd-bar-wrap">
+        <div class="gmd-bar-label"><span>Top 30% Inttegra</span><span>0,668 kg/dia</span></div>
+        <div class="gmd-bar-bg"><div class="gmd-bar-fill" style="background:var(--lm);width:83%"></div></div>
+      </div>
+      <div id="gmdAnalise" style="margin-top:10px;font-size:11.5px;color:var(--sub);line-height:1.6;"></div>
+    </div>
+
+    <!-- BREAKDOWN -->
+    <div class="breakdown">
+      <div class="bk-title">📋 Detalhamento por Cabeça</div>
+      <div class="bk-row"><span class="bk-label">Valor de compra</span><span class="bk-val neg" id="bCompra">—</span></div>
+      <div class="bk-row"><span class="bk-label">Custo suplemento</span><span class="bk-val neg" id="bSuplem">—</span></div>
+      <div class="bk-row"><span class="bk-label">Custo pasto/arrend.</span><span class="bk-val neg" id="bPasto">—</span></div>
+      <div class="bk-row"><span class="bk-label">Custo sanidade</span><span class="bk-val neg" id="bSanidade">—</span></div>
+      <div class="bk-row"><span class="bk-label">Outros custos</span><span class="bk-val neg" id="bOutros">—</span></div>
+      <div class="bk-row"><span class="bk-label">Receita venda</span><span class="bk-val pos" id="bReceita2">—</span></div>
+      <div class="bk-row" style="border-top:2px solid var(--bge);padding-top:8px;margin-top:4px;">
+        <span class="bk-label" style="font-weight:700;color:var(--tx);">Lucro líquido</span>
+        <span class="bk-val big" id="bLucro">—</span>
+      </div>
+    </div>
+
+    <!-- WHATSAPP -->
+    <button class="btn-wpp" onclick="enviarWpp()">
+      <span>💬</span> Enviar resultado para Rogério
+    </button>
+    <button class="btn-novo" onclick="novoCalculo()">🔄 Novo cálculo</button>
+  </div>
+
+</div><!-- /main -->
+
+<div class="footer">
+  <strong>Rogério Avelino</strong> · Gestão Pecuária Lucrativa<br>
+  Benchmarks: Instituto Inttegra · Antonio Chaker · 637 fazendas
+</div>
+
+<script>
+var resultado = {};
+
+function fmtR(v){ return 'R$'+(Math.round(v)).toLocaleString('pt-BR'); }
+function fmtP(v){ return v.toFixed(1)+'%'; }
+function gv(id){ var e=document.getElementById(id); return e ? parseFloat(e.value)||0 : 0; }
+
+function calcular(){
+  var nCab    = gv('nCab')||1;
+  var pesoEnt = gv('pesoEnt');
+  var pesoSai = gv('pesoSai');
+  var vlrComp = gv('vlrCompra');
+  var gmd     = gv('gmd');
+  var mort    = gv('mort')/100;
+  var suplem  = gv('suplem');
+  var pasto   = gv('pasto');
+  var sanid   = gv('sanidade');
+  var outros  = gv('outros');
+  var vlrArr  = gv('vlrArr');
+  var rend    = gv('rend')/100 || 0.52;
+
+  if(!pesoEnt||!pesoSai||!vlrComp||!gmd||!vlrArr){
+    alert('Preencha pelo menos: animais, pesos, valor de compra, GMD e valor da arroba.');
+    return;
+  }
+
+  // Tempo
+  var ganho = pesoSai - pesoEnt;
+  var dias  = Math.round(ganho / gmd);
+  var meses = (dias/30).toFixed(1);
+
+  // Custo operacional total por cab
+  var custoDia = suplem + pasto + sanid + outros;
+  var custoOp  = custoDia * dias;
+
+  // Receita (arroba @ = 15kg)
+  var pesoCarc = pesoSai * rend;
+  var arrobas  = pesoCarc / 15;
+  var receita  = arrobas * vlrArr;
+
+  // Mortalidade — desconta % das cabeças na receita
+  var receitaLiq = receita * (1 - mort);
+
+  // Custo total
+  var custoTotal = vlrComp + custoOp;
+
+  // Lucro por cab
+  var lucro = receitaLiq - custoTotal;
+  var lucroTotal = lucro * nCab;
+
+  // Margem
+  var margem = receita > 0 ? (lucro / receita) * 100 : 0;
+
+  // ROI
+  var roi = vlrComp > 0 ? (lucro / vlrComp) * 100 : 0;
+
+  // Salvar
+  resultado = {nCab,pesoEnt,pesoSai,vlrComp,gmd,mort,custoOp,receita:receitaLiq,custoTotal,lucro,lucroTotal,margem,roi,dias,meses,suplem,pasto,sanid,outros,custoDia,vlrArr,arrobas};
+
+  // Renderizar
+  document.getElementById('rLucroCab').textContent   = fmtR(lucro);
+  document.getElementById('rLucroTotal').textContent  = fmtR(lucroTotal);
+  document.getElementById('rDias').textContent        = dias+' dias';
+  document.getElementById('rMeses').textContent       = meses+' meses';
+  document.getElementById('rReceita').textContent     = fmtR(receitaLiq);
+  document.getElementById('rCustoTotal').textContent  = fmtR(custoTotal);
+  document.getElementById('rMargem').textContent      = fmtP(margem);
+  document.getElementById('rCustoOp').textContent     = fmtR(custoOp);
+  document.getElementById('rRoi').textContent         = fmtP(roi);
+
+  // Breakdown
+  document.getElementById('bCompra').textContent    = '- '+fmtR(vlrComp);
+  document.getElementById('bSuplem').textContent    = '- '+fmtR(suplem*dias);
+  document.getElementById('bPasto').textContent     = '- '+fmtR(pasto*dias);
+  document.getElementById('bSanidade').textContent  = '- '+fmtR(sanid*dias);
+  document.getElementById('bOutros').textContent    = '- '+fmtR(outros*dias);
+  document.getElementById('bReceita2').textContent  = '+ '+fmtR(receitaLiq);
+  var bLucroEl = document.getElementById('bLucro');
+  bLucroEl.textContent = (lucro>=0?'+ ':'')+fmtR(lucro);
+  bLucroEl.className = 'bk-val big '+(lucro>=0?'pos':'neg');
+
+  // GMD chart
+  var maxGmd = 0.8;
+  var pct = Math.min((gmd/maxGmd)*100, 100);
+  document.getElementById('bGmdSeu').textContent = gmd.toFixed(3)+' kg/dia';
+  document.getElementById('bGmdSeuBar').style.width = pct+'%';
+  document.getElementById('bGmdSeuBar').style.background = gmd>=0.668?'var(--lm)':gmd>=0.403?'var(--ol)':'var(--red)';
+
+  var gmdMsg = '';
+  if(gmd >= 0.668) gmdMsg = '🟢 GMD acima do Top 30% Inttegra! Performance excelente.';
+  else if(gmd >= 0.403) gmdMsg = '🟡 GMD na média Inttegra. Há espaço para melhorar até o Top 30% (0,668 kg/dia).';
+  else gmdMsg = '🔴 GMD abaixo da média Inttegra (0,403 kg/dia). Revisar suplementação e manejo de pastagem.';
+  document.getElementById('gmdAnalise').textContent = gmdMsg;
+
+  // Veredito
+  var veredito, vsub, vbadge, vbadgeClass;
+  if(lucro > 0 && margem >= 20){
+    veredito = '✅ Lote Viável!';
+    vsub = margem >= 30 ? 'Margem acima de 30% — excelente resultado.' : 'Margem positiva — vale a pena, mas há espaço para melhorar.';
+    vbadge = '💰 COMPRA RECOMENDADA';
+    vbadgeClass = 'badge-sim';
+  } else if(lucro > 0 && margem < 20){
+    veredito = '⚠️ Margem Apertada';
+    vsub = 'Lucro positivo mas margem abaixo de 20%. Negocie melhor o preço de compra ou melhore o GMD.';
+    vbadge = '⚠️ ATENÇÃO — MARGEM BAIXA';
+    vbadgeClass = 'badge-cuidado';
+  } else {
+    veredito = '❌ Lote Inviável';
+    vsub = 'Com esses números o lote gera prejuízo. Renegocie o preço, reveja custos ou aguarde melhor oportunidade.';
+    vbadge = '🚫 NÃO RECOMENDADO';
+    vbadgeClass = 'badge-nao';
+  }
+  document.getElementById('resVeredito').textContent = veredito;
+  document.getElementById('resSub').textContent = vsub;
+  var badge = document.getElementById('resBadge');
+  badge.textContent = vbadge;
+  badge.className = 'res-badge '+vbadgeClass;
+
+  // Mostrar
+  document.getElementById('resultado').style.display = 'block';
+  setTimeout(function(){ document.getElementById('resultado').scrollIntoView({behavior:'smooth',block:'start'}); }, 100);
+}
+
+function calcLive(){ /* placeholder for future live calc */ }
+
+function enviarWpp(){
+  var r = resultado;
+  if(!r.lucro && r.lucro !== 0){ alert('Calcule primeiro!'); return; }
+  var msg = '🐄 *VIABILIDADE DE LOTE — ROGÉRIO AVELINO*\n\n';
+  msg += '📋 *Resumo do Cálculo:*\n';
+  msg += '• Animais: ' + r.nCab + ' cabeças\n';
+  msg += '• Entrada: ' + r.pesoEnt + 'kg → Saída: ' + r.pesoSai + 'kg\n';
+  msg += '• GMD: ' + r.gmd.toFixed(3) + ' kg/dia\n';
+  msg += '• Permanência: ' + r.dias + ' dias (' + r.meses + ' meses)\n\n';
+  msg += '💰 *Resultado por Cabeça:*\n';
+  msg += '• Custo total: ' + fmtR(r.custoTotal) + '\n';
+  msg += '• Receita: ' + fmtR(r.receita) + '\n';
+  msg += '• Lucro/cab: ' + fmtR(r.lucro) + '\n';
+  msg += '• Lucro total: ' + fmtR(r.lucroTotal) + '\n';
+  msg += '• Margem: ' + fmtP(r.margem) + '\n';
+  msg += '• ROI: ' + fmtP(r.roi) + '\n\n';
+  msg += r.lucro >= 0 ? '✅ *Lote viável!*' : '❌ *Lote inviável com esses números.*';
+  msg += '\n\n_Calculado pelo sistema Rogério Avelino_';
+  window.open('https://wa.me/5563991082453?text='+encodeURIComponent(msg), '_blank');
+}
+
+function novoCalculo(){
+  document.getElementById('resultado').style.display = 'none';
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+</script>
+</body>
+</html>

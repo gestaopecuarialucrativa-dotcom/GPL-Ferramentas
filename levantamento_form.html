@@ -131,13 +131,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--tx);min-h
     <div class="hero-badge">📋 Levantamento Inicial</div>
     <h1>Vamos entender<br>o <span>sonho da sua fazenda</span></h1>
     <p>Responda com calma — suas respostas são a base do diagnóstico técnico personalizado.</p>
-    <div class="hero-farm" id="heroFarm" style="display:none">
-      <div class="farm-icon">🌾</div>
-      <div>
-        <div class="farm-label">Propriedade</div>
-        <div class="farm-name" id="heroFarmName"></div>
-      </div>
-    </div>
+
   </div>
   <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
   <div class="steps-nav">
@@ -449,14 +443,7 @@ var fazendaParam = params.get('fazenda') || '';
 var proprietarioParam = params.get('prop') || '';
 var shUrl = params.get('sh') || '';
 
-// Pre-fill fazenda
-if(fazendaParam){
-  document.getElementById('heroFarm').style.display = 'flex';
-  document.getElementById('heroFarmName').textContent = fazendaParam;
-  // Pre-fill nome field with only fazenda name
-  var nomeFld = document.getElementById('nomeProd');
-  nomeFld.value = fazendaParam;
-}
+
 
 // ── STATE ────────────────────────────────────────────────────
 var cur = 0;

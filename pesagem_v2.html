@@ -316,7 +316,7 @@ tbody td{padding:11px 14px;font-size:13px;color:var(--g2)}
     <div class="tb-sync"><div class="sync-dot" id="syncDot"></div><span id="syncTxt">Carregando...</span></div>
     <button class="tb-btn" onclick="sincronizar()" title="Sincronizar com Google Sheets">⟳ Sync</button>
     <button class="tb-btn primary" id="btnBT" onclick="conectarBT()">🔵 Bluetooth</button>
-    <a href="hub.html" class="tb-btn">← Início</a>
+    <a href="index.html" class="tb-btn">← Início</a>
   </div>
 </div>
 
@@ -617,7 +617,7 @@ function loadDB() {
   DB.pesagens  = LS.g('pesagens')||[];
   DB.protoDia  = LS.g('protoDia')||{modo:'todos', medicamentos:[]};
   DB.syncQ     = LS.g('syncQ')||[];
-  DB.shUrl     = LS.g('shUrl')||'https://script.google.com/macros/s/AKfycbw955Yrce0_Je7wUWDvuZmZvp9p0MiiRmaIDEt281hU2M1ydR2BGBHl9fi1FdTK0ilNMA/exec';
+  DB.shUrl     = LS.g('shUrl')||'https://script.google.com/macros/s/AKfycby2BBCLhLzVlWDy2JeudfSs-iBL8dvMIoNtCYQsk7oqJigvlk2Q_T9ZCNCc0CqRGAVtyw/exec';
   DB.online    = navigator.onLine;
   DB.btDevice  = null;
   DB.btChar    = null;

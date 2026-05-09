@@ -476,8 +476,14 @@ tbody td{padding:11px 14px;font-size:13px;color:var(--g2)}
 
 <!-- PAGE: RELATÓRIOS -->
 <div class="page" id="page-relatorios">
-  <div id="relFazAtiva" style="margin-top:16px;margin-bottom:0;display:none;padding:10px 16px;background:var(--vl);border-radius:8px;border:1px solid #c8e6b0;font-size:13px;color:var(--v2);font-weight:600"></div>
-  <div class="rel-grid" style="margin-top:12px">
+  <div style="margin-top:16px;margin-bottom:12px;background:var(--w);border-radius:var(--r);padding:14px 18px;border:1px solid var(--g6);box-shadow:var(--sh);display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+    <span class="fil-label">🏡 Fazenda:</span>
+    <select class="fil-sel" id="relFazFil" onchange="atualizarFazRel()" style="min-width:200px">
+      <option value="">Todas as fazendas</option>
+    </select>
+    <span id="relFazInfo" style="font-size:12px;color:var(--g4)"></span>
+  </div>
+  <div class="rel-grid" style="margin-top:0">
     <div class="rel-card" onclick="gerarRel('dia')">
       <span class="rel-icone">📅</span>
       <div class="rel-nome">Relatório do Dia</div>
@@ -706,19 +712,21 @@ function irTab(tab){
     ge('selFazendaDiv').style.display='none';
     ge('selAnimalDiv').style.display='none';
     ge('relOutput').style.display='none';
-    // Mostra fazenda ativa
-    var fa=ge('relFazAtiva');
-    var fazNomeAtiva=gv('pFazFil');
-    if(fa){
-      if(fazNomeAtiva){
-        var fnObj=(DB.fazendas||[]).find(function(f){return f.id===fazNomeAtiva;});
-        fa.textContent='🏡 Filtrando por: '+(fnObj?fnObj.nome:fazNomeAtiva);
-        fa.style.display='block';
-      } else {
-        fa.textContent='📊 Mostrando todas as fazendas';
-        fa.style.display='block';
-      }
+    // Popula select de fazenda nos relatórios
+    var selRF = ge('relFazFil');
+    if(selRF){
+      var curVal = selRF.value;
+      selRF.innerHTML='<option value="">Todas as fazendas</option>';
+      (DB.fazendas||[]).forEach(function(f){
+        var o=document.createElement('option');
+        o.value=f.id; o.textContent=f.nome; selRF.appendChild(o);
+      });
+      // Sincroniza com filtro da aba pesagem
+      var fazPes = gv('pFazFil');
+      if(fazPes) selRF.value=fazPes;
+      else if(curVal) selRF.value=curVal;
     }
+    atualizarFazRel();
   }
 }
 
@@ -1113,8 +1121,19 @@ function toggleLote(id){
 // ══════════════════════════════════════════════════════════════
 var _relAtual = null;
 
+function atualizarFazRel(){
+  var fazId = gv('relFazFil');
+  var info = ge('relFazInfo');
+  if(info){
+    var total = (DB.pesagens||[]).filter(function(p){return !fazId||p.fazId===fazId;}).length;
+    info.textContent = total + ' pesagens';
+  }
+  // Fecha relatório aberto para forçar regenerar
+  if(ge('relOutput')) ge('relOutput').style.display='none';
+}
+
 function gerarRelFazenda(){
-  var fazId = gv('relFazSelect');
+  var fazId = gv('relFazFil') || gv('relFazSelect');
   var peses = (DB.pesagens||[]).filter(function(p){ return !fazId||p.fazId===fazId; });
   var fazNome = fazId ? ((DB.fazendas||[]).find(function(f){return f.id===fazId;})||{}).nome||fazId : 'Todas as Fazendas';
   ge('relTitulo').textContent = '🏡 ' + fazNome;
@@ -1128,8 +1147,8 @@ function gerarRel(tipo){
   ge('selFazendaDiv').style.display = tipo==='fazenda' ? 'block' : 'none';
   if(tipo==='animal'||tipo==='fazenda') return;
   _relAtual = tipo;
-  // Aplica filtro de fazenda selecionada
-  var fazFilRel = gv('pFazFil');
+  // Aplica filtro de fazenda do seletor próprio de relatórios
+  var fazFilRel = gv('relFazFil') || gv('pFazFil');
   var peses = (DB.pesagens||[]).filter(function(p){
     return !fazFilRel || p.fazId===fazFilRel;
   });
@@ -1174,7 +1193,7 @@ function gerarRel(tipo){
 function gerarRelAnimal(){
   var num = gv('relAnimalNum').trim();
   if(!num){toast('Informe o número do animal','warn');return;}
-  var fazFilAn = gv('pFazFil');
+  var fazFilAn = gv('relFazFil') || gv('pFazFil');
   var peses=(DB.pesagens||[]).filter(function(p){
     return String(p.num)===String(num) && (!fazFilAn||p.fazId===fazFilAn);
   }).sort(function(a,b){return a.data.localeCompare(b.data);});

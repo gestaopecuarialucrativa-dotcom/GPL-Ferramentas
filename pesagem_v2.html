@@ -508,6 +508,17 @@ tbody td{padding:11px 14px;font-size:13px;color:var(--g2)}
     </div>
   </div>
 
+  <!-- Seletor fazenda para relatório -->
+  <div id="selFazendaDiv" style="display:none;margin-bottom:16px;background:var(--w);border-radius:var(--r);padding:18px;border:1px solid var(--g6)">
+    <div style="font-family:Syne,sans-serif;font-size:13px;font-weight:800;color:var(--v2);margin-bottom:10px">Selecione a Fazenda</div>
+    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+      <select class="fil-sel" id="relFazSelect" style="min-width:200px">
+        <option value="">Todas as fazendas</option>
+      </select>
+      <button class="btn-salvar" style="max-width:160px;height:40px;font-size:13px" onclick="gerarRelFazenda()">Gerar</button>
+    </div>
+  </div>
+
   <!-- Seletor animal individual -->
   <div id="selAnimalDiv" style="display:none;margin-bottom:16px;background:var(--w);border-radius:var(--r);padding:18px;border:1px solid var(--g6)">
     <div style="font-family:Syne,sans-serif;font-size:13px;font-weight:800;color:var(--v2);margin-bottom:10px">Nº do Animal</div>
@@ -681,6 +692,20 @@ function irTab(tab){
   ge('tab-'+tab).classList.add('at');
   if(tab==='pesagem') renderPes();
   if(tab==='lotes') renderLotes();
+  if(tab==='relatorios'){
+    // Popula select de fazenda
+    var sel=ge('relFazSelect');
+    if(sel){
+      sel.innerHTML='<option value="">Todas as fazendas</option>';
+      (DB.fazendas||[]).forEach(function(f){
+        var o=document.createElement('option');
+        o.value=f.id;o.textContent=f.nome;sel.appendChild(o);
+      });
+    }
+    ge('selFazendaDiv').style.display='none';
+    ge('selAnimalDiv').style.display='none';
+    ge('relOutput').style.display='none';
+  }
 }
 
 // ══════════════════════════════════════════════════════════════
@@ -988,8 +1013,11 @@ function deletarPes(id){
 // LOTES
 // ══════════════════════════════════════════════════════════════
 function renderLotes(){
+  var fazId = gv('pFazFil');
   var lotes={};
-  (DB.pesagens||[]).forEach(function(p){
+  (DB.pesagens||[]).filter(function(p){
+    return !fazId || p.fazId===fazId;
+  }).forEach(function(p){
     var k=String(p.lote||'sem lote');
     if(!lotes[k]) lotes[k]={lote:k,animais:[],datas:[]};
     lotes[k].animais.push(p);
@@ -1056,9 +1084,20 @@ function toggleLote(id){
 // ══════════════════════════════════════════════════════════════
 var _relAtual = null;
 
+function gerarRelFazenda(){
+  var fazId = gv('relFazSelect');
+  var peses = (DB.pesagens||[]).filter(function(p){ return !fazId||p.fazId===fazId; });
+  var fazNome = fazId ? ((DB.fazendas||[]).find(function(f){return f.id===fazId;})||{}).nome||fazId : 'Todas as Fazendas';
+  ge('relTitulo').textContent = '🏡 ' + fazNome;
+  ge('relBody').innerHTML = buildRelFazenda(peses);
+  ge('relOutput').style.display='block';
+  ge('relOutput').scrollIntoView({behavior:'smooth'});
+}
+
 function gerarRel(tipo){
   ge('selAnimalDiv').style.display = tipo==='animal' ? 'block' : 'none';
-  if(tipo==='animal') return;
+  ge('selFazendaDiv').style.display = tipo==='fazenda' ? 'block' : 'none';
+  if(tipo==='animal'||tipo==='fazenda') return;
   _relAtual = tipo;
   var peses = DB.pesagens||[];
   var titulo='', corpo='';
@@ -1074,7 +1113,10 @@ function gerarRel(tipo){
   }
   else if(tipo==='fazenda'){
     titulo = '🏡 Relatório por Fazenda';
-    corpo = buildRelFazenda(peses);
+    // Mostra seletor de fazenda
+    ge('selFazendaDiv').style.display='block';
+    ge('relOutput').style.display='none';
+    return;
   }
   else if(tipo==='protocolo'){
     titulo = '💉 Protocolo Sanitário';

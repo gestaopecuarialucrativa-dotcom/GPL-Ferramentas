@@ -764,7 +764,8 @@ function calcGmdLive(){
   if(!num){ ge('animalInfo').style.display='none'; return; }
 
   var ult = (DB.pesagens||[]).filter(function(x){
-    return String(x.num)===String(num) && x.fazId===fazId && x.data < dataAtual;
+    var mesmaFaz = !fazId || x.fazId===fazId;
+    return String(x.num)===String(num) && mesmaFaz && x.data < dataAtual;
   }).sort(function(a,b){return b.data.localeCompare(a.data);})[0];
 
   if(!ult){ ge('animalInfo').style.display='none'; return; }
@@ -795,7 +796,7 @@ function savPesagem(){
   var peso = parseFloat(gv('pPeso'));
   var lote = parseInt(gv('pLote'))||1;
   var data = gv('pData')||hoje();
-  var fazId= gv('pFazFil')||((DB.fazendas||[])[0]||{}).id||'f001';
+  var fazId= gv('pFazFil')||((DB.fazendas||[])[0]||{}).id||'';
 
   if (!num){toast('⚠️ Informe o número do animal!','warn');ge('pNum').focus();return;}
   if (!peso||peso<=0){toast('⚠️ Informe o peso!','warn');ge('pPeso').focus();return;}
@@ -1345,7 +1346,8 @@ function importarBackup(e){
       if(data.pesagens){
         data.pesagens.forEach(function(p){lw('pesagens','upd',p);});
       }
-      toast('✅ '+(data.pesagens||[]).length+' pesagens importadas','ok');
+      popFazendas();
+      toast('✅ '+(data.fazendas||[]).length+' fazendas e '+(data.pesagens||[]).length+' pesagens importadas!','ok');
       renderPes(); renderLotes();
     }catch(err){toast('Erro ao importar: '+err.message,'err');}
   };
@@ -1409,6 +1411,21 @@ function limparFiltros(){
 // ══════════════════════════════════════════════════════════════
 // INIT
 // ══════════════════════════════════════════════════════════════
+function popFazendas(){
+  var sel=ge('pFazFil');
+  if(!sel) return;
+  var val=sel.value;
+  sel.innerHTML='<option value="">Todas as fazendas</option>';
+  (DB.fazendas||[]).forEach(function(f){
+    var opt=document.createElement('option');
+    opt.value=f.id; opt.textContent=f.nome;
+    sel.appendChild(opt);
+  });
+  // Auto-seleciona se tiver só uma fazenda
+  if((DB.fazendas||[]).length===1) sel.value=DB.fazendas[0].id;
+  else if(val) sel.value=val;
+}
+
 window.addEventListener('online',function(){DB.online=true;updSt();setTimeout(trySync,500);});
 window.addEventListener('offline',function(){DB.online=false;updSt();});
 
@@ -1422,12 +1439,7 @@ window.onload=function(){
   ge('dtHoje').textContent=dias[dt.getDay()]+', '+dt.getDate()+' de '+meses[dt.getMonth()]+' de '+dt.getFullYear();
 
   // Preenche fazendas no select
-  var sel=ge('pFazFil');
-  (DB.fazendas||[]).forEach(function(f){
-    var opt=document.createElement('option');
-    opt.value=f.id; opt.textContent=f.nome;
-    sel.appendChild(opt);
-  });
+  popFazendas();
 
   // Data default = hoje
   sv2('pData', hoje());

@@ -642,17 +642,11 @@ function lw(tbl, op, rec) {
   else if (op==='upd') { var i=DB[tbl].findIndex(function(r){return r.id===rec.id;}); if(i>=0)DB[tbl][i]=rec; else DB[tbl].push(rec); }
   else if (op==='del') DB[tbl]=DB[tbl].filter(function(r){return r.id!==rec.id;});
   sv(tbl);
-  // Adiciona à fila de sync
-  var payload = { acao: op==='del'?'delete':'sync' };
-  if (op==='del') payload.id = rec.id;
-  else if (tbl==='pesagens') {
-    payload.pesagens = [rec];
-    payload.fazendas = DB.fazendas;
-  }
-  DB.syncQ.push({payload:payload, ts:Date.now()});
+  // Marca pendente sem disparar sync automático
+  DB.syncQ.push({ts:Date.now()});
+  if(DB.syncQ.length > 500) DB.syncQ = DB.syncQ.slice(-100); // limita fila
   sv('syncQ');
   updSt();
-  if (DB.online) setTimeout(trySync, 300);
 }
 
 // ══════════════════════════════════════════════════════════════
@@ -1315,45 +1309,56 @@ function downloadCSV(rows, nome){
 // SYNC / SHEETS
 // ══════════════════════════════════════════════════════════════
 function sincronizar(){
-  if(!DB.online){toast('Sem internet. Dados salvos localmente.','warn');return;}
+  if(!DB.online){toast('📶 Sem internet. Dados salvos localmente.','warn');return;}
   if(!DB.shUrl){toast('Configure a URL do Google Sheets primeiro','warn');irTab('config');return;}
   enviarTudo();
 }
 
-function trySync(){
-  if(!DB.shUrl||!DB.online) return;
-  // Envia tudo de uma vez
-  enviarTudo();
-}
+function trySync(){ /* desativado — use o botão Sync manual */ }
 
+var _syncando = false;
 function enviarTudo(){
+  if(_syncando){toast('⏳ Aguarde, já está enviando...','warn');return;}
   if(!DB.shUrl){toast('Configure a URL primeiro','warn');irTab('config');return;}
-  if(!DB.online){toast('Sem internet. Dados salvos localmente.','warn');return;}
+  if(!DB.online){toast('📶 Sem internet. Dados salvos localmente.','warn');return;}
+  _syncando = true;
   var dot=ge('syncDot'),txt=ge('syncTxt');
   if(dot) dot.className='sync-dot syncing';
   if(txt) txt.textContent='Enviando...';
-  toast('📤 Enviando dados para o Google Sheets...','');
-  var payload={ acao:'sync', fazendas:DB.fazendas||[], pesagens:DB.pesagens||[] };
-  fetch(DB.shUrl,{method:'POST',redirect:'follow',headers:{'Content-Type':'text/plain'},body:JSON.stringify(payload)})
-    .then(function(r){return r.json();})
-    .then(function(d){
-      if(d.ok){
-        DB.syncQ=[];
-        sv('syncQ');
-        if(dot) dot.className='sync-dot online';
-        if(txt) txt.textContent='Sincronizado ✓';
-        toast('✅ '+d.pesagens+' pesagens e '+d.fazendas+' fazendas enviadas!','ok');
-      } else {
-        if(dot) dot.className='sync-dot';
-        if(txt) txt.textContent='Erro na sync';
-        toast('Erro: '+(d.erro||'resposta inválida'),'err');
-      }
-    })
-    .catch(function(e){
+  toast('📤 Enviando para o Google Sheets...','');
+  var payload={
+    acao:'sync',
+    fazendas: DB.fazendas||[],
+    pesagens: DB.pesagens||[]
+  };
+  fetch(DB.shUrl,{
+    method:'POST',
+    redirect:'follow',
+    headers:{'Content-Type':'text/plain'},
+    body:JSON.stringify(payload)
+  })
+  .then(function(r){return r.json();})
+  .then(function(d){
+    _syncando=false;
+    if(d.ok){
+      DB.syncQ=[];
+      sv('syncQ');
+      if(dot) dot.className='sync-dot online';
+      if(txt) txt.textContent='Sincronizado ✓';
+      updSt();
+      toast('✅ '+d.pesagens+' pesagens · '+d.fazendas+' fazendas enviadas!','ok');
+    } else {
       if(dot) dot.className='sync-dot';
-      if(txt) txt.textContent='Erro de conexão';
-      toast('Erro de conexão com o Sheets','err');
-    });
+      if(txt) txt.textContent='Erro na sync';
+      toast('Erro Sheets: '+(d.erro||'resposta inválida'),'err');
+    }
+  })
+  .catch(function(e){
+    _syncando=false;
+    if(dot) dot.className='sync-dot';
+    if(txt) txt.textContent='Erro de conexão';
+    toast('Sem conexão com o Sheets. Dados salvos localmente.','warn');
+  });
 }
 
 function salvarUrl(){
@@ -1477,7 +1482,7 @@ function popFazendas(){
   else if(val) sel.value=val;
 }
 
-window.addEventListener('online',function(){DB.online=true;updSt();setTimeout(trySync,500);});
+window.addEventListener('online',function(){DB.online=true;updSt();});
 window.addEventListener('offline',function(){DB.online=false;updSt();});
 
 window.onload=function(){

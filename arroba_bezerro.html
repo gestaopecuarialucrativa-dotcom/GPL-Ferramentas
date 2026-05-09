@@ -1,0 +1,921 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Calculadora da Arroba do Bezerro | Gestão Lucrativa</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:ital,wght@0,300;0,400;0,600;0,700;1,300&family=Barlow+Condensed:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --terra: #7a3a10;
+    --terra-claro: #a8521e;
+    --laranja: #e0742a;
+    --amarelo: #f0b84a;
+    --creme: #f5f0e8;
+    --escuro: #1a0e08;
+    --bg: #180d05;
+    --verde: #4a9e2f;
+    --vermelho: #cc3333;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--creme);
+    font-family: 'Barlow', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      radial-gradient(ellipse at 75% 25%, rgba(122,58,16,0.2) 0%, transparent 55%),
+      radial-gradient(ellipse at 25% 75%, rgba(240,184,74,0.06) 0%, transparent 50%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 0 20px;
+    position: relative;
+    z-index: 1;
+  }
+
+  header {
+    padding: 40px 0 20px;
+    text-align: center;
+    border-bottom: 1px solid rgba(240,184,74,0.25);
+    margin-bottom: 40px;
+  }
+
+  .logo-tag {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 11px;
+    letter-spacing: 4px;
+    color: var(--amarelo);
+    text-transform: uppercase;
+    margin-bottom: 10px;
+    display: block;
+  }
+
+  header h1 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(40px, 7vw, 72px);
+    letter-spacing: 3px;
+    line-height: 0.9;
+    color: var(--creme);
+  }
+
+  header h1 span {
+    color: var(--laranja);
+    display: block;
+    font-size: clamp(52px, 10vw, 96px);
+  }
+
+  header p {
+    font-size: 14px;
+    color: rgba(245,240,232,0.5);
+    margin-top: 12px;
+    font-style: italic;
+  }
+
+  .section-label {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 11px;
+    letter-spacing: 4px;
+    color: var(--amarelo);
+    text-transform: uppercase;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .section-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: rgba(240,184,74,0.25);
+  }
+
+  /* TABS BEZERRO / BEZERRA */
+  .tabs {
+    display: flex;
+    gap: 2px;
+    margin-bottom: 28px;
+    background: rgba(255,255,255,0.03);
+    border-radius: 10px;
+    padding: 4px;
+    border: 1px solid rgba(240,184,74,0.15);
+  }
+  .tab {
+    flex: 1;
+    padding: 14px;
+    text-align: center;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 18px;
+    letter-spacing: 3px;
+    color: rgba(245,240,232,0.4);
+    cursor: pointer;
+    border-radius: 8px;
+    transition: all 0.2s;
+  }
+  .tab.active {
+    background: var(--terra);
+    color: var(--creme);
+  }
+  .tab:hover:not(.active) { color: var(--creme); background: rgba(255,255,255,0.05); }
+
+  .inputs-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 14px;
+    margin-bottom: 28px;
+  }
+
+  .input-group {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(240,184,74,0.18);
+    border-radius: 8px;
+    padding: 16px 20px;
+    transition: border-color 0.2s;
+  }
+  .input-group:focus-within {
+    border-color: var(--amarelo);
+    background: rgba(240,184,74,0.05);
+  }
+
+  .input-group label {
+    display: block;
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: rgba(245,240,232,0.4);
+    text-transform: uppercase;
+    margin-bottom: 8px;
+    font-family: 'Barlow Condensed', sans-serif;
+  }
+
+  .input-group input {
+    width: 100%;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: var(--creme);
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 26px;
+    letter-spacing: 2px;
+  }
+  .input-group input::placeholder { color: rgba(245,240,232,0.2); }
+  .input-suffix { font-size: 11px; color: var(--amarelo); margin-top: 4px; font-style: italic; }
+
+  .btn-calcular {
+    width: 100%;
+    padding: 20px;
+    background: var(--terra);
+    border: none;
+    border-radius: 8px;
+    color: var(--creme);
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 22px;
+    letter-spacing: 4px;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-bottom: 40px;
+    position: relative;
+    overflow: hidden;
+  }
+  .btn-calcular::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(224,116,42,0.2) 0%, transparent 60%);
+  }
+  .btn-calcular:hover { background: var(--terra-claro); transform: translateY(-2px); }
+
+  #resultado { display: none; }
+  #resultado.visible { display: block; animation: fadeUp 0.5s ease; }
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* CARD PRINCIPAL — ARROBA REAL */
+  .card-arroba {
+    background: linear-gradient(135deg, var(--terra) 0%, #3d1a08 100%);
+    border: 1px solid var(--laranja);
+    border-radius: 12px;
+    padding: 32px;
+    margin-bottom: 24px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .card-arroba::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(ellipse at center, rgba(224,116,42,0.1) 0%, transparent 70%);
+  }
+  .arroba-label {
+    font-size: 11px;
+    letter-spacing: 3px;
+    color: var(--amarelo);
+    text-transform: uppercase;
+    font-family: 'Barlow Condensed', sans-serif;
+    margin-bottom: 6px;
+  }
+  .arroba-valor {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(56px, 12vw, 96px);
+    letter-spacing: 4px;
+    color: var(--creme);
+    line-height: 1;
+  }
+  .arroba-sub {
+    font-size: 13px;
+    color: rgba(245,240,232,0.55);
+    margin-top: 8px;
+    font-style: italic;
+  }
+
+  /* MÉTRICAS */
+  .metricas-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+  @media (min-width: 600px) {
+    .metricas-grid { grid-template-columns: repeat(3, 1fr); }
+  }
+
+  .metrica-card {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(240,184,74,0.13);
+    border-radius: 10px;
+    padding: 20px 16px;
+    text-align: center;
+    transition: border-color 0.2s;
+  }
+  .metrica-card:hover { border-color: var(--amarelo); }
+  .metrica-icone { font-size: 26px; margin-bottom: 8px; display: block; }
+  .metrica-valor {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 28px;
+    letter-spacing: 2px;
+    color: var(--amarelo);
+    line-height: 1;
+  }
+  .metrica-nome {
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: rgba(245,240,232,0.4);
+    text-transform: uppercase;
+    margin-top: 6px;
+    font-family: 'Barlow Condensed', sans-serif;
+  }
+
+  /* BARRA DE ANÁLISE */
+  .analise-barra {
+    background: rgba(255,255,255,0.02);
+    border: 1px solid rgba(240,184,74,0.13);
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 24px;
+  }
+
+  .analise-titulo {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 11px;
+    letter-spacing: 3px;
+    color: var(--amarelo);
+    text-transform: uppercase;
+    margin-bottom: 20px;
+  }
+
+  .gauge-container {
+    position: relative;
+    margin-bottom: 20px;
+  }
+
+  .gauge-row {
+    display: flex;
+    height: 32px;
+    border-radius: 6px;
+    overflow: hidden;
+    margin-bottom: 8px;
+  }
+
+  .gauge-zona {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    font-family: 'Barlow Condensed', sans-serif;
+    letter-spacing: 1px;
+    color: rgba(255,255,255,0.7);
+    transition: all 0.3s;
+  }
+
+  .gauge-cursor {
+    position: absolute;
+    top: -6px;
+    width: 3px;
+    height: 44px;
+    background: white;
+    border-radius: 2px;
+    box-shadow: 0 0 8px rgba(255,255,255,0.6);
+    transition: left 0.8s ease;
+  }
+
+  .gauge-labels {
+    display: flex;
+    justify-content: space-between;
+    font-size: 10px;
+    color: rgba(245,240,232,0.35);
+    font-family: 'Barlow Condensed', sans-serif;
+    letter-spacing: 1px;
+  }
+
+  /* GMD SIMULADOR */
+  .gmd-section {
+    background: rgba(255,255,255,0.02);
+    border: 1px solid rgba(240,184,74,0.13);
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 24px;
+  }
+
+  .gmd-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 16px;
+  }
+
+  .gmd-table th {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: var(--amarelo);
+    text-transform: uppercase;
+    text-align: left;
+    padding: 8px 12px;
+    border-bottom: 1px solid rgba(240,184,74,0.2);
+  }
+
+  .gmd-table td {
+    padding: 10px 12px;
+    font-size: 14px;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    color: rgba(245,240,232,0.8);
+  }
+
+  .gmd-table tr.destaque td {
+    background: rgba(74,158,47,0.15);
+    color: var(--creme);
+    font-weight: 600;
+  }
+
+  .gmd-table tr.destaque td:first-child {
+    border-left: 3px solid var(--verde);
+  }
+
+  .gmd-table td.positivo { color: #7dc42a; font-family: 'Bebas Neue', sans-serif; font-size: 16px; letter-spacing: 1px; }
+  .gmd-table td.negativo { color: var(--vermelho); font-family: 'Bebas Neue', sans-serif; font-size: 16px; letter-spacing: 1px; }
+  .gmd-table td.neutro  { color: var(--amarelo); font-family: 'Bebas Neue', sans-serif; font-size: 16px; letter-spacing: 1px; }
+
+  /* PONTO DE EQUILÍBRIO */
+  .equilibrio-box {
+    background: rgba(255,255,255,0.02);
+    border: 1px solid rgba(240,184,74,0.13);
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 24px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    align-items: center;
+  }
+
+  @media (max-width: 500px) {
+    .equilibrio-box { grid-template-columns: 1fr; }
+  }
+
+  .eq-item { text-align: center; }
+  .eq-label {
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: rgba(245,240,232,0.4);
+    text-transform: uppercase;
+    font-family: 'Barlow Condensed', sans-serif;
+    margin-bottom: 6px;
+  }
+  .eq-valor {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 36px;
+    letter-spacing: 2px;
+    color: var(--amarelo);
+  }
+  .eq-sub { font-size: 11px; color: rgba(245,240,232,0.35); margin-top: 4px; }
+
+  /* VEREDICTO */
+  .veredicto {
+    border-radius: 10px;
+    padding: 24px;
+    margin-bottom: 24px;
+    border-left: 4px solid;
+  }
+  .veredicto.ok { border-left-color: #7dc42a; background: rgba(74,158,47,0.12); }
+  .veredicto.alerta { border-left-color: var(--amarelo); background: rgba(240,184,74,0.1); }
+  .veredicto.ruim { border-left-color: var(--vermelho); background: rgba(204,51,51,0.12); }
+
+  .verd-titulo {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 15px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+  .veredicto.ok .verd-titulo { color: #7dc42a; }
+  .veredicto.alerta .verd-titulo { color: var(--amarelo); }
+  .veredicto.ruim .verd-titulo { color: var(--vermelho); }
+
+  .verd-texto {
+    font-size: 14px;
+    color: rgba(245,240,232,0.75);
+    line-height: 1.7;
+  }
+
+  /* WHATSAPP */
+  .btn-whatsapp {
+    width: 100%;
+    padding: 18px;
+    background: #1a7a38;
+    border: none;
+    border-radius: 8px;
+    color: white;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 20px;
+    letter-spacing: 3px;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    margin-bottom: 60px;
+  }
+  .btn-whatsapp:hover { background: #23a050; transform: translateY(-2px); }
+
+  footer {
+    text-align: center;
+    padding: 30px 0;
+    border-top: 1px solid rgba(240,184,74,0.12);
+    font-size: 11px;
+    color: rgba(245,240,232,0.3);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    font-family: 'Barlow Condensed', sans-serif;
+  }
+
+  /* DESTAQUE COMPARAÇÃO INTTEGRA */
+  .inttegra-box {
+    background: rgba(255,255,255,0.02);
+    border: 1px solid rgba(240,184,74,0.13);
+    border-radius: 12px;
+    padding: 20px 24px;
+    margin-bottom: 24px;
+  }
+  .inttegra-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+  }
+  .inttegra-row:last-child { border-bottom: none; }
+  .intt-nome { font-size: 13px; color: rgba(245,240,232,0.65); }
+  .intt-val { font-family: 'Bebas Neue', sans-serif; font-size: 20px; letter-spacing: 1px; }
+  .intt-val.acima { color: #7dc42a; }
+  .intt-val.abaixo { color: var(--vermelho); }
+  .intt-val.igual { color: var(--amarelo); }
+</style>
+</head>
+<body>
+
+<div class="container">
+
+  <header>
+    <span class="logo-tag">Gestão Pecuária Lucrativa • Rogério Avelino</span>
+    <h1>ARROBA DO<span>BEZERRO</span></h1>
+    <p>Descubra o real valor da arroba que você está pagando e o GMD necessário para pagar</p>
+  </header>
+
+  <!-- TABS -->
+  <div class="tabs">
+    <div class="tab active" onclick="setTipo('bezerro', this)">🐂 Bezerro (Macho)</div>
+    <div class="tab" onclick="setTipo('bezerra', this)">🐄 Bezerra (Fêmea)</div>
+  </div>
+
+  <div class="section-label">01 — Compra do Animal</div>
+
+  <div class="inputs-grid">
+    <div class="input-group">
+      <label>Preço pago pelo animal (R$)</label>
+      <input type="number" id="precoBez" value="1800" placeholder="1800">
+      <div class="input-suffix" id="suffixBez">custo total do bezerro</div>
+    </div>
+    <div class="input-group">
+      <label>Peso ao entrar (kg)</label>
+      <input type="number" id="pesoEntrada" value="180" placeholder="180">
+      <div class="input-suffix">peso vivo na compra</div>
+    </div>
+    <div class="input-group">
+      <label>Rendimento de carcaça (%)</label>
+      <input type="number" id="rendimento" value="52" placeholder="52" min="40" max="60">
+      <div class="input-suffix">% do peso vivo em carcaça</div>
+    </div>
+  </div>
+
+  <div class="section-label">02 — Criação e Venda</div>
+
+  <div class="inputs-grid">
+    <div class="input-group">
+      <label>Peso na venda (kg)</label>
+      <input type="number" id="pesoSaida" value="480" placeholder="480">
+      <div class="input-suffix">peso vivo na saída</div>
+    </div>
+    <div class="input-group">
+      <label>Preço da arroba de venda (R$)</label>
+      <input type="number" id="precoArroba" value="320" placeholder="320">
+      <div class="input-suffix">R$ por arroba (@)</div>
+    </div>
+    <div class="input-group">
+      <label>GMD real (kg/dia)</label>
+      <input type="number" id="gmd" value="0.5" placeholder="0.5" step="0.05">
+      <div class="input-suffix">ganho médio diário alcançado</div>
+    </div>
+  </div>
+
+  <div class="section-label">03 — Custos de Criação</div>
+
+  <div class="inputs-grid">
+    <div class="input-group">
+      <label>Custo de suplementação (R$)</label>
+      <input type="number" id="custoSup" value="300" placeholder="300">
+      <div class="input-suffix">total no período</div>
+    </div>
+    <div class="input-group">
+      <label>Custo sanitário (R$)</label>
+      <input type="number" id="custoSan" value="80" placeholder="80">
+      <div class="input-suffix">vacinas, vermifugação etc</div>
+    </div>
+    <div class="input-group">
+      <label>Outros custos (R$)</label>
+      <input type="number" id="custoOutros" value="50" placeholder="50">
+      <div class="input-suffix">frete, mão de obra etc</div>
+    </div>
+  </div>
+
+  <button class="btn-calcular" onclick="calcular()">▶ CALCULAR ARROBA DO BEZERRO</button>
+
+  <!-- RESULTADO -->
+  <div id="resultado">
+
+    <!-- ARROBA REAL PAGA -->
+    <div class="section-label">Valor Real da Arroba que Você Pagou</div>
+
+    <div class="card-arroba">
+      <div class="arroba-label">💡 Arroba Embutida no Bezerro</div>
+      <div class="arroba-valor" id="arrobaReal">—</div>
+      <div class="arroba-sub" id="arrobaSub">R$/@ que você efetivamente pagou no animal de entrada</div>
+    </div>
+
+    <!-- MÉTRICAS -->
+    <div class="metricas-grid">
+      <div class="metrica-card">
+        <span class="metrica-icone">📦</span>
+        <div class="metrica-valor" id="arrobasEntrada">—</div>
+        <div class="metrica-nome">@ na Entrada</div>
+      </div>
+      <div class="metrica-card">
+        <span class="metrica-icone">🏁</span>
+        <div class="metrica-valor" id="arrobasSaida">—</div>
+        <div class="metrica-nome">@ na Saída</div>
+      </div>
+      <div class="metrica-card">
+        <span class="metrica-icone">➕</span>
+        <div class="metrica-valor" id="arrobasGanhas">—</div>
+        <div class="metrica-nome">@ Produzidas</div>
+      </div>
+      <div class="metrica-card">
+        <span class="metrica-icone">💰</span>
+        <div class="metrica-valor" id="receitaBruta">—</div>
+        <div class="metrica-nome">Receita Bruta</div>
+      </div>
+      <div class="metrica-card">
+        <span class="metrica-icone">📉</span>
+        <div class="metrica-valor" id="custoTotal">—</div>
+        <div class="metrica-nome">Custo Total</div>
+      </div>
+      <div class="metrica-card">
+        <span class="metrica-icone">📅</span>
+        <div class="metrica-valor" id="diasConfinamento">—</div>
+        <div class="metrica-nome">Dias no Pasto</div>
+      </div>
+    </div>
+
+    <!-- ANÁLISE DE RENTABILIDADE -->
+    <div class="section-label">Análise de Rentabilidade</div>
+
+    <div class="analise-barra">
+      <div class="analise-titulo">🎯 Posição da Arroba Comprada vs Mercado</div>
+      <div class="gauge-container">
+        <div class="gauge-row">
+          <div class="gauge-zona" style="width:25%;background:#2d6a1f;">ÓTIMO</div>
+          <div class="gauge-zona" style="width:35%;background:#8b7a1a;">BOM</div>
+          <div class="gauge-zona" style="width:25%;background:#8b4513;">ALTO</div>
+          <div class="gauge-zona" style="width:15%;background:#7a1a1a;">CARO</div>
+        </div>
+        <div class="gauge-cursor" id="gaugeCursor"></div>
+        <div class="gauge-labels">
+          <span>Muito barato</span>
+          <span>Mercado</span>
+          <span>Caro</span>
+          <span>Prejuízo</span>
+        </div>
+      </div>
+      <div style="text-align:center;margin-top:12px;">
+        <span style="font-size:13px;color:rgba(245,240,232,0.6);" id="posicaoTexto">—</span>
+      </div>
+    </div>
+
+    <!-- PONTO DE EQUILÍBRIO -->
+    <div class="section-label">Ponto de Equilíbrio</div>
+
+    <div class="equilibrio-box">
+      <div class="eq-item">
+        <div class="eq-label">GMD Mínimo para não ter prejuízo</div>
+        <div class="eq-valor" id="gmdEquilibrio">—</div>
+        <div class="eq-sub">kg/dia — abaixo disso você perde dinheiro</div>
+      </div>
+      <div class="eq-item">
+        <div class="eq-label">Peso mínimo de saída (equilíbrio)</div>
+        <div class="eq-valor" id="pesoEquilibrio">—</div>
+        <div class="eq-sub">kg — vender abaixo disto = prejuízo</div>
+      </div>
+    </div>
+
+    <!-- GMD SIMULAÇÃO -->
+    <div class="section-label">Simulação por GMD</div>
+
+    <div class="gmd-section">
+      <div style="font-size:11px;letter-spacing:2px;color:var(--amarelo);font-family:'Barlow Condensed',sans-serif;text-transform:uppercase;margin-bottom:4px;">Como o GMD afeta seu resultado</div>
+      <div style="font-size:12px;color:rgba(245,240,232,0.45);font-style:italic;margin-bottom:0;">Linha destacada = seu GMD atual</div>
+      <table class="gmd-table">
+        <thead>
+          <tr>
+            <th>GMD</th>
+            <th>Dias</th>
+            <th>Peso Saída</th>
+            <th>@ Produzidas</th>
+            <th>Lucro/Prej.</th>
+            <th>ROI</th>
+          </tr>
+        </thead>
+        <tbody id="gmdTabela"></tbody>
+      </table>
+    </div>
+
+    <!-- BENCHMARK INTTEGRA -->
+    <div class="section-label">Comparação com Benchmarks</div>
+
+    <div class="inttegra-box">
+      <div style="font-size:11px;letter-spacing:2px;color:var(--amarelo);font-family:'Barlow Condensed',sans-serif;text-transform:uppercase;margin-bottom:16px;">Safra 2020/21 — 637 Fazendas Inttegra</div>
+      <div class="inttegra-row">
+        <span class="intt-nome">Seu GMD</span>
+        <span class="intt-val" id="compGMDseu">—</span>
+      </div>
+      <div class="inttegra-row">
+        <span class="intt-nome">Média geral (GMD 0,403)</span>
+        <span class="intt-val" id="compGMDmedia">—</span>
+      </div>
+      <div class="inttegra-row">
+        <span class="intt-nome">Top 30% recria-engorda (GMD 0,668)</span>
+        <span class="intt-val" id="compGMDtop">—</span>
+      </div>
+    </div>
+
+    <!-- VEREDICTO -->
+    <div class="section-label">Veredicto</div>
+    <div class="veredicto" id="veredictoBox">
+      <div class="verd-titulo" id="verdTitulo">—</div>
+      <div class="verd-texto" id="verdTexto">—</div>
+    </div>
+
+    <!-- WHATSAPP -->
+    <button class="btn-whatsapp" onclick="enviarWhatsApp()">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+      ENVIAR ANÁLISE PARA WHATSAPP
+    </button>
+
+  </div><!-- /resultado -->
+
+  <footer>
+    Gestão Pecuária Lucrativa • Rogério Avelino • (63) 99108-2453
+  </footer>
+
+</div>
+
+<script>
+let tipoAnimal = 'bezerro';
+
+function setTipo(tipo, el) {
+  tipoAnimal = tipo;
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('suffixBez').textContent = tipo === 'bezerro' ? 'custo total do bezerro' : 'custo total da bezerra';
+}
+
+function fmt(n) {
+  if (n >= 1000000) return 'R$' + (n/1000000).toFixed(1)+'M';
+  if (n >= 1000) return 'R$' + (n/1000).toFixed(0)+'K';
+  return 'R$' + n.toFixed(0);
+}
+
+function calcular() {
+  const precoBez   = parseFloat(document.getElementById('precoBez').value) || 1800;
+  const pesoEntrada= parseFloat(document.getElementById('pesoEntrada').value) || 180;
+  const rendimento = (parseFloat(document.getElementById('rendimento').value) || 52) / 100;
+  const pesoSaida  = parseFloat(document.getElementById('pesoSaida').value) || 480;
+  const precoArr   = parseFloat(document.getElementById('precoArroba').value) || 320;
+  const gmdReal    = parseFloat(document.getElementById('gmd').value) || 0.5;
+  const custoSup   = parseFloat(document.getElementById('custoSup').value) || 300;
+  const custoSan   = parseFloat(document.getElementById('custoSan').value) || 80;
+  const custoOut   = parseFloat(document.getElementById('custoOutros').value) || 50;
+
+  const ARROBA = 15; // 1 arroba = 15 kg
+
+  // Arrobas entrada e saída (peso vivo * rendimento / 15)
+  const arrEntrada = (pesoEntrada * rendimento) / ARROBA;
+  const arrSaida   = (pesoSaida * rendimento) / ARROBA;
+  const arrGanhas  = arrSaida - arrEntrada;
+
+  // Arroba real paga no bezerro
+  const arrobaRealPaga = precoBez / arrEntrada;
+
+  // Receita bruta (arroba saída * preço)
+  const receitaBruta = arrSaida * precoArr;
+
+  // Custo total
+  const custoTotal = precoBez + custoSup + custoSan + custoOut;
+
+  // Lucro
+  const lucro = receitaBruta - custoTotal;
+  const roi = ((lucro / custoTotal) * 100);
+
+  // Dias
+  const ganhoKg = pesoSaida - pesoEntrada;
+  const dias = Math.round(ganhoKg / gmdReal);
+
+  // Ponto de equilíbrio
+  const pesoEq = (custoTotal / (rendimento / ARROBA)) / precoArr;
+  const ganhoEqKg = pesoEq - pesoEntrada;
+  const gmdEq = ganhoEqKg / dias; // GMD necessário para atingir pesoEq nos mesmos dias
+
+  // Atualizar UI
+  document.getElementById('arrobaReal').textContent = 'R$' + arrobaRealPaga.toFixed(0);
+  document.getElementById('arrobaSub').textContent = 
+    `Você pagou equivalente a R$${arrobaRealPaga.toFixed(0)}/@ — mercado atual: R$${precoArr}/@ — diferença: ${arrobaRealPaga < precoArr ? '✅ comprou barato' : arrobaRealPaga > precoArr * 1.2 ? '🚨 pagou caro' : '⚠️ próximo do mercado'}`;
+
+  document.getElementById('arrobasEntrada').textContent = arrEntrada.toFixed(1) + ' @';
+  document.getElementById('arrobasSaida').textContent = arrSaida.toFixed(1) + ' @';
+  document.getElementById('arrobasGanhas').textContent = arrGanhas.toFixed(1) + ' @';
+  document.getElementById('receitaBruta').textContent = fmt(receitaBruta);
+  document.getElementById('custoTotal').textContent = fmt(custoTotal);
+  document.getElementById('diasConfinamento').textContent = dias;
+
+  // Gauge
+  const gauge = document.getElementById('gaugeCursor');
+  const relacao = arrobaRealPaga / precoArr; // 0.5 = muito barato, 1.0 = igual ao mercado, 1.3+ = caro
+  const posicaoPct = Math.min(Math.max(((relacao - 0.4) / 0.8) * 100, 2), 97);
+  gauge.style.left = posicaoPct + '%';
+
+  const posicoes = [
+    { max: 0.6, texto: 'Excelente negócio! Arroba do bezerro muito abaixo do mercado.' },
+    { max: 0.85, texto: 'Boa compra. Pagou abaixo do mercado — você está bem posicionado.' },
+    { max: 1.0, texto: 'Compra no preço de mercado. Foco na eficiência de criação para ter margem.' },
+    { max: 1.15, texto: 'Ligeiramente acima do mercado. Exija GMD alto para compensar.' },
+    { max: 99, texto: 'Pagou caro pelo bezerro. A criação precisa ser muito eficiente para dar lucro.' },
+  ];
+  document.getElementById('posicaoTexto').textContent = posicoes.find(p => relacao < p.max)?.texto || '';
+
+  // Equilíbrio
+  document.getElementById('gmdEquilibrio').textContent = (ganhoEqKg / dias).toFixed(3) + ' kg/dia';
+  document.getElementById('pesoEquilibrio').textContent = pesoEq.toFixed(0) + ' kg';
+
+  // Tabela GMD
+  const gmds = [0.2, 0.3, 0.4, 0.5, 0.6, 0.668, 0.7, 0.8];
+  const tabela = document.getElementById('gmdTabela');
+  tabela.innerHTML = '';
+  gmds.forEach(g => {
+    const pesoG = pesoEntrada + (g * dias);
+    const arrG = (pesoG * rendimento) / ARROBA;
+    const arrProd = arrG - arrEntrada;
+    const recG = arrG * precoArr;
+    const lucroG = recG - custoTotal;
+    const roiG = ((lucroG / custoTotal) * 100);
+    const isDest = Math.abs(g - gmdReal) < 0.01;
+    const cls = lucroG > 0 ? 'positivo' : 'negativo';
+    tabela.innerHTML += `
+      <tr class="${isDest ? 'destaque' : ''}">
+        <td>${g.toFixed(3)} kg/d</td>
+        <td>${dias}</td>
+        <td>${pesoG.toFixed(0)} kg</td>
+        <td>${arrProd.toFixed(1)} @</td>
+        <td class="${cls}">${lucroG >= 0 ? '+' : ''}R$${lucroG.toFixed(0)}</td>
+        <td class="${cls}">${roiG.toFixed(0)}%</td>
+      </tr>`;
+  });
+
+  // Inttegra
+  const gmdMed = 0.403, gmdTop = 0.668;
+  const mkComp = (g, ref) => {
+    const diff = ((g - ref) / ref * 100).toFixed(0);
+    const cls = g >= ref ? 'acima' : 'abaixo';
+    return `<span class="intt-val ${cls}">${g >= ref ? '▲' : '▼'} ${Math.abs(diff)}%</span>`;
+  };
+  document.getElementById('compGMDseu').textContent = gmdReal.toFixed(3) + ' kg/d';
+  document.getElementById('compGMDmedia').innerHTML = mkComp(gmdReal, gmdMed);
+  document.getElementById('compGMDtop').innerHTML = mkComp(gmdReal, gmdTop);
+
+  // Veredicto
+  const verdBox = document.getElementById('veredictoBox');
+  const verdTit = document.getElementById('verdTitulo');
+  const verdTxt = document.getElementById('verdTexto');
+
+  let nivel, titulo, texto;
+
+  if (lucro > 0 && roi > 15 && gmdReal >= gmdMed) {
+    nivel = 'ok';
+    titulo = '✅ NEGÓCIO LUCRATIVO';
+    texto = `Você pagou R$${arrobaRealPaga.toFixed(0)}/@ no bezerro e com GMD de ${gmdReal} kg/dia está gerando lucro de R$${lucro.toFixed(0)} (${roi.toFixed(0)}% de ROI). Continue monitorando o GMD e reduzindo custos de suplementação para ampliar ainda mais a margem.`;
+  } else if (lucro > 0 && roi <= 15) {
+    nivel = 'alerta';
+    titulo = '⚠️ MARGEM PEQUENA — ATENÇÃO AOS CUSTOS';
+    texto = `O negócio dá lucro (R$${lucro.toFixed(0)}), mas a margem de ${roi.toFixed(0)}% é pequena para absorver imprevistos. Com GMD atual de ${gmdReal} kg/d, você está ${gmdReal < gmdMed ? 'abaixo da média Inttegra (0,403 kg/d)' : 'acima da média'}. Revise custos de suplementação e veja se o preço pago pelo bezerro foi muito alto.`;
+  } else if (lucro <= 0) {
+    nivel = 'ruim';
+    titulo = '🚨 OPERAÇÃO NO PREJUÍZO';
+    texto = `Nos parâmetros atuais você perde R$${Math.abs(lucro).toFixed(0)} por animal. A arroba paga no bezerro (R$${arrobaRealPaga.toFixed(0)}/@) está ${arrobaRealPaga > precoArr ? 'acima' : 'próxima'} do preço de venda (R$${precoArr}/@). Você precisa de GMD mínimo de ${(ganhoEqKg/dias).toFixed(3)} kg/d ou reduzir custos para chegar ao equilíbrio.`;
+  } else {
+    nivel = 'ok';
+    titulo = '📊 OPERAÇÃO ANALISADA';
+    texto = `GMD de ${gmdReal} kg/d por ${dias} dias, partindo de ${pesoEntrada}kg para ${pesoSaida}kg. Resultado: R$${lucro.toFixed(0)} (${roi.toFixed(0)}% ROI). Arroba comprada equivalente: R$${arrobaRealPaga.toFixed(0)}/@.`;
+  }
+
+  verdBox.className = `veredicto ${nivel === 'ok' ? 'ok' : nivel === 'alerta' ? 'alerta' : 'ruim'}`;
+  verdTit.textContent = titulo;
+  verdTxt.textContent = texto;
+
+  // Salvar para WhatsApp
+  window._arrobaData = { precoBez, pesoEntrada, pesoSaida, precoArr, gmdReal, arrEntrada, arrSaida, arrobaRealPaga, receitaBruta, custoTotal, lucro, roi, dias, gmdReal, tipoAnimal };
+
+  const resDiv = document.getElementById('resultado');
+  resDiv.classList.add('visible');
+  setTimeout(() => resDiv.scrollIntoView({behavior:'smooth', block:'start'}), 100);
+}
+
+function enviarWhatsApp() {
+  const d = window._arrobaData;
+  if (!d) { alert('Calcule antes!'); return; }
+  const tipo = d.tipoAnimal === 'bezerro' ? 'Bezerro' : 'Bezerra';
+
+  const msg = `🐂 *ANÁLISE ARROBA DO ${tipo.toUpperCase()}*\n\n` +
+    `*Preço pago:* R$ ${d.precoBez.toLocaleString('pt-BR')}\n` +
+    `*Peso entrada:* ${d.pesoEntrada} kg | *Saída:* ${d.pesoSaida} kg\n` +
+    `*GMD:* ${d.gmdReal} kg/d por ${d.dias} dias\n\n` +
+    `*💡 Arroba embutida no ${tipo}:* R$${d.arrobaRealPaga.toFixed(0)}/@ \n` +
+    `*Arroba de venda:* R$${d.precoArr}/@\n\n` +
+    `*@ na entrada:* ${d.arrEntrada.toFixed(1)} @\n` +
+    `*@ na saída:* ${d.arrSaida.toFixed(1)} @\n` +
+    `*Receita bruta:* R$ ${d.receitaBruta.toLocaleString('pt-BR', {maximumFractionDigits:0})}\n` +
+    `*Custo total:* R$ ${d.custoTotal.toLocaleString('pt-BR', {maximumFractionDigits:0})}\n` +
+    `*Lucro/Prejuízo:* R$ ${d.lucro.toFixed(0)} (ROI ${d.roi.toFixed(0)}%)\n\n` +
+    `📞 Rogério Avelino — (63) 99108-2453`;
+
+  window.open(`https://wa.me/5563991082453?text=${encodeURIComponent(msg)}`);
+}
+
+window.onload = () => calcular();
+</script>
+</body>
+</html>

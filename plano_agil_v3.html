@@ -1,0 +1,762 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Plano Ágil Pecuário | Rogério Avelino</title>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&family=Open+Sans:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --v1:#1a5c0a;--v2:#2d8a10;--v3:#4ab520;--v4:#7dc42a;--vl:#e8f5e0;
+  --d1:#c8911a;--dl:#f0c050;
+  --g1:#1e1e1e;--g2:#2e2e2e;--g3:#444;--g4:#888;--g5:#bbb;--g6:#e8e8e8;--g7:#f4f4f4;
+  --rd:#c0392b;--rdl:#fde8e6;--am:#f39c12;--aml:#fef9e7;--az:#2980b9;
+  --sh1:0 2px 8px rgba(0,0,0,.08);--sh2:0 4px 20px rgba(0,0,0,.12);--r:12px;--rs:8px
+}
+html{font-size:16px}
+body{font-family:'Open Sans',sans-serif;background:var(--g7);color:var(--g1);min-height:100vh;-webkit-font-smoothing:antialiased}
+
+/* HEADER */
+.hd{background:linear-gradient(135deg,var(--v1),var(--v2));padding:18px 24px;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 20px rgba(0,0,0,.25);position:relative}
+.hd::after{content:'';position:absolute;bottom:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--v4),var(--d1),var(--v4))}
+.la{display:flex;align-items:center;gap:16px}
+.li{height:60px;width:auto;filter:brightness(0) invert(1)}
+.lt .t1{font-family:'Montserrat',sans-serif;font-size:10px;font-weight:600;letter-spacing:3px;text-transform:uppercase;color:rgba(255,255,255,.65);display:block}
+.lt .t2{font-family:'Montserrat',sans-serif;font-size:20px;font-weight:900;letter-spacing:1px;line-height:1.1;display:block;color:#fff}
+.lt .t3{font-size:11px;color:rgba(255,255,255,.55);display:block;margin-top:2px;letter-spacing:.5px}
+
+/* SELEÇÃO */
+#ts{max-width:780px;margin:48px auto;padding:0 20px}
+.st{text-align:center;margin-bottom:36px}
+.st h2{font-family:'Montserrat',sans-serif;font-size:24px;font-weight:800;color:var(--v1);margin-bottom:8px}
+.st p{font-size:14px;color:var(--g4);line-height:1.5}
+.sg{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:20px}
+.sc{background:#fff;border-radius:16px;padding:30px 22px;text-align:center;cursor:pointer;border:2px solid transparent;box-shadow:var(--sh1);transition:all .25s ease;position:relative;overflow:hidden}
+.sc::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;transform:scaleX(0);transform-origin:left;transition:transform .25s ease}
+.sc:hover{border-color:var(--v3);box-shadow:var(--sh2);transform:translateY(-4px)}
+.sc:hover::before{transform:scaleX(1)}
+.sc.re::before{background:var(--v3)}.sc.cr::before{background:var(--d1)}.sc.cc::before{background:var(--az)}
+.si{font-size:42px;margin-bottom:14px;display:block;line-height:1}
+.sn{font-family:'Montserrat',sans-serif;font-size:15px;font-weight:800;color:var(--v1);margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px}
+.sc.cr .sn{color:#7a5800}.sc.cc .sn{color:var(--az)}
+.sd{font-size:13px;color:var(--g4);line-height:1.5}
+
+/* TELA SISTEMA */
+.ts2{display:none;max-width:1020px;margin:0 auto;padding:20px 20px 60px}
+.ts2.at{display:block;animation:fs .4s ease}
+@keyframes fs{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+.tb{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px}
+.bv{display:flex;align-items:center;gap:8px;background:#fff;border:1px solid var(--g6);border-radius:8px;padding:8px 16px;font-family:'Montserrat',sans-serif;font-size:13px;font-weight:600;color:var(--g3);cursor:pointer;transition:all .2s}
+.bv:hover{border-color:var(--v3);color:var(--v2)}
+.sb{font-family:'Montserrat',sans-serif;font-size:12px;font-weight:700;padding:5px 14px;border-radius:20px;letter-spacing:.5px;text-transform:uppercase}
+.sb-r{background:var(--vl);color:var(--v1)}.sb-c{background:var(--aml);color:#7a5800}.sb-cc{background:#e8f0f8;color:var(--az)}
+
+/* LAYOUT */
+.ml{display:grid;grid-template-columns:340px 1fr;gap:20px;align-items:start}
+@media(max-width:760px){.ml{grid-template-columns:1fr}}
+
+/* INPUTS */
+.pi{background:#fff;border-radius:var(--r);box-shadow:var(--sh1);overflow:hidden;position:sticky;top:14px}
+.pt{padding:14px 18px;color:#fff;font-family:'Montserrat',sans-serif;font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase}
+.pt.vd{background:linear-gradient(135deg,var(--v1),var(--v2))}
+.pt.do{background:linear-gradient(135deg,#7a5800,var(--d1))}
+.pt.az{background:linear-gradient(135deg,#1a5580,var(--az))}
+.gi{padding:0 14px 6px;border-bottom:1px solid var(--g6)}
+.gi:last-child{border-bottom:none}
+.gl{font-family:'Montserrat',sans-serif;font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--g4);padding:12px 4px 8px;display:block}
+.cp{margin-bottom:9px}
+.cp label{display:block;font-size:12px;font-weight:600;color:var(--g3);margin-bottom:3px;line-height:1.3}
+.cr2{display:flex;align-items:center;background:var(--g7);border:1.5px solid var(--g6);border-radius:var(--rs);overflow:hidden;transition:border-color .2s}
+.cr2:focus-within{border-color:var(--v3);background:#fff}
+.cr2 input{flex:1;padding:8px 11px;border:none;outline:none;background:transparent;font-family:'Montserrat',sans-serif;font-size:15px;font-weight:700;color:var(--g1);min-width:0}
+.cu{padding:0 9px;font-size:11px;font-weight:600;color:var(--g4);white-space:nowrap;background:var(--g6);align-self:stretch;display:flex;align-items:center;border-left:1px solid var(--g5)}
+.cc2{background:var(--g7);border:1.5px solid var(--g6);border-radius:var(--rs);padding:8px 11px;display:flex;align-items:center;justify-content:space-between}
+.cc2 .vl{font-family:'Montserrat',sans-serif;font-size:14px;font-weight:700;color:var(--v2)}
+.cc2 .un{font-size:11px;color:var(--g4);font-weight:600}
+
+/* GMD BENCHMARK */
+.gmd-bench{margin-top:6px;padding:8px 10px;background:#f0f7eb;border-radius:6px;border:1px solid #c8e6b0}
+.gmd-bench .gb-row{display:flex;align-items:center;justify-content:space-between;font-size:11px;line-height:1.6}
+.gmd-bench .gb-label{color:var(--g4);font-weight:500}
+.gmd-bench .gb-val{font-family:'Montserrat',sans-serif;font-weight:700;font-size:11px}
+.gmd-bench .gb-val.ac{color:var(--v2)}.gmd-bench .gb-val.ab{color:var(--rd)}.gmd-bench .gb-val.ig{color:var(--am)}
+
+/* RESULTADOS */
+.pr{display:flex;flex-direction:column;gap:14px}
+
+/* ALERTA */
+.am2{border-radius:var(--r);padding:15px 18px;display:flex;align-items:flex-start;gap:12px;border-left:5px solid}
+.am2.lc{background:#e8f7e0;border-color:var(--v3)}
+.am2.pj{background:var(--rdl);border-color:var(--rd)}
+.am2.at2{background:var(--aml);border-color:var(--am)}
+.ai{font-size:24px;flex-shrink:0;line-height:1}
+.ac .at3{font-family:'Montserrat',sans-serif;font-size:13px;font-weight:800;margin-bottom:3px;text-transform:uppercase;letter-spacing:.3px}
+.am2.lc .at3{color:var(--v1)}.am2.pj .at3{color:var(--rd)}.am2.at2 .at3{color:#7a5800}
+.ac .ax{font-size:13px;line-height:1.55;color:var(--g3)}
+
+/* DESTAQUE RESULTADO */
+.rd2{border-radius:var(--r);padding:18px 22px;color:#fff;display:flex;align-items:center;justify-content:space-between;box-shadow:var(--sh2);flex-wrap:wrap;gap:10px}
+.rd2 .rl{font-size:11px;font-weight:600;opacity:.75;text-transform:uppercase;letter-spacing:1px;display:block;margin-bottom:3px}
+.rd2 .rv{font-family:'Montserrat',sans-serif;font-size:28px;font-weight:900;letter-spacing:-.5px}
+.rd2 .ri{text-align:right}.rd2 .ri span{display:block;font-size:12px;opacity:.7;line-height:1.5}
+
+/* CARD */
+.crd{background:#fff;border-radius:var(--r);box-shadow:var(--sh1);overflow:hidden}
+.crh{padding:13px 18px;display:flex;align-items:center;justify-content:space-between}
+.crh h3{font-family:'Montserrat',sans-serif;font-size:12px;font-weight:700;color:#fff;letter-spacing:1px;text-transform:uppercase}
+.crh .hb{font-family:'Montserrat',sans-serif;font-size:11px;font-weight:600;background:rgba(255,255,255,.2);color:#fff;padding:3px 10px;border-radius:12px}
+.crh.vd{background:linear-gradient(135deg,var(--v1),var(--v2))}
+.crh.do{background:linear-gradient(135deg,#7a5800,var(--d1))}
+.crh.az{background:linear-gradient(135deg,#1a5580,var(--az))}
+.mg{display:grid;grid-template-columns:repeat(2,1fr)}
+.mg3{grid-template-columns:repeat(3,1fr)}
+.mt{padding:13px 12px;border-right:1px solid var(--g6);border-bottom:1px solid var(--g6)}
+.mg .mt:nth-child(2n){border-right:none}
+.mg3 .mt:nth-child(2n){border-right:1px solid var(--g6)}
+.mg3 .mt:nth-child(3n){border-right:none}
+.ml2{font-size:10px;font-weight:600;color:var(--g4);text-transform:uppercase;letter-spacing:.8px;margin-bottom:4px;line-height:1.3}
+.mv{font-family:'Montserrat',sans-serif;font-size:19px;font-weight:800;color:var(--g1);line-height:1.1}
+.mv.vd{color:var(--v2)}.mv.do{color:var(--d1)}.mv.rd{color:var(--rd)}.mv.az{color:var(--az)}
+.ms{font-size:11px;color:var(--g5);margin-top:2px;line-height:1.3}
+
+/* CADEIA DE CÁLCULO */
+.cadeia{background:#fff;border-radius:var(--r);box-shadow:var(--sh1);overflow:hidden}
+.cadeia-header{padding:13px 18px;background:linear-gradient(135deg,#1a3a5c,var(--az));display:flex;align-items:center;gap:8px}
+.cadeia-header h3{font-family:'Montserrat',sans-serif;font-size:12px;font-weight:700;color:#fff;letter-spacing:1px;text-transform:uppercase}
+.cadeia-body{padding:16px 18px;display:flex;flex-direction:column;gap:8px}
+.cadeia-step{display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--g7);border-radius:8px;border-left:3px solid var(--g5)}
+.cadeia-step.dest{background:#e8f5e0;border-left-color:var(--v3)}
+.cadeia-step.calc{background:#e8f0f8;border-left-color:var(--az)}
+.cs-icone{font-size:18px;flex-shrink:0;width:28px;text-align:center}
+.cs-corpo{flex:1}
+.cs-label{font-size:11px;color:var(--g4);font-weight:600;text-transform:uppercase;letter-spacing:.8px;margin-bottom:2px}
+.cs-valor{font-family:'Montserrat',sans-serif;font-size:15px;font-weight:800;color:var(--g1)}
+.cs-valor span{color:var(--g4);font-weight:500;font-size:13px}
+.cadeia-arrow{text-align:center;font-size:16px;color:var(--g5);margin:-2px 0}
+
+/* FINANCEIRO */
+.sf{background:#fff;border-radius:var(--r);box-shadow:var(--sh1);overflow:hidden}
+.sfh{padding:13px 18px;background:linear-gradient(135deg,#2c1a00,var(--d1))}
+.sfh h3{font-family:'Montserrat',sans-serif;font-size:12px;font-weight:700;color:#fff;text-transform:uppercase;letter-spacing:1px}
+.fr{display:flex;align-items:center;justify-content:space-between;padding:11px 18px;border-bottom:1px solid var(--g6);gap:10px}
+.fr:last-child{border-bottom:none}
+.fr:hover{background:var(--g7)}
+.frl{font-size:13px;color:var(--g3);font-weight:500;flex:1}
+.frv{font-family:'Montserrat',sans-serif;font-size:14px;font-weight:800;color:var(--g1);text-align:right}
+.frv.vd{color:var(--v2)}.frv.rd{color:var(--rd)}.frv.do{color:var(--d1)}
+.fd{padding:7px 18px;background:var(--g7);font-family:'Montserrat',sans-serif;font-size:10px;font-weight:700;color:var(--g4);text-transform:uppercase;letter-spacing:1.5px;border-bottom:1px solid var(--g6)}
+
+/* GRÁFICOS */
+.graficos-wrap{background:#fff;border-radius:var(--r);box-shadow:var(--sh1);overflow:hidden}
+.graficos-header{padding:13px 18px;background:linear-gradient(135deg,#1a1a1a,#3a3a3a)}
+.graficos-header h3{font-family:'Montserrat',sans-serif;font-size:12px;font-weight:700;color:#fff;letter-spacing:1px;text-transform:uppercase}
+.graficos-grid{display:grid;grid-template-columns:1fr 1fr;padding:20px;gap:20px}
+@media(max-width:500px){.graficos-grid{grid-template-columns:1fr}}
+.grafico-item{display:flex;flex-direction:column;align-items:center;gap:10px}
+.grafico-titulo{font-family:'Montserrat',sans-serif;font-size:11px;font-weight:700;color:var(--g3);text-transform:uppercase;letter-spacing:.8px;text-align:center}
+.grafico-canvas{position:relative;width:100%;max-width:200px}
+.grafico-legenda{display:flex;flex-direction:column;gap:5px;width:100%}
+.gl-item{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--g3)}
+.gl-cor{width:12px;height:12px;border-radius:3px;flex-shrink:0}
+.gl-label{flex:1;font-size:12px;color:var(--g3)}
+.gl-val{font-family:'Montserrat',sans-serif;font-size:12px;font-weight:700;color:var(--g1)}
+
+/* WPP */
+.bw{width:100%;padding:15px 22px;background:#25D366;border:none;border-radius:var(--r);color:#fff;font-family:'Montserrat',sans-serif;font-size:13px;font-weight:800;letter-spacing:1px;text-transform:uppercase;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;box-shadow:0 4px 16px rgba(37,211,102,.35);transition:all .2s}
+.bw:hover{background:#1ebe5a;transform:translateY(-2px)}
+
+.ft{text-align:center;padding:20px;font-size:12px;color:var(--g4);border-top:1px solid var(--g6);background:#fff;margin-top:36px}
+.hidden{display:none!important}
+</style>
+</head>
+<body>
+
+<header class="hd">
+  <div class="la">
+    <img src="https://gestaopecuarialucrativa-dotcom.github.io/Gest-o-Pecu-ria-Lucrativa---Rogerio-Avelino/logo.png" class="li" alt="Logo" onerror="this.style.display='none'">
+    <div class="lt">
+      <span class="t1">Gestão Pecuária Lucrativa</span>
+      <span class="t2">PLANO ÁGIL</span>
+      <span class="t3">Rogério Avelino · (63) 99108-2453</span>
+    </div>
+  </div>
+</header>
+
+<!-- SELEÇÃO -->
+<div id="ts">
+  <div class="st">
+    <h2>Qual é o seu sistema produtivo?</h2>
+    <p>Selecione para calcular metas, rebanho, lotação e análise financeira</p>
+  </div>
+  <div class="sg">
+    <div class="sc re" onclick="abrir('r')"><span class="si">🐂</span><div class="sn">Recria-Engorda</div><div class="sd">Compra bezerro, recria e engorda até o abate</div></div>
+    <div class="sc cr" onclick="abrir('c')"><span class="si">🐄</span><div class="sn">Cria</div><div class="sd">Mantém matrizes e vende bezerros desmamados</div></div>
+    <div class="sc cc" onclick="abrir('cc')"><span class="si">🌾</span><div class="sn">Ciclo Completo</div><div class="sd">Cria, recria e engorda — do nascimento ao abate</div></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     RECRIA-ENGORDA
+══════════════════════════════════════════════ -->
+<div id="tr" class="ts2">
+  <div class="tb">
+    <button class="bv" onclick="voltar()">← Voltar</button>
+    <span class="sb sb-r">🐂 Recria-Engorda</span>
+  </div>
+  <div class="ml">
+    <div class="pi">
+      <div class="pt vd">Preencha os dados</div>
+
+      <div class="gi">
+        <span class="gl">Fazenda</span>
+        <div class="cp"><label>Área Total</label><div class="cr2"><input type="number" id="r_at" value="100" oninput="cR()"><span class="cu">ha</span></div></div>
+        <div class="cp"><label>Área Produtiva</label><div class="cr2"><input type="number" id="r_ap" value="80" oninput="cR()"><span class="cu">ha</span></div></div>
+        <div class="cp"><label>Valor por Hectare</label><div class="cr2"><input type="number" id="r_vh" value="10000" oninput="cR()"><span class="cu">R$/ha</span></div></div>
+        <div class="cp"><label>Valor da Fazenda</label><div class="cc2"><span class="vl" id="r_vf">—</span><span class="un">área × R$/ha</span></div></div>
+      </div>
+
+      <div class="gi">
+        <span class="gl">Meta &amp; Venda</span>
+        <div class="cp"><label>Meta de Resultado</label><div class="cr2"><input type="number" id="r_mt" value="4" step="0.1" oninput="cR()"><span class="cu">% a.a.</span></div></div>
+        <div class="cp"><label>Resultado Esperado</label><div class="cc2"><span class="vl" id="r_re">—</span><span class="un">fazenda × meta</span></div></div>
+        <div class="cp"><label>Margem sobre a Venda</label><div class="cr2"><input type="number" id="r_mg" value="20" oninput="cR()"><span class="cu">%</span></div></div>
+        <div class="cp"><label>Valor Médio de Venda</label><div class="cr2"><input type="number" id="r_vv" value="4900" oninput="cR()"><span class="cu">R$/cab</span></div></div>
+        <div class="cp"><label>Preço da Arroba na Região</label><div class="cr2"><input type="number" id="r_pa" value="300" oninput="cR()"><span class="cu">R$/@</span></div></div>
+      </div>
+
+      <div class="gi">
+        <span class="gl">Dados Zootécnicos</span>
+        <div class="cp"><label>Desembolso Reposição</label><div class="cr2"><input type="number" id="r_dr" value="3200" oninput="cR()"><span class="cu">R$/cab</span></div></div>
+        <div class="cp"><label>Peso de Entrada</label><div class="cr2"><input type="number" id="r_pe" value="310" oninput="cR()"><span class="cu">kg</span></div></div>
+        <div class="cp"><label>Peso ao Abate</label><div class="cr2"><input type="number" id="r_ps" value="510" oninput="cR()"><span class="cu">kg</span></div></div>
+        <div class="cp"><label>Peso a Ganhar na Fazenda</label><div class="cc2"><span class="vl" id="r_pg">—</span><span class="un">abate − entrada</span></div></div>
+
+        <div class="cp">
+          <label>GMD — Ganho Médio Diário</label>
+          <div class="cr2"><input type="number" id="r_gm" value="0.500" step="0.005" oninput="cR()"><span class="cu">kg/dia</span></div>
+          <div class="gmd-bench" id="r_bench"></div>
+        </div>
+
+        <div class="cp">
+          <label>Giro de Estoque <span style="font-size:10px;color:var(--g4);font-weight:400">(calculado ou edite)</span></label>
+          <div style="display:flex;gap:6px;align-items:center"><div class="cr2" style="flex:1"><input type="number" id="r_gi" value="" step="0.01" placeholder="auto" oninput="cR()"><span class="cu">x/ano</span></div><button onclick="document.getElementById('r_gi').value='';cR()" style="padding:8px 10px;background:#f4f4f4;border:1.5px solid #e8e8e8;border-radius:8px;font-size:11px;font-weight:700;color:#888;cursor:pointer;white-space:nowrap" title="Resetar para calculado">↺ auto</button></div>
+        </div>
+        <div class="cp"><label>Rendimento de Carcaça</label><div class="cr2"><input type="number" id="r_rc" value="52" oninput="cR()"><span class="cu">%</span></div></div>
+      </div>
+    </div>
+    <div class="pr" id="r_res"></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     CRIA
+══════════════════════════════════════════════ -->
+<div id="tc" class="ts2">
+  <div class="tb">
+    <button class="bv" onclick="voltar()">← Voltar</button>
+    <span class="sb sb-c">🐄 Cria</span>
+  </div>
+  <div class="ml">
+    <div class="pi">
+      <div class="pt do">Preencha os dados</div>
+      <div class="gi">
+        <span class="gl">Fazenda</span>
+        <div class="cp"><label>Área Total</label><div class="cr2"><input type="number" id="c_at" value="17000" oninput="cC()"><span class="cu">ha</span></div></div>
+        <div class="cp"><label>Área Produtiva</label><div class="cr2"><input type="number" id="c_ap" value="10000" oninput="cC()"><span class="cu">ha</span></div></div>
+        <div class="cp"><label>Valor por Hectare</label><div class="cr2"><input type="number" id="c_vh" value="4000" oninput="cC()"><span class="cu">R$/ha</span></div></div>
+        <div class="cp"><label>Valor da Fazenda</label><div class="cc2"><span class="vl" id="c_vf">—</span><span class="un">área × R$/ha</span></div></div>
+      </div>
+      <div class="gi">
+        <span class="gl">Meta &amp; Venda</span>
+        <div class="cp"><label>Meta de Resultado</label><div class="cr2"><input type="number" id="c_mt" value="4" step="0.1" oninput="cC()"><span class="cu">% a.a.</span></div></div>
+        <div class="cp"><label>Resultado Esperado</label><div class="cc2"><span class="vl" id="c_re">—</span><span class="un">fazenda × meta</span></div></div>
+        <div class="cp"><label>Margem sobre a Venda</label><div class="cr2"><input type="number" id="c_mg" value="30" oninput="cC()"><span class="cu">%</span></div></div>
+        <div class="cp"><label>Valor Médio de Venda</label><div class="cr2"><input type="number" id="c_vv" value="3500" oninput="cC()"><span class="cu">R$/cab</span></div></div>
+        <div class="cp"><label>Preço da Arroba na Região</label><div class="cr2"><input type="number" id="c_pa" value="300" oninput="cC()"><span class="cu">R$/@</span></div></div>
+      </div>
+      <div class="gi">
+        <span class="gl">Dados Zootécnicos</span>
+        <div class="cp"><label>Taxa de Desmame</label><div class="cr2"><input type="number" id="c_td" value="60" oninput="cC()"><span class="cu">%</span></div></div>
+        <div class="cp"><label>Participação das Matrizes</label><div class="cr2"><input type="number" id="c_pm" value="55" oninput="cC()"><span class="cu">%</span></div></div>
+        <div class="cp"><label>Peso Médio do Rebanho</label><div class="cr2"><input type="number" id="c_pp" value="350" oninput="cC()"><span class="cu">kg</span></div></div>
+      </div>
+    </div>
+    <div class="pr" id="c_res"></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     CICLO COMPLETO
+══════════════════════════════════════════════ -->
+<div id="tcc" class="ts2">
+  <div class="tb">
+    <button class="bv" onclick="voltar()">← Voltar</button>
+    <span class="sb sb-cc">🌾 Ciclo Completo</span>
+  </div>
+  <div class="ml">
+    <div class="pi">
+      <div class="pt az">Preencha os dados</div>
+      <div class="gi">
+        <span class="gl">Fazenda</span>
+        <div class="cp"><label>Área Total</label><div class="cr2"><input type="number" id="cc_at" value="100" oninput="cCC()"><span class="cu">ha</span></div></div>
+        <div class="cp"><label>Área Produtiva</label><div class="cr2"><input type="number" id="cc_ap" value="145" oninput="cCC()"><span class="cu">ha</span></div></div>
+        <div class="cp"><label>Valor por Hectare</label><div class="cr2"><input type="number" id="cc_vh" value="10000" oninput="cCC()"><span class="cu">R$/ha</span></div></div>
+        <div class="cp"><label>Valor da Fazenda</label><div class="cc2"><span class="vl" id="cc_vf">—</span><span class="un">área × R$/ha</span></div></div>
+      </div>
+      <div class="gi">
+        <span class="gl">Meta &amp; Venda</span>
+        <div class="cp"><label>Meta de Resultado</label><div class="cr2"><input type="number" id="cc_mt" value="4" step="0.1" oninput="cCC()"><span class="cu">% a.a.</span></div></div>
+        <div class="cp"><label>Resultado Esperado</label><div class="cc2"><span class="vl" id="cc_re">—</span><span class="un">fazenda × meta</span></div></div>
+        <div class="cp"><label>Margem sobre a Venda</label><div class="cr2"><input type="number" id="cc_mg" value="20" oninput="cCC()"><span class="cu">%</span></div></div>
+        <div class="cp"><label>Valor Médio de Venda</label><div class="cr2"><input type="number" id="cc_vv" value="4790" oninput="cCC()"><span class="cu">R$/cab</span></div></div>
+        <div class="cp"><label>Preço da Arroba na Região</label><div class="cr2"><input type="number" id="cc_pa" value="300" oninput="cCC()"><span class="cu">R$/@</span></div></div>
+      </div>
+      <div class="gi">
+        <span class="gl">Rebanho</span>
+        <div class="cp"><label>Taxa de Desmame</label><div class="cr2"><input type="number" id="cc_td" value="70" oninput="cCC()"><span class="cu">%</span></div></div>
+        <div class="cp"><label>Participação das Matrizes</label><div class="cr2"><input type="number" id="cc_pm" value="57" oninput="cCC()"><span class="cu">%</span></div></div>
+        <div class="cp"><label>Peso Médio do Rebanho</label><div class="cr2"><input type="number" id="cc_pp" value="330" oninput="cCC()"><span class="cu">kg</span></div></div>
+      </div>
+      <div class="gi">
+        <span class="gl">Dados Zootécnicos</span>
+        <div class="cp"><label>Peso ao Desmame</label><div class="cr2"><input type="number" id="cc_pd" value="250" oninput="cCC()"><span class="cu">kg</span></div></div>
+        <div class="cp"><label>Peso ao Abate</label><div class="cr2"><input type="number" id="cc_pa2" value="600" oninput="cCC()"><span class="cu">kg</span></div></div>
+        <div class="cp"><label>Idade ao Abate</label><div class="cr2"><input type="number" id="cc_ia" value="24" oninput="cCC()"><span class="cu">meses</span></div></div>
+        <div class="cp"><label>Idade ao Desmame</label><div class="cr2"><input type="number" id="cc_id" value="7" oninput="cCC()"><span class="cu">meses</span></div></div>
+        <div class="cp"><label>GMD pós-desmame (calculado)</label><div class="cc2"><span class="vl" id="cc_gc">—</span><span class="un">kg/dia</span></div></div>
+      </div>
+    </div>
+    <div class="pr" id="cc_res"></div>
+  </div>
+</div>
+
+<footer class="ft">Gestão Pecuária Lucrativa · Rogério Avelino · (63) 99108-2453 · @gestaolucrativa.pecuaria</footer>
+
+<script>
+// ── FORMATADORES ───────────────────────────────────────
+function M(n,d=0){if(isNaN(n)||n===null||n===undefined)return'—';return'R$ '+n.toLocaleString('pt-BR',{minimumFractionDigits:d,maximumFractionDigits:d})}
+function N(n,d=0){if(isNaN(n)||n===null)return'—';return n.toLocaleString('pt-BR',{minimumFractionDigits:d,maximumFractionDigits:d})}
+function P(n,d=1){if(isNaN(n))return'—';return n.toFixed(d)+'%'}
+function g(id){return parseFloat(document.getElementById(id)?.value)||0}
+function graw(id){return document.getElementById(id)?.value}
+
+// Chart.js instâncias (para destruir antes de recriar)
+const _charts = {};
+function destroyChart(id){if(_charts[id]){_charts[id].destroy();delete _charts[id];}}
+
+// ── NAVEGAÇÃO ──────────────────────────────────────────
+function abrir(s){
+  document.getElementById('ts').classList.add('hidden');
+  ['r','c','cc'].forEach(x=>document.getElementById('t'+x).classList.remove('at'));
+  document.getElementById('t'+s).classList.add('at');
+  window.scrollTo({top:0,behavior:'smooth'});
+  if(s==='r')cR();if(s==='c')cC();if(s==='cc')cCC();
+}
+function voltar(){
+  ['r','c','cc'].forEach(x=>document.getElementById('t'+x).classList.remove('at'));
+  document.getElementById('ts').classList.remove('hidden');
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+// ── GMD BENCHMARK ──────────────────────────────────────
+function benchGMD(gmd,prefixo){
+  const med=0.403,top=0.668;
+  const vsMedia = gmd>=med
+    ? `<span class="gb-val ac">▲ ${((gmd-med)/med*100).toFixed(0)}% acima da média</span>`
+    : `<span class="gb-val ab">▼ ${((med-gmd)/med*100).toFixed(0)}% abaixo da média</span>`;
+  const vsTop = gmd>=top
+    ? `<span class="gb-val ac">▲ acima do Top 30%</span>`
+    : `<span class="gb-val ab">▼ ${((top-gmd)/top*100).toFixed(0)}% abaixo do Top 30%</span>`;
+  document.getElementById(prefixo+'_bench').innerHTML=`
+    <div class="gb-row"><span class="gb-label">vs Média Inttegra (0,403)</span>${vsMedia}</div>
+    <div class="gb-row"><span class="gb-label">vs Top 30% (0,668)</span>${vsTop}</div>`;
+}
+
+// ── ALERTA META ────────────────────────────────────────
+function alerta(re,mg,fat,va,vv){
+  const mef=fat>0?(re/fat*100):0;
+  let tp,ic,tt,tx;
+  if(re<=0||fat<=0){tp='at2';ic='⚠️';tt='VERIFIQUE OS DADOS';tx='Preencha todos os campos para ver o diagnóstico.';}
+  else if(mef>=mg*.9){tp='lc';ic='✅';tt='OPERAÇÃO LUCRATIVA';tx=`${N(va)} cabeças/ano a ${M(vv)}/cab geram ${M(re)} de resultado — ${P(mef)} de margem sobre faturamento de ${M(fat)}.`;}
+  else if(mef>=mg*.6){tp='at2';ic='⚠️';tt='ATENÇÃO — MARGEM ABAIXO DA META';tx=`Margem efetiva de ${P(mef)} está abaixo da meta de ${P(mg)}. Revise custos ou preço de venda para atingir ${M(re)}.`;}
+  else{tp='pj';ic='🚨';tt='PREJUÍZO — NÃO COBRE O CUSTO DA TERRA';tx=`O resultado não cobre o custo de oportunidade da propriedade. A fazenda precisaria gerar ${M(re)} para justificar o investimento. Reavalie margem, escala e preço de venda.`;}
+  return`<div class="am2 ${tp}"><span class="ai">${ic}</span><div class="ac"><div class="at3">${tt}</div><div class="ax">${tx}</div></div></div>`;
+}
+
+// ── CADEIA DE CÁLCULO (Recria-Engorda) ─────────────────
+function cadeia(pe,ps,pg,gmd,dias,mes,giro,va,rb){
+  return`<div class="cadeia">
+    <div class="cadeia-header"><h3>🔗 Como chegamos nesses números</h3></div>
+    <div class="cadeia-body">
+      <div class="cadeia-step">
+        <span class="cs-icone">⚖️</span>
+        <div class="cs-corpo">
+          <div class="cs-label">Peso a Ganhar na Fazenda</div>
+          <div class="cs-valor">${N(ps)} kg <span>abate</span> − ${N(pe)} kg <span>entrada</span> = <strong>${N(pg)} kg</strong></div>
+        </div>
+      </div>
+      <div class="cadeia-arrow">↓</div>
+      <div class="cadeia-step calc">
+        <span class="cs-icone">📅</span>
+        <div class="cs-corpo">
+          <div class="cs-label">Tempo de Permanência</div>
+          <div class="cs-valor">${N(pg)} kg <span>÷</span> ${N(gmd,3)} GMD = <strong>${N(dias)} dias (${N(mes)} meses)</strong></div>
+        </div>
+      </div>
+      <div class="cadeia-arrow">↓</div>
+      <div class="cadeia-step calc">
+        <span class="cs-icone">🔄</span>
+        <div class="cs-corpo">
+          <div class="cs-label">Giro de Estoque</div>
+          <div class="cs-valor">12 meses <span>÷</span> ${N(mes)} meses permanência = <strong>${N(giro,2)} giros/ano</strong></div>
+        </div>
+      </div>
+      <div class="cadeia-arrow">↓</div>
+      <div class="cadeia-step dest">
+        <span class="cs-icone">🐂</span>
+        <div class="cs-corpo">
+          <div class="cs-label">Rebanho Necessário em Campo</div>
+          <div class="cs-valor">${N(va)} vendas <span>÷</span> ${N(giro,2)} giro = <strong>${N(rb)} cabeças</strong></div>
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+// ── GRÁFICOS DE PIZZA ──────────────────────────────────
+function graficos(fat,re,dRepAn,dOpAn,prefixo){
+  setTimeout(()=>{
+    // Pizza 1 — Composição do Desembolso
+    destroyChart(prefixo+'_p1');
+    const ctx1=document.getElementById(prefixo+'_c1')?.getContext('2d');
+    if(ctx1){
+      _charts[prefixo+'_p1']=new Chart(ctx1,{
+        type:'doughnut',
+        data:{
+          labels:['Reposição (Animais)','Operação (Custos)'],
+          datasets:[{data:[Math.max(0,dRepAn),Math.max(0,dOpAn)],backgroundColor:['#c8911a','#4ab520'],borderWidth:2,borderColor:'#fff'}]
+        },
+        options:{responsive:true,plugins:{legend:{display:false},tooltip:{callbacks:{label:function(c){return' '+M(c.raw);}}}},cutout:'60%'}
+      });
+    }
+    // Pizza 2 — Composição do Faturamento
+    destroyChart(prefixo+'_p2');
+    const ctx2=document.getElementById(prefixo+'_c2')?.getContext('2d');
+    if(ctx2){
+      _charts[prefixo+'_p2']=new Chart(ctx2,{
+        type:'doughnut',
+        data:{
+          labels:['Resultado (Lucro)','Desembolso Total'],
+          datasets:[{data:[Math.max(0,re),Math.max(0,fat-re)],backgroundColor:['#2d8a10','#e8e8e8'],borderWidth:2,borderColor:'#fff'}]
+        },
+        options:{responsive:true,plugins:{legend:{display:false},tooltip:{callbacks:{label:function(c){return' '+M(c.raw);}}}},cutout:'60%'}
+      });
+    }
+  },50);
+
+  const pct1R=fat>0?((dRepAn/fat)*100).toFixed(0):0;
+  const pct1O=fat>0?((dOpAn/fat)*100).toFixed(0):0;
+  const pct2L=fat>0?((re/fat)*100).toFixed(0):0;
+  const pct2D=fat>0?(((fat-re)/fat)*100).toFixed(0):0;
+
+  return`<div class="graficos-wrap">
+    <div class="graficos-header"><h3>📊 Composição Financeira</h3></div>
+    <div class="graficos-grid">
+      <div class="grafico-item">
+        <div class="grafico-titulo">Para onde vai o desembolso</div>
+        <div class="grafico-canvas"><canvas id="${prefixo}_c1" height="180"></canvas></div>
+        <div class="grafico-legenda">
+          <div class="gl-item"><div class="gl-cor" style="background:#c8911a"></div><span class="gl-label">Reposição (${pct1R}%)</span><span class="gl-val">${M(dRepAn)}</span></div>
+          <div class="gl-item"><div class="gl-cor" style="background:#4ab520"></div><span class="gl-label">Operação (${pct1O}%)</span><span class="gl-val">${M(dOpAn)}</span></div>
+        </div>
+      </div>
+      <div class="grafico-item">
+        <div class="grafico-titulo">Como fica o faturamento</div>
+        <div class="grafico-canvas"><canvas id="${prefixo}_c2" height="180"></canvas></div>
+        <div class="grafico-legenda">
+          <div class="gl-item"><div class="gl-cor" style="background:#2d8a10"></div><span class="gl-label">Resultado (${pct2L}%)</span><span class="gl-val">${M(re)}</span></div>
+          <div class="gl-item"><div class="gl-cor" style="background:#e8e8e8"></div><span class="gl-label">Desembolso (${pct2D}%)</span><span class="gl-val">${M(fat-re)}</span></div>
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+// Gráficos para Cria/CicloCompleto (sem reposição separada)
+function graficosCria(fat,re,prefixo){
+  const dAnual=fat-re;
+  setTimeout(()=>{
+    destroyChart(prefixo+'_p2');
+    const ctx2=document.getElementById(prefixo+'_c2')?.getContext('2d');
+    if(ctx2){
+      _charts[prefixo+'_p2']=new Chart(ctx2,{
+        type:'doughnut',
+        data:{
+          labels:['Resultado (Lucro)','Desembolso Total'],
+          datasets:[{data:[Math.max(0,re),Math.max(0,dAnual)],backgroundColor:['#2d8a10','#e8e8e8'],borderWidth:2,borderColor:'#fff'}]
+        },
+        options:{responsive:true,plugins:{legend:{display:false},tooltip:{callbacks:{label:function(c){return' '+M(c.raw);}}}},cutout:'60%'}
+      });
+    }
+  },50);
+  const pct2L=fat>0?((re/fat)*100).toFixed(0):0;
+  const pct2D=fat>0?(((fat-re)/fat)*100).toFixed(0):0;
+  return`<div class="graficos-wrap">
+    <div class="graficos-header"><h3>📊 Composição do Faturamento</h3></div>
+    <div class="graficos-grid" style="grid-template-columns:1fr">
+      <div class="grafico-item">
+        <div class="grafico-titulo">Como fica o faturamento</div>
+        <div class="grafico-canvas" style="max-width:180px"><canvas id="${prefixo}_c2" height="180"></canvas></div>
+        <div class="grafico-legenda">
+          <div class="gl-item"><div class="gl-cor" style="background:#2d8a10"></div><span class="gl-label">Resultado (${pct2L}%)</span><span class="gl-val">${M(re)}</span></div>
+          <div class="gl-item"><div class="gl-cor" style="background:#e8e8e8"></div><span class="gl-label">Desembolso (${pct2D}%)</span><span class="gl-val">${M(dAnual)}</span></div>
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+function FR(l,v,c=''){return`<div class="fr"><span class="frl">${l}</span><span class="frv ${c}">${v}</span></div>`}
+function FD(l){return`<div class="fd">${l}</div>`}
+// contador para IDs únicos dos botões WB
+let _wbId = 0;
+const _wbMsgs = {};
+function WB(msg){
+  const id = 'wb_' + (++_wbId);
+  _wbMsgs[id] = msg;
+  return `<button class="bw" onclick="_enviarWB('${id}')"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>Enviar para WhatsApp</button>`;
+}
+function _enviarWB(id){
+  const msg = _wbMsgs[id] || '';
+  window.open('https://wa.me/5563991082453?text=' + encodeURIComponent(msg));
+}
+
+// ══════════════════════════════════════════════════════
+// CÁLCULO — RECRIA-ENGORDA
+// ══════════════════════════════════════════════════════
+function cR(){
+  const at=g('r_at'),ap=g('r_ap'),vh=g('r_vh');
+  const mt=g('r_mt'),mg=g('r_mg'),vv=g('r_vv'),pa=g('r_pa');
+  const dr=g('r_dr'),pe=g('r_pe'),ps=g('r_ps'),gm=g('r_gm')||0.001;
+  const rc=g('r_rc')/100;
+  const giRaw=graw('r_gi');
+
+  // Fazenda
+  const vf=at*vh;
+  document.getElementById('r_vf').textContent=M(vf);
+  const re=vf*(mt/100);
+  document.getElementById('r_re').textContent=M(re);
+
+  // Peso
+  const pg=ps-pe;
+  document.getElementById('r_pg').textContent=N(pg)+' kg';
+
+  // GMD benchmark
+  benchGMD(gm,'r');
+
+  // Zootécnico
+  const dias=gm>0?Math.round(pg/gm):0;
+  const mes=Math.round(dias/30.4);
+  // Giro calculado: 12 ÷ meses de permanência (padrão Inttegra)
+  const giroCalc=mes>0?(12/mes):0;
+  // Giro: usa o digitado SOMENTE se o usuário digitou neste campo agora
+  // Se outro campo mudou (valor venda, GMD etc), reseta para calculado
+  const giVal=parseFloat(giRaw);
+  const giro=(giRaw&&giVal>0)?giVal:giroCalc;
+  // Sempre atualiza placeholder com valor calculado
+  document.getElementById('r_gi').placeholder=N(giroCalc,2)+' (auto)';
+
+  const pm=(pe+ps)/2;
+
+  // Meta → faturamento → vendas → rebanho
+  const fat=mg>0?re/(mg/100):0;
+  const va=vv>0?Math.ceil(fat/vv):0;
+  const rb=giro>0?Math.ceil(va/giro):0;
+  const lCab=ap>0?rb/ap:0,lUA=(lCab*pm)/450;
+
+  // Financeiro
+  const dAnual=fat-re;
+  const dRepAn=dr*va;
+  const dOpAn=dAnual-dRepAn;
+  const dCM=rb>0?dOpAn/rb/12:0;
+  const rHA=ap>0?re/ap:0;
+  const vReb=(pm/30)*pa*rb;
+  const rReb=vReb>0?(re/vReb*100):0;
+
+  const wm=`🐂 PLANO ÁGIL — RECRIA-ENGORDA\n\nFazenda: ${N(at)}ha x R$${N(vh)}/ha = ${M(vf)}\nMeta: ${P(mt)} a.a. = ${M(re)}\nMargem: ${P(mg)} | Faturamento: ${M(fat)}\n\n🔗 CADEIA DE CÁLCULO\n${N(ps)}kg - ${N(pe)}kg = ${N(pg)}kg a ganhar\n${N(pg)}kg ÷ ${N(gm,3)} GMD = ${N(dias)} dias\n12 ÷ ${N(mes)} meses = ${N(giro,2)} giros/ano\n${N(va)} vendas ÷ ${N(giro,2)} = ${N(rb)} cabeças em campo\n\n📊 METAS\nVendas/ano: ${N(va)} cab | Vendas/mês: ${N(Math.ceil(va/12))}\nRebanho: ${N(rb)} cab | Giro: ${N(giro,2)}x/ano\nLotação: ${N(lCab,2)} cab/ha | ${N(lUA,2)} UA/ha\n\n💰 FINANCEIRO\nFaturamento: ${M(fat)}\nDesemb. Reposição: ${M(dRepAn)}\nDesemb. Operação: ${M(dOpAn)}\nDesemb./cab/mês: ${M(dCM)}\nResultado/ha: ${M(rHA)}\nValor rebanho: ${M(vReb)}\n\n📞 Rogério Avelino — (63) 99108-2453`;
+
+  document.getElementById('r_res').innerHTML=`
+  ${alerta(re,mg,fat,va,vv)}
+  <div class="rd2" style="background:linear-gradient(135deg,var(--v1),var(--v2))">
+    <div><span class="rl">Resultado Esperado</span><span class="rv">${M(re)}</span></div>
+    <div class="ri"><span>${P(mt)} sobre ${M(vf)}</span><span>${M(rHA)}/ha/ano</span></div>
+  </div>
+
+  ${cadeia(pe,ps,pg,gm,dias,mes,giro,va,rb)}
+
+  <div class="crd">
+    <div class="crh vd"><h3>🎯 Metas de Venda</h3><span class="hb">${N(va)} cab/ano</span></div>
+    <div class="mg mg3">
+      <div class="mt"><div class="ml2">Vendas / Ano</div><div class="mv vd">${N(va)}</div><div class="ms">cabeças</div></div>
+      <div class="mt"><div class="ml2">Vendas / Mês</div><div class="mv">${N(Math.ceil(va/12))}</div><div class="ms">cabeças</div></div>
+      <div class="mt"><div class="ml2">Faturamento Anual</div><div class="mv do">${M(fat)}</div><div class="ms">${P(mg)} margem</div></div>
+      <div class="mt"><div class="ml2">Rebanho em Campo</div><div class="mv">${N(rb)}</div><div class="ms">cabeças simultâneas</div></div>
+      <div class="mt"><div class="ml2">Giro de Estoque</div><div class="mv">${N(giro,2)}x</div><div class="ms">vezes/ano</div></div>
+      <div class="mt"><div class="ml2">Valor do Rebanho</div><div class="mv do">${M(vReb)}</div><div class="ms">${P(rReb)} resultado</div></div>
+    </div>
+  </div>
+
+  <div class="crd">
+    <div class="crh az"><h3>⏱ Dados Zootécnicos</h3><span class="hb">GMD ${N(gm,3)} kg/dia</span></div>
+    <div class="mg mg3">
+      <div class="mt"><div class="ml2">Peso a Ganhar</div><div class="mv">${N(pg)} kg</div><div class="ms">${N(pe)} → ${N(ps)} kg</div></div>
+      <div class="mt"><div class="ml2">Permanência</div><div class="mv">${N(dias)} dias</div><div class="ms">${N(mes)} meses</div></div>
+      <div class="mt"><div class="ml2">Peso Médio</div><div class="mv">${N(pm)} kg</div><div class="ms">entrada + saída / 2</div></div>
+      <div class="mt"><div class="ml2">Lotação Cab/ha</div><div class="mv">${N(lCab,2)}</div><div class="ms">cab/ha produtivo</div></div>
+      <div class="mt"><div class="ml2">Lotação UA/ha</div><div class="mv">${N(lUA,2)}</div><div class="ms">UA/ha produtivo</div></div>
+      <div class="mt"><div class="ml2">Resultado / ha</div><div class="mv vd">${M(rHA)}</div><div class="ms">por ha/ano</div></div>
+    </div>
+  </div>
+
+  <div class="sf"><div class="sfh"><h3>💰 Detalhamento Financeiro</h3></div>
+    ${FD('Receitas')}
+    ${FR('Faturamento Anual',M(fat),'vd')}
+    ${FR('Resultado Esperado',M(re),'vd')}
+    ${FR('Resultado / ha / ano',M(rHA)+'/ha','vd')}
+    ${FD('Desembolsos')}
+    ${FR('Desembolso Anual Total',M(dAnual))}
+    ${FR('Desembolso Reposição (Animais)',M(dRepAn))}
+    ${FR('Desembolso Operação',M(dOpAn))}
+    ${FR('Desembolso / Cab / Mês',M(dCM)+'/cab/mês')}
+    ${FD('Patrimônio')}
+    ${FR('Valor do Rebanho em Campo',M(vReb))}
+    ${FR('Resultado / Rebanho',P(rReb),rReb>=10?'vd':'rd')}
+  </div>
+
+  ${graficos(fat,re,dRepAn,dOpAn,'r')}
+  ${WB(wm)}`;
+}
+
+// ══════════════════════════════════════════════════════
+// CÁLCULO — CRIA
+// ══════════════════════════════════════════════════════
+function cC(){
+  const at=g('c_at'),ap=g('c_ap'),vh=g('c_vh');
+  const mt=g('c_mt'),mg=g('c_mg'),vv=g('c_vv'),pa=g('c_pa');
+  const td=g('c_td')/100,pm2=g('c_pm')/100,pp=g('c_pp');
+  const vf=at*vh;
+  document.getElementById('c_vf').textContent=M(vf);
+  const re=vf*(mt/100);
+  document.getElementById('c_re').textContent=M(re);
+  const fat=mg>0?re/(mg/100):0;
+  const va=vv>0?Math.ceil(fat/vv):0;
+  const mat=td>0?Math.ceil(va/td):0;
+  const rb=pm2>0?Math.ceil(mat/pm2):0;
+  const lCab=ap>0?rb/ap:0,lUA=(lCab*pp)/450;
+  const dAnual=fat-re,dCM=rb>0?dAnual/rb/12:0;
+  const rHA=ap>0?re/ap:0;
+  const vReb=(pp/30)*pa*rb,rReb=vReb>0?(re/vReb*100):0;
+
+  const wm=`🐄 PLANO ÁGIL — CRIA\n\nFazenda: ${N(at)}ha x R$${N(vh)}/ha = ${M(vf)}\nMeta: ${P(mt)} a.a. = ${M(re)}\nMargem: ${P(mg)} | Faturamento: ${M(fat)}\n\nRebanho: ${N(rb)} cab | Matrizes: ${N(mat)}\nVendas/ano: ${N(va)} | Desmame: ${P(td*100)}\nLotação: ${N(lCab,2)} cab/ha | ${N(lUA,2)} UA/ha\nResultado/ha: ${M(rHA)} | Valor rebanho: ${M(vReb)}\n\n📞 Rogério Avelino — (63) 99108-2453`;
+
+  document.getElementById('c_res').innerHTML=`
+  ${alerta(re,mg,fat,va,vv)}
+  <div class="rd2" style="background:linear-gradient(135deg,#7a5800,#c8911a)">
+    <div><span class="rl">Resultado Esperado</span><span class="rv">${M(re)}</span></div>
+    <div class="ri"><span>${P(mt)} sobre ${M(vf)}</span><span>${M(rHA)}/ha/ano</span></div>
+  </div>
+  <div class="crd">
+    <div class="crh do"><h3>🐄 Rebanho Necessário</h3><span class="hb">${N(rb)} cab</span></div>
+    <div class="mg mg3">
+      <div class="mt"><div class="ml2">Vendas / Ano</div><div class="mv vd">${N(va)}</div><div class="ms">bezerros desmamados</div></div>
+      <div class="mt"><div class="ml2">Vendas / Mês</div><div class="mv">${N(Math.ceil(va/12))}</div><div class="ms">cabeças</div></div>
+      <div class="mt"><div class="ml2">Faturamento</div><div class="mv do">${M(fat)}</div><div class="ms">${P(mg)} margem</div></div>
+      <div class="mt"><div class="ml2">Matrizes Necessárias</div><div class="mv">${N(mat)}</div><div class="ms">desmame ${P(td*100)}</div></div>
+      <div class="mt"><div class="ml2">Rebanho Médio</div><div class="mv">${N(rb)}</div><div class="ms">total em campo</div></div>
+      <div class="mt"><div class="ml2">Valor do Rebanho</div><div class="mv do">${M(vReb)}</div><div class="ms">${P(rReb)} resultado</div></div>
+    </div>
+  </div>
+  <div class="crd">
+    <div class="crh az"><h3>🌿 Lotação e Área</h3></div>
+    <div class="mg">
+      <div class="mt"><div class="ml2">Lotação Cab/ha</div><div class="mv">${N(lCab,2)}</div><div class="ms">cab/ha produtivo</div></div>
+      <div class="mt"><div class="ml2">Lotação UA/ha</div><div class="mv">${N(lUA,2)}</div><div class="ms">UA/ha produtivo</div></div>
+      <div class="mt"><div class="ml2">Desembolso/Cab/Mês</div><div class="mv">${M(dCM)}</div><div class="ms">por cab/mês</div></div>
+      <div class="mt"><div class="ml2">Resultado / ha</div><div class="mv vd">${M(rHA)}</div><div class="ms">por ha/ano</div></div>
+    </div>
+  </div>
+  <div class="sf"><div class="sfh"><h3>💰 Detalhamento Financeiro</h3></div>
+    ${FD('Receitas')}${FR('Faturamento Anual',M(fat),'vd')}${FR('Resultado Esperado',M(re),'vd')}${FR('Resultado / ha / ano',M(rHA)+'/ha','vd')}
+    ${FD('Desembolsos')}${FR('Desembolso Anual',M(dAnual))}${FR('Desembolso / Cab / Mês',M(dCM)+'/cab/mês')}
+    ${FD('Patrimônio')}${FR('Valor do Rebanho em Campo',M(vReb))}${FR('Resultado / Rebanho',P(rReb),rReb>=8?'vd':'rd')}
+  </div>
+  ${graficosCria(fat,re,'c')}
+  ${WB(wm)}`;
+}
+
+// ══════════════════════════════════════════════════════
+// CÁLCULO — CICLO COMPLETO
+// ══════════════════════════════════════════════════════
+function cCC(){
+  const at=g('cc_at'),ap=g('cc_ap'),vh=g('cc_vh');
+  const mt=g('cc_mt'),mg=g('cc_mg'),vv=g('cc_vv'),pa=g('cc_pa');
+  const td=g('cc_td')/100,pm2=g('cc_pm')/100,pp=g('cc_pp');
+  const pd=g('cc_pd'),pa2=g('cc_pa2'),ia=g('cc_ia'),id=g('cc_id');
+  const vf=at*vh;
+  document.getElementById('cc_vf').textContent=M(vf);
+  const re=vf*(mt/100);
+  document.getElementById('cc_re').textContent=M(re);
+  const gmd=(ia>id&&pd>0)?((pa2-pd)/((ia-id)/30.4)):0;
+  document.getElementById('cc_gc').textContent=N(gmd,3);
+  const fat=mg>0?re/(mg/100):0;
+  const va=vv>0?Math.ceil(fat/vv):0;
+  const mat=td>0?Math.ceil(va/td):0;
+  const rb=pm2>0?Math.ceil(mat/pm2):0;
+  const lCab=ap>0?rb/ap:0,lUA=(lCab*pp)/450;
+  const dAnual=fat-re,dCM=rb>0?dAnual/rb/12:0;
+  const rHA=ap>0?re/ap:0;
+  const vReb=(pp/30)*pa*rb,rReb=vReb>0?(re/vReb*100):0;
+
+  const wm=`🌾 PLANO ÁGIL — CICLO COMPLETO\n\nFazenda: ${N(at)}ha x R$${N(vh)}/ha = ${M(vf)}\nMeta: ${P(mt)} a.a. = ${M(re)}\nMargem: ${P(mg)} | Faturamento: ${M(fat)}\n\nRebanho: ${N(rb)} cab | Matrizes: ${N(mat)}\nVendas/ano: ${N(va)} | Lotação: ${N(lCab,2)} cab/ha | ${N(lUA,2)} UA/ha\nDesmame: ${N(pd)}kg → Abate: ${N(pa2)}kg | GMD: ${N(gmd,3)} kg/dia\nIdade abate: ${N(ia)} meses\nResultado/ha: ${M(rHA)} | Valor rebanho: ${M(vReb)}\n\n📞 Rogério Avelino — (63) 99108-2453`;
+
+  document.getElementById('cc_res').innerHTML=`
+  ${alerta(re,mg,fat,va,vv)}
+  <div class="rd2" style="background:linear-gradient(135deg,#1a3a5c,#2980b9)">
+    <div><span class="rl">Resultado Esperado</span><span class="rv">${M(re)}</span></div>
+    <div class="ri"><span>${P(mt)} sobre ${M(vf)}</span><span>${M(rHA)}/ha/ano</span></div>
+  </div>
+  <div class="crd">
+    <div class="crh az"><h3>🌾 Rebanho e Metas</h3><span class="hb">${N(rb)} cab</span></div>
+    <div class="mg mg3">
+      <div class="mt"><div class="ml2">Vendas / Ano</div><div class="mv vd">${N(va)}</div><div class="ms">cabeças ao abate</div></div>
+      <div class="mt"><div class="ml2">Vendas / Mês</div><div class="mv">${N(Math.ceil(va/12))}</div><div class="ms">cabeças</div></div>
+      <div class="mt"><div class="ml2">Faturamento</div><div class="mv do">${M(fat)}</div><div class="ms">${P(mg)} margem</div></div>
+      <div class="mt"><div class="ml2">Matrizes Necessárias</div><div class="mv">${N(mat)}</div><div class="ms">desmame ${P(td*100)}</div></div>
+      <div class="mt"><div class="ml2">Rebanho Médio</div><div class="mv">${N(rb)}</div><div class="ms">total em campo</div></div>
+      <div class="mt"><div class="ml2">Valor do Rebanho</div><div class="mv do">${M(vReb)}</div><div class="ms">${P(rReb)} resultado</div></div>
+    </div>
+  </div>
+  <div class="crd">
+    <div class="crh vd"><h3>⏱ Dados Zootécnicos</h3><span class="hb">GMD ${N(gmd,3)} kg/dia</span></div>
+    <div class="mg mg3">
+      <div class="mt"><div class="ml2">Desmame → Abate</div><div class="mv">${N(pd)}→${N(pa2)}</div><div class="ms">kg</div></div>
+      <div class="mt"><div class="ml2">GMD pós-desmame</div><div class="mv vd">${N(gmd,3)}</div><div class="ms">kg/dia</div></div>
+      <div class="mt"><div class="ml2">Idade ao Abate</div><div class="mv">${N(ia)}</div><div class="ms">meses</div></div>
+      <div class="mt"><div class="ml2">Lotação Cab/ha</div><div class="mv">${N(lCab,2)}</div><div class="ms">cab/ha produtivo</div></div>
+      <div class="mt"><div class="ml2">Lotação UA/ha</div><div class="mv">${N(lUA,2)}</div><div class="ms">UA/ha produtivo</div></div>
+      <div class="mt"><div class="ml2">Resultado / ha</div><div class="mv vd">${M(rHA)}</div><div class="ms">por ha/ano</div></div>
+    </div>
+  </div>
+  <div class="sf"><div class="sfh"><h3>💰 Detalhamento Financeiro</h3></div>
+    ${FD('Receitas')}${FR('Faturamento Anual',M(fat),'vd')}${FR('Resultado Esperado',M(re),'vd')}${FR('Resultado / ha / ano',M(rHA)+'/ha','vd')}
+    ${FD('Desembolsos')}${FR('Desembolso Anual',M(dAnual))}${FR('Desembolso / Cab / Mês',M(dCM)+'/cab/mês')}
+    ${FD('Patrimônio')}${FR('Valor do Rebanho em Campo',M(vReb))}${FR('Resultado / Rebanho',P(rReb),rReb>=10?'vd':'rd')}
+  </div>
+  ${graficosCria(fat,re,'cc')}
+  ${WB(wm)}`;
+}
+</script>
+</body>
+</html>

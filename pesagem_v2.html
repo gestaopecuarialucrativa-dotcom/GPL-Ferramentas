@@ -240,6 +240,7 @@ tbody td{padding:11px 14px;font-size:13px;color:var(--g2)}
 }
 .rel-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--v3)}
 .rel-card.do::before{background:var(--d2)}
+.rel-card.vd::before{background:var(--v3)}
 .rel-card.az::before{background:var(--az)}
 .rel-card.rd::before{background:var(--rd)}
 .rel-card:hover{box-shadow:var(--sh2);transform:translateY(-2px)}
@@ -505,6 +506,11 @@ tbody td{padding:11px 14px;font-size:13px;color:var(--g2)}
       <span class="rel-icone">📊</span>
       <div class="rel-nome">Relatório Geral</div>
       <div class="rel-desc">Visão completa do rebanho: todos os animais, médias e comparativo com benchmarks.</div>
+    </div>
+    <div class="rel-card vd" onclick="gerarRel('gmd')">
+      <span class="rel-icone">📈</span>
+      <div class="rel-nome">Relatório GMD</div>
+      <div class="rel-desc">GMD por animal (evolução) e GMD médio por lote comparado com benchmarks Inttegra. Top 30%, média e piores fazendas.</div>
     </div>
   </div>
 
@@ -894,8 +900,10 @@ var _pagSize = 20;
 // ══════════════════════════════════════════════════════════════
 function renderPes(){
   var fazId = gv('pFazFil');
-  var dataFil = gv('pDataFil') || hoje();
+  var dataFil = gv('pDataFil'); // vazio = sem filtro de data (mostra todos)
   var loteFil = gv('pLoteFil');
+  // Se não tiver filtro de data, padrão é hoje
+  if(!dataFil) { dataFil = hoje(); sv2('pDataFil', hoje()); }
 
   var peses=(DB.pesagens||[]).filter(function(p){
     if(fazId&&p.fazId!==fazId) return false;
@@ -1026,11 +1034,17 @@ function renderLotes(){
     return;
   }
 
-  var h='<div class="lotes-grid">';
+  var h='<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px">';
+  h+='<span style="font-family:Syne,sans-serif;font-size:13px;font-weight:800;color:var(--v2)">'+keys.length+' Lotes · '+((DB.pesagens||[]).filter(function(p){return !fazId||p.fazId===fazId;}).length)+' animais</span>';
+  h+='<button class="tb-btn" onclick="expandirTodos()">⊞ Expandir todos</button>';
+  h+='</div>';
+  h+='<div class="lotes-grid">';
   keys.forEach(function(k){
     var lt=lotes[k];
     var n=lt.animais.length;
     var pm=lt.animais.reduce(function(s,a){return s+a.peso;},0)/n;
+    var pesoTotal=lt.animais.reduce(function(s,a){return s+a.peso;},0);
+    var arTotal=lt.animais.reduce(function(s,a){return s+(a.peso*0.52/15);},0);
     var comGmd=lt.animais.filter(function(a){return a.gmd>0;});
     var gm=comGmd.length?comGmd.reduce(function(s,a){return s+a.gmd;},0)/comGmd.length:0;
     var ultData=lt.datas.sort().slice(-1)[0];
@@ -1065,6 +1079,13 @@ function renderLotes(){
   });
   h+='</div>';
   ge('lotesContainer').innerHTML=h;
+}
+
+function expandirTodos(){
+  document.querySelectorAll('.lote-body').forEach(function(b){
+    b.classList.add('at');
+    if(b.previousElementSibling) b.previousElementSibling.classList.add('at');
+  });
 }
 
 function toggleLote(id){
@@ -1119,6 +1140,10 @@ function gerarRel(tipo){
   else if(tipo==='geral'){
     titulo = '📊 Relatório Geral do Rebanho';
     corpo = buildRelGeral(peses);
+  }
+  else if(tipo==='gmd'){
+    titulo = '📈 Relatório GMD — Benchmarks Inttegra';
+    corpo = buildRelGMD(peses);
   }
 
   ge('relTitulo').textContent = titulo;
@@ -1274,6 +1299,109 @@ function buildRelGeral(peses){
   h+='<div class="stat-card"><div class="stat-label">Animais Top 30%</div><div class="stat-val vd">'+top30+'<span style="font-size:13px;color:var(--g4)"> de '+comGmd.length+'</span></div></div>';
   h+='</div>';
   h+=buildTableRel(peses,'geral');
+  return h;
+}
+
+function buildRelGMD(peses){
+  var BENCH = {
+    piores:  {gmd:0.200, label:'Piores 25%',  cor:'#c0392b'},
+    media:   {gmd:0.403, label:'Média Geral',  cor:'#e67e22'},
+    top30:   {gmd:0.668, label:'Top 30%',      cor:'#27ae60'},
+  };
+
+  // ── POR LOTE ──
+  var lotes={};
+  peses.forEach(function(p){
+    var k='Lote '+String(p.lote||'—');
+    if(!lotes[k]) lotes[k]=[];
+    lotes[k].push(p);
+  });
+
+  var h='';
+
+  // Tabela resumo por lote
+  h+='<div style="margin-bottom:24px">';
+  h+='<div style="font-family:Syne,sans-serif;font-size:14px;font-weight:800;color:var(--v2);margin-bottom:12px">📦 GMD Médio por Lote vs Benchmarks</div>';
+  h+='<div style="overflow-x:auto"><table><thead><tr>';
+  h+='<th>Lote</th><th>Animais</th><th>GMD Médio</th><th>vs Piores (0,200)</th><th>vs Média (0,403)</th><th>vs Top 30% (0,668)</th><th>Classificação</th>';
+  h+='</tr></thead><tbody>';
+
+  Object.keys(lotes).sort().forEach(function(k){
+    var lt=lotes[k];
+    var comGmd=lt.filter(function(p){return p.gmd>0;});
+    if(!comGmd.length) return;
+    var gm=comGmd.reduce(function(s,p){return s+p.gmd;},0)/comGmd.length;
+    var vsPiores=((gm-0.200)/0.200*100).toFixed(0);
+    var vsMedia=((gm-0.403)/0.403*100).toFixed(0);
+    var vsTop=((gm-0.668)/0.668*100).toFixed(0);
+    var cls=gm>=0.668?'🏆 Top 30%':gm>=0.403?'✅ Acima da Média':gm>=0.200?'⚠️ Abaixo da Média':'🚨 Crítico';
+    var gc=gm>=0.668?'vd':gm>=0.403?'am':'rd';
+    h+='<tr>';
+    h+='<td><strong>'+k+'</strong></td>';
+    h+='<td>'+comGmd.length+'</td>';
+    h+='<td class="td-gmd '+gc+'">'+gm.toFixed(3)+' kg/d</td>';
+    h+='<td style="color:'+(vsPiores>=0?'var(--v3)':'var(--rd)')+'">'+(vsPiores>=0?'▲ +':'')+vsPiores+'%</td>';
+    h+='<td style="color:'+(vsMedia>=0?'var(--v3)':'var(--rd)')+'">'+(vsMedia>=0?'▲ +':'')+vsMedia+'%</td>';
+    h+='<td style="color:'+(vsTop>=0?'var(--v3)':'var(--rd)')+'">'+(vsTop>=0?'▲ +':'')+vsTop+'%</td>';
+    h+='<td>'+cls+'</td>';
+    h+='</tr>';
+  });
+  h+='</tbody></table></div></div>';
+
+  // ── RÉGUA DE REFERÊNCIA ──
+  h+='<div style="background:white;border:1px solid var(--g6);border-radius:var(--r);padding:20px;margin-bottom:24px">';
+  h+='<div style="font-family:Syne,sans-serif;font-size:14px;font-weight:800;color:var(--v2);margin-bottom:16px">📏 Régua de Referência Inttegra — GMD Global</div>';
+  h+='<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px">';
+  [
+    {label:'Piores 25%', val:'< 0,200', cor:'#c0392b', bg:'#fdeaea'},
+    {label:'25% a 50%',  val:'0,200 — 0,350', cor:'#e67e22', bg:'#fef3e2'},
+    {label:'50% a 75%',  val:'0,350 — 0,500', cor:'#f39c12', bg:'#fefbe6'},
+    {label:'Top 25%',    val:'> 0,500', cor:'#27ae60', bg:'#e8f7e0'},
+  ].forEach(function(b){
+    h+='<div style="padding:14px;border-radius:8px;background:'+b.bg+';text-align:center">';
+    h+='<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:'+b.cor+';margin-bottom:4px">'+b.label+'</div>';
+    h+='<div style="font-family:Syne,sans-serif;font-size:18px;font-weight:800;color:'+b.cor+'">'+b.val+'</div>';
+    h+='<div style="font-size:10px;color:#888;margin-top:2px">kg/dia</div></div>';
+  });
+  h+='</div>';
+  h+='<div style="font-size:11px;color:var(--g4);font-style:italic">Fonte: Benchmarks Inttegra · Safra 2020/2021 · 637 fazendas · GMD Global (recria-engorda). Top 30% rentáveis: 0,668 kg/dia</div>';
+  h+='</div>';
+
+  // ── POR ANIMAL ──
+  h+='<div style="font-family:Syne,sans-serif;font-size:14px;font-weight:800;color:var(--v2);margin-bottom:12px">🐂 GMD por Animal (Evolução)</div>';
+  var porAnimal={};
+  peses.forEach(function(p){
+    if(!porAnimal[p.num]) porAnimal[p.num]=[];
+    porAnimal[p.num].push(p);
+  });
+  var animaisComGmd=Object.keys(porAnimal).filter(function(k){
+    return porAnimal[k].some(function(p){return p.gmd>0;});
+  }).sort();
+
+  if(!animaisComGmd.length){
+    h+='<div class="empty">Nenhum animal com GMD calculado. Necessário pelo menos 2 pesagens do mesmo animal.</div>';
+  } else {
+    h+='<div style="overflow-x:auto"><table><thead><tr><th>Animal</th><th>Lote</th><th>Pesagens</th><th>GMD Médio</th><th>Último GMD</th><th>Trend</th><th>vs Top 30%</th></tr></thead><tbody>';
+    animaisComGmd.forEach(function(num){
+      var hist=porAnimal[num].sort(function(a,b){return a.data.localeCompare(b.data);});
+      var comGmd=hist.filter(function(p){return p.gmd>0;});
+      var gmdMed=comGmd.reduce(function(s,p){return s+p.gmd;},0)/comGmd.length;
+      var ultGmd=comGmd[comGmd.length-1].gmd;
+      var trend=comGmd.length>=2?(comGmd[comGmd.length-1].gmd>comGmd[0].gmd?'📈 Subindo':'📉 Caindo'):'—';
+      var vsTop=((gmdMed-0.668)/0.668*100).toFixed(0);
+      var gc=gmdMed>=0.668?'vd':gmdMed>=0.403?'am':'rd';
+      h+='<tr>';
+      h+='<td class="td-num">'+num+'</td>';
+      h+='<td>'+hist[hist.length-1].lote+'</td>';
+      h+='<td>'+hist.length+'</td>';
+      h+='<td class="td-gmd '+gc+'">'+gmdMed.toFixed(3)+'</td>';
+      h+='<td class="td-gmd '+gc+'">'+ultGmd.toFixed(3)+'</td>';
+      h+='<td>'+trend+'</td>';
+      h+='<td style="color:'+(vsTop>=0?'var(--v3)':'var(--rd)')+'">'+(vsTop>=0?'▲ +':'')+vsTop+'%</td>';
+      h+='</tr>';
+    });
+    h+='</tbody></table></div>';
+  }
   return h;
 }
 

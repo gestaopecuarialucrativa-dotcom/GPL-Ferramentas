@@ -3,1448 +3,596 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Pesagem | Gestão Pecuária Lucrativa</title>
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<title>Gestão Pecuária Lucrativa | Rogério Avelino</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,300&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
 :root{
-  --v1:#0f3d08;--v2:#1a5c0a;--v3:#2d8a10;--v4:#4ab520;--v5:#7dc42a;--vl:#e8f5e0;
+  --v1:#0f3d08;--v2:#1a5c0a;--v3:#2d8a10;--v4:#4ab520;--v5:#7dc42a;
   --d1:#a87010;--d2:#c8911a;--d3:#f0b840;
-  --g1:#111;--g2:#222;--g3:#444;--g4:#777;--g5:#aaa;--g6:#ddd;--g7:#f2f2f0;--g8:#fafaf8;
-  --rd:#c0392b;--rdl:#fdeaea;--am:#e67e22;--aml:#fef3e2;--az:#2471a3;
-  --w:#fff;--sh:0 1px 4px rgba(0,0,0,.07);--sh2:0 4px 20px rgba(0,0,0,.10);--r:12px;--rs:8px
+  --w:#ffffff;--cr:#f8f5f0;--g1:#111;--g2:#2a2a2a;--g3:#555;--g4:#888;--g5:#bbb;--g6:#e4e4e4;--g7:#f4f4f2;
+  --rd:#b83030;--rdl:#fdeaea;
+  --sh:0 2px 12px rgba(0,0,0,.07);--sh2:0 8px 32px rgba(0,0,0,.11);--sh3:0 20px 60px rgba(0,0,0,.14);
+  --r:14px;--rs:8px
 }
-html{font-size:16px}
-body{font-family:'DM Sans',sans-serif;background:var(--g7);color:var(--g1);min-height:100vh;-webkit-font-smoothing:antialiased}
+html{font-size:16px;scroll-behavior:smooth}
+body{font-family:'DM Sans',sans-serif;background:var(--g7);color:var(--g1);min-height:100vh;overflow-x:hidden;-webkit-font-smoothing:antialiased}
 
-/* TOPBAR */
-.topbar{
-  background:var(--w);border-bottom:1px solid var(--g6);
-  height:58px;padding:0 24px;position:sticky;top:0;z-index:200;
-  display:flex;align-items:center;justify-content:space-between;gap:12px;
-  box-shadow:var(--sh)
-}
-.tb-left{display:flex;align-items:center;gap:16px}
-.tb-logo{height:36px;width:auto}
-.tb-title{font-family:'Syne',sans-serif;font-size:15px;font-weight:800;color:var(--v2)}
-.tb-sub{font-size:11px;color:var(--g4);display:block}
-.tb-right{display:flex;align-items:center;gap:8px}
-.tb-btn{
-  padding:6px 14px;border-radius:7px;font-size:12px;font-weight:600;
-  border:1px solid var(--g6);background:var(--w);color:var(--g3);
-  cursor:pointer;transition:all .15s;text-decoration:none;display:flex;align-items:center;gap:6px
-}
-.tb-btn:hover{border-color:var(--v4);color:var(--v2);background:var(--vl)}
-.tb-btn.primary{background:var(--v3);color:#fff;border-color:var(--v3)}
-.tb-btn.primary:hover{background:var(--v2)}
-.tb-sync{font-size:11px;color:var(--g4);display:flex;align-items:center;gap:5px}
-.sync-dot{width:7px;height:7px;border-radius:50%;background:var(--g5)}
-.sync-dot.online{background:var(--v4)}
-.sync-dot.syncing{background:var(--d3);animation:blink .8s infinite}
-@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
-
-/* TABS NAVEGAÇÃO */
-.nav-tabs{
-  background:var(--w);border-bottom:2px solid var(--g6);
-  padding:0 24px;display:flex;gap:4px;overflow-x:auto
-}
-.nav-tab{
-  padding:12px 18px;font-size:13px;font-weight:600;color:var(--g4);
-  cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-2px;
-  white-space:nowrap;transition:all .15s;display:flex;align-items:center;gap:7px
-}
-.nav-tab:hover{color:var(--g2)}
-.nav-tab.at{color:var(--v2);border-bottom-color:var(--v3)}
-.nav-badge{
-  background:var(--v5);color:var(--v1);font-size:10px;font-weight:700;
-  padding:2px 7px;border-radius:10px;min-width:20px;text-align:center
+/* ── FUNDO ── */
+body::before{
+  content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
+  background:
+    radial-gradient(ellipse 80% 50% at 10% 0%,rgba(45,138,16,.07) 0%,transparent 60%),
+    radial-gradient(ellipse 60% 40% at 90% 100%,rgba(200,145,26,.06) 0%,transparent 60%);
 }
 
-/* LAYOUT */
-.page{display:none;padding:20px 24px 60px;max-width:1100px;margin:0 auto}
-.page.at{display:block;animation:fi .3s ease}
-@keyframes fi{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+/* ── HEADER ── */
+.hd{
+  position:sticky;top:0;z-index:100;
+  background:rgba(255,255,255,.92);backdrop-filter:blur(16px);
+  border-bottom:1px solid var(--g6);
+  padding:0 32px;height:64px;
+  display:flex;align-items:center;justify-content:space-between;
+  box-shadow:0 1px 0 rgba(0,0,0,.06)
+}
+.hd-logo{display:flex;align-items:center;gap:14px}
+.hd-logo img{height:40px;width:auto}
+.hd-logo-txt .l1{font-family:'Syne',sans-serif;font-size:16px;font-weight:800;color:var(--v2);letter-spacing:-.3px;display:block;line-height:1.1}
+.hd-logo-txt .l2{font-size:11px;color:var(--g4);font-weight:400;display:block;letter-spacing:.3px}
+.hd-links{display:flex;align-items:center;gap:8px}
+.hd-link{
+  padding:7px 16px;border-radius:20px;font-size:13px;font-weight:600;text-decoration:none;
+  transition:all .2s;color:var(--g3);border:1px solid transparent
+}
+.hd-link:hover{background:var(--g7);color:var(--v2)}
+.hd-link.wpp{background:var(--v3);color:#fff;border-color:var(--v3)}
+.hd-link.wpp:hover{background:var(--v2)}
 
-/* FILTROS */
-.filtros{
-  display:flex;gap:10px;align-items:center;flex-wrap:wrap;
-  background:var(--w);border-radius:var(--r);padding:14px 18px;
-  margin-bottom:16px;border:1px solid var(--g6);box-shadow:var(--sh)
+/* ── HERO ── */
+.hero{
+  position:relative;z-index:1;
+  padding:72px 32px 56px;
+  max-width:1100px;margin:0 auto;
+  display:grid;grid-template-columns:1fr auto;align-items:center;gap:40px
 }
-.fil-sel{
-  padding:7px 12px;border:1.5px solid var(--g6);border-radius:var(--rs);
-  font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;color:var(--g2);
-  background:var(--g8);outline:none;cursor:pointer;transition:border-color .15s
+@media(max-width:700px){.hero{grid-template-columns:1fr;padding:48px 20px 36px}}
+.hero-badge{
+  display:inline-flex;align-items:center;gap:8px;
+  background:var(--v5);color:var(--v1);
+  padding:5px 14px;border-radius:20px;
+  font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;
+  margin-bottom:20px
 }
-.fil-sel:focus{border-color:var(--v3)}
-.fil-label{font-size:12px;font-weight:600;color:var(--g4);white-space:nowrap}
-.fil-data{padding:7px 10px;border:1.5px solid var(--g6);border-radius:var(--rs);font-family:'DM Sans',sans-serif;font-size:13px;color:var(--g2);background:var(--g8);outline:none}
-.fil-data:focus{border-color:var(--v3)}
+.hero-badge::before{content:'●';font-size:8px;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.hero h1{
+  font-family:'Syne',sans-serif;font-size:clamp(32px,5vw,52px);font-weight:800;
+  color:var(--g1);line-height:1.1;letter-spacing:-1px;margin-bottom:16px
+}
+.hero h1 span{color:var(--v3)}
+.hero p{font-size:16px;color:var(--g3);line-height:1.6;max-width:520px;font-weight:300}
+.hero-stats{
+  display:flex;flex-direction:column;gap:12px;
+  background:var(--w);border-radius:var(--r);padding:24px 28px;
+  box-shadow:var(--sh2);border:1px solid var(--g6);min-width:200px
+}
+.hero-stat-item{text-align:center}
+.hero-stat-val{font-family:'Syne',sans-serif;font-size:28px;font-weight:800;color:var(--v3);line-height:1}
+.hero-stat-lbl{font-size:11px;color:var(--g4);margin-top:3px;font-weight:500;text-transform:uppercase;letter-spacing:.5px}
+.hero-stat-div{height:1px;background:var(--g6)}
 
-/* STATS DO DIA */
-.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px}
-@media(max-width:700px){.stats-row{grid-template-columns:repeat(2,1fr)}}
-.stat-card{
-  background:var(--w);border-radius:var(--r);padding:16px 18px;
-  border:1px solid var(--g6);box-shadow:var(--sh)
+/* ── SEÇÃO ── */
+.secao{position:relative;z-index:1;max-width:1100px;margin:0 auto;padding:0 32px 60px}
+@media(max-width:700px){.secao{padding:0 16px 48px}}
+.secao-label{
+  display:flex;align-items:center;gap:12px;margin-bottom:28px
 }
-.stat-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--g4);margin-bottom:5px}
-.stat-val{font-family:'Syne',sans-serif;font-size:26px;font-weight:800;color:var(--g1);line-height:1}
-.stat-val.vd{color:var(--v3)}.stat-val.am{color:var(--am)}.stat-val.rd{color:var(--rd)}
-.stat-sub{font-size:11px;color:var(--g5);margin-top:4px}
+.secao-label span{
+  font-family:'Syne',sans-serif;font-size:12px;font-weight:700;letter-spacing:2px;
+  text-transform:uppercase;color:var(--g4)
+}
+.secao-label::after{content:'';flex:1;height:1px;background:var(--g6)}
 
-/* PROTOCOLO */
-.proto-card{
-  background:linear-gradient(135deg,var(--v1),var(--v2));
-  border-radius:var(--r);padding:18px 22px;margin-bottom:16px;
-  box-shadow:0 4px 20px rgba(15,61,8,.3)
+/* ── GRID FERRAMENTAS ── */
+.tools-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px}
+.tool-card{
+  background:var(--w);border-radius:var(--r);
+  border:1px solid var(--g6);
+  box-shadow:var(--sh);
+  overflow:hidden;
+  transition:all .25s ease;
+  cursor:pointer;text-decoration:none;display:flex;flex-direction:column;
+  position:relative
 }
-.proto-titulo{font-family:'Syne',sans-serif;font-size:13px;font-weight:800;color:var(--d3);margin-bottom:12px;display:flex;align-items:center;gap:8px}
-.proto-modos{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}
-.proto-modo-btn{
-  padding:7px 14px;border-radius:7px;font-size:12px;font-weight:600;
-  border:1.5px solid rgba(255,255,255,.25);background:rgba(255,255,255,.1);
-  color:rgba(255,255,255,.75);cursor:pointer;transition:all .15s;display:flex;align-items:center;gap:6px
+.tool-card:hover{box-shadow:var(--sh2);transform:translateY(-3px);border-color:transparent}
+.tool-card-bar{height:4px;width:100%}
+.tool-card-bar.verde{background:linear-gradient(90deg,var(--v3),var(--v5))}
+.tool-card-bar.dourado{background:linear-gradient(90deg,var(--d1),var(--d3))}
+.tool-card-bar.azul{background:linear-gradient(90deg,#1a5580,#3fa0d0)}
+.tool-card-bar.terra{background:linear-gradient(90deg,#7a3a10,#c8601a)}
+.tool-card-body{padding:22px 24px;flex:1;display:flex;flex-direction:column;gap:14px}
+.tool-card-top{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.tool-icone{
+  width:48px;height:48px;border-radius:12px;
+  display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0
 }
-.proto-modo-btn.at{background:rgba(255,255,255,.22);border-color:rgba(255,255,255,.5);color:#fff}
-.proto-meds{display:flex;flex-direction:column;gap:8px;margin-bottom:10px}
-.proto-med-row{display:grid;grid-template-columns:1fr 140px 36px;gap:8px;align-items:center}
-.proto-input{
-  padding:8px 12px;border-radius:7px;border:1.5px solid rgba(255,255,255,.2);
-  background:rgba(255,255,255,.12);color:#fff;font-family:'DM Sans',sans-serif;
-  font-size:13px;outline:none;width:100%;
+.tool-icone.verde{background:#e8f7e0}.tool-icone.dourado{background:#fef3dd}
+.tool-icone.azul{background:#e4f0fb}.tool-icone.terra{background:#fde8da}
+.tool-status{
+  font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;
+  padding:3px 10px;border-radius:10px
 }
-.proto-input::placeholder{color:rgba(255,255,255,.45)}
-.proto-input:focus{border-color:rgba(255,255,255,.5);background:rgba(255,255,255,.18)}
-.proto-add-btn{
-  padding:8px 14px;border-radius:7px;background:rgba(255,255,255,.15);
-  border:1.5px solid rgba(255,255,255,.25);color:#fff;font-size:12px;font-weight:600;
-  cursor:pointer;transition:all .15s
+.tool-status.online{background:#e8f7e0;color:var(--v2)}
+.tool-status.novo{background:#fef3dd;color:var(--d1)}
+.tool-nome{font-family:'Syne',sans-serif;font-size:17px;font-weight:700;color:var(--g1);line-height:1.2}
+.tool-desc{font-size:13px;color:var(--g3);line-height:1.55;font-weight:300}
+.tool-card-footer{
+  padding:14px 24px;border-top:1px solid var(--g6);
+  display:flex;align-items:center;justify-content:space-between;
+  background:var(--g7)
 }
-.proto-add-btn:hover{background:rgba(255,255,255,.25)}
-.proto-del-btn{
-  width:32px;height:32px;border-radius:7px;background:rgba(192,57,43,.4);
-  border:none;color:#fff;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center
+.tool-card-footer span{font-size:12px;color:var(--g4);font-weight:500}
+.tool-arrow{
+  width:28px;height:28px;border-radius:50%;background:var(--g6);
+  display:flex;align-items:center;justify-content:center;font-size:14px;
+  transition:all .2s
 }
-.proto-del-btn:hover{background:rgba(192,57,43,.7)}
+.tool-card:hover .tool-arrow{background:var(--v3);color:#fff}
 
-/* REGISTRO RÁPIDO */
-.reg-card{
-  background:var(--w);border-radius:var(--r);padding:18px 22px;
-  margin-bottom:16px;border:1px solid var(--g6);box-shadow:var(--sh)
-}
-.reg-titulo{font-family:'Syne',sans-serif;font-size:13px;font-weight:800;color:var(--v2);margin-bottom:14px;display:flex;align-items:center;gap:8px}
-.reg-grid{display:grid;grid-template-columns:110px 110px 80px 130px 1fr;gap:10px;align-items:end;margin-bottom:10px}
-@media(max-width:700px){.reg-grid{grid-template-columns:1fr 1fr}}
-.campo-wrap label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--g4);display:block;margin-bottom:4px}
-.campo-input{
-  width:100%;padding:10px 12px;border:1.5px solid var(--g6);border-radius:var(--rs);
-  font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:var(--g1);
-  background:var(--g8);outline:none;transition:border-color .15s
-}
-.campo-input:focus{border-color:var(--v3);background:var(--w)}
-.campo-input.sm{font-size:14px;font-weight:600}
-.campo-sel{
-  width:100%;padding:10px 12px;border:1.5px solid var(--g6);border-radius:var(--rs);
-  font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;color:var(--g1);
-  background:var(--g8);outline:none;cursor:pointer
-}
-.campo-sel:focus{border-color:var(--v3)}
-.btn-salvar{
-  padding:10px 28px;background:var(--v3);border:none;border-radius:var(--rs);
-  color:#fff;font-family:'Syne',sans-serif;font-size:14px;font-weight:800;
-  letter-spacing:.5px;cursor:pointer;transition:all .2s;height:44px;align-self:end;width:100%
-}
-.btn-salvar:hover{background:var(--v2);transform:translateY(-1px)}
-.btn-salvar:active{transform:translateY(0)}
+/* ── CARD DESTAQUE (sistema principal) ── */
+.tool-card.destaque{grid-column:1/-1}
+.tool-card.destaque .tool-card-body{flex-direction:row;align-items:center;gap:24px}
+@media(max-width:600px){.tool-card.destaque .tool-card-body{flex-direction:column}}
+.destaque-info{flex:1}
+.destaque-meta{display:flex;gap:20px;margin-top:12px;flex-wrap:wrap}
+.dm-item{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--g3)}
+.dm-dot{width:8px;height:8px;border-radius:50%;background:var(--v4);flex-shrink:0}
 
-/* INFO ANIMAL */
-.animal-info{
-  display:none;padding:12px 16px;background:var(--vl);border-radius:var(--rs);
-  border:1px solid #c8e6b0;margin-bottom:10px;
-  display:flex;gap:20px;flex-wrap:wrap;align-items:center
+/* ── CARD PASSAGEM ── */
+.passagem-card{
+  background:linear-gradient(135deg,var(--v1) 0%,var(--v2) 50%,#1e7010 100%);
+  border-radius:var(--r);padding:28px 32px;
+  display:grid;grid-template-columns:1fr auto;gap:24px;align-items:center;
+  margin-bottom:16px;box-shadow:var(--sh3);
+  position:relative;overflow:hidden
 }
-.ai-item{font-size:13px;color:var(--v1)}
-.ai-item strong{font-weight:700}
-.ai-gmd{font-family:'Syne',sans-serif;font-size:16px;font-weight:800}
-.ai-gmd.top{color:var(--v3)}.ai-gmd.med{color:var(--am)}.ai-gmd.low{color:var(--rd)}
-
-/* MED INDIVIDUAL */
-.med-ind{
-  display:grid;grid-template-columns:1fr 160px;gap:10px;
-  padding:12px 16px;background:var(--rdl);border-radius:var(--rs);
-  border:1px solid #f5c0c0;margin-bottom:10px
+.passagem-card::before{
+  content:'';position:absolute;inset:0;
+  background:url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
 }
-.med-ind label{color:var(--rd);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px}
+@media(max-width:600px){.passagem-card{grid-template-columns:1fr;padding:22px 20px}}
+.pc-left .pc-badge{
+  font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;
+  color:var(--v5);margin-bottom:10px;display:flex;align-items:center;gap:8px
+}
+.pc-badge::before{content:'⬤';font-size:8px;animation:pulse 1.5s infinite}
+.pc-left h2{font-family:'Syne',sans-serif;font-size:26px;font-weight:800;color:#fff;margin-bottom:8px;line-height:1.1}
+.pc-left p{font-size:14px;color:rgba(255,255,255,.7);line-height:1.55;font-weight:300}
+.pc-right{display:flex;flex-direction:column;gap:10px;align-items:flex-end}
+@media(max-width:600px){.pc-right{align-items:flex-start;flex-direction:row;flex-wrap:wrap}}
+.pc-btn{
+  padding:11px 22px;border-radius:8px;font-family:'Syne',sans-serif;
+  font-size:13px;font-weight:700;letter-spacing:.5px;text-decoration:none;
+  display:flex;align-items:center;gap:8px;white-space:nowrap;transition:all .2s;
+  cursor:pointer;border:none
+}
+.pc-btn.primary{background:#fff;color:var(--v2)}
+.pc-btn.primary:hover{background:var(--v5);color:var(--v1)}
+.pc-btn.secondary{background:rgba(255,255,255,.12);color:#fff;border:1px solid rgba(255,255,255,.25)}
+.pc-btn.secondary:hover{background:rgba(255,255,255,.22)}
 
-/* PESAGENS TABLE */
-.table-wrap{background:var(--w);border-radius:var(--r);border:1px solid var(--g6);box-shadow:var(--sh);overflow:hidden}
-.table-header{
-  padding:14px 20px;background:var(--g8);border-bottom:1px solid var(--g6);
+/* ── BLUETOOTH STATUS ── */
+.bt-card{
+  background:var(--w);border-radius:var(--r);border:1px solid var(--g6);
+  box-shadow:var(--sh);overflow:hidden;margin-bottom:16px
+}
+.bt-header{
+  padding:16px 24px;background:var(--g7);border-bottom:1px solid var(--g6);
   display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px
 }
-.table-header h3{font-family:'Syne',sans-serif;font-size:13px;font-weight:800;color:var(--v2)}
-.table-actions{display:flex;gap:8px}
-table{width:100%;border-collapse:collapse}
-thead tr{background:var(--v2)}
-thead th{
-  padding:10px 14px;font-family:'Syne',sans-serif;font-size:10px;font-weight:700;
-  color:#fff;text-transform:uppercase;letter-spacing:.8px;text-align:left;white-space:nowrap
+.bt-title{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;color:var(--g1)}
+.bt-badge-wrap{display:flex;align-items:center;gap:8px}
+.bt-badge{
+  font-size:11px;font-weight:700;padding:4px 12px;border-radius:10px;
+  letter-spacing:.5px;text-transform:uppercase
 }
-tbody tr{border-bottom:1px solid var(--g6);transition:background .1s}
-tbody tr:hover{background:var(--g8)}
-tbody td{padding:11px 14px;font-size:13px;color:var(--g2)}
-.td-num{font-family:'Syne',sans-serif;font-weight:800;font-size:15px;color:var(--g1)}
-.td-peso{font-family:'Syne',sans-serif;font-weight:700;font-size:14px}
-.td-gmd{font-family:'Syne',sans-serif;font-size:13px;font-weight:700}
-.td-gmd.top{color:var(--v3)}.td-gmd.med{color:var(--am)}.td-gmd.low{color:var(--rd)}.td-gmd.na{color:var(--g5)}
-.td-badge{display:inline-block;padding:2px 8px;border-radius:6px;font-size:10px;font-weight:700}
-.td-badge.m{background:#e4f0fb;color:var(--az)}.td-badge.f{background:#fde8f5;color:#a020a0}
-.td-actions{display:flex;gap:6px}
-.btn-sm{
-  padding:5px 10px;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;
-  border:1px solid var(--g6);background:var(--w);color:var(--g3);transition:all .15s
+.bt-badge.desconect{background:#fdeaea;color:var(--rd)}
+.bt-badge.conectado{background:#e8f7e0;color:var(--v2)}
+.bt-badge.tentando{background:#fef3dd;color:var(--d1)}
+.bt-body{padding:20px 24px}
+.bt-passos{display:flex;flex-direction:column;gap:12px}
+.bt-passo{
+  display:flex;align-items:flex-start;gap:14px;
+  padding:14px 16px;border-radius:10px;border:1px solid var(--g6);
+  transition:background .2s
 }
-.btn-sm:hover{border-color:var(--v4);color:var(--v2)}
-.btn-sm.del:hover{border-color:var(--rd);color:var(--rd);background:var(--rdl)}
-.paginacao{display:flex;align-items:center;justify-content:space-between;padding:12px 18px;border-top:1px solid var(--g6);flex-wrap:wrap;gap:8px}
-.pag-info{font-size:12px;color:var(--g4)}
-.pag-btns{display:flex;gap:6px}
-.pag-btn{padding:5px 12px;border-radius:6px;font-size:12px;font-weight:600;border:1px solid var(--g6);background:var(--w);color:var(--g3);cursor:pointer}
-.pag-btn.at{background:var(--v3);color:#fff;border-color:var(--v3)}
-
-/* LOTES */
-.lotes-grid{display:flex;flex-direction:column;gap:10px}
-.lote-card{background:var(--w);border-radius:var(--r);border:1px solid var(--g6);box-shadow:var(--sh);overflow:hidden}
-.lote-header{
-  padding:14px 20px;display:flex;align-items:center;justify-content:space-between;
-  cursor:pointer;transition:background .15s;gap:12px;flex-wrap:wrap
+.bt-passo:hover{background:var(--g7)}
+.bt-passo.ok{border-color:#c8e6b0;background:#f0fbea}
+.bt-passo.prob{border-color:#f5c0c0;background:var(--rdl)}
+.bt-passo.info{border-color:#c8dff5;background:#eaf3fd}
+.bp-num{
+  width:28px;height:28px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Syne',sans-serif;font-size:13px;font-weight:700;
+  flex-shrink:0;background:var(--g6);color:var(--g3)
 }
-.lote-header:hover{background:var(--g8)}
-.lote-header.at{background:var(--vl);border-bottom:1px solid #c8e6b0}
-.lote-nome{font-family:'Syne',sans-serif;font-size:15px;font-weight:800;color:var(--v2)}
-.lote-meta{display:flex;gap:16px;flex-wrap:wrap}
-.lm-item{font-size:12px;color:var(--g3);display:flex;align-items:center;gap:5px}
-.lm-val{font-weight:700;color:var(--g1)}
-.lote-body{display:none;border-top:1px solid var(--g6)}
-.lote-body.at{display:block}
-.lote-caret{font-size:12px;color:var(--g5);transition:transform .2s}
-.lote-header.at .lote-caret{transform:rotate(180deg)}
-
-/* RELATÓRIOS */
-.rel-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px;margin-bottom:20px}
-.rel-card{
-  background:var(--w);border-radius:var(--r);padding:20px;border:1px solid var(--g6);
-  box-shadow:var(--sh);cursor:pointer;transition:all .2s;position:relative;overflow:hidden
+.bt-passo.ok .bp-num{background:#c8e6b0;color:var(--v1)}
+.bt-passo.prob .bp-num{background:#f5c0c0;color:var(--rd)}
+.bt-passo.info .bp-num{background:#c8dff5;color:#1a5580}
+.bp-corpo .bp-titulo{font-size:14px;font-weight:600;color:var(--g1);margin-bottom:3px}
+.bp-corpo .bp-desc{font-size:13px;color:var(--g3);line-height:1.5;font-weight:300}
+.bp-corpo .bp-cmd{
+  margin-top:8px;padding:8px 12px;background:#1e1e1e;border-radius:6px;
+  font-family:monospace;font-size:12px;color:#7dc42a;display:inline-block;word-break:break-all
 }
-.rel-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--v3)}
-.rel-card.do::before{background:var(--d2)}
-.rel-card.az::before{background:var(--az)}
-.rel-card.rd::before{background:var(--rd)}
-.rel-card:hover{box-shadow:var(--sh2);transform:translateY(-2px)}
-.rel-icone{font-size:32px;margin-bottom:10px;display:block}
-.rel-nome{font-family:'Syne',sans-serif;font-size:14px;font-weight:800;color:var(--g1);margin-bottom:6px}
-.rel-desc{font-size:12px;color:var(--g4);line-height:1.5}
-#relOutput{display:none}
-.rel-output-header{
-  display:flex;align-items:center;justify-content:space-between;padding:16px 20px;
-  background:var(--g8);border-bottom:1px solid var(--g6);border-radius:var(--r) var(--r) 0 0;
-  flex-wrap:wrap;gap:8px
+.bt-acoes{display:flex;gap:10px;margin-top:16px;flex-wrap:wrap}
+.bt-btn{
+  padding:10px 18px;border-radius:8px;font-size:13px;font-weight:600;
+  cursor:pointer;border:none;transition:all .2s;display:flex;align-items:center;gap:7px;text-decoration:none
 }
-.rel-output-header h3{font-family:'Syne',sans-serif;font-size:14px;font-weight:800;color:var(--v2)}
-.rel-body{padding:20px}
+.bt-btn.v{background:var(--v3);color:#fff}.bt-btn.v:hover{background:var(--v2)}
+.bt-btn.g{background:var(--g6);color:var(--g2)}.bt-btn.g:hover{background:var(--g5);color:var(--g1)}
 
-/* MODAL EDITAR */
-.modal-over{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:500;align-items:center;justify-content:center;padding:20px}
-.modal-over.at{display:flex}
-.modal{background:var(--w);border-radius:16px;padding:28px;max-width:520px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.2);max-height:90vh;overflow-y:auto}
-.modal h3{font-family:'Syne',sans-serif;font-size:18px;font-weight:800;color:var(--g1);margin-bottom:20px}
-.modal-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px}
-.modal-campo label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--g4);display:block;margin-bottom:5px}
-.modal-campo input,.modal-campo select{width:100%;padding:10px 12px;border:1.5px solid var(--g6);border-radius:var(--rs);font-family:'DM Sans',sans-serif;font-size:14px;color:var(--g1);background:var(--g8);outline:none}
-.modal-campo input:focus,.modal-campo select:focus{border-color:var(--v3)}
-.modal-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:20px}
-.btn-modal{padding:10px 22px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;border:none;transition:all .2s}
-.btn-modal.v{background:var(--v3);color:#fff}.btn-modal.v:hover{background:var(--v2)}
-.btn-modal.g{background:var(--g6);color:var(--g2)}.btn-modal.g:hover{background:var(--g5)}
-.btn-modal.rd{background:var(--rd);color:#fff}
-
-/* TOAST */
-.toast{
-  position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(100px);
-  background:var(--g2);color:#fff;padding:12px 22px;border-radius:10px;
-  font-size:13px;font-weight:600;z-index:9999;transition:transform .3s;white-space:nowrap;
-  box-shadow:0 8px 32px rgba(0,0,0,.25)
+/* ── FOOTER ── */
+footer{
+  position:relative;z-index:1;
+  background:var(--w);border-top:1px solid var(--g6);
+  padding:28px 32px;
+  display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px
 }
-.toast.ok{background:var(--v2)}
-.toast.warn{background:var(--am)}
-.toast.err{background:var(--rd)}
-.toast.show{transform:translateX(-50%) translateY(0)}
+.ft-esq{display:flex;align-items:center;gap:14px}
+.ft-esq img{height:36px;opacity:.8}
+.ft-txt .f1{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;color:var(--g2)}
+.ft-txt .f2{font-size:12px;color:var(--g4)}
+.ft-links{display:flex;gap:12px;align-items:center}
+.ft-link{font-size:12px;color:var(--g4);text-decoration:none;font-weight:500}
+.ft-link:hover{color:var(--v3)}
 
-/* CONFIRM DIALOG */
-.conf-over{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:600;align-items:center;justify-content:center}
-.conf-over.at{display:flex}
-.conf{background:var(--w);border-radius:14px;padding:28px;max-width:400px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,.2);text-align:center}
-.conf h4{font-family:'Syne',sans-serif;font-size:17px;font-weight:800;margin-bottom:10px}
-.conf p{font-size:14px;color:var(--g3);margin-bottom:20px;line-height:1.5}
-.conf-btns{display:flex;gap:10px;justify-content:center}
-
-.empty{text-align:center;padding:48px 20px;color:var(--g5);font-size:14px}
-.empty-ico{font-size:40px;margin-bottom:12px;display:block}
-
-/* PRINT */
-@media print{
-  .topbar,.nav-tabs,.filtros,.proto-card,.reg-card,.tb-btn,.nav-tab,.paginacao,.rel-grid,.table-actions,.td-actions{display:none!important}
-  .page{padding:0!important}
-  table{font-size:11px}
-}
+.hidden{display:none!important}
 </style>
 </head>
 <body>
 
-<!-- TOPBAR -->
-<div class="topbar">
-  <div class="tb-left">
-    <img src="logo.png" class="tb-logo" alt="" onerror="this.style.display='none'">
-    <div>
-      <div class="tb-title">Sistema de Pesagem</div>
-      <span class="tb-sub" id="dtHoje">—</span>
+<!-- HEADER -->
+<header class="hd">
+  <div class="hd-logo">
+    <img src="logo.png" alt="Logo" onerror="this.style.display='none'">
+    <div class="hd-logo-txt">
+      <span class="l1">Gestão Pecuária Lucrativa</span>
+      <span class="l2">Rogério Avelino</span>
     </div>
   </div>
-  <div class="tb-right">
-    <div class="tb-sync"><div class="sync-dot" id="syncDot"></div><span id="syncTxt">Carregando...</span></div>
-    <button class="tb-btn" onclick="sincronizar()" title="Sincronizar com Google Sheets">⟳ Sync</button>
-    <button class="tb-btn primary" id="btnBT" onclick="conectarBT()">🔵 Bluetooth</button>
-    <a href="index.html" class="tb-btn">← Início</a>
+  <nav class="hd-links">
+    <a href="tel:+5563991082453" class="hd-link">📞 (63) 99108-2453</a>
+    <a href="https://instagram.com/gestaolucrativa.pecuaria" target="_blank" class="hd-link">@gestaolucrativa</a>
+    <a href="https://wa.me/5563991082453" target="_blank" class="hd-link wpp">WhatsApp</a>
+  </nav>
+</header>
+
+<!-- HERO -->
+<section class="hero">
+  <div>
+    <div class="hero-badge">● Sistema Ativo</div>
+    <h1>Ferramentas de<br><span>Gestão Lucrativa</span></h1>
+    <p>Planos, cálculos e controle de rebanho — tudo integrado para o pecuarista que quer resultado de verdade.</p>
   </div>
-</div>
-
-<!-- TABS -->
-<div class="nav-tabs">
-  <div class="nav-tab at" onclick="irTab('pesagem')" id="tab-pesagem">🐄 Pesagem <span class="nav-badge" id="badge-hoje">0</span></div>
-  <div class="nav-tab" onclick="irTab('lotes')" id="tab-lotes">📦 Lotes <span class="nav-badge" id="badge-lotes">0</span></div>
-  <div class="nav-tab" onclick="irTab('relatorios')" id="tab-relatorios">📊 Relatórios</div>
-  <div class="nav-tab" onclick="irTab('config')" id="tab-config">⚙️ Config</div>
-</div>
-
-<!-- PAGE: PESAGEM -->
-<div class="page at" id="page-pesagem">
-
-  <!-- FILTROS -->
-  <div class="filtros" style="margin-top:16px">
-    <span class="fil-label">Fazenda:</span>
-    <select class="fil-sel" id="pFazFil" onchange="renderPes()"><option value="">Todas</option></select>
-    <span class="fil-label">Data:</span>
-    <input type="date" class="fil-data" id="pDataFil" onchange="renderPes()">
-    <span class="fil-label">Lote:</span>
-    <input type="text" class="fil-data" id="pLoteFil" placeholder="ex: 1" style="width:70px" oninput="renderPes()">
-    <button class="tb-btn" onclick="limparFiltros()">✕ Limpar</button>
+  <div class="hero-stats">
+    <div class="hero-stat-item">
+      <div class="hero-stat-val">5</div>
+      <div class="hero-stat-lbl">Ferramentas</div>
+    </div>
+    <div class="hero-stat-div"></div>
+    <div class="hero-stat-item">
+      <div class="hero-stat-val">4%</div>
+      <div class="hero-stat-lbl">Meta Mín. Terra</div>
+    </div>
+    <div class="hero-stat-div"></div>
+    <div class="hero-stat-item">
+      <div class="hero-stat-val">0,668</div>
+      <div class="hero-stat-lbl">GMD Top 30%</div>
+    </div>
   </div>
+</section>
 
-  <!-- STATS -->
-  <div class="stats-row">
-    <div class="stat-card"><div class="stat-label">Animais Hoje</div><div class="stat-val vd" id="stHoje">0</div><div class="stat-sub">pesados no dia</div></div>
-    <div class="stat-card"><div class="stat-label">Peso Médio</div><div class="stat-val" id="stPMedio">—</div><div class="stat-sub">kg médio hoje</div></div>
-    <div class="stat-card"><div class="stat-label">Total @ Hoje</div><div class="stat-val" id="stArr">—</div><div class="stat-sub">arrobas</div></div>
-    <div class="stat-card"><div class="stat-label">GMD Médio</div><div class="stat-val" id="stGmd">—</div><div class="stat-sub">kg/dia hoje</div></div>
-  </div>
+<!-- PASSAGEM AMANHÃ -->
+<section class="secao">
+  <div class="secao-label"><span>🐂 Passagem de amanhã</span></div>
 
-  <!-- PROTOCOLO DO DIA -->
-  <div class="proto-card">
-    <div class="proto-titulo">💉 Protocolo do Dia</div>
-    <div class="proto-modos">
-      <button class="proto-modo-btn at" id="modoTodosBtn" onclick="setModo('todos')">🐄 Aplicar em TODOS</button>
-      <button class="proto-modo-btn" id="modoEspecBtn" onclick="setModo('especifico')">🎯 Animal por animal</button>
-    </div>
-    <div id="listaMeds" class="proto-meds"></div>
-    <button class="proto-add-btn" onclick="addMed()">➕ Adicionar medicamento</button>
-  </div>
-
-  <!-- REGISTRO RÁPIDO -->
-  <div class="reg-card">
-    <div class="reg-titulo">⚡ Registro Rápido — Número → Enter → Peso → Enter → Lote → Enter</div>
-
-    <!-- Info animal (histórico GMD) -->
-    <div id="animalInfo" style="display:none;padding:10px 14px;background:var(--vl);border-radius:8px;border:1px solid #c8e6b0;margin-bottom:10px;display:flex;gap:16px;flex-wrap:wrap;align-items:center">
-      <div style="font-size:12px;color:var(--v1)">Último: <strong id="infoUltPeso">—</strong> kg em <strong id="infoUltData">—</strong></div>
-      <div style="font-size:12px;color:var(--v1)">Dias: <strong id="infoDias">—</strong></div>
-      <div style="font-size:12px;color:var(--v1)">GMD atual: <strong id="infoGmd" class="td-gmd">—</strong></div>
-    </div>
-
-    <div class="reg-grid">
-      <div class="campo-wrap">
-        <label>Nº Animal</label>
-        <input class="campo-input" id="pNum" type="text" placeholder="303" autocomplete="off"
-          onkeydown="if(event.key==='Enter'){event.preventDefault();document.getElementById('pPeso').focus();}"
-          oninput="calcGmdLive()">
-      </div>
-      <div class="campo-wrap">
-        <label>Peso (kg)</label>
-        <input class="campo-input" id="pPeso" type="number" placeholder="385" step="0.1"
-          onkeydown="if(event.key==='Enter'){event.preventDefault();document.getElementById('pLote').focus();}"
-          oninput="calcGmdLive()">
-      </div>
-      <div class="campo-wrap">
-        <label>Lote</label>
-        <input class="campo-input sm" id="pLote" type="number" placeholder="1"
-          onkeydown="if(event.key==='Enter'){event.preventDefault();savPesagem();}">
-      </div>
-      <div class="campo-wrap">
-        <label>Sexo</label>
-        <select class="campo-sel" id="pSexo">
-          <option value="macho">🐂 Macho</option>
-          <option value="femea">🐄 Fêmea</option>
-        </select>
-      </div>
-      <div class="campo-wrap">
-        <label>Data</label>
-        <input class="campo-input sm" type="date" id="pData">
+  <div class="passagem-card">
+    <div class="pc-left">
+      <div class="pc-badge">Uso para amanhã</div>
+      <h2>Sistema de Pesagem<br>e Curral</h2>
+      <p>Registre animais, pesos, lotes e protocolo sanitário. Funciona offline — sem internet no campo, sem problema.</p>
+      <div class="destaque-meta" style="margin-top:16px">
+        <div class="dm-item"><div class="dm-dot" style="background:#7dc42a"></div>Funciona offline</div>
+        <div class="dm-item"><div class="dm-dot" style="background:#f0b840"></div>Bluetooth pronto</div>
+        <div class="dm-item"><div class="dm-dot" style="background:#3fa0d0"></div>Protocolo sanitário</div>
+        <div class="dm-item"><div class="dm-dot" style="background:#c8601a"></div>Sync Google Sheets</div>
       </div>
     </div>
-
-    <!-- Med individual -->
-    <div style="display:grid;grid-template-columns:1fr 150px;gap:10px;margin-bottom:10px">
-      <div class="campo-wrap">
-        <label style="color:var(--rd)">🚨 Med. Individual (doença/lesão neste animal)</label>
-        <input class="campo-input sm" id="pMedExtra" placeholder="Ex: Oxitetraciclina, Alamycin..." style="border-color:#f5c0c0">
-      </div>
-      <div class="campo-wrap">
-        <label style="color:var(--rd)">Dose</label>
-        <input class="campo-input sm" id="pMedExtraDose" placeholder="Ex: 5ml, 3 comp." style="border-color:#f5c0c0">
-      </div>
-    </div>
-
-    <!-- Dados extras (colapsável) -->
-    <div style="display:grid;grid-template-columns:1fr 1fr 1fr 2fr;gap:10px;margin-bottom:12px">
-      <div class="campo-wrap">
-        <label>Data Compra</label>
-        <input class="campo-input sm" type="date" id="pDataCompra">
-      </div>
-      <div class="campo-wrap">
-        <label>Data Venda</label>
-        <input class="campo-input sm" type="date" id="pDataVenda">
-      </div>
-      <div class="campo-wrap">
-        <label>Valor Venda R$</label>
-        <input class="campo-input sm" type="number" id="pValorVenda" placeholder="4900">
-      </div>
-      <div class="campo-wrap">
-        <label>Observação</label>
-        <input class="campo-input sm" id="pObs" placeholder="Observação individual...">
-      </div>
-    </div>
-
-    <!-- Checkboxes protocolo (modo específico) -->
-    <div id="protoCHKS" style="display:none;margin-bottom:12px;padding:10px;background:rgba(240,200,74,.1);border-radius:8px;border:1px solid rgba(240,200,74,.3)"></div>
-
-    <button class="btn-salvar" onclick="savPesagem()">💾 SALVAR PESAGEM</button>
-  </div>
-
-  <!-- TABELA PESAGENS DO DIA -->
-  <div class="table-wrap">
-    <div class="table-header">
-      <h3>Pesagens de Hoje</h3>
-      <div class="table-actions">
-        <button class="tb-btn" onclick="exportarDia()">⬇ Exportar CSV</button>
-      </div>
-    </div>
-    <div style="overflow-x:auto">
-      <table>
-        <thead>
-          <tr>
-            <th>Nº</th><th>Peso</th><th>Lote</th><th>Sexo</th><th>GMD</th>
-            <th>Protocolo</th><th>Med. Individual</th><th>Obs</th><th>Ações</th>
-          </tr>
-        </thead>
-        <tbody id="tbPes"></tbody>
-      </table>
-    </div>
-    <div class="paginacao">
-      <span class="pag-info" id="pagInfo">—</span>
-      <div class="pag-btns" id="pagBtns"></div>
+    <div class="pc-right">
+      <a href="sistema.html" class="pc-btn primary">🐄 Abrir Sistema de Pesagem</a>
+      <button class="pc-btn secondary" onclick="document.getElementById('bt-section').scrollIntoView({behavior:'smooth'})">🔵 Resolver Bluetooth</button>
     </div>
   </div>
 
-</div><!-- /page pesagem -->
-
-<!-- PAGE: LOTES -->
-<div class="page" id="page-lotes">
-  <div style="margin-top:16px" id="lotesContainer"></div>
-</div>
-
-<!-- PAGE: RELATÓRIOS -->
-<div class="page" id="page-relatorios">
-  <div class="rel-grid" style="margin-top:16px">
-    <div class="rel-card" onclick="gerarRel('dia')">
-      <span class="rel-icone">📅</span>
-      <div class="rel-nome">Relatório do Dia</div>
-      <div class="rel-desc">Todos os animais pesados hoje com GMD, protocolo aplicado e médias do dia.</div>
-    </div>
-    <div class="rel-card do" onclick="gerarRel('lote')">
-      <span class="rel-icone">📦</span>
-      <div class="rel-nome">Relatório por Lote</div>
-      <div class="rel-desc">Resumo completo de cada lote: animais, peso médio, GMD médio e evolução.</div>
-    </div>
-    <div class="rel-card az" onclick="gerarRel('animal')">
-      <span class="rel-icone">🐂</span>
-      <div class="rel-nome">Animal Individual</div>
-      <div class="rel-desc">Histórico completo de um animal: todas as pesagens, GMD por período e medicamentos.</div>
-    </div>
-    <div class="rel-card" onclick="gerarRel('fazenda')">
-      <span class="rel-icone">🏡</span>
-      <div class="rel-nome">Relatório por Fazenda</div>
-      <div class="rel-desc">Visão geral de uma fazenda: rebanho, lotes, GMD médio e desempenho.</div>
-    </div>
-    <div class="rel-card rd" onclick="gerarRel('protocolo')">
-      <span class="rel-icone">💉</span>
-      <div class="rel-nome">Protocolo Sanitário</div>
-      <div class="rel-desc">Histórico de medicamentos aplicados por animal, lote e data.</div>
-    </div>
-    <div class="rel-card do" onclick="gerarRel('geral')">
-      <span class="rel-icone">📊</span>
-      <div class="rel-nome">Relatório Geral</div>
-      <div class="rel-desc">Visão completa do rebanho: todos os animais, médias e comparativo com benchmarks.</div>
-    </div>
-  </div>
-
-  <!-- Seletor animal individual -->
-  <div id="selAnimalDiv" style="display:none;margin-bottom:16px;background:var(--w);border-radius:var(--r);padding:18px;border:1px solid var(--g6)">
-    <div style="font-family:Syne,sans-serif;font-size:13px;font-weight:800;color:var(--v2);margin-bottom:10px">Nº do Animal</div>
-    <div style="display:flex;gap:10px;align-items:center">
-      <input class="campo-input sm" id="relAnimalNum" placeholder="Ex: 303" style="max-width:150px">
-      <button class="btn-salvar" style="max-width:160px;height:40px;font-size:13px" onclick="gerarRelAnimal()">Gerar</button>
-    </div>
-  </div>
-
-  <div id="relOutput" style="display:none;background:var(--w);border-radius:var(--r);border:1px solid var(--g6);box-shadow:var(--sh);overflow:hidden">
-    <div class="rel-output-header">
-      <h3 id="relTitulo">Relatório</h3>
-      <div style="display:flex;gap:8px">
-        <button class="tb-btn" onclick="window.print()">🖨 Imprimir</button>
-        <button class="tb-btn" onclick="exportarRelCSV()">⬇ CSV</button>
-        <button class="tb-btn" onclick="fecharRel()">✕ Fechar</button>
+  <!-- BLUETOOTH -->
+  <div id="bt-section" class="bt-card">
+    <div class="bt-header">
+      <div class="bt-title">🔵 Diagnóstico Bluetooth — Balança</div>
+      <div class="bt-badge-wrap">
+        <span class="bt-badge desconect" id="bt-status-badge">Não conectado</span>
+        <button class="bt-btn g" onclick="testarBT()" style="padding:6px 12px;font-size:12px">▶ Testar agora</button>
       </div>
     </div>
-    <div class="rel-body" id="relBody"></div>
-  </div>
-</div>
+    <div class="bt-body">
+      <div class="bt-passos">
 
-<!-- PAGE: CONFIG -->
-<div class="page" id="page-config">
-  <div style="margin-top:16px;max-width:600px">
-    <div class="table-wrap" style="margin-bottom:16px">
-      <div class="table-header"><h3>⚙️ Google Sheets</h3></div>
-      <div style="padding:20px;display:flex;flex-direction:column;gap:12px">
-        <div class="campo-wrap">
-          <label>URL do Apps Script</label>
-          <input class="campo-input sm" id="shUrl" placeholder="https://script.google.com/macros/s/...">
+        <div class="bt-passo info">
+          <div class="bp-num">1</div>
+          <div class="bp-corpo">
+            <div class="bp-titulo">Verifique o driver Bluetooth do notebook</div>
+            <div class="bp-desc">No Windows: abra o <strong>Gerenciador de Dispositivos</strong> → expanda "Bluetooth" → se tiver ⚠️ amarelo no adaptador, o driver precisa ser atualizado.</div>
+            <div class="bp-cmd">Win + X → Gerenciador de Dispositivos → Bluetooth</div>
+          </div>
         </div>
-        <div style="display:flex;gap:10px;flex-wrap:wrap">
-          <button class="btn-salvar" style="max-width:160px;height:40px;font-size:13px" onclick="salvarUrl()">💾 Salvar URL</button>
-          <button class="tb-btn" onclick="testarUrl()">🔗 Testar conexão</button>
-          <button class="tb-btn" onclick="enviarTudo()">📤 Enviar tudo para Sheets</button>
+
+        <div class="bt-passo info">
+          <div class="bp-num">2</div>
+          <div class="bp-corpo">
+            <div class="bp-titulo">Atualize o driver Bluetooth</div>
+            <div class="bp-desc">Clique com botão direito no adaptador Bluetooth → <strong>Atualizar driver</strong> → "Pesquisar drivers automaticamente". Se não encontrar, veja a marca do notebook abaixo:</div>
+            <div class="bp-cmd">Dell → dell.com/support | Lenovo → support.lenovo.com | HP → support.hp.com | Asus → asus.com/support</div>
+          </div>
         </div>
-        <div id="connStatus" style="font-size:13px;color:var(--g4)">—</div>
+
+        <div class="bt-passo info">
+          <div class="bp-num">3</div>
+          <div class="bp-corpo">
+            <div class="bp-titulo">O Chrome precisa de permissão para Bluetooth</div>
+            <div class="bp-desc">O sistema usa <strong>Web Bluetooth API</strong>. O Chrome bloqueia por padrão em alguns sistemas. Para liberar:</div>
+            <div class="bp-cmd">chrome://flags/#enable-web-bluetooth → Enabled → Reiniciar Chrome</div>
+          </div>
+        </div>
+
+        <div class="bt-passo info">
+          <div class="bp-num">4</div>
+          <div class="bp-corpo">
+            <div class="bp-titulo">A balança precisa estar em modo pareamento</div>
+            <div class="bp-desc">Ligue a balança e coloque em modo Bluetooth (geralmente segurando o botão por 3-5 segundos até o LED piscar azul). Fique a menos de <strong>2 metros</strong> da balança no momento do pareamento.</div>
+          </div>
+        </div>
+
+        <div class="bt-passo info">
+          <div class="bp-num">5</div>
+          <div class="bp-corpo">
+            <div class="bp-titulo">Se ainda não conectar — use o Android</div>
+            <div class="bp-desc">O sistema funciona 100% no celular Android com Chrome. Se o notebook travar, abra pelo celular — mesmos dados, mesma sincronização.</div>
+            <div class="bp-cmd">Acesse pelo celular: gestaopecuarialucrativa-dotcom.github.io/...</div>
+          </div>
+        </div>
+
       </div>
-    </div>
-    <div class="table-wrap">
-      <div class="table-header"><h3>💾 Backup dos Dados</h3></div>
-      <div style="padding:20px;display:flex;gap:10px;flex-wrap:wrap">
-        <button class="tb-btn" onclick="exportarBackup()">⬇ Exportar JSON</button>
-        <button class="tb-btn" onclick="document.getElementById('importFile').click()">⬆ Importar JSON</button>
-        <input type="file" id="importFile" accept=".json" style="display:none" onchange="importarBackup(event)">
-        <button class="tb-btn" style="color:var(--rd)" onclick="confirmarLimpar()">🗑 Limpar tudo</button>
+
+      <div class="bt-acoes">
+        <button class="bt-btn v" onclick="testarBT()" id="bt-btn-testar">🔵 Testar conexão Bluetooth</button>
+        <a href="sistema.html" class="bt-btn g">🐄 Abrir pesagem mesmo assim</a>
       </div>
+
+      <div id="bt-resultado" style="margin-top:14px;display:none;padding:14px 16px;border-radius:10px;font-size:13px;line-height:1.5"></div>
     </div>
   </div>
-</div>
+</section>
 
-<!-- MODAL EDITAR -->
-<div class="modal-over" id="modalEditar">
-  <div class="modal">
-    <h3>✏️ Editar Pesagem</h3>
-    <input type="hidden" id="editId">
-    <div class="modal-grid">
-      <div class="modal-campo"><label>Nº Animal</label><input id="editNum" type="text"></div>
-      <div class="modal-campo"><label>Peso (kg)</label><input id="editPeso" type="number" step="0.1"></div>
-      <div class="modal-campo"><label>Lote</label><input id="editLote" type="number"></div>
-      <div class="modal-campo"><label>Sexo</label><select id="editSexo"><option value="macho">Macho</option><option value="femea">Fêmea</option></select></div>
-      <div class="modal-campo"><label>Data</label><input id="editData" type="date"></div>
-      <div class="modal-campo"><label>GMD (kg/dia)</label><input id="editGmd" type="number" step="0.001"></div>
-      <div class="modal-campo" style="grid-column:1/-1"><label>Observação</label><input id="editObs" type="text"></div>
-      <div class="modal-campo"><label>Med. Individual</label><input id="editMedExtra" type="text"></div>
-      <div class="modal-campo"><label>Dose Med. Individual</label><input id="editMedExtraDose" type="text"></div>
-      <div class="modal-campo"><label>Data Compra</label><input id="editDataCompra" type="date"></div>
-      <div class="modal-campo"><label>Data Venda</label><input id="editDataVenda" type="date"></div>
-      <div class="modal-campo"><label>Valor Venda R$</label><input id="editValorVenda" type="number"></div>
-    </div>
-    <div class="modal-actions">
-      <button class="btn-modal g" onclick="fecharModal()">Cancelar</button>
-      <button class="btn-modal v" onclick="salvarEdicao()">💾 Salvar</button>
+<!-- FERRAMENTAS -->
+<section class="secao">
+  <div class="secao-label"><span>Todas as Ferramentas</span></div>
+
+  <div class="tools-grid">
+
+    <!-- SISTEMA PRINCIPAL -->
+    <a href="sistema.html" class="tool-card destaque">
+      <div class="tool-card-bar verde"></div>
+      <div class="tool-card-body">
+        <div class="tool-icone verde" style="width:56px;height:56px;font-size:28px;border-radius:14px">🐄</div>
+        <div class="destaque-info">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+            <div class="tool-nome">Sistema de Gestão Pecuária</div>
+            <span class="tool-status online">Online</span>
+          </div>
+          <div class="tool-desc">Pesagem com protocolo sanitário, controle de lotes, histórico por fazenda, importação de planilhas e sincronização com Google Sheets. Funciona offline no campo.</div>
+          <div class="destaque-meta">
+            <div class="dm-item"><div class="dm-dot"></div>Pesagem com Bluetooth</div>
+            <div class="dm-item"><div class="dm-dot"></div>Protocolo sanitário</div>
+            <div class="dm-item"><div class="dm-dot"></div>Múltiplas fazendas</div>
+            <div class="dm-item"><div class="dm-dot"></div>Sync Google Sheets</div>
+            <div class="dm-item"><div class="dm-dot"></div>Funciona offline</div>
+          </div>
+        </div>
+      </div>
+      <div class="tool-card-footer">
+        <span>Sistema principal · Pesagem e controle</span>
+        <div class="tool-arrow">→</div>
+      </div>
+    </a>
+
+    <!-- PLANO ÁGIL -->
+    <a href="plano_agil_v3.html" class="tool-card">
+      <div class="tool-card-bar verde"></div>
+      <div class="tool-card-body">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between">
+          <div class="tool-icone verde">📋</div>
+          <span class="tool-status novo">Novo</span>
+        </div>
+        <div>
+          <div class="tool-nome">Plano Ágil Pecuário</div>
+          <div class="tool-desc">Defina sua meta de resultado, calcule quantas cabeças precisa vender, rebanho necessário, lotação e detalhamento financeiro completo. Recria-Engorda, Cria e Ciclo Completo.</div>
+        </div>
+      </div>
+      <div class="tool-card-footer">
+        <span>Planejamento · 3 sistemas produtivos</span>
+        <div class="tool-arrow">→</div>
+      </div>
+    </a>
+
+    <!-- ARROBA DO BEZERRO -->
+    <a href="arroba_bezerro.html" class="tool-card">
+      <div class="tool-card-bar dourado"></div>
+      <div class="tool-card-body">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between">
+          <div class="tool-icone dourado">🐂</div>
+          <span class="tool-status novo">Novo</span>
+        </div>
+        <div>
+          <div class="tool-nome">Calculadora da Arroba do Bezerro</div>
+          <div class="tool-desc">Descubra o valor real da arroba que você está pagando, o GMD mínimo para não ter prejuízo e simule diferentes cenários de ganho. Bezerro e Bezerra.</div>
+        </div>
+      </div>
+      <div class="tool-card-footer">
+        <span>Compra de animais · GMD · ROI</span>
+        <div class="tool-arrow">→</div>
+      </div>
+    </a>
+
+    <!-- VIABILIDADE DE LOTE -->
+    <a href="viabilidade_lote.html" class="tool-card">
+      <div class="tool-card-bar azul"></div>
+      <div class="tool-card-body">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between">
+          <div class="tool-icone azul">📊</div>
+          <span class="tool-status online">Online</span>
+        </div>
+        <div>
+          <div class="tool-nome">Viabilidade de Lote</div>
+          <div class="tool-desc">Antes de comprar o lote, calcule se o negócio fecha. Lucro por cabeça, tempo de permanência, margem, ROI e análise comparativa com benchmarks Inttegra.</div>
+        </div>
+      </div>
+      <div class="tool-card-footer">
+        <span>Análise de compra · Benchmarks</span>
+        <div class="tool-arrow">→</div>
+      </div>
+    </a>
+
+    <!-- LEVANTAMENTO -->
+    <a href="levantamento_form.html" class="tool-card">
+      <div class="tool-card-bar terra"></div>
+      <div class="tool-card-body">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between">
+          <div class="tool-icone terra">📝</div>
+          <span class="tool-status online">Online</span>
+        </div>
+        <div>
+          <div class="tool-nome">Formulário de Levantamento</div>
+          <div class="tool-desc">Formulário de diagnóstico inicial para novos clientes. Coleta dados da fazenda e envia direto para o WhatsApp. Pode ser compartilhado pelo Instagram.</div>
+        </div>
+      </div>
+      <div class="tool-card-footer">
+        <span>Captação de clientes · Instagram</span>
+        <div class="tool-arrow">→</div>
+      </div>
+    </a>
+
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="ft-esq">
+    <img src="logo.png" alt="Logo" onerror="this.style.display='none'">
+    <div class="ft-txt">
+      <div class="f1">Gestão Pecuária Lucrativa</div>
+      <div class="f2">Rogério Avelino · (63) 99108-2453</div>
     </div>
   </div>
-</div>
-
-<!-- CONFIRM -->
-<div class="conf-over" id="confOver">
-  <div class="conf">
-    <div style="font-size:36px;margin-bottom:12px" id="confIco">⚠️</div>
-    <h4 id="confTit">Confirmar</h4>
-    <p id="confTxt">Tem certeza?</p>
-    <div class="conf-btns">
-      <button class="btn-modal g" onclick="fecharConf()">Cancelar</button>
-      <button class="btn-modal rd" id="confOkBtn">Confirmar</button>
-    </div>
+  <div class="ft-links">
+    <a href="https://instagram.com/gestaolucrativa.pecuaria" class="ft-link" target="_blank">@gestaolucrativa.pecuaria</a>
+    <a href="https://wa.me/5563991082453" class="ft-link" target="_blank">WhatsApp</a>
   </div>
-</div>
-
-<!-- TOAST -->
-<div class="toast" id="toastEl"></div>
+</footer>
 
 <script>
-// ══════════════════════════════════════════════════════════════
-// STORAGE & DB
-// ══════════════════════════════════════════════════════════════
-var LS = {
-  g:function(k){try{var v=localStorage.getItem('gpl_'+k);return v?JSON.parse(v):null;}catch(e){return null;}},
-  s:function(k,v){try{localStorage.setItem('gpl_'+k,JSON.stringify(v));}catch(e){}}
-};
+async function testarBT() {
+  const btn = document.getElementById('bt-btn-testar');
+  const res = document.getElementById('bt-resultado');
+  const badge = document.getElementById('bt-status-badge');
 
-var DB = {};
-function loadDB() {
-  DB.fazendas  = LS.g('fazendas')||[];
-  DB.pesagens  = LS.g('pesagens')||[];
-  DB.protoDia  = LS.g('protoDia')||{modo:'todos', medicamentos:[]};
-  DB.syncQ     = LS.g('syncQ')||[];
-  DB.shUrl     = LS.g('shUrl')||'https://script.google.com/macros/s/AKfycby2BBCLhLzVlWDy2JeudfSs-iBL8dvMIoNtCYQsk7oqJigvlk2Q_T9ZCNCc0CqRGAVtyw/exec';
-  DB.online    = navigator.onLine;
-  DB.btDevice  = null;
-  DB.btChar    = null;
-}
+  btn.textContent = '⏳ Testando...';
+  btn.disabled = true;
+  res.style.display = 'none';
 
-function sv(k){ LS.s(k, DB[k]); }
-
-function lw(tbl, op, rec) {
-  if (!DB[tbl]) DB[tbl]=[];
-  if (op==='add') DB[tbl].push(rec);
-  else if (op==='upd') { var i=DB[tbl].findIndex(function(r){return r.id===rec.id;}); if(i>=0)DB[tbl][i]=rec; else DB[tbl].push(rec); }
-  else if (op==='del') DB[tbl]=DB[tbl].filter(function(r){return r.id!==rec.id;});
-  sv(tbl);
-  // Adiciona à fila de sync
-  var payload = { acao: op==='del'?'delete':'sync' };
-  if (op==='del') payload.id = rec.id;
-  else if (tbl==='pesagens') {
-    payload.pesagens = [rec];
-    payload.fazendas = DB.fazendas;
-  }
-  DB.syncQ.push({payload:payload, ts:Date.now()});
-  sv('syncQ');
-  updSt();
-  if (DB.online) setTimeout(trySync, 300);
-}
-
-// ══════════════════════════════════════════════════════════════
-// UTILIDADES
-// ══════════════════════════════════════════════════════════════
-function ge(id){ return document.getElementById(id); }
-function gv(id){ var el=ge(id); return el?el.value:''; }
-function sv2(id,v){ var el=ge(id); if(el) el.value=v; }
-function N(n,d){return isNaN(n)?'—':n.toLocaleString('pt-BR',{minimumFractionDigits:d||0,maximumFractionDigits:d||0});}
-function M(n){return isNaN(n)?'—':'R$ '+n.toLocaleString('pt-BR',{minimumFractionDigits:0,maximumFractionDigits:0});}
-function hoje(){ return new Date().toISOString().split('T')[0]; }
-function fmtData(d){ if(!d)return'—'; try{var p=d.split('-');return p[2]+'/'+p[1]+'/'+p[0];}catch(e){return d;} }
-
-var _toastT;
-function toast(msg,tipo){
-  var el=ge('toastEl'); if(!el)return;
-  el.textContent=msg; el.className='toast '+(tipo||'')+ ' show';
-  clearTimeout(_toastT); _toastT=setTimeout(function(){el.classList.remove('show');},3200);
-}
-
-function updSt(){
-  var dot=ge('syncDot'),txt=ge('syncTxt');
-  var pending=(DB.syncQ||[]).length;
-  if(!dot||!txt)return;
-  if(!DB.online){dot.className='sync-dot';txt.textContent='Offline · '+pending+' pendentes';}
-  else if(pending>0){dot.className='sync-dot syncing';txt.textContent='Pendentes: '+pending;}
-  else{dot.className='sync-dot online';txt.textContent='Sincronizado ✓';}
-}
-
-// ══════════════════════════════════════════════════════════════
-// NAVEGAÇÃO
-// ══════════════════════════════════════════════════════════════
-function irTab(tab){
-  document.querySelectorAll('.page').forEach(function(p){p.classList.remove('at');});
-  document.querySelectorAll('.nav-tab').forEach(function(t){t.classList.remove('at');});
-  ge('page-'+tab).classList.add('at');
-  ge('tab-'+tab).classList.add('at');
-  if(tab==='pesagem') renderPes();
-  if(tab==='lotes') renderLotes();
-}
-
-// ══════════════════════════════════════════════════════════════
-// PROTOCOLO DO DIA
-// ══════════════════════════════════════════════════════════════
-function setModo(modo){
-  DB.protoDia.modo = modo;
-  sv('protoDia');
-  ge('modoTodosBtn').classList.toggle('at', modo==='todos');
-  ge('modoEspecBtn').classList.toggle('at', modo==='especifico');
-  renderProtoCHKS();
-}
-
-function renderMeds(){
-  var meds = DB.protoDia.medicamentos||[];
-  if(!meds.length) meds = [{nome:'',dose:''}];
-  var h='';
-  meds.forEach(function(m,i){
-    h+='<div class="proto-med-row">';
-    h+='<input class="proto-input" id="mNome_'+i+'" placeholder="Nome do medicamento" value="'+(m.nome||'')+'" oninput="salvarMed()">';
-    h+='<input class="proto-input" id="mDose_'+i+'" placeholder="Dose (Ex: 5ml)" value="'+(m.dose||'')+'" oninput="salvarMed()">';
-    h+='<button class="proto-del-btn" onclick="delMed('+i+')">×</button>';
-    h+='</div>';
-  });
-  ge('listaMeds').innerHTML = h;
-}
-
-function addMed(){
-  if(!DB.protoDia.medicamentos) DB.protoDia.medicamentos=[];
-  DB.protoDia.medicamentos.push({nome:'',dose:''});
-  sv('protoDia');
-  renderMeds();
-  // Foca no novo campo
-  var idx = DB.protoDia.medicamentos.length - 1;
-  setTimeout(function(){ var el=ge('mNome_'+idx); if(el) el.focus(); }, 50);
-}
-
-function delMed(i){
-  DB.protoDia.medicamentos.splice(i,1);
-  sv('protoDia');
-  renderMeds();
-}
-
-function salvarMed(){
-  var meds=[];
-  var i=0;
-  while(ge('mNome_'+i)){
-    meds.push({nome:gv('mNome_'+i), dose:gv('mDose_'+i)});
-    i++;
-  }
-  DB.protoDia.medicamentos = meds;
-  sv('protoDia');
-}
-
-function renderProtoCHKS(){
-  var div = ge('protoCHKS');
-  if(!div) return;
-  if(DB.protoDia.modo !== 'especifico'){ div.style.display='none'; return; }
-  var meds = (DB.protoDia.medicamentos||[]).filter(function(m){return m.nome;});
-  if(!meds.length){ div.style.display='none'; return; }
-  div.style.display='block';
-  var h='<div style="font-size:11px;font-weight:700;color:#7a5800;margin-bottom:8px;text-transform:uppercase;letter-spacing:.8px">Marcar medicamentos para este animal:</div>';
-  h+='<div style="display:flex;gap:10px;flex-wrap:wrap">';
-  meds.forEach(function(m,i){
-    h+='<label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer">';
-    h+='<input type="checkbox" class="chkMed" data-idx="'+i+'" checked style="accent-color:var(--v3)"> ';
-    h+=m.nome+(m.dose?' ('+m.dose+')':'');
-    h+='</label>';
-  });
-  h+='</div>';
-  div.innerHTML=h;
-}
-
-// ══════════════════════════════════════════════════════════════
-// GMD AO VIVO
-// ══════════════════════════════════════════════════════════════
-function calcGmdLive(){
-  var num = gv('pNum').trim();
-  var dataAtual = gv('pData') || hoje();
-  var fazId = gv('pFazFil') || ((DB.fazendas||[])[0]||{}).id||'';
-  if(!num){ ge('animalInfo').style.display='none'; return; }
-
-  var ult = (DB.pesagens||[]).filter(function(x){
-    return String(x.num)===String(num) && x.fazId===fazId && x.data < dataAtual;
-  }).sort(function(a,b){return b.data.localeCompare(a.data);})[0];
-
-  if(!ult){ ge('animalInfo').style.display='none'; return; }
-
-  var dias = Math.round((new Date(dataAtual) - new Date(ult.data)) / (1000*60*60*24));
-  var pessoAtual = parseFloat(gv('pPeso'));
-  ge('animalInfo').style.display='flex';
-  ge('infoUltPeso').textContent = ult.peso + ' kg';
-  ge('infoUltData').textContent = fmtData(ult.data);
-  ge('infoDias').textContent = dias + ' dias';
-
-  if(pessoAtual > 0 && dias > 0){
-    var gmd = ((pessoAtual - ult.peso)/dias);
-    var el = ge('infoGmd');
-    el.textContent = gmd.toFixed(3) + ' kg/dia';
-    el.className = 'td-gmd ' + (gmd>=0.668?'top':gmd>=0.45?'med':'low');
-  } else {
-    ge('infoGmd').textContent = '— aguardando peso';
-    ge('infoGmd').className = 'td-gmd na';
-  }
-}
-
-// ══════════════════════════════════════════════════════════════
-// SALVAR PESAGEM
-// ══════════════════════════════════════════════════════════════
-function savPesagem(){
-  var num  = gv('pNum').trim();
-  var peso = parseFloat(gv('pPeso'));
-  var lote = parseInt(gv('pLote'))||1;
-  var data = gv('pData')||hoje();
-  var fazId= gv('pFazFil')||((DB.fazendas||[])[0]||{}).id||'f001';
-
-  if (!num){toast('⚠️ Informe o número do animal!','warn');ge('pNum').focus();return;}
-  if (!peso||peso<=0){toast('⚠️ Informe o peso!','warn');ge('pPeso').focus();return;}
-  if (peso>1200){toast('⚠️ Peso '+peso+'kg parece alto. Confira!','warn');return;}
-  if (peso<20){toast('⚠️ Peso '+peso+'kg parece baixo. Confira!','warn');return;}
-
-  // Duplicado?
-  var dup=(DB.pesagens||[]).find(function(x){return String(x.num)===String(num)&&x.data===data&&x.fazId===fazId;});
-  if(dup){
-    showConf('⚠️','Animal já pesado hoje!','Animal '+num+' pesado com '+dup.peso+'kg. Atualizar para '+peso+'kg?',function(){
-      dup.peso=peso; dup.lote=lote; dup.obs=gv('pObs')||dup.obs;
-      recalcGmd(dup); lw('pesagens','upd',dup);
-      limparCampos(); toast('✅ Animal '+num+' atualizado → '+peso+' kg','ok');
-      renderPes();
-    });
+  // Verifica suporte
+  if (!navigator.bluetooth) {
+    badge.textContent = 'Não suportado';
+    badge.className = 'bt-badge desconect';
+    res.style.display = 'block';
+    res.style.background = '#fdeaea';
+    res.style.border = '1px solid #f5c0c0';
+    res.style.color = '#7a1a1a';
+    res.innerHTML = `<strong>🚨 Web Bluetooth não está ativo neste navegador.</strong><br><br>
+      Solução rápida:<br>
+      1. Na barra de endereço, acesse: <code style="background:#1e1e1e;color:#7dc42a;padding:2px 6px;border-radius:4px">chrome://flags/#enable-web-bluetooth</code><br>
+      2. Mude para <strong>Enabled</strong><br>
+      3. Clique em <strong>Relaunch</strong> (reiniciar Chrome)<br>
+      4. Volte aqui e teste novamente`;
+    btn.textContent = '🔵 Testar conexão Bluetooth';
+    btn.disabled = false;
     return;
   }
 
-  // GMD
-  var ant=(DB.pesagens||[]).filter(function(x){return String(x.num)===String(num)&&x.fazId===fazId&&x.data<data;}).sort(function(a,b){return b.data.localeCompare(a.data);})[0];
-  var gmd=0;
-  if(ant){ var dias=(new Date(data)-new Date(ant.data))/(1000*60*60*24); if(dias>0) gmd=parseFloat(((peso-ant.peso)/dias).toFixed(3)); }
+  try {
+    badge.textContent = 'Procurando...';
+    badge.className = 'bt-badge tentando';
 
-  // Protocolo
-  var prot=DB.protoDia||{modo:'todos',medicamentos:[]};
-  var meds=(prot.medicamentos||[]).filter(function(m){return m.nome;});
-  var medsParaSalvar=[];
-  if(prot.modo==='especifico'){
-    var chks=document.querySelectorAll('.chkMed');
-    chks.forEach(function(chk){ if(chk.checked){ var i=parseInt(chk.getAttribute('data-idx')); if(meds[i]) medsParaSalvar.push({nome:meds[i].nome,dose:meds[i].dose}); } });
-  } else {
-    medsParaSalvar = meds;
-  }
+    const device = await navigator.bluetooth.requestDevice({
+      acceptAllDevices: true,
+      optionalServices: ['generic_access','battery_service','heart_rate','weight_scale']
+    });
 
-  var p={
-    id:'p'+Date.now(),
-    num:num, peso:peso, lote:lote,
-    sexo:gv('pSexo')||'macho',
-    obs:gv('pObs')||'',
-    data:data, fazId:fazId,
-    gmd:gmd,
-    medicamentos:medsParaSalvar,
-    medExtra:gv('pMedExtra')||'',
-    medExtraDose:gv('pMedExtraDose')||'',
-    dataCompra:gv('pDataCompra')||'',
-    dataVenda:gv('pDataVenda')||'',
-    valorVenda:parseFloat(gv('pValorVenda'))||0,
-    criadoEm:new Date().toISOString()
-  };
+    badge.textContent = 'Dispositivo encontrado!';
+    badge.className = 'bt-badge conectado';
+    res.style.display = 'block';
+    res.style.background = '#e8f7e0';
+    res.style.border = '1px solid #c8e6b0';
+    res.style.color = '#0f3d08';
+    res.innerHTML = `<strong>✅ Bluetooth funcionando!</strong> Dispositivo encontrado: <strong>${device.name || 'Sem nome'}</strong><br><br>
+      Agora abra o Sistema de Pesagem e tente conectar a balança lá dentro. O dispositivo já está pareado com o Chrome.`;
 
-  lw('pesagens','add',p);
-  limparCampos();
-  var gc=gmd>=0.668?'🟢':gmd>=0.45?'🟡':gmd>0?'🔴':'';
-  toast('✅ '+num+' · '+peso+' kg · Lote '+lote+(gmd?' · '+gc+' '+gmd.toFixed(3)+' kg/dia':' · 1ª pesagem'),'ok');
-  ge('pNum').focus();
-  renderPes();
-}
-
-function recalcGmd(p){
-  var ant=(DB.pesagens||[]).filter(function(x){return String(x.num)===String(p.num)&&x.fazId===p.fazId&&x.data<p.data;}).sort(function(a,b){return b.data.localeCompare(a.data);})[0];
-  if(ant){var dias=(new Date(p.data)-new Date(ant.data))/(1000*60*60*24);if(dias>0)p.gmd=parseFloat(((p.peso-ant.peso)/dias).toFixed(3));}
-}
-
-function limparCampos(){
-  sv2('pNum',''); sv2('pPeso',''); sv2('pObs','');
-  sv2('pMedExtra',''); sv2('pMedExtraDose','');
-  ge('animalInfo').style.display='none';
-}
-
-// Paginação
-var _pagPes = 0;
-var _pagSize = 20;
-
-// ══════════════════════════════════════════════════════════════
-// RENDER PESAGENS
-// ══════════════════════════════════════════════════════════════
-function renderPes(){
-  var fazId = gv('pFazFil');
-  var dataFil = gv('pDataFil') || hoje();
-  var loteFil = gv('pLoteFil');
-
-  var peses=(DB.pesagens||[]).filter(function(p){
-    if(fazId&&p.fazId!==fazId) return false;
-    if(dataFil&&p.data!==dataFil) return false;
-    if(loteFil&&String(p.lote)!==String(loteFil)) return false;
-    return true;
-  }).sort(function(a,b){return b.criadoEm>a.criadoEm?1:-1;});
-
-  // Stats
-  var pHoje=(DB.pesagens||[]).filter(function(p){return p.data===hoje();});
-  ge('stHoje').textContent = pHoje.length;
-  ge('badge-hoje').textContent = pHoje.length;
-  if(pHoje.length){
-    var pm = pHoje.reduce(function(s,p){return s+p.peso;},0)/pHoje.length;
-    ge('stPMedio').textContent = pm.toFixed(0)+' kg';
-    var at = pHoje.reduce(function(s,p){return s+(p.peso*0.52/15);},0);
-    ge('stArr').textContent = at.toFixed(1)+' @';
-    var comGmd = pHoje.filter(function(p){return p.gmd>0;});
-    if(comGmd.length){
-      var gm = comGmd.reduce(function(s,p){return s+p.gmd;},0)/comGmd.length;
-      ge('stGmd').textContent = gm.toFixed(3);
-      ge('stGmd').className = 'stat-val '+(gm>=0.668?'vd':gm>=0.45?'am':'rd');
+  } catch(e) {
+    if (e.name === 'NotFoundError') {
+      badge.textContent = 'Nenhum device';
+      badge.className = 'bt-badge tentando';
+      res.style.display = 'block';
+      res.style.background = '#fef3dd';
+      res.style.border = '1px solid #f5d990';
+      res.style.color = '#7a5800';
+      res.innerHTML = `<strong>⚠️ Bluetooth ativo, mas nenhum dispositivo foi selecionado.</strong><br><br>
+        Isso significa que o Bluetooth do notebook está funcionando no Chrome.<br>
+        Próximo passo: ligue a balança e coloque em modo pareamento (LED piscando azul) antes de testar novamente.`;
+    } else if (e.name === 'SecurityError') {
+      badge.textContent = 'Bloqueado';
+      badge.className = 'bt-badge desconect';
+      res.style.display = 'block';
+      res.style.background = '#fdeaea';
+      res.style.border = '1px solid #f5c0c0';
+      res.style.color = '#7a1a1a';
+      res.innerHTML = `<strong>🔒 Bluetooth bloqueado por segurança.</strong><br><br>
+        O Chrome bloqueou o acesso ao Bluetooth nesta página.<br>
+        Solução: clique no 🔒 cadeado na barra de endereço → Bluetooth → Permitir`;
     } else {
-      ge('stGmd').textContent='—'; ge('stGmd').className='stat-val';
+      badge.textContent = 'Erro';
+      badge.className = 'bt-badge desconect';
+      res.style.display = 'block';
+      res.style.background = '#fdeaea';
+      res.style.border = '1px solid #f5c0c0';
+      res.style.color = '#7a1a1a';
+      res.innerHTML = `<strong>Erro:</strong> ${e.message}<br><br>
+        Tente: reiniciar o Chrome, verificar se o Bluetooth do Windows está ativado (ícone na bandeja do sistema) e se o driver está atualizado no Gerenciador de Dispositivos.`;
     }
-  } else {
-    ge('stPMedio').textContent=ge('stArr').textContent=ge('stGmd').textContent='—';
   }
 
-  // Paginação
-  var total = peses.length;
-  var start = _pagPes * _pagSize;
-  var pag = peses.slice(start, start+_pagSize);
-  ge('pagInfo').textContent = 'Mostrando '+(pag.length?start+1:0)+'-'+(start+pag.length)+' de '+total;
-
-  // Botões paginação
-  var totalPag = Math.ceil(total/_pagSize);
-  var ph='';
-  for(var i=0;i<totalPag;i++){
-    ph+='<button class="pag-btn'+(i===_pagPes?' at':'')+('" onclick="goPage('+i+')">'+(i+1)+'</button>');
-  }
-  ge('pagBtns').innerHTML=ph;
-
-  // Tabela
-  var h='';
-  if(!pag.length){
-    h='<tr><td colspan="9" class="empty"><span class="empty-ico">🐄</span>Nenhuma pesagem encontrada</td></tr>';
-  } else {
-    pag.forEach(function(p){
-      var gc=p.gmd>0?(p.gmd>=0.668?'top':p.gmd>=0.45?'med':'low'):'na';
-      var gmdTxt=p.gmd>0?p.gmd.toFixed(3):'1ª pes.';
-      var protTxt=(p.medicamentos&&p.medicamentos.length)?p.medicamentos.map(function(m){return m.nome+(m.dose?' '+m.dose:'');}).join(', '):'—';
-      var medE=p.medExtra?('<span style="color:var(--rd);font-weight:600">'+p.medExtra+(p.medExtraDose?' '+p.medExtraDose:'')+'</span>'):'—';
-      h+='<tr>';
-      h+='<td class="td-num">'+p.num+'</td>';
-      h+='<td class="td-peso">'+p.peso+' kg</td>';
-      h+='<td>'+p.lote+'</td>';
-      h+='<td><span class="td-badge '+(p.sexo==='femea'?'f':'m')+'">'+( p.sexo==='femea'?'Fêmea':'Macho')+'</span></td>';
-      h+='<td class="td-gmd '+gc+'">'+gmdTxt+'</td>';
-      h+='<td style="font-size:12px">'+protTxt+'</td>';
-      h+='<td>'+medE+'</td>';
-      h+='<td style="font-size:12px;color:var(--g4)">'+( p.obs||'—')+'</td>';
-      h+='<td><div class="td-actions"><button class="btn-sm" onclick="abrirEditar(\''+p.id+'\')">✏️</button><button class="btn-sm del" onclick="deletarPes(\''+p.id+'\')">🗑</button></div></td>';
-      h+='</tr>';
-    });
-  }
-  ge('tbPes').innerHTML=h;
+  btn.textContent = '🔵 Testar novamente';
+  btn.disabled = false;
 }
-
-function goPage(p){_pagPes=p;renderPes();}
-
-// ══════════════════════════════════════════════════════════════
-// EDITAR / DELETAR
-// ══════════════════════════════════════════════════════════════
-function abrirEditar(id){
-  var p=(DB.pesagens||[]).find(function(x){return x.id===id;});
-  if(!p) return;
-  sv2('editId',p.id); sv2('editNum',p.num); sv2('editPeso',p.peso);
-  sv2('editLote',p.lote); sv2('editSexo',p.sexo); sv2('editData',p.data);
-  sv2('editGmd',p.gmd||0); sv2('editObs',p.obs||'');
-  sv2('editMedExtra',p.medExtra||''); sv2('editMedExtraDose',p.medExtraDose||'');
-  sv2('editDataCompra',p.dataCompra||''); sv2('editDataVenda',p.dataVenda||'');
-  sv2('editValorVenda',p.valorVenda||0);
-  ge('modalEditar').classList.add('at');
-}
-
-function fecharModal(){ ge('modalEditar').classList.remove('at'); }
-
-function salvarEdicao(){
-  var id = gv('editId');
-  var p=(DB.pesagens||[]).find(function(x){return x.id===id;});
-  if(!p){ toast('Registro não encontrado','err'); return; }
-  p.num=gv('editNum'); p.peso=parseFloat(gv('editPeso')); p.lote=parseInt(gv('editLote'))||1;
-  p.sexo=gv('editSexo'); p.data=gv('editData'); p.gmd=parseFloat(gv('editGmd'))||0;
-  p.obs=gv('editObs'); p.medExtra=gv('editMedExtra'); p.medExtraDose=gv('editMedExtraDose');
-  p.dataCompra=gv('editDataCompra'); p.dataVenda=gv('editDataVenda');
-  p.valorVenda=parseFloat(gv('editValorVenda'))||0;
-  lw('pesagens','upd',p);
-  fecharModal(); toast('✅ Pesagem atualizada','ok'); renderPes();
-}
-
-function deletarPes(id){
-  showConf('🗑️','Deletar pesagem','Esta ação não pode ser desfeita. Continuar?',function(){
-    lw('pesagens','del',{id:id}); toast('Registro deletado','warn'); renderPes();
-  });
-}
-
-// ══════════════════════════════════════════════════════════════
-// LOTES
-// ══════════════════════════════════════════════════════════════
-function renderLotes(){
-  var lotes={};
-  (DB.pesagens||[]).forEach(function(p){
-    var k=String(p.lote||'sem lote');
-    if(!lotes[k]) lotes[k]={lote:k,animais:[],datas:[]};
-    lotes[k].animais.push(p);
-    if(p.data&&!lotes[k].datas.includes(p.data)) lotes[k].datas.push(p.data);
-  });
-
-  var keys=Object.keys(lotes).sort(function(a,b){return parseInt(a)-parseInt(b);});
-  ge('badge-lotes').textContent=keys.length;
-
-  if(!keys.length){
-    ge('lotesContainer').innerHTML='<div class="empty"><span class="empty-ico">📦</span>Nenhum lote registrado ainda</div>';
-    return;
-  }
-
-  var h='<div class="lotes-grid">';
-  keys.forEach(function(k){
-    var lt=lotes[k];
-    var n=lt.animais.length;
-    var pm=lt.animais.reduce(function(s,a){return s+a.peso;},0)/n;
-    var comGmd=lt.animais.filter(function(a){return a.gmd>0;});
-    var gm=comGmd.length?comGmd.reduce(function(s,a){return s+a.gmd;},0)/comGmd.length:0;
-    var ultData=lt.datas.sort().slice(-1)[0];
-    var machos=lt.animais.filter(function(a){return a.sexo==='macho';}).length;
-    var femeas=n-machos;
-
-    h+='<div class="lote-card">';
-    h+='<div class="lote-header" onclick="toggleLote(\'lote_'+k+'\')">';
-    h+='<div><div class="lote-nome">Lote '+k+'</div></div>';
-    h+='<div class="lote-meta">';
-    h+='<div class="lm-item">🐄 <span class="lm-val">'+n+'</span> animais</div>';
-    h+='<div class="lm-item">⚖️ <span class="lm-val">'+pm.toFixed(0)+'kg</span> médio</div>';
-    if(gm>0) h+='<div class="lm-item">📈 <span class="lm-val" style="color:'+(gm>=0.668?'var(--v3)':gm>=0.45?'var(--am)':'var(--rd)')+'">'+gm.toFixed(3)+' kg/d</span></div>';
-    h+='<div class="lm-item">♂ '+machos+' ♀ '+femeas+'</div>';
-    h+='<div class="lm-item">📅 '+fmtData(ultData)+'</div>';
-    h+='</div><div class="lote-caret">▼</div></div>';
-
-    h+='<div class="lote-body" id="lote_'+k+'">';
-    h+='<div style="overflow-x:auto"><table><thead><tr><th>Nº</th><th>Peso</th><th>Sexo</th><th>GMD</th><th>Data</th><th>Protocolo</th><th>Med. Ind.</th><th>Obs</th></tr></thead><tbody>';
-    lt.animais.sort(function(a,b){return a.num>b.num?1:-1;}).forEach(function(a){
-      var gc=a.gmd>0?(a.gmd>=0.668?'top':a.gmd>=0.45?'med':'low'):'na';
-      var prot=(a.medicamentos&&a.medicamentos.length)?a.medicamentos.map(function(m){return m.nome;}).join(', '):'—';
-      h+='<tr><td class="td-num">'+a.num+'</td><td class="td-peso">'+a.peso+' kg</td>';
-      h+='<td><span class="td-badge '+(a.sexo==='femea'?'f':'m')+'">'+(a.sexo==='femea'?'F':'M')+'</span></td>';
-      h+='<td class="td-gmd '+gc+'">'+(a.gmd>0?a.gmd.toFixed(3):'1ª')+'</td>';
-      h+='<td>'+fmtData(a.data)+'</td><td style="font-size:12px">'+prot+'</td>';
-      h+='<td style="font-size:12px;color:var(--rd)">'+(a.medExtra||'—')+'</td>';
-      h+='<td style="font-size:12px;color:var(--g4)">'+(a.obs||'—')+'</td></tr>';
-    });
-    h+='</tbody></table></div></div>';
-    h+='</div>';
-  });
-  h+='</div>';
-  ge('lotesContainer').innerHTML=h;
-}
-
-function toggleLote(id){
-  var body=ge(id),header=body.previousElementSibling;
-  body.classList.toggle('at');
-  header.classList.toggle('at');
-}
-
-// ══════════════════════════════════════════════════════════════
-// RELATÓRIOS
-// ══════════════════════════════════════════════════════════════
-var _relAtual = null;
-
-function gerarRel(tipo){
-  ge('selAnimalDiv').style.display = tipo==='animal' ? 'block' : 'none';
-  if(tipo==='animal') return;
-  _relAtual = tipo;
-  var peses = DB.pesagens||[];
-  var titulo='', corpo='';
-
-  if(tipo==='dia'){
-    titulo = '📅 Pesagem do Dia — '+fmtData(hoje());
-    var ph=peses.filter(function(p){return p.data===hoje();});
-    corpo = buildTableRel(ph, 'dia');
-  }
-  else if(tipo==='lote'){
-    titulo = '📦 Relatório por Lote';
-    corpo = buildRelLotes(peses);
-  }
-  else if(tipo==='fazenda'){
-    titulo = '🏡 Relatório por Fazenda';
-    corpo = buildRelFazenda(peses);
-  }
-  else if(tipo==='protocolo'){
-    titulo = '💉 Protocolo Sanitário';
-    corpo = buildRelProtocolo(peses);
-  }
-  else if(tipo==='geral'){
-    titulo = '📊 Relatório Geral do Rebanho';
-    corpo = buildRelGeral(peses);
-  }
-
-  ge('relTitulo').textContent = titulo;
-  ge('relBody').innerHTML = corpo;
-  ge('relOutput').style.display = 'block';
-  ge('relOutput').scrollIntoView({behavior:'smooth'});
-}
-
-function gerarRelAnimal(){
-  var num = gv('relAnimalNum').trim();
-  if(!num){toast('Informe o número do animal','warn');return;}
-  var peses=(DB.pesagens||[]).filter(function(p){return String(p.num)===String(num);}).sort(function(a,b){return a.data.localeCompare(b.data);});
-  if(!peses.length){toast('Animal '+num+' não encontrado','warn');return;}
-  _relAtual='animal';
-  ge('relTitulo').textContent='🐂 Animal '+num+' — Histórico Completo';
-  ge('relBody').innerHTML=buildRelAnimal(num, peses);
-  ge('relOutput').style.display='block';
-  ge('relOutput').scrollIntoView({behavior:'smooth'});
-}
-
-function buildTableRel(peses, tipo){
-  if(!peses.length) return '<div class="empty"><span class="empty-ico">🐄</span>Nenhum registro encontrado</div>';
-  var pm=peses.reduce(function(s,p){return s+p.peso;},0)/peses.length;
-  var comGmd=peses.filter(function(p){return p.gmd>0;});
-  var gm=comGmd.length?comGmd.reduce(function(s,p){return s+p.gmd;},0)/comGmd.length:0;
-
-  var h='<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px">';
-  h+='<div class="stat-card"><div class="stat-label">Total Animais</div><div class="stat-val vd">'+peses.length+'</div></div>';
-  h+='<div class="stat-card"><div class="stat-label">Peso Médio</div><div class="stat-val">'+pm.toFixed(0)+' kg</div></div>';
-  h+='<div class="stat-card"><div class="stat-label">Total Arrobas</div><div class="stat-val">'+(peses.reduce(function(s,p){return s+(p.peso*.52/15);},0)).toFixed(1)+' @</div></div>';
-  h+='<div class="stat-card"><div class="stat-label">GMD Médio</div><div class="stat-val '+(gm>=0.668?'vd':gm>=0.45?'am':'rd')+'">'+(gm>0?gm.toFixed(3):'—')+'</div></div>';
-  h+='</div>';
-
-  h+='<div style="overflow-x:auto"><table><thead><tr><th>Nº</th><th>Peso</th><th>Lote</th><th>Sexo</th><th>GMD</th><th>Data</th><th>Protocolo</th><th>Med. Individual</th><th>Obs</th></tr></thead><tbody>';
-  peses.forEach(function(p){
-    var gc=p.gmd>0?(p.gmd>=0.668?'top':p.gmd>=0.45?'med':'low'):'na';
-    var prot=(p.medicamentos&&p.medicamentos.length)?p.medicamentos.map(function(m){return m.nome+(m.dose?' '+m.dose:'');}).join(', '):'—';
-    h+='<tr><td class="td-num">'+p.num+'</td><td class="td-peso">'+p.peso+' kg</td>';
-    h+='<td>'+p.lote+'</td><td><span class="td-badge '+(p.sexo==='femea'?'f':'m')+'">'+(p.sexo==='femea'?'Fêmea':'Macho')+'</span></td>';
-    h+='<td class="td-gmd '+gc+'">'+(p.gmd>0?p.gmd.toFixed(3):'1ª')+'</td>';
-    h+='<td>'+fmtData(p.data)+'</td><td style="font-size:12px">'+prot+'</td>';
-    h+='<td style="font-size:12px;color:var(--rd)">'+(p.medExtra||'—')+'</td>';
-    h+='<td style="font-size:12px;color:var(--g4)">'+(p.obs||'—')+'</td></tr>';
-  });
-  h+='</tbody></table></div>';
-  return h;
-}
-
-function buildRelLotes(peses){
-  var lotes={};
-  peses.forEach(function(p){
-    var k=String(p.lote||'sem lote');
-    if(!lotes[k]) lotes[k]=[];
-    lotes[k].push(p);
-  });
-  var h='';
-  Object.keys(lotes).sort(function(a,b){return parseInt(a)-parseInt(b);}).forEach(function(k){
-    var lt=lotes[k],n=lt.length;
-    var pm=lt.reduce(function(s,p){return s+p.peso;},0)/n;
-    var comGmd=lt.filter(function(p){return p.gmd>0;});
-    var gm=comGmd.length?comGmd.reduce(function(s,p){return s+p.gmd;},0)/comGmd.length:0;
-    var at=lt.reduce(function(s,p){return s+(p.peso*.52/15);},0);
-    h+='<div style="margin-bottom:24px"><div style="font-family:Syne,sans-serif;font-size:16px;font-weight:800;color:var(--v2);margin-bottom:10px;padding:10px 14px;background:var(--vl);border-radius:8px;display:flex;gap:20px;flex-wrap:wrap">';
-    h+='<span>Lote '+k+'</span><span>'+n+' animais</span><span>'+pm.toFixed(0)+' kg médio</span><span>'+(gm>0?gm.toFixed(3)+' kg/d GMD':'—')+'</span><span>'+at.toFixed(1)+' @</span></div>';
-    h+=buildTableRel(lt,'lote');
-    h+='</div>';
-  });
-  return h||'<div class="empty">Nenhum dado</div>';
-}
-
-function buildRelFazenda(peses){
-  var fazMap={};
-  (DB.fazendas||[]).forEach(function(f){fazMap[f.id]=f;});
-  var grupos={};
-  peses.forEach(function(p){
-    var k=p.fazId||'sem_fazenda';
-    if(!grupos[k]) grupos[k]=[];
-    grupos[k].push(p);
-  });
-  var h='';
-  Object.keys(grupos).forEach(function(k){
-    var faz=fazMap[k]||{nome:k};
-    var lt=grupos[k],n=lt.length;
-    var pm=lt.reduce(function(s,p){return s+p.peso;},0)/n;
-    h+='<div style="margin-bottom:24px"><div style="font-family:Syne,sans-serif;font-size:16px;font-weight:800;color:var(--v2);margin-bottom:10px;padding:10px 14px;background:var(--vl);border-radius:8px">';
-    h+=faz.nome+' <span style="font-size:13px;font-weight:400;color:var(--g3)">· '+n+' animais · '+pm.toFixed(0)+'kg médio</span></div>';
-    h+=buildTableRel(lt,'fazenda');
-    h+='</div>';
-  });
-  return h||'<div class="empty">Nenhuma fazenda com pesagens</div>';
-}
-
-function buildRelAnimal(num, peses){
-  var h='<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px">';
-  h+='<div class="stat-card"><div class="stat-label">Total Pesagens</div><div class="stat-val vd">'+peses.length+'</div></div>';
-  h+='<div class="stat-card"><div class="stat-label">Último Peso</div><div class="stat-val">'+peses[peses.length-1].peso+' kg</div></div>';
-  var comGmd=peses.filter(function(p){return p.gmd>0;});
-  var gm=comGmd.length?comGmd.reduce(function(s,p){return s+p.gmd;},0)/comGmd.length:0;
-  h+='<div class="stat-card"><div class="stat-label">GMD Médio</div><div class="stat-val '+(gm>=0.668?'vd':gm>=0.45?'am':'rd')+'">'+(gm>0?gm.toFixed(3):'—')+'</div></div>';
-  h+='</div>';
-  h+='<div style="overflow-x:auto"><table><thead><tr><th>Data</th><th>Peso</th><th>Lote</th><th>GMD</th><th>Ganho</th><th>Protocolo</th><th>Med. Individual</th><th>Obs</th></tr></thead><tbody>';
-  peses.forEach(function(p,i){
-    var ganho=i>0?(p.peso-peses[i-1].peso):0;
-    var gc=p.gmd>0?(p.gmd>=0.668?'top':p.gmd>=0.45?'med':'low'):'na';
-    var prot=(p.medicamentos&&p.medicamentos.length)?p.medicamentos.map(function(m){return m.nome;}).join(', '):'—';
-    h+='<tr><td>'+fmtData(p.data)+'</td><td class="td-peso">'+p.peso+' kg</td><td>'+p.lote+'</td>';
-    h+='<td class="td-gmd '+gc+'">'+(p.gmd>0?p.gmd.toFixed(3):'1ª')+'</td>';
-    h+='<td style="color:'+(ganho>0?'var(--v3)':ganho<0?'var(--rd)':'var(--g4)')+';">'+(i>0?(ganho>0?'+':'')+ganho.toFixed(1)+' kg':'—')+'</td>';
-    h+='<td style="font-size:12px">'+prot+'</td>';
-    h+='<td style="font-size:12px;color:var(--rd)">'+(p.medExtra||'—')+'</td>';
-    h+='<td style="font-size:12px;color:var(--g4)">'+(p.obs||'—')+'</td></tr>';
-  });
-  h+='</tbody></table></div>';
-  return h;
-}
-
-function buildRelProtocolo(peses){
-  var h='<div style="overflow-x:auto"><table><thead><tr><th>Animal</th><th>Data</th><th>Lote</th><th>Medicamento</th><th>Dose</th><th>Tipo</th></tr></thead><tbody>';
-  var rows=[];
-  peses.forEach(function(p){
-    (p.medicamentos||[]).forEach(function(m){
-      if(m.nome) rows.push({num:p.num,data:p.data,lote:p.lote,nome:m.nome,dose:m.dose||'—',tipo:'Protocolo Dia'});
-    });
-    if(p.medExtra) rows.push({num:p.num,data:p.data,lote:p.lote,nome:p.medExtra,dose:p.medExtraDose||'—',tipo:'Individual'});
-  });
-  rows.sort(function(a,b){return b.data.localeCompare(a.data);}).forEach(function(r){
-    h+='<tr><td class="td-num">'+r.num+'</td><td>'+fmtData(r.data)+'</td><td>'+r.lote+'</td>';
-    h+='<td><strong>'+r.nome+'</strong></td><td>'+r.dose+'</td>';
-    h+='<td><span class="td-badge '+(r.tipo==='Individual'?'f':'m')+'">'+r.tipo+'</span></td></tr>';
-  });
-  if(!rows.length) h+='<tr><td colspan="6" class="empty">Nenhum medicamento registrado</td></tr>';
-  h+='</tbody></table></div>';
-  return h;
-}
-
-function buildRelGeral(peses){
-  if(!peses.length) return '<div class="empty"><span class="empty-ico">📊</span>Nenhum dado disponível</div>';
-  var pm=peses.reduce(function(s,p){return s+p.peso;},0)/peses.length;
-  var comGmd=peses.filter(function(p){return p.gmd>0;});
-  var gm=comGmd.length?comGmd.reduce(function(s,p){return s+p.gmd;},0)/comGmd.length:0;
-  var top30=comGmd.filter(function(p){return p.gmd>=0.668;}).length;
-  var at=peses.reduce(function(s,p){return s+(p.peso*.52/15);},0);
-
-  var h='<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px">';
-  h+='<div class="stat-card"><div class="stat-label">Total Pesagens</div><div class="stat-val vd">'+peses.length+'</div></div>';
-  h+='<div class="stat-card"><div class="stat-label">Peso Médio</div><div class="stat-val">'+pm.toFixed(0)+' kg</div></div>';
-  h+='<div class="stat-card"><div class="stat-label">Total Arrobas</div><div class="stat-val">'+at.toFixed(1)+' @</div></div>';
-  h+='<div class="stat-card"><div class="stat-label">GMD Médio</div><div class="stat-val '+(gm>=0.668?'vd':gm>=0.45?'am':'rd')+'">'+(gm>0?gm.toFixed(3):'—')+'</div></div>';
-  h+='</div>';
-  h+='<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px">';
-  h+='<div class="stat-card"><div class="stat-label">vs Média Inttegra (0,403)</div><div class="stat-val '+(gm>=0.403?'vd':'rd')+'">'+(gm>0?(gm>=0.403?'▲ ':'▼ ')+((Math.abs(gm-0.403)/0.403)*100).toFixed(0)+'%':'—')+'</div></div>';
-  h+='<div class="stat-card"><div class="stat-label">vs Top 30% (0,668)</div><div class="stat-val '+(gm>=0.668?'vd':'rd')+'">'+(gm>0?(gm>=0.668?'▲ ':'▼ ')+((Math.abs(gm-0.668)/0.668)*100).toFixed(0)+'%':'—')+'</div></div>';
-  h+='<div class="stat-card"><div class="stat-label">Animais Top 30%</div><div class="stat-val vd">'+top30+'<span style="font-size:13px;color:var(--g4)"> de '+comGmd.length+'</span></div></div>';
-  h+='</div>';
-  h+=buildTableRel(peses,'geral');
-  return h;
-}
-
-function fecharRel(){ ge('relOutput').style.display='none'; }
-
-function exportarRelCSV(){
-  var rows=[['Nº','Peso','Lote','Sexo','GMD','Data','Protocolo','Med.Individual','Obs']];
-  (DB.pesagens||[]).forEach(function(p){
-    var prot=(p.medicamentos||[]).map(function(m){return m.nome;}).join(' | ');
-    rows.push([p.num,p.peso,p.lote,p.sexo,p.gmd||'',p.data,prot,p.medExtra||'',p.obs||'']);
-  });
-  downloadCSV(rows,'relatorio_pesagem.csv');
-}
-
-function exportarDia(){
-  var peses=(DB.pesagens||[]).filter(function(p){return p.data===hoje();});
-  var rows=[['Nº','Peso','Lote','Sexo','GMD','Protocolo','Med.Individual','Obs']];
-  peses.forEach(function(p){
-    var prot=(p.medicamentos||[]).map(function(m){return m.nome;}).join(' | ');
-    rows.push([p.num,p.peso,p.lote,p.sexo,p.gmd||'',prot,p.medExtra||'',p.obs||'']);
-  });
-  downloadCSV(rows,'pesagem_'+hoje()+'.csv');
-}
-
-function downloadCSV(rows, nome){
-  var csv=rows.map(function(r){return r.map(function(c){return '"'+(c||'').toString().replace(/"/g,'""')+'"';}).join(',');}).join('\n');
-  var a=document.createElement('a');
-  a.href='data:text/csv;charset=utf-8,\uFEFF'+encodeURIComponent(csv);
-  a.download=nome; a.click();
-}
-
-// ══════════════════════════════════════════════════════════════
-// SYNC / SHEETS
-// ══════════════════════════════════════════════════════════════
-function sincronizar(){
-  if(!DB.online){toast('Sem internet. Dados salvos localmente.','warn');return;}
-  if(!DB.shUrl){toast('Configure a URL do Google Sheets primeiro','warn');irTab('config');return;}
-  trySync();
-}
-
-function trySync(){
-  if(!DB.shUrl||!DB.online||(DB.syncQ||[]).length===0) return;
-  var q=DB.syncQ.slice();
-  var ok=0,fail=0;
-  function next(i){
-    if(i>=q.length){
-      DB.syncQ=DB.syncQ.slice(ok);
-      sv('syncQ'); updSt();
-      if(!fail) toast('✅ Sincronizado com Google Sheets!','ok');
-      return;
-    }
-    fetch(DB.shUrl,{method:'POST',redirect:'follow',headers:{'Content-Type':'text/plain'},body:JSON.stringify(q[i].payload)})
-      .then(function(r){return r.json();})
-      .then(function(d){if(d.ok){ok++;DB.syncQ.shift();}else fail++;next(i+1);})
-      .catch(function(){fail++;next(i+1);});
-  }
-  next(0);
-}
-
-function enviarTudo(){
-  if(!DB.shUrl){toast('Configure a URL primeiro','warn');return;}
-  if(!DB.online){toast('Sem internet','warn');return;}
-  var payload={ acao:'sync', fazendas:DB.fazendas, pesagens:DB.pesagens };
-  fetch(DB.shUrl,{method:'POST',redirect:'follow',headers:{'Content-Type':'text/plain'},body:JSON.stringify(payload)})
-    .then(function(r){return r.json();})
-    .then(function(d){if(d.ok) toast('✅ '+d.pesagens+' pesagens enviadas!','ok'); else toast('Erro: '+d.erro,'err');})
-    .catch(function(e){toast('Erro de conexão','err');});
-}
-
-function salvarUrl(){
-  var u=gv('shUrl').trim();
-  if(!u){toast('Cole a URL do Apps Script','warn');return;}
-  DB.shUrl=u; LS.s('shUrl',u); toast('✅ URL salva!','ok');
-  testarUrl();
-}
-
-function testarUrl(){
-  var url=DB.shUrl;
-  if(!url){toast('Configure a URL primeiro','warn');return;}
-  ge('connStatus').textContent='⏳ Testando...';
-  fetch(url+'?acao=ping').then(function(r){return r.json();})
-    .then(function(d){ge('connStatus').textContent=d.ok?'✅ Conectado! Versão '+d.versao:'⚠️ Resposta inesperada';})
-    .catch(function(){ge('connStatus').textContent='🔴 Não foi possível conectar';});
-}
-
-// ══════════════════════════════════════════════════════════════
-// BACKUP
-// ══════════════════════════════════════════════════════════════
-function exportarBackup(){
-  var data={fazendas:DB.fazendas,pesagens:DB.pesagens,exportadoEm:new Date().toISOString()};
-  var a=document.createElement('a');
-  a.href='data:application/json;charset=utf-8,'+encodeURIComponent(JSON.stringify(data,null,2));
-  a.download='backup_gestao_'+hoje()+'.json'; a.click();
-  toast('✅ Backup exportado','ok');
-}
-
-function importarBackup(e){
-  var file=e.target.files[0]; if(!file) return;
-  var reader=new FileReader();
-  reader.onload=function(ev){
-    try{
-      var data=JSON.parse(ev.target.result);
-      if(data.fazendas){
-        data.fazendas.forEach(function(f){lw('fazendas','upd',f);});
-      }
-      if(data.pesagens){
-        data.pesagens.forEach(function(p){lw('pesagens','upd',p);});
-      }
-      toast('✅ '+(data.pesagens||[]).length+' pesagens importadas','ok');
-      renderPes(); renderLotes();
-    }catch(err){toast('Erro ao importar: '+err.message,'err');}
-  };
-  reader.readAsText(file);
-}
-
-function confirmarLimpar(){
-  showConf('🗑️','Limpar todos os dados','ATENÇÃO: Isso apaga TODOS os dados locais permanentemente. Faça um backup primeiro!',function(){
-    localStorage.clear(); loadDB(); renderPes(); toast('Dados limpos','warn');
-  });
-}
-
-// ══════════════════════════════════════════════════════════════
-// BLUETOOTH
-// ══════════════════════════════════════════════════════════════
-async function conectarBT(){
-  if(!navigator.bluetooth){
-    toast('Web Bluetooth não suportado. Use Chrome no desktop ou Android','err');
-    return;
-  }
-  try{
-    toast('🔵 Procurando balança...','');
-    var device=await navigator.bluetooth.requestDevice({
-      acceptAllDevices:true,
-      optionalServices:['generic_access','battery_service','weight_scale','00001234-0000-1000-8000-00805f9b34fb']
-    });
-    DB.btDevice=device;
-    var server=await device.gatt.connect();
-    toast('✅ '+device.name+' conectada!','ok');
-    ge('btnBT').textContent='🟢 '+device.name;
-    ge('btnBT').style.background='var(--v3)';
-  }catch(e){
-    if(e.name==='NotFoundError') toast('Nenhum dispositivo selecionado','warn');
-    else toast('Erro BT: '+e.message,'err');
-  }
-}
-
-// ══════════════════════════════════════════════════════════════
-// CONFIRM DIALOG
-// ══════════════════════════════════════════════════════════════
-var _confCb=null;
-function showConf(ico,tit,txt,cb){
-  ge('confIco').textContent=ico; ge('confTit').textContent=tit; ge('confTxt').textContent=txt;
-  _confCb=cb; ge('confOver').classList.add('at');
-}
-function fecharConf(){ ge('confOver').classList.remove('at'); _confCb=null; }
-ge('confOkBtn').onclick=function(){ fecharConf(); if(_confCb) _confCb(); };
-
-// Fechar modal clicando fora
-ge('modalEditar').addEventListener('click',function(e){if(e.target===this)fecharModal();});
-ge('confOver').addEventListener('click',function(e){if(e.target===this)fecharConf();});
-
-// ══════════════════════════════════════════════════════════════
-// FILTROS
-// ══════════════════════════════════════════════════════════════
-function limparFiltros(){
-  sv2('pFazFil',''); sv2('pDataFil',''); sv2('pLoteFil','');
-  _pagPes=0; renderPes();
-}
-
-// ══════════════════════════════════════════════════════════════
-// INIT
-// ══════════════════════════════════════════════════════════════
-window.addEventListener('online',function(){DB.online=true;updSt();setTimeout(trySync,500);});
-window.addEventListener('offline',function(){DB.online=false;updSt();});
-
-window.onload=function(){
-  loadDB();
-
-  // Data hoje
-  var dt=new Date();
-  var dias=['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
-  var meses=['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
-  ge('dtHoje').textContent=dias[dt.getDay()]+', '+dt.getDate()+' de '+meses[dt.getMonth()]+' de '+dt.getFullYear();
-
-  // Preenche fazendas no select
-  var sel=ge('pFazFil');
-  (DB.fazendas||[]).forEach(function(f){
-    var opt=document.createElement('option');
-    opt.value=f.id; opt.textContent=f.nome;
-    sel.appendChild(opt);
-  });
-
-  // Data default = hoje
-  sv2('pData', hoje());
-
-  // URL config
-  if(DB.shUrl) sv2('shUrl', DB.shUrl);
-
-  // Protocolo
-  var prot=DB.protoDia||{modo:'todos',medicamentos:[]};
-  ge('modoTodosBtn').classList.toggle('at', prot.modo!=='especifico');
-  ge('modoEspecBtn').classList.toggle('at', prot.modo==='especifico');
-  if(!prot.medicamentos||!prot.medicamentos.length) prot.medicamentos=[{nome:'',dose:''}];
-  renderMeds();
-
-  renderPes();
-  updSt();
-};
 </script>
 </body>
 </html>

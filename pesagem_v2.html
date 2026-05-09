@@ -1275,36 +1275,43 @@ function downloadCSV(rows, nome){
 function sincronizar(){
   if(!DB.online){toast('Sem internet. Dados salvos localmente.','warn');return;}
   if(!DB.shUrl){toast('Configure a URL do Google Sheets primeiro','warn');irTab('config');return;}
-  trySync();
+  enviarTudo();
 }
 
 function trySync(){
-  if(!DB.shUrl||!DB.online||(DB.syncQ||[]).length===0) return;
-  var q=DB.syncQ.slice();
-  var ok=0,fail=0;
-  function next(i){
-    if(i>=q.length){
-      DB.syncQ=DB.syncQ.slice(ok);
-      sv('syncQ'); updSt();
-      if(!fail) toast('✅ Sincronizado com Google Sheets!','ok');
-      return;
-    }
-    fetch(DB.shUrl,{method:'POST',redirect:'follow',headers:{'Content-Type':'text/plain'},body:JSON.stringify(q[i].payload)})
-      .then(function(r){return r.json();})
-      .then(function(d){if(d.ok){ok++;DB.syncQ.shift();}else fail++;next(i+1);})
-      .catch(function(){fail++;next(i+1);});
-  }
-  next(0);
+  if(!DB.shUrl||!DB.online) return;
+  // Envia tudo de uma vez
+  enviarTudo();
 }
 
 function enviarTudo(){
-  if(!DB.shUrl){toast('Configure a URL primeiro','warn');return;}
-  if(!DB.online){toast('Sem internet','warn');return;}
-  var payload={ acao:'sync', fazendas:DB.fazendas, pesagens:DB.pesagens };
+  if(!DB.shUrl){toast('Configure a URL primeiro','warn');irTab('config');return;}
+  if(!DB.online){toast('Sem internet. Dados salvos localmente.','warn');return;}
+  var dot=ge('syncDot'),txt=ge('syncTxt');
+  if(dot) dot.className='sync-dot syncing';
+  if(txt) txt.textContent='Enviando...';
+  toast('📤 Enviando dados para o Google Sheets...','');
+  var payload={ acao:'sync', fazendas:DB.fazendas||[], pesagens:DB.pesagens||[] };
   fetch(DB.shUrl,{method:'POST',redirect:'follow',headers:{'Content-Type':'text/plain'},body:JSON.stringify(payload)})
     .then(function(r){return r.json();})
-    .then(function(d){if(d.ok) toast('✅ '+d.pesagens+' pesagens enviadas!','ok'); else toast('Erro: '+d.erro,'err');})
-    .catch(function(e){toast('Erro de conexão','err');});
+    .then(function(d){
+      if(d.ok){
+        DB.syncQ=[];
+        sv('syncQ');
+        if(dot) dot.className='sync-dot online';
+        if(txt) txt.textContent='Sincronizado ✓';
+        toast('✅ '+d.pesagens+' pesagens e '+d.fazendas+' fazendas enviadas!','ok');
+      } else {
+        if(dot) dot.className='sync-dot';
+        if(txt) txt.textContent='Erro na sync';
+        toast('Erro: '+(d.erro||'resposta inválida'),'err');
+      }
+    })
+    .catch(function(e){
+      if(dot) dot.className='sync-dot';
+      if(txt) txt.textContent='Erro de conexão';
+      toast('Erro de conexão com o Sheets','err');
+    });
 }
 
 function salvarUrl(){
@@ -1346,9 +1353,11 @@ function importarBackup(e){
       if(data.pesagens){
         data.pesagens.forEach(function(p){lw('pesagens','upd',p);});
       }
+      DB.syncQ=[];
+      sv('syncQ');
       popFazendas();
-      toast('✅ '+(data.fazendas||[]).length+' fazendas e '+(data.pesagens||[]).length+' pesagens importadas!','ok');
-      renderPes(); renderLotes();
+      toast('✅ '+(data.fazendas||[]).length+' fazendas e '+(data.pesagens||[]).length+' pesagens importadas! Clique Sync para enviar ao Sheets.','ok');
+      renderPes(); renderLotes(); updSt();
     }catch(err){toast('Erro ao importar: '+err.message,'err');}
   };
   reader.readAsText(file);

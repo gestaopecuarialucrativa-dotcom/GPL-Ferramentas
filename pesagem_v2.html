@@ -476,7 +476,8 @@ tbody td{padding:11px 14px;font-size:13px;color:var(--g2)}
 
 <!-- PAGE: RELATÓRIOS -->
 <div class="page" id="page-relatorios">
-  <div class="rel-grid" style="margin-top:16px">
+  <div id="relFazAtiva" style="margin-top:16px;margin-bottom:0;display:none;padding:10px 16px;background:var(--vl);border-radius:8px;border:1px solid #c8e6b0;font-size:13px;color:var(--v2);font-weight:600"></div>
+  <div class="rel-grid" style="margin-top:12px">
     <div class="rel-card" onclick="gerarRel('dia')">
       <span class="rel-icone">📅</span>
       <div class="rel-nome">Relatório do Dia</div>
@@ -646,7 +647,7 @@ function lw(tbl, op, rec) {
   if (!DB[tbl]) DB[tbl]=[];
   if (op==='add') DB[tbl].push(rec);
   else if (op==='upd') { var i=DB[tbl].findIndex(function(r){return r.id===rec.id;}); if(i>=0)DB[tbl][i]=rec; else DB[tbl].push(rec); }
-  else if (op==='del') DB[tbl]=DB[tbl].filter(function(r){return r.id!==rec.id;});
+  else if (op==='del') DB[tbl]=DB[tbl].filter(function(r){return String(r.id)!==String(rec.id);});
   sv(tbl);
   // Marca pendente sem disparar sync automático
   DB.syncQ.push({ts:Date.now()});
@@ -705,6 +706,19 @@ function irTab(tab){
     ge('selFazendaDiv').style.display='none';
     ge('selAnimalDiv').style.display='none';
     ge('relOutput').style.display='none';
+    // Mostra fazenda ativa
+    var fa=ge('relFazAtiva');
+    var fazNomeAtiva=gv('pFazFil');
+    if(fa){
+      if(fazNomeAtiva){
+        var fnObj=(DB.fazendas||[]).find(function(f){return f.id===fazNomeAtiva;});
+        fa.textContent='🏡 Filtrando por: '+(fnObj?fnObj.nome:fazNomeAtiva);
+        fa.style.display='block';
+      } else {
+        fa.textContent='📊 Mostrando todas as fazendas';
+        fa.style.display='block';
+      }
+    }
   }
 }
 
@@ -1114,12 +1128,17 @@ function gerarRel(tipo){
   ge('selFazendaDiv').style.display = tipo==='fazenda' ? 'block' : 'none';
   if(tipo==='animal'||tipo==='fazenda') return;
   _relAtual = tipo;
-  var peses = DB.pesagens||[];
+  // Aplica filtro de fazenda selecionada
+  var fazFilRel = gv('pFazFil');
+  var peses = (DB.pesagens||[]).filter(function(p){
+    return !fazFilRel || p.fazId===fazFilRel;
+  });
   var titulo='', corpo='';
 
   if(tipo==='dia'){
-    titulo = '📅 Pesagem do Dia — '+fmtData(hoje());
-    var ph=peses.filter(function(p){return p.data===hoje();});
+    var dataRelFil = gv('pDataFil')||hoje();
+    titulo = '📅 Pesagem do Dia — '+fmtData(dataRelFil);
+    var ph=peses.filter(function(p){return p.data===dataRelFil;});
     corpo = buildTableRel(ph, 'dia');
   }
   else if(tipo==='lote'){
@@ -1155,7 +1174,10 @@ function gerarRel(tipo){
 function gerarRelAnimal(){
   var num = gv('relAnimalNum').trim();
   if(!num){toast('Informe o número do animal','warn');return;}
-  var peses=(DB.pesagens||[]).filter(function(p){return String(p.num)===String(num);}).sort(function(a,b){return a.data.localeCompare(b.data);});
+  var fazFilAn = gv('pFazFil');
+  var peses=(DB.pesagens||[]).filter(function(p){
+    return String(p.num)===String(num) && (!fazFilAn||p.fazId===fazFilAn);
+  }).sort(function(a,b){return a.data.localeCompare(b.data);});
   if(!peses.length){toast('Animal '+num+' não encontrado','warn');return;}
   _relAtual='animal';
   ge('relTitulo').textContent='🐂 Animal '+num+' — Histórico Completo';

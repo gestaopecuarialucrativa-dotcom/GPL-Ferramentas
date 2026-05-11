@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Checklist de Diagnóstico — Gestão Pecuária Lucrativa</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',Arial,sans-serif;background:#F1F8E9;color:#1B2C1B;padding:24px 16px;min-height:100vh}
+.page{max-width:820px;margin:0 auto}
+/* HEADER */
+.hd{background:#1B5E20;border-radius:14px 14px 0 0;padding:28px 36px;display:flex;align-items:flex-start;justify-content:space-between;gap:16px;position:relative;overflow:hidden}
+.hd::before{content:'';position:absolute;right:-50px;top:-50px;width:180px;height:180px;background:rgba(255,255,255,.04);border-radius:50%}
+.hd-brand{position:relative;z-index:1}
+.hd-brand-logo{display:flex;align-items:center;gap:10px;margin-bottom:6px}
+.hd-icon{width:42px;height:42px}
+.hd-name{font-size:18px;font-weight:700;color:white;line-height:1.15}
+.hd-name span{color:#8BC34A}
+.hd-sub{font-size:10px;color:rgba(255,255,255,.55);letter-spacing:1px;text-transform:uppercase}
+.hd-right{text-align:right;position:relative;z-index:1}
+.hd-title{font-size:14px;font-weight:600;color:rgba(255,255,255,.9)}
+.hd-meta{font-size:11px;color:rgba(255,255,255,.55);margin-top:4px;line-height:1.6}
+.stripe{height:4px;background:linear-gradient(90deg,#8BC34A,#4CAF50,#2E7D32)}
+/* PROGRESS */
+.prog{background:white;border:1px solid #C8E6C9;padding:12px 36px;display:flex;align-items:center;gap:14px}
+.prog-track{flex:1;height:8px;background:#E8F5E9;border-radius:4px;overflow:hidden}
+.prog-fill{height:100%;width:0%;background:linear-gradient(90deg,#66BB6A,#2E7D32);border-radius:4px;transition:width .3s}
+.prog-label{font-size:12px;font-weight:600;color:#388E3C;white-space:nowrap;min-width:100px;text-align:right}
+/* BODY */
+.body{background:white;border:1px solid #C8E6C9;border-top:none;border-radius:0 0 14px 14px;padding:28px 36px 36px}
+/* META */
+.meta{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:24px}
+.mf{background:#F9FBE7;border:1px solid #DCEDC8;border-radius:10px;padding:10px 12px}
+.mf label{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:#558B2F;display:block;margin-bottom:4px}
+.mf input{border:none;background:transparent;font-size:13px;font-weight:500;color:#1B2C1B;width:100%;outline:none;font-family:inherit}
+/* SECTION */
+.sec{margin-bottom:20px;border-radius:12px;border:1px solid #C8E6C9;overflow:hidden}
+.sec-head{display:flex;align-items:center;gap:10px;padding:11px 14px;background:#F1F8E9}
+.sec-ico{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.sec-title{font-size:13px;font-weight:700;color:#1B5E20;flex:1}
+.sec-sub{font-size:10px;color:#6a9955}
+.sec-cnt{font-size:11px;color:#6a9955;background:white;border:1px solid #C8E6C9;padding:2px 8px;border-radius:20px}
+/* ITEMS */
+.items{background:white;padding:6px 12px 10px}
+.item{display:flex;align-items:flex-start;gap:10px;padding:9px 10px;border-radius:9px;margin-bottom:5px;border:1.5px solid transparent;cursor:pointer;transition:all .15s;background:#FAFAFA}
+.item:hover{background:#F1F8E9}
+.item.done{background:#F1F8E9;border-color:#AED581}
+.cb{width:18px;height:18px;border-radius:5px;border:2px solid #A5D6A7;background:white;flex-shrink:0;margin-top:2px;display:flex;align-items:center;justify-content:center;font-size:11px;color:transparent;transition:all .15s}
+.item.done .cb{background:#2E7D32;border-color:#2E7D32;color:white}
+.lbl{font-size:13px;font-weight:500;color:#1B2C1B;line-height:1.4}
+.hint{font-size:11px;color:#78909C;margin-top:2px}
+.item.done .lbl{color:#2E7D32;text-decoration:line-through;opacity:.7}
+.tag{display:inline-block;font-size:9px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;padding:2px 7px;border-radius:20px;margin-top:3px}
+.ta{background:#FFEBEE;color:#B71C1C}
+.tm{background:#FFF8E1;color:#E65100}
+.tb{background:#E3F2FD;color:#0D47A1}
+.tp{background:#F1F8E9;color:#1B5E20}
+/* FOOTER */
+.foot{margin-top:24px;background:#1B5E20;border-radius:12px;padding:18px 24px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.foot-txt{font-size:12px;color:rgba(255,255,255,.75)}
+.foot-txt strong{color:white;font-size:13px;display:block;margin-bottom:2px}
+.btn-print{background:#8BC34A;color:#1B2C1B;border:none;padding:10px 20px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;transition:background .2s}
+.btn-print:hover{background:#7CB342}
+@media print{body{background:white;padding:0}.btn-print{display:none}}
+</style>
+</head>
+<body>
+<div class="page">
+<div class="hd">
+  <div class="hd-brand">
+    <div class="hd-brand-logo">
+      <svg class="hd-icon" viewBox="0 0 42 42" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="21" cy="21" r="21" fill="rgba(255,255,255,0.08)"/>
+        <path d="M21 8c0 0-6 4-6 10s6 8 6 8 6-2 6-8-6-10-6-10z" fill="#8BC34A"/>
+        <path d="M14 24c-3 1-5 3-5 6h24c0-3-2-5-5-6" fill="#4CAF50"/>
+        <circle cx="21" cy="30" r="3" fill="#2E7D32"/>
+        <path d="M8 30h26" stroke="#8BC34A" stroke-width="1.5" stroke-linecap="round"/>
+      </svg>
+      <div>
+        <div class="hd-name">Gestão Pecuária <span>Lucrativa</span></div>
+        <div class="hd-sub">Rogério Avelino · BPO Pecuário</div>
+      </div>
+    </div>
+  </div>
+  <div class="hd-right">
+    <div class="hd-title">Checklist de Diagnóstico Inicial</div>
+    <div class="hd-meta">Auditoria da fazenda · 1ª visita<br>Método GPL · BPO Pecuário</div>
+  </div>
+</div>
+<div class="stripe"></div>
+<div class="prog">
+  <div class="prog-track"><div class="prog-fill" id="pf"></div></div>
+  <div class="prog-label" id="pl">0 / 32 itens</div>
+</div>
+<div class="body">
+  <div class="meta">
+    <div class="mf"><label>Fazenda</label><input type="text" placeholder="Nome da propriedade"></div>
+    <div class="mf"><label>Produtor</label><input type="text" placeholder="Nome do responsável"></div>
+    <div class="mf"><label>Data</label><input type="date"></div>
+  </div>
+
+  <!-- BLOCO 1 -->
+  <div class="sec">
+    <div class="sec-head">
+      <div class="sec-ico" style="background:#E8F5E9">📊</div>
+      <div style="flex:1"><div class="sec-title">1. Dados e registros</div><div class="sec-sub">Base de informação — dado → informação</div></div>
+      <div class="sec-cnt" id="c0">0/8</div>
+    </div>
+    <div class="items" data-s="0">
+      <div class="item" onclick="t(this,0)"><div class="cb">✓</div><div><div class="lbl">Fazenda utiliza aplicativo ou sistema de registro de campo?</div><div class="hint">Ex: Agropocket, Pecege, planilha, caderneta</div><span class="tag ta">Alta</span></div></div>
+      <div class="item" onclick="t(this,0)"><div class="cb">✓</div><div><div class="lbl">Histórico de movimentação do rebanho disponível (mínimo 1 safra)?</div><div class="hint">Entradas, saídas, mortes, transferências</div><span class="tag ta">Alta</span></div></div>
+      <div class="item" onclick="t(this,0)"><div class="cb">✓</div><div><div class="lbl">Registros de compra de insumos e suplementos disponíveis?</div><div class="hint">Notas fiscais ou controle interno</div><span class="tag ta">Alta</span></div></div>
+      <div class="item" onclick="t(this,0)"><div class="cb">✓</div><div><div class="lbl">Controle de pesagem dos animais por lote existe?</div><div class="hint">Mínimo: mensal (Pró), trimestral (Gestor)</div><span class="tag ta">Alta</span></div></div>
+      <div class="item" onclick="t(this,0)"><div class="cb">✓</div><div><div class="lbl">Monitoramento de altura de pasto é registrado?</div><div class="hint">Platos, régua ou estimativa documentada</div><span class="tag tm">Média</span></div></div>
+      <div class="item" onclick="t(this,0)"><div class="cb">✓</div><div><div class="lbl">Escore corporal dos lotes é avaliado e registrado?</div><div class="hint">ECC por categoria: vacas, bois, recria</div><span class="tag tm">Média</span></div></div>
+      <div class="item" onclick="t(this,0)"><div class="cb">✓</div><div><div class="lbl">Escore de fezes é monitorado como indicador de eficiência digestiva?</div><div class="hint">Linha do olho — indicador semanal crítico</div><span class="tag tm">Média</span></div></div>
+      <div class="item" onclick="t(this,0)"><div class="cb">✓</div><div><div class="lbl">Existe relatório de fechamento da última safra?</div><div class="hint">Resultado financeiro, produtivo ou de estoque biológico</div><span class="tag ta">Alta</span></div></div>
+    </div>
+  </div>
+
+  <!-- BLOCO 2 -->
+  <div class="sec">
+    <div class="sec-head">
+      <div class="sec-ico" style="background:#F9FBE7">💰</div>
+      <div style="flex:1"><div class="sec-title">2. Gestão financeira — linha do meio e última linha</div><div class="sec-sub">Eficiência e resultado econômico</div></div>
+      <div class="sec-cnt" id="c1">0/8</div>
+    </div>
+    <div class="items" data-s="1">
+      <div class="item" onclick="t(this,1)"><div class="cb">✓</div><div><div class="lbl">Produtor conhece o desembolso por arroba (@) produzida?</div><div class="hint">Custo total ÷ arrobas produzidas no período</div><span class="tag ta">Alta</span></div></div>
+      <div class="item" onclick="t(this,1)"><div class="cb">✓</div><div><div class="lbl">Margem sobre a venda é calculada e acompanhada?</div><div class="hint">Receita − custo de produção por @ vendida</div><span class="tag ta">Alta</span></div></div>
+      <div class="item" onclick="t(this,1)"><div class="cb">✓</div><div><div class="lbl">Resultado por hectare/ano (R$/ha) é calculado?</div><div class="hint">Indicador da última linha — rentabilidade real da terra</div><span class="tag ta">Alta</span></div></div>
+      <div class="item" onclick="t(this,1)"><div class="cb">✓</div><div><div class="lbl">Produtor diferencia resultado produtivo do resultado com efeito de mercado?</div><div class="hint">Eficiência interna vs. oportunidade de preço</div><span class="tag tm">Média</span></div></div>
+      <div class="item" onclick="t(this,1)"><div class="cb">✓</div><div><div class="lbl">Contas da fazenda estão separadas das contas pessoais?</div><div class="hint">Pré-requisito para transparência financeira total</div><span class="tag ta">Alta</span></div></div>
+      <div class="item" onclick="t(this,1)"><div class="cb">✓</div><div><div class="lbl">GMD (ganho médio diário) por lote é monitorado?</div><div class="hint">g/dia por categoria — indicador chave de eficiência produtiva</div><span class="tag ta">Alta</span></div></div>
+      <div class="item" onclick="t(this,1)"><div class="cb">✓</div><div><div class="lbl">Lotação (UA/ha) é calculada por piquete ou pasto?</div><div class="hint">Controle de pressão de pastejo</div><span class="tag tm">Média</span></div></div>
+      <div class="item" onclick="t(this,1)"><div class="cb">✓</div><div><div class="lbl">Taxa de mortalidade é calculada por período e categoria?</div><div class="hint">Benchmark esperado: ≤ 1,5% para bovinos adultos</div><span class="tag ta">Alta</span></div></div>
+    </div>
+  </div>
+
+  <!-- BLOCO 3 -->
+  <div class="sec">
+    <div class="sec-head">
+      <div class="sec-ico" style="background:#E8F5E9">🔄</div>
+      <div style="flex:1"><div class="sec-title">3. Processo e rotina gerencial</div><div class="sec-sub">Rito de reunião e cultura de gestão</div></div>
+      <div class="sec-cnt" id="c2">0/8</div>
+    </div>
+    <div class="items" data-s="2">
+      <div class="item" onclick="t(this,2)"><div class="cb">✓</div><div><div class="lbl">Existe reunião periódica de análise de performance na propriedade?</div><div class="hint">Formal ou informal — qualquer frequência conta</div><span class="tag tm">Média</span></div></div>
+      <div class="item" onclick="t(this,2)"><div class="cb">✓</div><div><div class="lbl">Decisões operacionais são baseadas em dados ou no "achismo"?</div><div class="hint">Avaliar honestamente a maturidade decisória atual</div><span class="tag ta">Alta</span></div></div>
+      <div class="item" onclick="t(this,2)"><div class="cb">✓</div><div><div class="lbl">Existe plano de ação escrito com metas, prazos e responsáveis?</div><div class="hint">Obrigatório nos planos Gestor e Pró</div><span class="tag tm">Média</span></div></div>
+      <div class="item" onclick="t(this,2)"><div class="cb">✓</div><div><div class="lbl">Funcionários ou gerentes de campo têm metas de desempenho definidas?</div><div class="hint">Cultura de entrega e responsabilização</div><span class="tag tm">Média</span></div></div>
+      <div class="item" onclick="t(this,2)"><div class="cb">✓</div><div><div class="lbl">Produtor acompanha o calendário de manejo (vazio sanitário, estação de monta)?</div><div class="hint">Previsibilidade operacional e financeira</div><span class="tag tb">Baixa</span></div></div>
+      <div class="item" onclick="t(this,2)"><div class="cb">✓</div><div><div class="lbl">Existe protocolo sanitário documentado e seguido?</div><div class="hint">Vacinações, vermifugações, carrapaticidas por data e categoria</div><span class="tag tm">Média</span></div></div>
+      <div class="item" onclick="t(this,2)"><div class="cb">✓</div><div><div class="lbl">Produtor tem acesso a benchmarks para comparar seus resultados?</div><div class="hint">Régua de referência — ferramenta central da consultoria</div><span class="tag tb">Baixa</span></div></div>
+      <div class="item" onclick="t(this,2)"><div class="cb">✓</div><div><div class="lbl">Existe visão clara das metas para a próxima safra?</div><div class="hint">@/ha alvo, GMD alvo, lotação alvo, margem alvo</div><span class="tag ta">Alta</span></div></div>
+    </div>
+  </div>
+
+  <!-- BLOCO 4 -->
+  <div class="sec">
+    <div class="sec-head">
+      <div class="sec-ico" style="background:#F9FBE7">🎯</div>
+      <div style="flex:1"><div class="sec-title">4. Perfil e plano recomendado</div><div class="sec-sub">Definição do nível de maturidade gerencial</div></div>
+      <div class="sec-cnt" id="c3">0/8</div>
+    </div>
+    <div class="items" data-s="3">
+      <div class="item" onclick="t(this,3)"><div class="cb">✓</div><div><div class="lbl">Produtor busca organizar histórico e entender saúde financeira?</div><div class="hint">→ Perfil Essencial (semestral)</div><span class="tag tp">Perfil</span></div></div>
+      <div class="item" onclick="t(this,3)"><div class="cb">✓</div><div><div class="lbl">Produtor quer controle estratégico com agilidade e ajustes sazonais?</div><div class="hint">→ Perfil Gestor (trimestral)</div><span class="tag tp">Perfil</span></div></div>
+      <div class="item" onclick="t(this,3)"><div class="cb">✓</div><div><div class="lbl">Produtor busca parceiro estratégico com suporte contínuo?</div><div class="hint">→ Perfil Pró (mensal)</div><span class="tag tp">Perfil</span></div></div>
+      <div class="item" onclick="t(this,3)"><div class="cb">✓</div><div><div class="lbl">Orçamento e disponibilidade para visitas presenciais avaliados?</div><div class="hint">Online vs. presencial — impacta formato do plano</div><span class="tag tm">Média</span></div></div>
+      <div class="item" onclick="t(this,3)"><div class="cb">✓</div><div><div class="lbl">Potencial de produção (@/ha) estimado vs. resultado atual mapeado?</div><div class="hint">Distância entre o real e o potencial — métrica mais importante</div><span class="tag ta">Alta</span></div></div>
+      <div class="item" onclick="t(this,3)"><div class="cb">✓</div><div><div class="lbl">Principais gargalos identificados e priorizados?</div><div class="hint">Operacional, financeiro, sanitário, de gestão</div><span class="tag ta">Alta</span></div></div>
+      <div class="item" onclick="t(this,3)"><div class="cb">✓</div><div><div class="lbl">Plano de onboarding definido (sistemas, treinamento de equipe)?</div><div class="hint">Primeiros 30 dias de implementação</div><span class="tag tm">Média</span></div></div>
+      <div class="item" onclick="t(this,3)"><div class="cb">✓</div><div><div class="lbl">Proposta de consultoria apresentada, discutida e aceita?</div><div class="hint">Formalização do início da parceria</div><span class="tag ta">Alta</span></div></div>
+    </div>
+  </div>
+
+  <div class="foot">
+    <div class="foot-txt">
+      <strong>Gestão Pecuária Lucrativa · Rogério Avelino</strong>
+      Transformando dados em lucro agropecuário — do dado à atitude no campo
+    </div>
+    <button class="btn-print" onclick="window.print()">🖨️ Imprimir / Salvar PDF</button>
+  </div>
+</div>
+</div>
+<script>
+const d=[0,0,0,0],T=32;
+function t(el,s){
+  el.classList.toggle('done');
+  d[s]=el.closest('[data-s]').querySelectorAll('.done').length;
+  document.getElementById('c'+s).textContent=d[s]+'/8';
+  const a=d.reduce((x,y)=>x+y,0);
+  document.getElementById('pf').style.width=Math.round(a/T*100)+'%';
+  document.getElementById('pl').textContent=a+' / '+T+' itens ('+Math.round(a/T*100)+'%)';
+}
+</script>
+</body>
+</html>

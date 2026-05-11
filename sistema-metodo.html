@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Sistema — Gestão Pecuária Lucrativa</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',Arial,sans-serif;background:#F1F8E9;color:#1B2C1B;padding:24px 16px}
+.page{max-width:900px;margin:0 auto}
+/* HEADER */
+.hd{background:#1B5E20;border-radius:14px 14px 0 0;padding:26px 36px;display:flex;align-items:center;justify-content:space-between;gap:16px;position:relative;overflow:hidden}
+.hd::before{content:'';position:absolute;right:-60px;top:-60px;width:200px;height:200px;background:rgba(139,195,74,.08);border-radius:50%}
+.hd-left{position:relative;z-index:1}
+.hd-brand{font-size:20px;font-weight:700;color:white}
+.hd-brand span{color:#8BC34A}
+.hd-sub{font-size:10px;color:rgba(255,255,255,.5);letter-spacing:1px;text-transform:uppercase;margin-top:3px}
+.hd-right{text-align:right;position:relative;z-index:1}
+.hd-title{font-size:14px;font-weight:600;color:rgba(255,255,255,.9)}
+.hd-desc{font-size:11px;color:rgba(255,255,255,.5);margin-top:3px}
+.stripe{height:4px;background:linear-gradient(90deg,#8BC34A,#4CAF50,#2E7D32)}
+/* BODY */
+.body{background:white;border:1px solid #C8E6C9;border-top:none;border-radius:0 0 14px 14px;padding:28px 36px 36px}
+/* METRICS */
+.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:24px}
+.mc{background:#F1F8E9;border:1px solid #C8E6C9;border-radius:10px;padding:14px 12px;text-align:center}
+.mc-val{font-size:24px;font-weight:700;color:#1B5E20;line-height:1;margin-bottom:4px}
+.mc-val span{font-size:13px;font-weight:400;color:#558B2F}
+.mc-label{font-size:11px;color:#558B2F;line-height:1.4}
+/* GRID */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
+.card{background:white;border:1px solid #C8E6C9;border-radius:12px;padding:18px}
+.card.full{grid-column:1/-1}
+.card-head{display:flex;align-items:center;gap:10px;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid #E8F5E9}
+.card-icon{width:34px;height:34px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.card-title{font-size:14px;font-weight:700;color:#1B5E20}
+.card-sub{font-size:11px;color:#6a9955}
+/* FLOW */
+.flow{display:flex;align-items:stretch;gap:4px}
+.flow-step{flex:1;text-align:center;padding:12px 8px;border-radius:8px;min-width:0}
+.flow-arr{display:flex;align-items:center;color:#A5D6A7;font-size:20px;padding:0 2px}
+.flow-num{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px}
+.flow-lbl{font-size:13px;font-weight:700;line-height:1.3;margin-bottom:2px}
+.flow-hint{font-size:10px;opacity:.75;line-height:1.3}
+/* LAYERS */
+.layer{display:flex;align-items:center;gap:12px;padding:11px 14px;border-radius:9px;margin-bottom:7px;border:1px solid transparent}
+.layer-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.layer-name{font-size:13px;font-weight:700;min-width:120px}
+.layer-freq{font-size:10px;opacity:.7;margin-left:4px}
+.layer-kpis{font-size:11px;opacity:.8;flex:1}
+/* PLANS */
+.plans{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.plan{border:1px solid #C8E6C9;border-radius:10px;padding:14px 12px}
+.plan.dest{border:2px solid #4CAF50;background:#F9FBE7}
+.plan-badge{display:inline-block;font-size:9px;font-weight:700;text-transform:uppercase;padding:2px 8px;border-radius:20px;margin-bottom:8px}
+.plan-name{font-size:15px;font-weight:700;color:#1B5E20;margin-bottom:2px}
+.plan-freq{font-size:11px;color:#6a9955;margin-bottom:10px}
+.plan-rows{border-top:1px solid #E8F5E9;padding-top:8px}
+.plan-row{display:flex;justify-content:space-between;align-items:baseline;padding:4px 0;font-size:11px;border-bottom:1px solid #F1F8E9}
+.plan-row:last-child{border-bottom:none}
+.plan-row-l{color:#6a9955}
+.plan-row-v{font-weight:600;color:#1B5E20;text-align:right;max-width:130px}
+.plan-price{margin-top:10px;padding-top:8px;border-top:1px solid #E8F5E9}
+.plan-price strong{font-size:15px;font-weight:700;color:#1B5E20;display:block}
+.plan-price small{font-size:10px;color:#6a9955}
+/* RITO */
+.rito{display:grid;grid-template-columns:1fr auto 1fr auto 1fr;align-items:center;gap:4px}
+.rito-step{text-align:center;padding:14px 10px;border-radius:9px}
+.rito-arr{font-size:22px;color:#A5D6A7;text-align:center}
+.rito-num{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;margin:0 auto 8px}
+.rito-lbl{font-size:12px;font-weight:700;line-height:1.3;margin-bottom:4px}
+.rito-hint{font-size:10px;line-height:1.4;opacity:.8}
+/* FOOTER */
+.foot{margin-top:20px;background:#1B5E20;border-radius:12px;padding:16px 24px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px}
+.foot-txt{font-size:12px;color:rgba(255,255,255,.7)}
+.foot-txt strong{color:white;font-size:13px;display:block;margin-bottom:2px}
+.btn{background:#8BC34A;color:#1B2C1B;border:none;padding:9px 18px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit}
+.btn:hover{background:#7CB342}
+@media print{body{background:white;padding:0}.btn{display:none}}
+</style>
+</head>
+<body>
+<div class="page">
+<div class="hd">
+  <div class="hd-left">
+    <div class="hd-brand">Gestão Pecuária <span>Lucrativa</span></div>
+    <div class="hd-sub">Rogério Avelino · BPO Pecuário</div>
+  </div>
+  <div class="hd-right">
+    <div class="hd-title">Sistema de Gestão Inteligente</div>
+    <div class="hd-desc">Do dado bruto ao lucro no bolso</div>
+  </div>
+</div>
+<div class="stripe"></div>
+<div class="body">
+
+  <div class="metrics">
+    <div class="mc"><div class="mc-val">@/ha</div><div class="mc-label">Métrica mais importante da operação</div></div>
+    <div class="mc"><div class="mc-val">4 <span>etapas</span></div><div class="mc-label">Ciclo gerencial: dado → atitude</div></div>
+    <div class="mc"><div class="mc-val">3 <span>camadas</span></div><div class="mc-label">Olho · Meio · Última linha</div></div>
+    <div class="mc"><div class="mc-val">0 <span>achismo</span></div><div class="mc-label">Decisões baseadas em dados reais</div></div>
+  </div>
+
+  <div class="g2">
+
+    <div class="card">
+      <div class="card-head">
+        <div class="card-icon" style="background:#E8F5E9">🔄</div>
+        <div><div class="card-title">O ciclo da gestão inteligente</div><div class="card-sub">4 etapas do processo gerencial</div></div>
+      </div>
+      <div class="flow">
+        <div class="flow-step" style="background:#E8F5E9">
+          <div class="flow-num" style="color:#2E7D32">01</div>
+          <div class="flow-lbl" style="color:#1B5E20">Dado</div>
+          <div class="flow-hint" style="color:#558B2F">Coleta via app / sistemas</div>
+        </div>
+        <div class="flow-arr">›</div>
+        <div class="flow-step" style="background:#F9FBE7">
+          <div class="flow-num" style="color:#558B2F">02</div>
+          <div class="flow-lbl" style="color:#33691E">Informação</div>
+          <div class="flow-hint" style="color:#689F38">B.I. e indicadores</div>
+        </div>
+        <div class="flow-arr">›</div>
+        <div class="flow-step" style="background:#DCEDC8">
+          <div class="flow-num" style="color:#33691E">03</div>
+          <div class="flow-lbl" style="color:#1B5E20">Conclusão</div>
+          <div class="flow-hint" style="color:#558B2F">Insights e gargalos</div>
+        </div>
+        <div class="flow-arr">›</div>
+        <div class="flow-step" style="background:#AED581" style="background:#C5E1A5">
+          <div class="flow-num" style="color:#1B5E20">04</div>
+          <div class="flow-lbl" style="color:#1B5E20">Atitude</div>
+          <div class="flow-hint" style="color:#33691E">Ação no campo</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <div class="card-icon" style="background:#F9FBE7">📊</div>
+        <div><div class="card-title">As três camadas de análise</div><div class="card-sub">Linha do olho → última linha</div></div>
+      </div>
+      <div class="layer" style="background:#E8F5E9;border-color:#C8E6C9">
+        <div class="layer-dot" style="background:#2E7D32"></div>
+        <div class="layer-name" style="color:#1B5E20">Linha do olho <span class="layer-freq">Semanal</span></div>
+        <div class="layer-kpis" style="color:#33691E">Altura de pasto · escore corporal/fezes · suplementação</div>
+      </div>
+      <div class="layer" style="background:#F9FBE7;border-color:#DCEDC8">
+        <div class="layer-dot" style="background:#8BC34A"></div>
+        <div class="layer-name" style="color:#33691E">Linha do meio <span class="layer-freq">Trimestral</span></div>
+        <div class="layer-kpis" style="color:#558B2F">GMD · lotação UA/ha · desembolso/@ · margem</div>
+      </div>
+      <div class="layer" style="background:#DCEDC8;border-color:#C5E1A5">
+        <div class="layer-dot" style="background:#558B2F"></div>
+        <div class="layer-name" style="color:#1B5E20">Última linha <span class="layer-freq">Safra</span></div>
+        <div class="layer-kpis" style="color:#33691E">Lucro/ha · resultado sobre valor da terra · TIR</div>
+      </div>
+    </div>
+
+    <div class="card full">
+      <div class="card-head">
+        <div class="card-icon" style="background:#E8F5E9">🏆</div>
+        <div><div class="card-title">Planos de consultoria e acompanhamento</div><div class="card-sub">Escolha seu nível de evolução — do fechamento semestral ao suporte tático diário</div></div>
+      </div>
+      <div class="plans">
+        <div class="plan">
+          <span class="plan-badge" style="background:#E8F5E9;color:#2E7D32">Essencial</span>
+          <div class="plan-name">Plano Essencial</div>
+          <div class="plan-freq">Semestral · 2 visitas/ano</div>
+          <div class="plan-rows">
+            <div class="plan-row"><span class="plan-row-l">Foco</span><span class="plan-row-v">Clareza e segurança</span></div>
+            <div class="plan-row"><span class="plan-row-l">Objetivo</span><span class="plan-row-v">Entender o passado</span></div>
+            <div class="plan-row"><span class="plan-row-l">Plano de ação</span><span class="plan-row-v">Não elaborado</span></div>
+            <div class="plan-row"><span class="plan-row-l">Perfil</span><span class="plan-row-v">Visão panorâmica da safra</span></div>
+          </div>
+          <div class="plan-price"><strong>R$ 532,86/mês</strong><small>+ R$ 540,33 visitas presenciais</small></div>
+        </div>
+        <div class="plan">
+          <span class="plan-badge" style="background:#F9FBE7;color:#558B2F">Gestor</span>
+          <div class="plan-name">Plano Gestor</div>
+          <div class="plan-freq">Trimestral · 4 visitas/ano</div>
+          <div class="plan-rows">
+            <div class="plan-row"><span class="plan-row-l">Foco</span><span class="plan-row-v">Controle e agilidade</span></div>
+            <div class="plan-row"><span class="plan-row-l">Objetivo</span><span class="plan-row-v">Ajustar o presente</span></div>
+            <div class="plan-row"><span class="plan-row-l">Plano de ação</span><span class="plan-row-v">Correção trimestral</span></div>
+            <div class="plan-row"><span class="plan-row-l">Perfil</span><span class="plan-row-v">Controle estratégico</span></div>
+          </div>
+          <div class="plan-price"><strong>R$ 1.278,22/mês</strong><small>+ R$ 1.080,67 visitas presenciais</small></div>
+        </div>
+        <div class="plan dest">
+          <span class="plan-badge" style="background:#C5E1A5;color:#1B5E20">⭐ Mais completo</span>
+          <div class="plan-name">Plano Pró</div>
+          <div class="plan-freq">Mensal · 12 visitas/ano</div>
+          <div class="plan-rows">
+            <div class="plan-row"><span class="plan-row-l">Foco</span><span class="plan-row-v">Performance máxima</span></div>
+            <div class="plan-row"><span class="plan-row-l">Objetivo</span><span class="plan-row-v">Construir o futuro</span></div>
+            <div class="plan-row"><span class="plan-row-l">Plano de ação</span><span class="plan-row-v">Suporte contínuo</span></div>
+            <div class="plan-row"><span class="plan-row-l">Perfil</span><span class="plan-row-v">Parceiro estratégico</span></div>
+          </div>
+          <div class="plan-price"><strong>R$ 1.621,00/mês</strong><small>+ R$ 1.621,00 visitas presenciais</small></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card full">
+      <div class="card-head">
+        <div class="card-icon" style="background:#DCEDC8">🤝</div>
+        <div><div class="card-title">O rito das reuniões de performance</div><div class="card-sub">Ciclo fechado de responsabilidade — a inteligência que vira atitude no campo</div></div>
+      </div>
+      <div class="rito">
+        <div class="rito-step" style="background:#FFEBEE">
+          <div class="rito-num" style="background:#FFCDD2;color:#B71C1C">1</div>
+          <div class="rito-lbl" style="color:#B71C1C">Revisão do compromisso</div>
+          <div class="rito-hint" style="color:#C62828">Auditoria do plano anterior — o que foi executado? Quais foram os gargalos?</div>
+        </div>
+        <div class="rito-arr">›</div>
+        <div class="rito-step" style="background:#E8F5E9">
+          <div class="rito-num" style="background:#C8E6C9;color:#1B5E20">2</div>
+          <div class="rito-lbl" style="color:#1B5E20">Análise de performance</div>
+          <div class="rito-hint" style="color:#2E7D32">Mergulho nos indicadores — validar o impacto real das decisões tomadas</div>
+        </div>
+        <div class="rito-arr">›</div>
+        <div class="rito-step" style="background:#F9FBE7">
+          <div class="rito-num" style="background:#DCEDC8;color:#33691E">3</div>
+          <div class="rito-lbl" style="color:#33691E">Direcionamento estratégico</div>
+          <div class="rito-hint" style="color:#558B2F">Novo plano com metas, prazos e responsáveis (Gestor e Pró)</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="foot">
+    <div class="foot-txt">
+      <strong>Gestão Pecuária Lucrativa · Rogério Avelino</strong>
+      Benchmarking · Café com números · Encontros técnicos — Rede de inteligência coletiva
+    </div>
+    <button class="btn" onclick="window.print()">🖨️ Imprimir / Salvar PDF</button>
+  </div>
+</div>
+</div>
+</body>
+</html>

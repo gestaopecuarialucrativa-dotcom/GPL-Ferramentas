@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Relatório de Performance — Gestão Pecuária Lucrativa</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',Arial,sans-serif;background:#F1F8E9;color:#1B2C1B;padding:24px 16px}
+.doc{max-width:780px;margin:0 auto;background:white;border-radius:14px;overflow:hidden;border:1px solid #C8E6C9;box-shadow:0 4px 24px rgba(27,94,32,.08)}
+/* TIMBRADO TOPO */
+.hd{background:#1B5E20;padding:28px 40px;display:flex;align-items:flex-start;justify-content:space-between;gap:16px;position:relative;overflow:hidden}
+.hd::before{content:'';position:absolute;right:-60px;top:-60px;width:200px;height:200px;background:rgba(139,195,74,.07);border-radius:50%}
+.hd::after{content:'';position:absolute;left:-40px;bottom:-60px;width:160px;height:160px;background:rgba(255,255,255,.03);border-radius:50%}
+.hd-brand{position:relative;z-index:1}
+.hd-name{font-size:22px;font-weight:800;color:white;letter-spacing:.5px}
+.hd-name span{color:#8BC34A}
+.hd-sub{font-size:9px;color:rgba(255,255,255,.5);letter-spacing:1.5px;text-transform:uppercase;margin-top:4px}
+.hd-right{text-align:right;position:relative;z-index:1}
+.hd-doc-type{font-size:13px;font-weight:600;color:rgba(255,255,255,.9);margin-bottom:6px}
+.hd-doc-meta{font-size:11px;color:rgba(255,255,255,.5);line-height:1.7}
+.stripe{height:5px;background:linear-gradient(90deg,#8BC34A 0%,#4CAF50 50%,#1B5E20 100%)}
+/* BODY */
+.body{padding:32px 40px 40px}
+/* FAZENDA INFO */
+.faz{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;background:#F1F8E9;border-radius:10px;margin-bottom:28px;border:1px solid #C8E6C9}
+.faz-name{font-size:15px;font-weight:700;color:#1B5E20}
+.faz-sub{font-size:11px;color:#558B2F;margin-top:2px}
+.faz-right{text-align:right;font-size:11px;color:#558B2F;line-height:1.6}
+.faz-plan{display:inline-block;background:#C5E1A5;color:#1B5E20;font-size:10px;font-weight:700;padding:3px 10px;border-radius:20px;margin-top:4px}
+/* SECTION TITLE */
+.sec-t{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:#8BC34A;margin:0 0 12px;display:flex;align-items:center;gap:10px}
+.sec-t::after{content:'';flex:1;height:1px;background:#E8F5E9}
+/* KPIs */
+.kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:28px}
+.kpi{border-radius:10px;padding:14px 12px;position:relative;overflow:hidden;border:1px solid transparent}
+.kpi::before{content:'';position:absolute;top:0;left:0;right:0;height:3px}
+.kpi.ok{background:#F1F8E9;border-color:#C8E6C9}.kpi.ok::before{background:#4CAF50}
+.kpi.warn{background:#FFFDE7;border-color:#FFF176}.kpi.warn::before{background:#FFC107}
+.kpi.crit{background:#FFEBEE;border-color:#FFCDD2}.kpi.crit::before{background:#F44336}
+.kpi-label{font-size:9px;text-transform:uppercase;letter-spacing:.5px;color:#78909C;margin-bottom:6px;font-weight:600}
+.kpi-val{font-size:22px;font-weight:700;color:#1B2C1B;line-height:1;margin-bottom:4px}
+.kpi-bench{font-size:10px;color:#90A4AE;margin-bottom:6px}
+.kpi-status{display:inline-block;font-size:9px;font-weight:700;padding:2px 7px;border-radius:20px;text-transform:uppercase}
+.kpi.ok .kpi-status{background:#C8E6C9;color:#1B5E20}
+.kpi.warn .kpi-status{background:#FFE082;color:#E65100}
+.kpi.crit .kpi-status{background:#FFCDD2;color:#B71C1C}
+/* CAMADAS */
+.camadas{margin-bottom:28px}
+.cam-row{display:grid;grid-template-columns:130px 1fr 50px;align-items:center;gap:12px;padding:9px 14px;border-radius:9px;margin-bottom:6px;border:1px solid #E8F5E9;background:#FAFAFA}
+.cam-name{font-size:12px;font-weight:700;color:#1B5E20}
+.cam-bar{height:8px;background:#E8F5E9;border-radius:4px;overflow:hidden}
+.cam-fill{height:100%;border-radius:4px}
+.cam-pct{font-size:12px;font-weight:700;color:#2E7D32;text-align:right}
+/* TABLE */
+table{width:100%;border-collapse:collapse;margin-bottom:28px;font-size:12px}
+th{text-align:left;padding:8px 10px;background:#F1F8E9;color:#558B2F;font-weight:700;font-size:11px;border-bottom:2px solid #C8E6C9}
+td{padding:9px 10px;border-bottom:1px solid #F1F8E9;vertical-align:top}
+tr:last-child td{border-bottom:none}
+.pill{display:inline-block;font-size:9px;font-weight:700;padding:2px 8px;border-radius:20px;text-transform:uppercase}
+.p-ok{background:#C8E6C9;color:#1B5E20}
+.p-pend{background:#FFCDD2;color:#B71C1C}
+.p-parc{background:#FFE082;color:#E65100}
+/* AÇÃO */
+.acao{margin-bottom:28px}
+.acao-item{display:flex;gap:12px;padding:10px 14px;border-radius:9px;border:1px solid #E8F5E9;margin-bottom:6px;align-items:flex-start;background:#FAFAFA}
+.acao-num{width:24px;height:24px;border-radius:50%;background:#C5E1A5;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#1B5E20;flex-shrink:0;margin-top:1px}
+.acao-lbl{font-size:13px;color:#1B2C1B;margin-bottom:3px;font-weight:500}
+.acao-meta{font-size:11px;color:#6a9955}
+.acao-urg{display:inline-block;font-size:9px;font-weight:700;background:#FFCDD2;color:#B71C1C;padding:1px 7px;border-radius:20px;margin-left:6px;text-transform:uppercase}
+/* GAP */
+.gap-box{background:#F1F8E9;border:1px solid #C8E6C9;border-radius:10px;padding:16px 18px;margin-bottom:28px}
+.gap-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.gap-title{font-size:13px;font-weight:700;color:#1B5E20}
+.gap-diff{font-size:12px;color:#6a9955}
+.gap-diff strong{color:#F44336}
+.gap-bar{height:12px;background:#E8F5E9;border-radius:6px;overflow:hidden;margin-bottom:6px}
+.gap-fill{height:100%;background:linear-gradient(90deg,#8BC34A,#2E7D32);border-radius:6px}
+.gap-labels{display:flex;justify-content:space-between;font-size:10px;color:#6a9955}
+/* ASSINATURA */
+.assin{display:flex;align-items:flex-end;justify-content:space-between;padding-top:24px;border-top:1px solid #E8F5E9;margin-top:8px}
+.assin-bloco{text-align:center}
+.assin-linha{width:180px;height:1px;background:#C8E6C9;margin:28px auto 6px}
+.assin-nome{font-size:12px;font-weight:700;color:#1B5E20}
+.assin-cargo{font-size:10px;color:#6a9955}
+.assin-center{text-align:center;font-size:11px;color:#6a9955;line-height:1.7}
+.assin-center strong{color:#1B5E20;font-size:12px;font-weight:700;display:block;margin-bottom:2px}
+/* RODAPÉ TIMBRADO */
+.ft{background:#1B5E20;padding:12px 40px;display:flex;align-items:center;justify-content:space-between}
+.ft-txt{font-size:10px;color:rgba(255,255,255,.5)}
+.ft-brand{font-size:11px;font-weight:700;color:rgba(255,255,255,.8)}
+.ft-brand span{color:#8BC34A}
+.noprint{text-align:center;margin-top:16px}
+.btn{background:#2E7D32;color:white;border:none;padding:10px 22px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit}
+.btn:hover{background:#1B5E20}
+@media print{body{background:white;padding:0}.noprint{display:none}}
+</style>
+</head>
+<body>
+<div class="doc">
+  <div class="hd">
+    <div class="hd-brand">
+      <div class="hd-name">Gestão Pecuária <span>Lucrativa</span></div>
+      <div class="hd-sub">Rogério Avelino · BPO Pecuário</div>
+    </div>
+    <div class="hd-right">
+      <div class="hd-doc-type">Relatório de Performance Mensal</div>
+      <div class="hd-doc-meta">
+        Plano Pró · Ciclo: Maio / 2026<br>
+        Emissão: 09 de maio de 2026<br>
+        Nº RP-PRÓ-2026-05
+      </div>
+    </div>
+  </div>
+  <div class="stripe"></div>
+
+  <div class="body">
+
+    <div class="faz">
+      <div>
+        <div class="faz-name">Fazenda Boa Esperança</div>
+        <div class="faz-sub">João Carlos Mendonça · Palmeirópolis, TO</div>
+      </div>
+      <div class="faz-right">
+        Área total: 2.400 ha · Rebanho: 3.200 UA
+        <div><span class="faz-plan">Plano Pró — Mensal</span></div>
+      </div>
+    </div>
+
+    <div class="sec-t">Indicadores de performance — linha do meio</div>
+    <div class="kpis">
+      <div class="kpi ok">
+        <div class="kpi-label">GMD médio</div>
+        <div class="kpi-val">720 <span style="font-size:13px;font-weight:400">g/dia</span></div>
+        <div class="kpi-bench">Benchmark: 650 g/dia</div>
+        <span class="kpi-status">▲ Acima</span>
+      </div>
+      <div class="kpi warn">
+        <div class="kpi-label">Desembolso/@</div>
+        <div class="kpi-val">R$ 187<span style="font-size:13px;font-weight:400">/@</span></div>
+        <div class="kpi-bench">Meta: R$ 175/@</div>
+        <span class="kpi-status">⚠ Atenção</span>
+      </div>
+      <div class="kpi ok">
+        <div class="kpi-label">Lotação</div>
+        <div class="kpi-val">1,33 <span style="font-size:13px;font-weight:400">UA/ha</span></div>
+        <div class="kpi-bench">Capacidade: 1,50 UA/ha</div>
+        <span class="kpi-status">✓ Dentro</span>
+      </div>
+      <div class="kpi crit">
+        <div class="kpi-label">Mortalidade</div>
+        <div class="kpi-val">2,1<span style="font-size:13px;font-weight:400">%</span></div>
+        <div class="kpi-bench">Benchmark: ≤ 1,5%</div>
+        <span class="kpi-status">▲ Crítico</span>
+      </div>
+      <div class="kpi ok">
+        <div class="kpi-label">Margem sobre venda</div>
+        <div class="kpi-val">24<span style="font-size:13px;font-weight:400">%</span></div>
+        <div class="kpi-bench">Meta: 20%</div>
+        <span class="kpi-status">▲ Acima</span>
+      </div>
+      <div class="kpi warn">
+        <div class="kpi-label">Produção @/ha</div>
+        <div class="kpi-val">9,8 <span style="font-size:13px;font-weight:400">@/ha</span></div>
+        <div class="kpi-bench">Potencial: 14,0 @/ha</div>
+        <span class="kpi-status">— Distância</span>
+      </div>
+    </div>
+
+    <div class="sec-t">Aderência às camadas de análise</div>
+    <div class="camadas">
+      <div class="cam-row">
+        <div class="cam-name">Linha do olho</div>
+        <div class="cam-bar"><div class="cam-fill" style="width:92%;background:#4CAF50"></div></div>
+        <div class="cam-pct">92%</div>
+      </div>
+      <div class="cam-row">
+        <div class="cam-name">Linha do meio</div>
+        <div class="cam-bar"><div class="cam-fill" style="width:78%;background:#8BC34A"></div></div>
+        <div class="cam-pct">78%</div>
+      </div>
+      <div class="cam-row">
+        <div class="cam-name">Última linha</div>
+        <div class="cam-bar"><div class="cam-fill" style="width:65%;background:#CDDC39"></div></div>
+        <div class="cam-pct">65%</div>
+      </div>
+    </div>
+
+    <div class="sec-t">Revisão do compromisso — plano anterior</div>
+    <table>
+      <thead>
+        <tr><th>Ação comprometida</th><th>Responsável</th><th>Prazo</th><th>Situação</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Ajuste no protocolo de suplementação mineral</td><td>Gerente de campo</td><td>30/04</td><td><span class="pill p-ok">Concluído</span></td></tr>
+        <tr><td>Pesagem geral dos lotes de engorda</td><td>João Carlos</td><td>28/04</td><td><span class="pill p-ok">Concluído</span></td></tr>
+        <tr><td>Revisão do protocolo sanitário pós-chuva</td><td>Médico veterinário</td><td>05/05</td><td><span class="pill p-pend">Pendente</span></td></tr>
+        <tr><td>Atualização dos dados de estoque no sistema</td><td>Assistente adm.</td><td>02/05</td><td><span class="pill p-parc">Parcial</span></td></tr>
+      </tbody>
+    </table>
+
+    <div class="sec-t">Plano de ação — maio / 2026</div>
+    <div class="acao">
+      <div class="acao-item">
+        <div class="acao-num">1</div>
+        <div>
+          <div class="acao-lbl">Revisar e atualizar protocolo sanitário dos lotes de cria<span class="acao-urg">Urgente</span></div>
+          <div class="acao-meta">Responsável: Médico veterinário · Prazo: 15/05/2026 · Foco: reduzir mortalidade de 2,1% para ≤ 1,5%</div>
+        </div>
+      </div>
+      <div class="acao-item">
+        <div class="acao-num">2</div>
+        <div>
+          <div class="acao-lbl">Implementar controle diário de altura de pasto na área norte</div>
+          <div class="acao-meta">Responsável: Gerente de campo · Prazo: 22/05/2026 · Foco: linha do olho</div>
+        </div>
+      </div>
+      <div class="acao-item">
+        <div class="acao-num">3</div>
+        <div>
+          <div class="acao-lbl">Analisar custo de suplementação para identificar gargalos no desembolso/@</div>
+          <div class="acao-meta">Responsável: Rogério Avelino (GPL) · Prazo: 20/05/2026 · Meta: reduzir para R$ 175/@</div>
+        </div>
+      </div>
+      <div class="acao-item">
+        <div class="acao-num">4</div>
+        <div>
+          <div class="acao-lbl">Estudo de expansão de lotação (1,33 → meta 1,50 UA/ha)</div>
+          <div class="acao-meta">Responsável: GPL + João Carlos · Prazo: 31/05/2026 · Impacto direto: aumento de @/ha</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sec-t">Distância real → potencial</div>
+    <div class="gap-box">
+      <div class="gap-top">
+        <div class="gap-title">Produção @/ha · Safra atual</div>
+        <div class="gap-diff">Gap: <strong>4,2 @/ha</strong> a recuperar</div>
+      </div>
+      <div class="gap-bar"><div class="gap-fill" style="width:70%"></div></div>
+      <div class="gap-labels"><span>Real: 9,8 @/ha</span><span>Potencial: 14,0 @/ha</span></div>
+    </div>
+
+    <div class="assin">
+      <div class="assin-bloco">
+        <div class="assin-linha"></div>
+        <div class="assin-nome">Rogério Avelino</div>
+        <div class="assin-cargo">Consultor GPL · BPO Pecuário</div>
+      </div>
+      <div class="assin-center">
+        <strong>Reunião realizada em</strong>
+        09 de maio de 2026<br>
+        Documento confidencial
+      </div>
+      <div class="assin-bloco">
+        <div class="assin-linha"></div>
+        <div class="assin-nome">João Carlos Mendonça</div>
+        <div class="assin-cargo">Produtor Rural</div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="ft">
+    <div class="ft-txt">Documento confidencial · Uso exclusivo do cliente · GPL © 2026</div>
+    <div class="ft-brand">Gestão Pecuária <span>Lucrativa</span> · Rogério Avelino</div>
+  </div>
+</div>
+
+<div class="noprint" style="margin-top:16px;text-align:center">
+  <button class="btn" onclick="window.print()">🖨️ Imprimir / Salvar PDF</button>
+</div>
+
+</body>
+</html>

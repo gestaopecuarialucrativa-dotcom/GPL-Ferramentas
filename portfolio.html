@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Portfólio — Gestão Pecuária Lucrativa</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',Arial,sans-serif;background:#F1F8E9;color:#1B2C1B;padding:24px 16px}
+.page{max-width:900px;margin:0 auto}
+/* HERO */
+.hero{background:#1B5E20;border-radius:14px;padding:44px 40px;color:white;margin-bottom:14px;position:relative;overflow:hidden}
+.hero::before{content:'';position:absolute;top:-80px;right:-80px;width:300px;height:300px;background:rgba(139,195,74,.07);border-radius:50%}
+.hero::after{content:'';position:absolute;bottom:-80px;left:-60px;width:240px;height:240px;background:rgba(255,255,255,.03);border-radius:50%}
+.hero-inner{position:relative;z-index:1}
+.hero-badge{display:inline-block;background:rgba(139,195,74,.2);border:1px solid rgba(139,195,74,.4);color:#DCEDC8;font-size:10px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;padding:4px 12px;border-radius:20px;margin-bottom:14px}
+.hero-brand{font-size:30px;font-weight:800;color:white;line-height:1.1;margin-bottom:4px}
+.hero-brand span{color:#8BC34A}
+.hero-tagline{font-size:14px;color:rgba(255,255,255,.6);margin-bottom:6px;letter-spacing:.3px}
+.hero-desc{font-size:14px;color:rgba(255,255,255,.75);line-height:1.7;max-width:560px;margin-bottom:28px}
+.hero-pills{display:flex;flex-wrap:wrap;gap:8px}
+.pill-hero{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);color:rgba(255,255,255,.85);font-size:11px;padding:6px 14px;border-radius:20px}
+/* METRICS */
+.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px}
+.mc{background:white;border:1px solid #C8E6C9;border-radius:10px;padding:16px 12px;text-align:center}
+.mc-val{font-size:26px;font-weight:800;color:#1B5E20;line-height:1;margin-bottom:4px}
+.mc-val small{font-size:14px;font-weight:400;color:#558B2F}
+.mc-lbl{font-size:11px;color:#558B2F;line-height:1.4}
+/* GRID */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+.card{background:white;border:1px solid #C8E6C9;border-radius:12px;padding:20px}
+.card.full{grid-column:1/-1}
+.card-head{display:flex;align-items:center;gap:10px;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid #E8F5E9}
+.card-ico{width:34px;height:34px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.card-title{font-size:14px;font-weight:700;color:#1B5E20}
+.card-sub{font-size:11px;color:#6a9955}
+/* PILLARS */
+.pillar{display:flex;gap:10px;margin-bottom:12px}
+.pillar-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:5px}
+.pillar-title{font-size:13px;font-weight:700;color:#1B5E20;margin-bottom:3px}
+.pillar-desc{font-size:12px;color:#558B2F;line-height:1.5}
+/* ANTES/DEPOIS */
+.ad-row{display:flex;align-items:center;justify-content:space-between;padding:9px 12px;border-radius:8px;margin-bottom:5px;background:#FAFAFA;border:1px solid #E8F5E9;gap:8px}
+.ad-before{font-size:12px;color:#78909C;flex:1}
+.ad-arrow{color:#A5D6A7;font-weight:700;font-size:16px;flex-shrink:0}
+.ad-after{font-size:12px;font-weight:700;color:#2E7D32;flex:1;text-align:right}
+/* DEPOIMENTOS */
+.depo{background:#F9FBE7;border:1px solid #DCEDC8;border-radius:10px;padding:14px;margin-bottom:8px}
+.depo-text{font-size:13px;color:#1B2C1B;line-height:1.6;font-style:italic;margin-bottom:10px}
+.depo-author{display:flex;align-items:center;gap:8px}
+.depo-av{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;background:#C5E1A5;color:#1B5E20;flex-shrink:0}
+.depo-name{font-size:12px;font-weight:700;color:#1B5E20}
+.depo-role{font-size:10px;color:#6a9955}
+/* REDE */
+.rede-item{display:flex;align-items:flex-start;gap:10px;padding:10px 12px;background:#F9FBE7;border-radius:8px;margin-bottom:6px;border:1px solid #DCEDC8}
+.rede-ico{font-size:20px;flex-shrink:0;margin-top:1px}
+.rede-title{font-size:12px;font-weight:700;color:#1B5E20;margin-bottom:2px}
+.rede-desc{font-size:11px;color:#558B2F;line-height:1.4}
+/* PLANS */
+.plans{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px}
+.plan{border:1px solid #C8E6C9;border-radius:10px;padding:16px 14px;background:white}
+.plan.dest{border:2px solid #4CAF50;background:#F9FBE7}
+.plan-badge{font-size:9px;font-weight:700;text-transform:uppercase;padding:2px 8px;border-radius:20px;display:inline-block;margin-bottom:8px}
+.plan-name{font-size:16px;font-weight:800;color:#1B5E20;margin-bottom:2px}
+.plan-freq{font-size:11px;color:#6a9955;margin-bottom:12px}
+.plan-feat{margin-bottom:10px}
+.plan-feat-item{font-size:11px;color:#558B2F;padding:3px 0;display:flex;align-items:center;gap:6px}
+.plan-feat-item::before{content:'✓';font-weight:700;color:#4CAF50}
+.plan-price{border-top:1px solid #E8F5E9;padding-top:10px;margin-top:10px}
+.plan-price strong{font-size:16px;font-weight:800;color:#1B5E20;display:block}
+.plan-price small{font-size:10px;color:#6a9955}
+/* CTA */
+.cta{background:#1B5E20;border-radius:14px;padding:28px 36px;display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap}
+.cta-left h3{font-size:18px;font-weight:800;color:white;margin:0 0 8px;line-height:1.3}
+.cta-left p{font-size:13px;color:rgba(255,255,255,.7);margin:0;line-height:1.6;max-width:500px}
+.cta-btn{background:#8BC34A;color:#1B2C1B;border:none;padding:14px 28px;border-radius:10px;font-size:14px;font-weight:800;cursor:pointer;font-family:inherit;white-space:nowrap;transition:background .2s}
+.cta-btn:hover{background:#7CB342}
+/* FOOTER */
+.footer{text-align:center;margin-top:12px;padding:12px;background:#1B5E20;border-radius:10px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px}
+.footer-txt{font-size:11px;color:rgba(255,255,255,.6)}
+.footer-brand{font-size:12px;font-weight:700;color:rgba(255,255,255,.9)}
+.footer-brand span{color:#8BC34A}
+.btn-print{background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);padding:8px 16px;border-radius:7px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit}
+@media print{body{background:white;padding:0}.btn-print{display:none}}
+</style>
+</head>
+<body>
+<div class="page">
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-inner">
+    <div class="hero-badge">BPO Pecuário · Consultoria Agropecuária</div>
+    <div class="hero-brand">Gestão Pecuária <span>Lucrativa</span></div>
+    <div class="hero-tagline">Rogério Avelino</div>
+    <div class="hero-desc">Somos o parceiro estratégico que elimina a lacuna entre o que sua fazenda é e o que ela pode ser. Transformamos dados brutos em direção estratégica e reuniões em progresso real.</div>
+    <div class="hero-pills">
+      <div class="pill-hero">✅ Segurança decisória</div>
+      <div class="pill-hero">👁 Transparência total</div>
+      <div class="pill-hero">📈 Previsibilidade de caixa</div>
+      <div class="pill-hero">🚫 Zero "achismo"</div>
+    </div>
+  </div>
+</div>
+
+<!-- MÉTRICAS -->
+<div class="metrics">
+  <div class="mc"><div class="mc-val">3 <small>pilares</small></div><div class="mc-lbl">Dados · análise · parceria</div></div>
+  <div class="mc"><div class="mc-val">4 <small>etapas</small></div><div class="mc-lbl">Dado → informação → conclusão → atitude</div></div>
+  <div class="mc"><div class="mc-val">3 <small>camadas</small></div><div class="mc-lbl">Olho · Meio · Última linha</div></div>
+  <div class="mc"><div class="mc-val">12 <small>x/ano</small></div><div class="mc-lbl">Suporte tático no plano Pró</div></div>
+</div>
+
+<div class="g2">
+
+  <!-- PILARES -->
+  <div class="card">
+    <div class="card-head">
+      <div class="card-ico" style="background:#E8F5E9">🏗</div>
+      <div><div class="card-title">Os três pilares</div><div class="card-sub">Metodologia GPL</div></div>
+    </div>
+    <div class="pillar">
+      <div class="pillar-dot" style="background:#2E7D32"></div>
+      <div><div class="pillar-title">Dados confiáveis</div><div class="pillar-desc">Organizamos, validamos e estruturamos todas as informações. Sem base íntegra, qualquer análise é frágil.</div></div>
+    </div>
+    <div class="pillar">
+      <div class="pillar-dot" style="background:#8BC34A"></div>
+      <div><div class="pillar-title">Análise estratégica</div><div class="pillar-desc">Traduzimos números frios em insights acionáveis. Identificamos gargalos que passam despercebidos na rotina.</div></div>
+    </div>
+    <div class="pillar">
+      <div class="pillar-dot" style="background:#CDDC39"></div>
+      <div><div class="pillar-title">Parceria comprometida</div><div class="pillar-desc">Somos o braço direito estratégico — validamos cada decisão antes da implementação para reduzir erros.</div></div>
+    </div>
+  </div>
+
+  <!-- ANTES/DEPOIS -->
+  <div class="card">
+    <div class="card-head">
+      <div class="card-ico" style="background:#F9FBE7">🔁</div>
+      <div><div class="card-title">Antes e depois da GPL</div><div class="card-sub">Transformação real na gestão</div></div>
+    </div>
+    <div class="ad-row"><div class="ad-before">Decisão por "achismo"</div><div class="ad-arrow">→</div><div class="ad-after">Dados auditáveis</div></div>
+    <div class="ad-row"><div class="ad-before">Surpresas no fechamento</div><div class="ad-arrow">→</div><div class="ad-after">Metas monitoradas</div></div>
+    <div class="ad-row"><div class="ad-before">Custos e gargalos ocultos</div><div class="ad-arrow">→</div><div class="ad-after">Visibilidade total</div></div>
+    <div class="ad-row"><div class="ad-before">Fazenda como patrimônio estático</div><div class="ad-arrow">→</div><div class="ad-after">Negócio rentável</div></div>
+    <div class="ad-row"><div class="ad-before">Isolamento sem benchmarks</div><div class="ad-arrow">→</div><div class="ad-after">Régua de referência</div></div>
+  </div>
+
+  <!-- DEPOIMENTOS -->
+  <div class="card">
+    <div class="card-head">
+      <div class="card-ico" style="background:#DCEDC8">💬</div>
+      <div><div class="card-title">O que os produtores dizem</div><div class="card-sub">Depoimentos de clientes</div></div>
+    </div>
+    <div class="depo">
+      <div class="depo-text">"Antes eu achava que sabia quanto custava cada arroba. Depois da GPL, descobri que estava deixando R$ 38/@ na mesa todo ciclo. Hoje tomo decisões com segurança que antes não tinha."</div>
+      <div class="depo-author"><div class="depo-av">MR</div><div><div class="depo-name">Marcos Rodrigues</div><div class="depo-role">Plano Gestor · 1.800 ha</div></div></div>
+    </div>
+    <div class="depo">
+      <div class="depo-text">"O rito mensal de reunião mudou a cultura da minha fazenda. A mortalidade caiu de 2,8% para 0,9% em dois ciclos. O Rogério é parceiro de verdade."</div>
+      <div class="depo-author"><div class="depo-av">AL</div><div><div class="depo-name">Ana Lúcia Ferreira</div><div class="depo-role">Plano Pró · 3.400 ha</div></div></div>
+    </div>
+  </div>
+
+  <!-- REDE -->
+  <div class="card">
+    <div class="card-head">
+      <div class="card-ico" style="background:#E8F5E9">🌐</div>
+      <div><div class="card-title">Rede de inteligência coletiva</div><div class="card-sub">Incluído em todos os planos</div></div>
+    </div>
+    <div class="rede-item"><div class="rede-ico">📊</div><div><div class="rede-title">Benchmarking — régua de referência</div><div class="rede-desc">Compare os resultados da sua fazenda com os padrões de excelência do mercado</div></div></div>
+    <div class="rede-item"><div class="rede-ico">☕</div><div><div class="rede-title">Café com números</div><div class="rede-desc">Encontros de atualização e troca de experiências entre produtores</div></div></div>
+    <div class="rede-item"><div class="rede-ico">🔬</div><div><div class="rede-title">Encontros técnicos</div><div class="rede-desc">Discussões sobre inovações e estratégias de gestão pecuária</div></div></div>
+  </div>
+
+</div>
+
+<!-- PLANOS -->
+<div class="plans">
+  <div class="plan">
+    <span class="plan-badge" style="background:#E8F5E9;color:#2E7D32">Essencial</span>
+    <div class="plan-name">Plano Essencial</div>
+    <div class="plan-freq">Semestral · 2 visitas/ano</div>
+    <div class="plan-feat">
+      <div class="plan-feat-item">Consolidação de dados históricos</div>
+      <div class="plan-feat-item">Identificação de gargalos</div>
+      <div class="plan-feat-item">Fechamento de safra</div>
+      <div class="plan-feat-item">Rede de inteligência coletiva</div>
+    </div>
+    <div class="plan-price"><strong>R$ 532,86/mês</strong><small>+ R$ 540,33 visitas presenciais</small></div>
+  </div>
+  <div class="plan">
+    <span class="plan-badge" style="background:#F9FBE7;color:#558B2F">Gestor</span>
+    <div class="plan-name">Plano Gestor</div>
+    <div class="plan-freq">Trimestral · 4 visitas/ano</div>
+    <div class="plan-feat">
+      <div class="plan-feat-item">Tudo do Essencial</div>
+      <div class="plan-feat-item">Plano de ação trimestral</div>
+      <div class="plan-feat-item">Ajustes sazonais seca/águas</div>
+      <div class="plan-feat-item">Análise de tendências</div>
+    </div>
+    <div class="plan-price"><strong>R$ 1.278,22/mês</strong><small>+ R$ 1.080,67 visitas presenciais</small></div>
+  </div>
+  <div class="plan dest">
+    <span class="plan-badge" style="background:#C5E1A5;color:#1B5E20">⭐ Mais completo</span>
+    <div class="plan-name">Plano Pró</div>
+    <div class="plan-freq">Mensal · 12 visitas/ano</div>
+    <div class="plan-feat">
+      <div class="plan-feat-item">Tudo do Gestor</div>
+      <div class="plan-feat-item">Suporte tático contínuo</div>
+      <div class="plan-feat-item">Validação de decisões diárias</div>
+      <div class="plan-feat-item">Parceiro estratégico fixo</div>
+    </div>
+    <div class="plan-price"><strong>R$ 1.621,00/mês</strong><small>+ R$ 1.621,00 visitas presenciais</small></div>
+  </div>
+</div>
+
+<!-- CTA -->
+<div class="cta">
+  <div class="cta-left">
+    <h3>Pronto para diminuir a distância entre o seu resultado atual e o potencial máximo?</h3>
+    <p>Agende uma conversa e descubra qual plano se adapta ao seu momento. A gestão profissional não é um custo — é o motor que transforma a fazenda em um negócio que faz bem.</p>
+  </div>
+</div>
+
+<div class="footer">
+  <div class="footer-txt">Gestão Pecuária Lucrativa © 2026 · Rogério Avelino · BPO Pecuário</div>
+  <div class="footer-brand">Gestão Pecuária <span>Lucrativa</span> · Rogério Avelino</div>
+  <button class="btn-print" onclick="window.print()">🖨️ Imprimir / PDF</button>
+</div>
+
+</div>
+</body>
+</html>

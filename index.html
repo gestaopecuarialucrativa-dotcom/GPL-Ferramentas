@@ -2,713 +2,341 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Gestão Pecuária Lucrativa | Rogério Avelino</title>
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,300&display=swap" rel="stylesheet">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Gestão Pecuária Lucrativa — Rogério Avelino</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
 :root{
-  --v1:#1B5E20;--v2:#2E7D32;--v3:#388E3C;--v4:#4CAF50;--v5:#8BC34A;--v6:#DCEDC8;
-  --d1:#F57F17;--d2:#F9A825;--d3:#FDD835;
-  --w:#ffffff;--cr:#f8f8f4;--g1:#111;--g2:#2a2a2a;--g3:#555;--g4:#888;--g5:#bbb;--g6:#e4e4e4;--g7:#f4f4f2;
-  --rd:#b83030;--rdl:#fdeaea;
-  --sh:0 2px 12px rgba(0,0,0,.07);--sh2:0 8px 32px rgba(0,0,0,.11);--sh3:0 20px 60px rgba(27,94,32,.18);
-  --r:14px;--rs:8px
+  --v1:#1B5E20;--v2:#2E7D32;--v3:#388E3C;--v4:#4CAF50;--v5:#8BC34A;--v6:#DCEDC8;--v7:#F1F8E9;
+  --sb-w:240px;
+  --g1:#111;--g2:#2a2a2a;--g3:#555;--g4:#888;--g5:#bbb;--g6:#E8E8E8;--g7:#F5F5F5;
+  --sh:0 2px 8px rgba(0,0,0,.07);--sh2:0 8px 24px rgba(0,0,0,.12)
 }
-html{font-size:16px;scroll-behavior:smooth}
-body{font-family:'DM Sans',sans-serif;background:#F1F8E9;color:var(--g1);min-height:100vh;overflow-x:hidden;-webkit-font-smoothing:antialiased}
+html,body{height:100%;overflow:hidden;font-family:'DM Sans',sans-serif}
+body{display:flex;flex-direction:column;background:#F0F4F0}
 
-body::before{
-  content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
-  background:
-    radial-gradient(ellipse 80% 50% at 10% 0%,rgba(46,125,50,.08) 0%,transparent 60%),
-    radial-gradient(ellipse 60% 40% at 90% 100%,rgba(139,195,74,.06) 0%,transparent 60%);
-}
+/* TOPBAR */
+.topbar{height:54px;background:var(--v1);display:flex;align-items:center;justify-content:space-between;padding:0 16px 0 0;flex-shrink:0;box-shadow:0 2px 8px rgba(0,0,0,.25);z-index:200}
+.tb-brand{width:var(--sb-w);display:flex;align-items:center;gap:10px;padding:0 16px;flex-shrink:0;border-right:1px solid rgba(255,255,255,.1)}
+.tb-logo{height:32px;width:auto;border-radius:6px}
+.tb-name{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:white;line-height:1.2}
+.tb-name small{display:block;font-size:10px;color:rgba(255,255,255,.5);font-weight:400}
+.tb-right{display:flex;align-items:center;gap:8px}
+.tb-btn{padding:6px 12px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.1);color:white;font-family:'DM Sans',sans-serif;transition:all .15s;text-decoration:none;display:flex;align-items:center;gap:5px}
+.tb-btn:hover{background:rgba(255,255,255,.2)}
+.tb-btn.wpp{background:#25D366;border-color:#25D366}
+.tb-menu-toggle{display:none;width:36px;height:36px;border-radius:8px;background:rgba(255,255,255,.1);border:none;color:white;font-size:18px;cursor:pointer;align-items:center;justify-content:center;margin-right:8px}
 
-/* ── HEADER ── */
-.hd{
-  position:sticky;top:0;z-index:100;
-  background:rgba(255,255,255,.95);backdrop-filter:blur(16px);
-  border-bottom:2px solid var(--v6);
-  padding:0 32px;height:68px;
-  display:flex;align-items:center;justify-content:space-between;
-  box-shadow:0 2px 12px rgba(27,94,32,.08)
-}
-.hd-logo{display:flex;align-items:center;gap:14px}
-.hd-logo-icon{
-  width:44px;height:44px;border-radius:12px;
-  background:linear-gradient(135deg,var(--v1),var(--v3));
-  display:flex;align-items:center;justify-content:center;
-  font-size:22px;flex-shrink:0;
-  box-shadow:0 4px 12px rgba(27,94,32,.25)
-}
-.hd-logo img{height:44px;width:auto;border-radius:8px}
-.hd-logo-txt .l1{font-family:'Syne',sans-serif;font-size:16px;font-weight:800;color:var(--v1);letter-spacing:-.3px;display:block;line-height:1.1}
-.hd-logo-txt .l2{font-size:11px;color:var(--g4);font-weight:400;display:block;letter-spacing:.3px}
-.hd-links{display:flex;align-items:center;gap:8px}
-.hd-link{
-  padding:7px 16px;border-radius:20px;font-size:13px;font-weight:600;text-decoration:none;
-  transition:all .2s;color:var(--g3);border:1px solid transparent
-}
-.hd-link:hover{background:var(--v6);color:var(--v1)}
-.hd-link.wpp{background:var(--v2);color:#fff;border-color:var(--v2)}
-.hd-link.wpp:hover{background:var(--v1)}
+/* BODY */
+.body{flex:1;display:flex;overflow:hidden}
 
-/* ── HERO ── */
-.hero{
-  position:relative;z-index:1;
-  padding:72px 32px 56px;
-  max-width:1100px;margin:0 auto;
-  display:grid;grid-template-columns:1fr auto;align-items:center;gap:40px
-}
-@media(max-width:700px){.hero{grid-template-columns:1fr;padding:48px 20px 36px}}
-.hero-badge{
-  display:inline-flex;align-items:center;gap:8px;
-  background:var(--v6);color:var(--v1);
-  padding:5px 14px;border-radius:20px;
-  font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;
-  margin-bottom:20px;border:1px solid rgba(46,125,50,.2)
-}
-.hero-badge::before{content:'●';font-size:8px;animation:pulse 2s infinite;color:var(--v4)}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
-.hero h1{
-  font-family:'Syne',sans-serif;font-size:clamp(32px,5vw,52px);font-weight:800;
-  color:var(--g1);line-height:1.1;letter-spacing:-1px;margin-bottom:16px
-}
-.hero h1 span{color:var(--v2)}
-.hero p{font-size:16px;color:var(--g3);line-height:1.6;max-width:520px;font-weight:300}
-.hero-stats{
-  display:flex;flex-direction:column;gap:12px;
-  background:var(--w);border-radius:var(--r);padding:24px 28px;
-  box-shadow:var(--sh3);border:1px solid var(--v6);min-width:200px;
-  position:relative;overflow:hidden
-}
-.hero-stats::before{
-  content:'';position:absolute;top:0;left:0;right:0;height:4px;
-  background:linear-gradient(90deg,var(--v5),var(--v4),var(--v2))
-}
-.hero-stat-item{text-align:center}
-.hero-stat-val{font-family:'Syne',sans-serif;font-size:28px;font-weight:800;color:var(--v2);line-height:1}
-.hero-stat-lbl{font-size:11px;color:var(--g4);margin-top:3px;font-weight:500;text-transform:uppercase;letter-spacing:.5px}
-.hero-stat-div{height:1px;background:var(--v6)}
+/* SIDEBAR */
+.sidebar{width:var(--sb-w);background:var(--v1);flex-shrink:0;display:flex;flex-direction:column;overflow-y:auto;overflow-x:hidden;border-right:1px solid rgba(255,255,255,.08)}
+.sidebar::-webkit-scrollbar{width:3px}
+.sidebar::-webkit-scrollbar-thumb{background:rgba(255,255,255,.15);border-radius:2px}
+.sb-section{padding:14px 14px 4px;font-size:10px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:rgba(255,255,255,.3)}
+.sb-item{display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:8px;margin:1px 8px;cursor:pointer;transition:all .15s;text-decoration:none;color:rgba(255,255,255,.7);font-size:13px;font-weight:500;position:relative}
+.sb-item:hover{background:rgba(255,255,255,.08);color:white}
+.sb-item.active{background:rgba(255,255,255,.15);color:white}
+.sb-item.active::before{content:'';position:absolute;left:0;top:6px;bottom:6px;width:3px;background:var(--v5);border-radius:0 3px 3px 0}
+.sb-icon{width:28px;height:28px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;background:rgba(255,255,255,.07)}
+.sb-item.active .sb-icon{background:rgba(139,195,74,.2)}
+.sb-txt{flex:1}
+.sb-label{display:block;font-size:12px;font-weight:600;line-height:1.3}
+.sb-sub{display:block;font-size:10px;color:rgba(255,255,255,.35);margin-top:1px}
+.sb-div{height:1px;background:rgba(255,255,255,.07);margin:6px 12px}
+.sb-footer{margin-top:auto;padding:10px;border-top:1px solid rgba(255,255,255,.07)}
+.sb-footer-txt{font-size:10px;color:rgba(255,255,255,.25);text-align:center;line-height:1.6}
 
-/* ── SEÇÃO ── */
-.secao{position:relative;z-index:1;max-width:1100px;margin:0 auto;padding:0 32px 60px}
-@media(max-width:700px){.secao{padding:0 16px 48px}}
-.secao-label{
-  display:flex;align-items:center;gap:12px;margin-bottom:28px
-}
-.secao-label span{
-  font-family:'Syne',sans-serif;font-size:12px;font-weight:700;letter-spacing:2px;
-  text-transform:uppercase;color:var(--v2)
-}
-.secao-label::after{content:'';flex:1;height:1px;background:var(--v6)}
+/* CONTENT */
+.content{flex:1;display:flex;flex-direction:column;overflow:hidden}
 
-/* ── GRID FERRAMENTAS ── */
-.tools-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px}
-.tool-card{
-  background:var(--w);border-radius:var(--r);
-  border:1px solid var(--v6);
-  box-shadow:var(--sh);
-  overflow:hidden;
-  transition:all .25s ease;
-  cursor:pointer;text-decoration:none;display:flex;flex-direction:column;
-  position:relative
-}
-.tool-card:hover{box-shadow:var(--sh2);transform:translateY(-3px);border-color:var(--v4)}
-.tool-card-bar{height:4px;width:100%}
-.tool-card-bar.verde{background:linear-gradient(90deg,var(--v2),var(--v5))}
-.tool-card-bar.dourado{background:linear-gradient(90deg,var(--d1),var(--d3))}
-.tool-card-bar.azul{background:linear-gradient(90deg,#1a5580,#3fa0d0)}
-.tool-card-bar.terra{background:linear-gradient(90deg,#7a3a10,#c8601a)}
-.tool-card-bar.roxo{background:linear-gradient(90deg,#4527A0,#7E57C2)}
-.tool-card-body{padding:22px 24px;flex:1;display:flex;flex-direction:column;gap:14px}
-.tool-card-top{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
-.tool-icone{
-  width:48px;height:48px;border-radius:12px;
-  display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0
-}
-.tool-icone.verde{background:#E8F5E9}
-.tool-icone.dourado{background:#FFF8E1}
-.tool-icone.azul{background:#E3F2FD}
-.tool-icone.terra{background:#FBE9E7}
-.tool-icone.roxo{background:#EDE7F6}
-.tool-status{
-  font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;
-  padding:3px 10px;border-radius:10px
-}
-.tool-status.online{background:#E8F5E9;color:var(--v1)}
-.tool-status.novo{background:#FFF8E1;color:var(--d1)}
-.tool-status.consul{background:#EDE7F6;color:#4527A0}
-.tool-nome{font-family:'Syne',sans-serif;font-size:17px;font-weight:700;color:var(--g1);line-height:1.2}
-.tool-desc{font-size:13px;color:var(--g3);line-height:1.55;font-weight:300}
-.tool-card-footer{
-  padding:14px 24px;border-top:1px solid var(--v6);
-  display:flex;align-items:center;justify-content:space-between;
-  background:#FAFFF8
-}
-.tool-card-footer span{font-size:12px;color:var(--g4);font-weight:500}
-.tool-arrow{
-  width:28px;height:28px;border-radius:50%;background:var(--v6);
-  display:flex;align-items:center;justify-content:center;font-size:14px;
-  transition:all .2s
-}
-.tool-card:hover .tool-arrow{background:var(--v2);color:#fff}
+/* HOME */
+.home{flex:1;overflow-y:auto;padding:20px;display:flex;flex-direction:column;gap:14px}
+.hero{background:var(--v1);border-radius:12px;padding:24px 28px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;position:relative;overflow:hidden}
+.hero::before{content:'';position:absolute;right:-50px;top:-50px;width:180px;height:180px;background:rgba(139,195,74,.07);border-radius:50%}
+.hero-l{position:relative;z-index:1}
+.hero-title{font-family:'Syne',sans-serif;font-size:20px;font-weight:800;color:white;margin-bottom:5px}
+.hero-title span{color:var(--v5)}
+.hero-desc{font-size:12px;color:rgba(255,255,255,.6);line-height:1.6;max-width:380px}
+.hero-stats{display:flex;flex-direction:column;gap:8px;background:rgba(255,255,255,.08);border-radius:10px;padding:14px 18px;border:1px solid rgba(255,255,255,.1);position:relative;z-index:1;flex-shrink:0}
+.hs-v{font-family:'Syne',sans-serif;font-size:20px;font-weight:800;color:var(--v5);line-height:1;text-align:center}
+.hs-l{font-size:9px;color:rgba(255,255,255,.4);margin-top:1px;text-transform:uppercase;letter-spacing:.5px;text-align:center}
+.hs-d{height:1px;background:rgba(255,255,255,.1)}
+.sec-label{font-family:'Syne',sans-serif;font-size:11px;font-weight:700;color:var(--g4);letter-spacing:1px;text-transform:uppercase;display:flex;align-items:center;gap:10px}
+.sec-label::after{content:'';flex:1;height:1px;background:var(--g6)}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px}
+.card{background:white;border-radius:10px;border:1px solid var(--v6);overflow:hidden;cursor:pointer;transition:all .2s;text-decoration:none;display:block}
+.card:hover{box-shadow:var(--sh2);transform:translateY(-2px);border-color:var(--v4)}
+.card-bar{height:3px}
+.card-bar.v{background:linear-gradient(90deg,var(--v2),var(--v5))}
+.card-bar.d{background:linear-gradient(90deg,#E65100,#FDD835)}
+.card-bar.a{background:linear-gradient(90deg,#0D47A1,#42A5F5)}
+.card-bar.t{background:linear-gradient(90deg,#4E342E,#8D6E63)}
+.card-bar.r{background:linear-gradient(90deg,#4527A0,#9575CD)}
+.card-body{padding:14px}
+.card-icon{font-size:22px;margin-bottom:6px;display:block}
+.card-name{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:var(--v1);margin-bottom:3px}
+.card-desc{font-size:11px;color:var(--g4);line-height:1.5}
+.card-foot{padding:7px 14px;border-top:1px solid var(--v6);display:flex;align-items:center;justify-content:space-between;background:#FAFFF8;font-size:10px;color:var(--g4)}
+.card-arr{width:20px;height:20px;border-radius:50%;background:var(--v6);display:flex;align-items:center;justify-content:center;font-size:10px;transition:all .2s}
+.card:hover .card-arr{background:var(--v2);color:white}
 
-/* ── CARD DESTAQUE ── */
-.tool-card.destaque{grid-column:1/-1}
-.tool-card.destaque .tool-card-body{flex-direction:row;align-items:center;gap:24px}
-@media(max-width:600px){.tool-card.destaque .tool-card-body{flex-direction:column}}
-.destaque-info{flex:1}
-.destaque-meta{display:flex;gap:20px;margin-top:12px;flex-wrap:wrap}
-.dm-item{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--g3)}
-.dm-dot{width:8px;height:8px;border-radius:50%;background:var(--v4);flex-shrink:0}
+/* IFRAME */
+.iframe-panel{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.iframe-bar{padding:8px 14px;background:white;border-bottom:1px solid var(--g6);display:flex;align-items:center;justify-content:space-between;gap:10px;flex-shrink:0;box-shadow:var(--sh)}
+.iframe-title{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:var(--v1)}
+.iframe-btns{display:flex;gap:6px}
+.if-btn{padding:5px 10px;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;border:1px solid var(--g6);background:white;color:var(--g3);font-family:'DM Sans',sans-serif;transition:all .15s}
+.if-btn:hover{border-color:var(--v4);color:var(--v2);background:var(--v7)}
+.if-btn.home{background:var(--v7);color:var(--v2);border-color:var(--v6)}
+iframe{flex:1;border:none;width:100%;background:white}
+.loading{position:absolute;inset:0;background:var(--v7);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:10;gap:10px}
+.spinner{width:36px;height:36px;border:3px solid var(--v6);border-top-color:var(--v2);border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-txt{font-size:12px;color:var(--g4)}
+.iframe-wrap{position:relative;flex:1;display:flex;flex-direction:column}
 
-/* ── CARD PASSAGEM ── */
-.passagem-card{
-  background:linear-gradient(135deg,var(--v1) 0%,var(--v2) 50%,#2E7D32 100%);
-  border-radius:var(--r);padding:28px 32px;
-  display:grid;grid-template-columns:1fr auto;gap:24px;align-items:center;
-  margin-bottom:16px;box-shadow:var(--sh3);
-  position:relative;overflow:hidden
+/* MOBILE */
+@media(max-width:768px){
+  :root{--sb-w:220px}
+  .sidebar{position:fixed;left:-220px;top:54px;bottom:0;z-index:150;transition:left .25s ease}
+  .sidebar.open{left:0;box-shadow:4px 0 20px rgba(0,0,0,.3)}
+  .tb-menu-toggle{display:flex}
+  .overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:140}
+  .overlay.show{display:block}
+  .tb-brand{border-right:none}
 }
-.passagem-card::before{
-  content:'';position:absolute;inset:0;
-  background:url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
-}
-.passagem-card::after{
-  content:'';position:absolute;right:-60px;top:-60px;
-  width:200px;height:200px;
-  background:rgba(139,195,74,.1);border-radius:50%
-}
-@media(max-width:600px){.passagem-card{grid-template-columns:1fr;padding:22px 20px}}
-.pc-left .pc-badge{
-  font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;
-  color:var(--v6);margin-bottom:10px;display:flex;align-items:center;gap:8px;
-  position:relative;z-index:1
-}
-.pc-badge::before{content:'⬤';font-size:8px;animation:pulse 1.5s infinite;color:var(--v5)}
-.pc-left h2{font-family:'Syne',sans-serif;font-size:26px;font-weight:800;color:#fff;margin-bottom:8px;line-height:1.1;position:relative;z-index:1}
-.pc-left p{font-size:14px;color:rgba(255,255,255,.75);line-height:1.55;font-weight:300;position:relative;z-index:1}
-.pc-right{display:flex;flex-direction:column;gap:10px;align-items:flex-end;position:relative;z-index:1}
-@media(max-width:600px){.pc-right{align-items:flex-start;flex-direction:row;flex-wrap:wrap}}
-.pc-btn{
-  padding:11px 22px;border-radius:8px;font-family:'Syne',sans-serif;
-  font-size:13px;font-weight:700;letter-spacing:.5px;text-decoration:none;
-  display:flex;align-items:center;gap:8px;white-space:nowrap;transition:all .2s;
-  cursor:pointer;border:none
-}
-.pc-btn.primary{background:#fff;color:var(--v1)}
-.pc-btn.primary:hover{background:var(--v6);color:var(--v1)}
-.pc-btn.secondary{background:rgba(255,255,255,.12);color:#fff;border:1px solid rgba(255,255,255,.25)}
-.pc-btn.secondary:hover{background:rgba(255,255,255,.22)}
-
-/* ── BLUETOOTH STATUS ── */
-.bt-card{
-  background:var(--w);border-radius:var(--r);border:1px solid var(--v6);
-  box-shadow:var(--sh);overflow:hidden;margin-bottom:16px
-}
-.bt-header{
-  padding:16px 24px;background:#F9FBE7;border-bottom:1px solid var(--v6);
-  display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px
-}
-.bt-title{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;color:var(--v1)}
-.bt-badge-wrap{display:flex;align-items:center;gap:8px}
-.bt-badge{
-  font-size:11px;font-weight:700;padding:4px 12px;border-radius:10px;
-  letter-spacing:.5px;text-transform:uppercase
-}
-.bt-badge.desconect{background:#fdeaea;color:var(--rd)}
-.bt-badge.conectado{background:#E8F5E9;color:var(--v1)}
-.bt-badge.tentando{background:#FFF8E1;color:var(--d1)}
-.bt-body{padding:20px 24px}
-.bt-passos{display:flex;flex-direction:column;gap:12px}
-.bt-passo{
-  display:flex;align-items:flex-start;gap:14px;
-  padding:14px 16px;border-radius:10px;border:1px solid var(--v6);
-  transition:background .2s;background:#FAFFF8
-}
-.bt-passo:hover{background:#F1F8E9}
-.bt-passo.ok{border-color:#A5D6A7;background:#E8F5E9}
-.bt-passo.prob{border-color:#f5c0c0;background:var(--rdl)}
-.bt-passo.info{border-color:#C5E1A5;background:#F9FBE7}
-.bp-num{
-  width:28px;height:28px;border-radius:50%;
-  display:flex;align-items:center;justify-content:center;
-  font-family:'Syne',sans-serif;font-size:13px;font-weight:700;
-  flex-shrink:0;background:var(--v6);color:var(--v1)
-}
-.bt-passo.ok .bp-num{background:#A5D6A7;color:var(--v1)}
-.bt-passo.prob .bp-num{background:#f5c0c0;color:var(--rd)}
-.bt-passo.info .bp-num{background:var(--v6);color:var(--v1)}
-.bp-corpo .bp-titulo{font-size:14px;font-weight:600;color:var(--g1);margin-bottom:3px}
-.bp-corpo .bp-desc{font-size:13px;color:var(--g3);line-height:1.5;font-weight:300}
-.bp-corpo .bp-cmd{
-  margin-top:8px;padding:8px 12px;background:#1e1e1e;border-radius:6px;
-  font-family:monospace;font-size:12px;color:var(--v5);display:inline-block;word-break:break-all
-}
-.bt-acoes{display:flex;gap:10px;margin-top:16px;flex-wrap:wrap}
-.bt-btn{
-  padding:10px 18px;border-radius:8px;font-size:13px;font-weight:600;
-  cursor:pointer;border:none;transition:all .2s;display:flex;align-items:center;gap:7px;text-decoration:none
-}
-.bt-btn.v{background:var(--v2);color:#fff}.bt-btn.v:hover{background:var(--v1)}
-.bt-btn.g{background:var(--v6);color:var(--v1)}.bt-btn.g:hover{background:#C5E1A5;color:var(--v1)}
-
-/* ── DIVISOR CONSULTORIA ── */
-.consul-band{
-  background:linear-gradient(135deg,var(--v1),var(--v2));
-  border-radius:var(--r);padding:20px 28px;margin-bottom:16px;
-  display:flex;align-items:center;justify-content:space-between;gap:16px;
-  position:relative;overflow:hidden
-}
-.consul-band::after{content:'';position:absolute;right:-40px;bottom:-40px;width:160px;height:160px;background:rgba(139,195,74,.08);border-radius:50%}
-.consul-band-txt{position:relative;z-index:1}
-.consul-band-txt .cb-label{font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--v6);margin-bottom:4px}
-.consul-band-txt .cb-title{font-family:'Syne',sans-serif;font-size:18px;font-weight:800;color:#fff}
-.consul-band-txt .cb-sub{font-size:13px;color:rgba(255,255,255,.65);margin-top:2px}
-.consul-band-links{display:flex;gap:8px;flex-wrap:wrap;position:relative;z-index:1}
-.cb-link{
-  padding:9px 16px;border-radius:8px;font-size:12px;font-weight:700;
-  text-decoration:none;display:flex;align-items:center;gap:6px;transition:all .2s;
-  white-space:nowrap
-}
-.cb-link.light{background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.2)}
-.cb-link.light:hover{background:rgba(255,255,255,.25)}
-.cb-link.solid{background:#fff;color:var(--v1)}
-.cb-link.solid:hover{background:var(--v6)}
-
-/* ── FOOTER ── */
-footer{
-  position:relative;z-index:1;
-  background:var(--v1);border-top:2px solid var(--v2);
-  padding:28px 32px;
-  display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px
-}
-.ft-esq{display:flex;align-items:center;gap:14px}
-.ft-logo-icon{width:38px;height:38px;border-radius:10px;background:rgba(255,255,255,.1);display:flex;align-items:center;justify-content:center;font-size:20px}
-.ft-esq img{height:38px;border-radius:8px;opacity:.9}
-.ft-txt .f1{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;color:#fff}
-.ft-txt .f2{font-size:12px;color:rgba(255,255,255,.5)}
-.ft-links{display:flex;gap:12px;align-items:center}
-.ft-link{font-size:12px;color:rgba(255,255,255,.6);text-decoration:none;font-weight:500}
-.ft-link:hover{color:var(--v5)}
-
-.hidden{display:none!important}
 </style>
 </head>
 <body>
+<div class="overlay" id="overlay" onclick="closeSb()"></div>
 
-<!-- HEADER -->
-<header class="hd">
-  <div class="hd-logo">
-    <img src="logo.png" alt="GPL" onerror="this.outerHTML='<div class=\'hd-logo-icon\'>🌿</div>'">
-    <div class="hd-logo-txt">
-      <span class="l1">Gestão Pecuária Lucrativa</span>
-      <span class="l2">Rogério Avelino</span>
-    </div>
+<div class="topbar">
+  <div class="tb-brand">
+    <button class="tb-menu-toggle" onclick="toggleSb()">☰</button>
+    <img src="logo.png" class="tb-logo" alt="GPL" onerror="this.style.display='none'">
+    <div class="tb-name">Gestão Pecuária<small>Lucrativa · Rogério Avelino</small></div>
   </div>
-  <nav class="hd-links">
-    <a href="tel:+5563991082453" class="hd-link">📞 (63) 99108-2453</a>
-    <a href="https://instagram.com/gestaolucrativa.pecuaria" target="_blank" class="hd-link">@gestaolucrativa</a>
-    <a href="https://wa.me/5563991082453" target="_blank" class="hd-link wpp">WhatsApp</a>
+  <div class="tb-right">
+    <a href="tel:+5563991082453" class="tb-btn">📞 (63) 99108-2453</a>
+    <a href="https://wa.me/5563991082453" target="_blank" class="tb-btn wpp">WhatsApp</a>
+  </div>
+</div>
+
+<div class="body">
+  <nav class="sidebar" id="sidebar">
+    <div class="sb-section">Campo</div>
+    <a class="sb-item active" id="n-home" href="#" onclick="goHome();return false">
+      <div class="sb-icon">🏠</div>
+      <div class="sb-txt"><span class="sb-label">Painel Geral</span><span class="sb-sub">Todas as ferramentas</span></div>
+    </a>
+    <a class="sb-item" id="n-pes" href="#" onclick="go('pesagem_v2.html','🐄 Sistema de Pesagem','n-pes');return false">
+      <div class="sb-icon">🐄</div>
+      <div class="sb-txt"><span class="sb-label">Sistema de Pesagem</span><span class="sb-sub">Lotes · Bluetooth · Offline</span></div>
+    </a>
+    <a class="sb-item" id="n-ceci" href="#" onclick="go('plano-agil-ceci.html','📋 Planejamento Ágil CECI','n-ceci');return false">
+      <div class="sb-icon">📋</div>
+      <div class="sb-txt"><span class="sb-label">Planejamento Ágil</span><span class="sb-sub">Safra · Cria · Recria · Engorda</span></div>
+    </a>
+    <a class="sb-item" id="n-agil" href="#" onclick="go('plano_agil_v3.html','📊 Plano Ágil Pecuário','n-agil');return false">
+      <div class="sb-icon">📊</div>
+      <div class="sb-txt"><span class="sb-label">Plano Ágil Pecuário</span><span class="sb-sub">Meta · Rebanho · Lotação</span></div>
+    </a>
+    <a class="sb-item" id="n-bez" href="#" onclick="go('arroba_bezerro.html','🐂 Calculadora do Bezerro','n-bez');return false">
+      <div class="sb-icon">🐂</div>
+      <div class="sb-txt"><span class="sb-label">Arroba do Bezerro</span><span class="sb-sub">GMD · ROI · Simulação</span></div>
+    </a>
+    <a class="sb-item" id="n-viab" href="#" onclick="go('viabilidade_lote.html','📈 Viabilidade de Lote','n-viab');return false">
+      <div class="sb-icon">📈</div>
+      <div class="sb-txt"><span class="sb-label">Viabilidade de Lote</span><span class="sb-sub">Lucro · Margem · Benchmarks</span></div>
+    </a>
+    <div class="sb-div"></div>
+    <div class="sb-section">Consultoria</div>
+    <a class="sb-item" id="n-chk" href="#" onclick="go('checklist-auditoria.html','✅ Checklist de Auditoria','n-chk');return false">
+      <div class="sb-icon">✅</div>
+      <div class="sb-txt"><span class="sb-label">Checklist Auditoria</span><span class="sb-sub">32 itens · 1ª visita</span></div>
+    </a>
+    <a class="sb-item" id="n-rel" href="#" onclick="go('relatorio-performance.html','📄 Relatório de Performance','n-rel');return false">
+      <div class="sb-icon">📄</div>
+      <div class="sb-txt"><span class="sb-label">Relatório Performance</span><span class="sb-sub">Papel timbrado GPL · PDF</span></div>
+    </a>
+    <a class="sb-item" id="n-port" href="#" onclick="go('portfolio.html','🏆 Portfólio Comercial','n-port');return false">
+      <div class="sb-icon">🏆</div>
+      <div class="sb-txt"><span class="sb-label">Portfólio Comercial</span><span class="sb-sub">Apresentação · Planos</span></div>
+    </a>
+    <div class="sb-div"></div>
+    <div class="sb-section">Captação</div>
+    <a class="sb-item" id="n-form" href="#" onclick="go('levantamento_form.html','📝 Formulário de Levantamento','n-form');return false">
+      <div class="sb-icon">📝</div>
+      <div class="sb-txt"><span class="sb-label">Formulário Levantamento</span><span class="sb-sub">Captação · WhatsApp</span></div>
+    </a>
+    <a class="sb-item" id="n-insta" href="#" onclick="go('levantamento_instagram.html','📱 Levantamento Instagram','n-insta');return false">
+      <div class="sb-icon">📱</div>
+      <div class="sb-txt"><span class="sb-label">Levantamento Instagram</span><span class="sb-sub">Stories · Bio · Leads</span></div>
+    </a>
+    <div class="sb-footer">
+      <div class="sb-footer-txt">Gestão Pecuária Lucrativa<br>Rogério Avelino · v2.0<br><span id="sb-dt"></span></div>
+    </div>
   </nav>
-</header>
 
-<!-- HERO -->
-<section class="hero">
-  <div>
-    <div class="hero-badge">● Sistema Ativo</div>
-    <h1>Ferramentas de<br><span>Gestão Lucrativa</span></h1>
-    <p>Planos, cálculos e controle de rebanho — tudo integrado para o pecuarista que quer resultado de verdade.</p>
-  </div>
-  <div class="hero-stats">
-    <div class="hero-stat-item">
-      <div class="hero-stat-val">5</div>
-      <div class="hero-stat-lbl">Ferramentas</div>
+  <main class="content" id="content">
+
+    <!-- HOME -->
+    <div class="home" id="home-panel">
+      <div class="hero">
+        <div class="hero-l">
+          <div class="hero-title">Ferramentas de<br><span>Gestão Lucrativa</span></div>
+          <div class="hero-desc">Selecione uma ferramenta no menu lateral ou nos cards abaixo. Dados salvos automaticamente no navegador.</div>
+        </div>
+        <div class="hero-stats">
+          <div class="hs-v">8</div><div class="hs-l">Ferramentas</div>
+          <div class="hs-d"></div>
+          <div class="hs-v">4%</div><div class="hs-l">Meta terra</div>
+          <div class="hs-d"></div>
+          <div class="hs-v">0,668</div><div class="hs-l">GMD Top 30%</div>
+        </div>
+      </div>
+
+      <div class="sec-label">Operação de Campo</div>
+      <div class="cards">
+        <a class="card" href="#" onclick="go('pesagem_v2.html','🐄 Sistema de Pesagem','n-pes');return false">
+          <div class="card-bar v"></div>
+          <div class="card-body"><span class="card-icon">🐄</span><div class="card-name">Sistema de Pesagem</div><div class="card-desc">Pesagem com Bluetooth, protocolo sanitário, lotes e histórico. Funciona offline.</div></div>
+          <div class="card-foot"><span>Principal · Pesagem e controle</span><div class="card-arr">→</div></div>
+        </a>
+        <a class="card" href="#" onclick="go('plano-agil-ceci.html','📋 Planejamento Ágil CECI','n-ceci');return false">
+          <div class="card-bar v"></div>
+          <div class="card-body"><span class="card-icon">📋</span><div class="card-name">Planejamento Ágil CECI</div><div class="card-desc">Visão de safra: Cria, Ciclo Completo ou Recria/Engorda. Resultado automático.</div></div>
+          <div class="card-foot"><span>Safra · Planejamento</span><div class="card-arr">→</div></div>
+        </a>
+        <a class="card" href="#" onclick="go('plano_agil_v3.html','📊 Plano Ágil Pecuário','n-agil');return false">
+          <div class="card-bar v"></div>
+          <div class="card-body"><span class="card-icon">📊</span><div class="card-name">Plano Ágil Pecuário</div><div class="card-desc">Meta de resultado, cabeças necessárias, lotação e financeiro completo.</div></div>
+          <div class="card-foot"><span>Meta · Rebanho · Lotação</span><div class="card-arr">→</div></div>
+        </a>
+        <a class="card" href="#" onclick="go('arroba_bezerro.html','🐂 Calculadora do Bezerro','n-bez');return false">
+          <div class="card-bar d"></div>
+          <div class="card-body"><span class="card-icon">🐂</span><div class="card-name">Calculadora do Bezerro</div><div class="card-desc">Valor real da arroba, GMD mínimo e simulação de cenários de compra.</div></div>
+          <div class="card-foot"><span>Compra · GMD · ROI</span><div class="card-arr">→</div></div>
+        </a>
+        <a class="card" href="#" onclick="go('viabilidade_lote.html','📈 Viabilidade de Lote','n-viab');return false">
+          <div class="card-bar a"></div>
+          <div class="card-body"><span class="card-icon">📈</span><div class="card-name">Viabilidade de Lote</div><div class="card-desc">Antes de comprar: lucro por cabeça, margem, ROI e benchmarks GPL.</div></div>
+          <div class="card-foot"><span>Análise · Benchmarks</span><div class="card-arr">→</div></div>
+        </a>
+      </div>
+
+      <div class="sec-label">Ferramentas de Consultoria</div>
+      <div class="cards">
+        <a class="card" href="#" onclick="go('checklist-auditoria.html','✅ Checklist de Auditoria','n-chk');return false">
+          <div class="card-bar v"></div>
+          <div class="card-body"><span class="card-icon">✅</span><div class="card-name">Checklist de Auditoria</div><div class="card-desc">32 itens de diagnóstico inicial. Use na 1ª visita para mapear gargalos.</div></div>
+          <div class="card-foot"><span>Diagnóstico · 1ª visita</span><div class="card-arr">→</div></div>
+        </a>
+        <a class="card" href="#" onclick="go('relatorio-performance.html','📄 Relatório de Performance','n-rel');return false">
+          <div class="card-bar r"></div>
+          <div class="card-body"><span class="card-icon">📄</span><div class="card-name">Relatório de Performance</div><div class="card-desc">Papel timbrado GPL. KPIs, plano de ação e assinatura. Salve como PDF.</div></div>
+          <div class="card-foot"><span>Plano Pró · Mensal · PDF</span><div class="card-arr">→</div></div>
+        </a>
+        <a class="card" href="#" onclick="go('portfolio.html','🏆 Portfólio Comercial','n-port');return false">
+          <div class="card-bar v"></div>
+          <div class="card-body"><span class="card-icon">🏆</span><div class="card-name">Portfólio Comercial</div><div class="card-desc">Apresentação da GPL com pilares, planos e CTA para fechamento.</div></div>
+          <div class="card-foot"><span>Apresentação · Fechamento</span><div class="card-arr">→</div></div>
+        </a>
+        <a class="card" href="#" onclick="go('levantamento_form.html','📝 Formulário de Levantamento','n-form');return false">
+          <div class="card-bar t"></div>
+          <div class="card-body"><span class="card-icon">📝</span><div class="card-name">Formulário Levantamento</div><div class="card-desc">Diagnóstico para novos clientes. Envia dados direto para o WhatsApp.</div></div>
+          <div class="card-foot"><span>Captação · WhatsApp</span><div class="card-arr">→</div></div>
+        </a>
+        <a class="card" href="#" onclick="go('levantamento_instagram.html','📱 Levantamento Instagram','n-insta');return false">
+          <div class="card-bar t"></div>
+          <div class="card-body"><span class="card-icon">📱</span><div class="card-name">Levantamento Instagram</div><div class="card-desc">Versão para Stories e Bio. Link direto para captar leads nas redes.</div></div>
+          <div class="card-foot"><span>Instagram · Leads</span><div class="card-arr">→</div></div>
+        </a>
+      </div>
+
+      <div style="background:var(--v1);border-radius:10px;padding:14px 18px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
+        <div style="font-size:11px;color:rgba(255,255,255,.6)"><strong style="color:white;font-size:12px;display:block;margin-bottom:1px">Gestão Pecuária Lucrativa · Rogério Avelino</strong>BPO Pecuário · Transformando dados em lucro agropecuário</div>
+        <div style="display:flex;gap:6px">
+          <a href="https://instagram.com/gestaolucrativa.pecuaria" target="_blank" class="tb-btn" style="font-size:11px">@gestaolucrativa</a>
+          <a href="https://wa.me/5563991082453" target="_blank" class="tb-btn wpp" style="font-size:11px">WhatsApp</a>
+        </div>
+      </div>
     </div>
-    <div class="hero-stat-div"></div>
-    <div class="hero-stat-item">
-      <div class="hero-stat-val">4%</div>
-      <div class="hero-stat-lbl">Meta Mín. Terra</div>
-    </div>
-    <div class="hero-stat-div"></div>
-    <div class="hero-stat-item">
-      <div class="hero-stat-val">0,668</div>
-      <div class="hero-stat-lbl">GMD Top 30%</div>
-    </div>
-  </div>
-</section>
 
-<!-- PASSAGEM -->
-<section class="secao">
-  <div class="secao-label"><span>🐂 Passagem de amanhã</span></div>
-
-  <div class="passagem-card">
-    <div class="pc-left">
-      <div class="pc-badge">Uso para amanhã</div>
-      <h2>Sistema de Pesagem<br>e Curral</h2>
-      <p>Registre animais, pesos, lotes e protocolo sanitário. Funciona offline — sem internet no campo, sem problema.</p>
-      <div class="destaque-meta" style="margin-top:16px">
-        <div class="dm-item"><div class="dm-dot" style="background:var(--v5)"></div>Funciona offline</div>
-        <div class="dm-item"><div class="dm-dot" style="background:var(--d3)"></div>Bluetooth pronto</div>
-        <div class="dm-item"><div class="dm-dot" style="background:#3fa0d0"></div>Protocolo sanitário</div>
-        <div class="dm-item"><div class="dm-dot" style="background:#c8601a"></div>Sync Google Sheets</div>
+    <!-- IFRAME PANEL -->
+    <div class="iframe-panel" id="iframe-panel" style="display:none">
+      <div class="iframe-bar">
+        <div class="iframe-title" id="iframe-title">🐄 Sistema de Pesagem</div>
+        <div class="iframe-btns">
+          <button class="if-btn" onclick="recarregar()">🔄</button>
+          <button class="if-btn" onclick="abrirNova()">↗ Nova aba</button>
+          <button class="if-btn home" onclick="goHome()">🏠 Painel</button>
+        </div>
+      </div>
+      <div class="iframe-wrap">
+        <div class="loading" id="loading">
+          <div class="spinner"></div>
+          <div class="loading-txt">Carregando...</div>
+        </div>
+        <iframe id="main-frame" src="" allow="bluetooth; camera; microphone" allowfullscreen></iframe>
       </div>
     </div>
-    <div class="pc-right">
-      <a href="pesagem_v2.html" class="pc-btn primary">🐄 Abrir Sistema de Pesagem</a>
-      <button class="pc-btn secondary" onclick="document.getElementById('bt-section').scrollIntoView({behavior:'smooth'})">🔵 Resolver Bluetooth</button>
-    </div>
-  </div>
 
-  <!-- BLUETOOTH -->
-  <div id="bt-section" class="bt-card">
-    <div class="bt-header">
-      <div class="bt-title">🔵 Diagnóstico Bluetooth — Balança</div>
-      <div class="bt-badge-wrap">
-        <span class="bt-badge desconect" id="bt-status-badge">Não conectado</span>
-        <button class="bt-btn g" onclick="testarBT()" style="padding:6px 12px;font-size:12px">▶ Testar agora</button>
-      </div>
-    </div>
-    <div class="bt-body">
-      <div class="bt-passos">
-        <div class="bt-passo info">
-          <div class="bp-num">1</div>
-          <div class="bp-corpo">
-            <div class="bp-titulo">Verifique o driver Bluetooth do notebook</div>
-            <div class="bp-desc">No Windows: abra o <strong>Gerenciador de Dispositivos</strong> → expanda "Bluetooth" → se tiver ⚠️ amarelo no adaptador, o driver precisa ser atualizado.</div>
-            <div class="bp-cmd">Win + X → Gerenciador de Dispositivos → Bluetooth</div>
-          </div>
-        </div>
-        <div class="bt-passo info">
-          <div class="bp-num">2</div>
-          <div class="bp-corpo">
-            <div class="bp-titulo">Atualize o driver Bluetooth</div>
-            <div class="bp-desc">Clique com botão direito no adaptador Bluetooth → <strong>Atualizar driver</strong> → "Pesquisar drivers automaticamente".</div>
-            <div class="bp-cmd">Dell → dell.com/support | Lenovo → support.lenovo.com | HP → support.hp.com | Asus → asus.com/support</div>
-          </div>
-        </div>
-        <div class="bt-passo info">
-          <div class="bp-num">3</div>
-          <div class="bp-corpo">
-            <div class="bp-titulo">O Chrome precisa de permissão para Bluetooth</div>
-            <div class="bp-desc">O sistema usa <strong>Web Bluetooth API</strong>. Para liberar no Chrome:</div>
-            <div class="bp-cmd">chrome://flags/#enable-web-bluetooth → Enabled → Reiniciar Chrome</div>
-          </div>
-        </div>
-        <div class="bt-passo info">
-          <div class="bp-num">4</div>
-          <div class="bp-corpo">
-            <div class="bp-titulo">A balança precisa estar em modo pareamento</div>
-            <div class="bp-desc">Ligue a balança e coloque em modo Bluetooth (geralmente segurando o botão por 3–5 segundos até o LED piscar azul). Fique a menos de <strong>2 metros</strong>.</div>
-          </div>
-        </div>
-        <div class="bt-passo info">
-          <div class="bp-num">5</div>
-          <div class="bp-corpo">
-            <div class="bp-titulo">Se ainda não conectar — use o Android</div>
-            <div class="bp-desc">O sistema funciona 100% no celular Android com Chrome. Se o notebook travar, abra pelo celular — mesmos dados, mesma sincronização.</div>
-          </div>
-        </div>
-      </div>
-      <div class="bt-acoes">
-        <button class="bt-btn v" onclick="testarBT()" id="bt-btn-testar">🔵 Testar conexão Bluetooth</button>
-        <a href="pesagem_v2.html" class="bt-btn g">🐄 Abrir pesagem mesmo assim</a>
-      </div>
-      <div id="bt-resultado" style="margin-top:14px;display:none;padding:14px 16px;border-radius:10px;font-size:13px;line-height:1.5"></div>
-    </div>
-  </div>
-</section>
-
-<!-- FERRAMENTAS DE CAMPO -->
-<section class="secao">
-  <div class="secao-label"><span>Ferramentas de Campo e Cálculo</span></div>
-  <div class="tools-grid">
-
-    <a href="pesagem_v2.html" class="tool-card destaque">
-      <div class="tool-card-bar verde"></div>
-      <div class="tool-card-body">
-        <div class="tool-icone verde" style="width:56px;height:56px;font-size:28px;border-radius:14px">🐄</div>
-        <div class="destaque-info">
-          <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
-            <div class="tool-nome">Sistema de Gestão Pecuária</div>
-            <span class="tool-status online">Online</span>
-          </div>
-          <div class="tool-desc">Pesagem com protocolo sanitário, controle de lotes, histórico por fazenda, importação de planilhas e sincronização com Google Sheets. Funciona offline no campo.</div>
-          <div class="destaque-meta">
-            <div class="dm-item"><div class="dm-dot"></div>Pesagem com Bluetooth</div>
-            <div class="dm-item"><div class="dm-dot"></div>Protocolo sanitário</div>
-            <div class="dm-item"><div class="dm-dot"></div>Múltiplas fazendas</div>
-            <div class="dm-item"><div class="dm-dot"></div>Sync Google Sheets</div>
-            <div class="dm-item"><div class="dm-dot"></div>Funciona offline</div>
-          </div>
-        </div>
-      </div>
-      <div class="tool-card-footer">
-        <span>Sistema principal · Pesagem e controle</span>
-        <div class="tool-arrow">→</div>
-      </div>
-    </a>
-
-    <a href="plano_agil_v3.html" class="tool-card">
-      <div class="tool-card-bar verde"></div>
-      <div class="tool-card-body">
-        <div style="display:flex;align-items:flex-start;justify-content:space-between">
-          <div class="tool-icone verde">📋</div>
-          <span class="tool-status novo">Novo</span>
-        </div>
-        <div>
-          <div class="tool-nome">Plano Ágil Pecuário</div>
-          <div class="tool-desc">Defina sua meta de resultado, calcule cabeças necessárias, lotação e detalhamento financeiro completo. Recria-Engorda, Cria e Ciclo Completo.</div>
-        </div>
-      </div>
-      <div class="tool-card-footer">
-        <span>Planejamento · 3 sistemas produtivos</span>
-        <div class="tool-arrow">→</div>
-      </div>
-    </a>
-
-    <a href="arroba_bezerro.html" class="tool-card">
-      <div class="tool-card-bar dourado"></div>
-      <div class="tool-card-body">
-        <div style="display:flex;align-items:flex-start;justify-content:space-between">
-          <div class="tool-icone dourado">🐂</div>
-          <span class="tool-status novo">Novo</span>
-        </div>
-        <div>
-          <div class="tool-nome">Calculadora da Arroba do Bezerro</div>
-          <div class="tool-desc">Descubra o valor real da arroba, o GMD mínimo para não ter prejuízo e simule cenários de ganho. Bezerro e Bezerra.</div>
-        </div>
-      </div>
-      <div class="tool-card-footer">
-        <span>Compra de animais · GMD · ROI</span>
-        <div class="tool-arrow">→</div>
-      </div>
-    </a>
-
-    <a href="viabilidade_lote.html" class="tool-card">
-      <div class="tool-card-bar azul"></div>
-      <div class="tool-card-body">
-        <div style="display:flex;align-items:flex-start;justify-content:space-between">
-          <div class="tool-icone azul">📊</div>
-          <span class="tool-status online">Online</span>
-        </div>
-        <div>
-          <div class="tool-nome">Viabilidade de Lote</div>
-          <div class="tool-desc">Antes de comprar o lote, calcule se o negócio fecha. Lucro por cabeça, margem, ROI e análise comparativa com benchmarks GPL.</div>
-        </div>
-      </div>
-      <div class="tool-card-footer">
-        <span>Análise de compra · Benchmarks</span>
-        <div class="tool-arrow">→</div>
-      </div>
-    </a>
-
-  </div>
-</section>
-
-<!-- FERRAMENTAS DE CONSULTORIA -->
-<section class="secao">
-  <div class="secao-label"><span>Ferramentas de Consultoria</span></div>
-
-  <div class="consul-band">
-    <div class="consul-band-txt">
-      <div class="cb-label">BPO Pecuário · Rogério Avelino</div>
-      <div class="cb-title">Gestão Pecuária Lucrativa</div>
-      <div class="cb-sub">Ferramentas para captação, diagnóstico e acompanhamento de clientes</div>
-    </div>
-    <div class="consul-band-links">
-      <a href="levantamento_form.html" class="cb-link light">📝 Levantamento</a>
-      <a href="levantamento_instagram.html" class="cb-link light">📱 Instagram</a>
-      <a href="portfolio.html" class="cb-link solid">🏆 Portfólio</a>
-    </div>
-  </div>
-
-  <div class="tools-grid">
-
-    <a href="levantamento_form.html" class="tool-card">
-      <div class="tool-card-bar terra"></div>
-      <div class="tool-card-body">
-        <div style="display:flex;align-items:flex-start;justify-content:space-between">
-          <div class="tool-icone terra">📝</div>
-          <span class="tool-status online">Online</span>
-        </div>
-        <div>
-          <div class="tool-nome">Formulário de Levantamento</div>
-          <div class="tool-desc">Diagnóstico inicial para novos clientes. Coleta dados da fazenda e envia direto para o WhatsApp. Compartilhe pelo Instagram.</div>
-        </div>
-      </div>
-      <div class="tool-card-footer">
-        <span>Captação de clientes</span>
-        <div class="tool-arrow">→</div>
-      </div>
-    </a>
-
-    <a href="levantamento_instagram.html" class="tool-card">
-      <div class="tool-card-bar terra"></div>
-      <div class="tool-card-body">
-        <div style="display:flex;align-items:flex-start;justify-content:space-between">
-          <div class="tool-icone terra">📱</div>
-          <span class="tool-status online">Online</span>
-        </div>
-        <div>
-          <div class="tool-nome">Levantamento Instagram</div>
-          <div class="tool-desc">Versão otimizada para compartilhar no Instagram e Stories. Link direto para captar leads via redes sociais.</div>
-        </div>
-      </div>
-      <div class="tool-card-footer">
-        <span>Instagram · Captação de leads</span>
-        <div class="tool-arrow">→</div>
-      </div>
-    </a>
-
-    <a href="checklist-auditoria.html" class="tool-card">
-      <div class="tool-card-bar verde"></div>
-      <div class="tool-card-body">
-        <div style="display:flex;align-items:flex-start;justify-content:space-between">
-          <div class="tool-icone verde">✅</div>
-          <span class="tool-status novo">Novo</span>
-        </div>
-        <div>
-          <div class="tool-nome">Checklist de Auditoria</div>
-          <div class="tool-desc">32 itens de diagnóstico inicial da fazenda. Use na primeira visita para mapear gargalos e definir o plano ideal para o cliente.</div>
-        </div>
-      </div>
-      <div class="tool-card-footer">
-        <span>1ª visita · Diagnóstico · Onboarding</span>
-        <div class="tool-arrow">→</div>
-      </div>
-    </a>
-
-    <a href="relatorio-performance.html" class="tool-card">
-      <div class="tool-card-bar roxo"></div>
-      <div class="tool-card-body">
-        <div style="display:flex;align-items:flex-start;justify-content:space-between">
-          <div class="tool-icone roxo">📈</div>
-          <span class="tool-status consul">Consultoria</span>
-        </div>
-        <div>
-          <div class="tool-nome">Relatório de Performance</div>
-          <div class="tool-desc">Relatório mensal com papel timbrado GPL. KPIs, aderência às camadas, revisão de compromissos, plano de ação e assinatura.</div>
-        </div>
-      </div>
-      <div class="tool-card-footer">
-        <span>Plano Pró · Mensal · PDF</span>
-        <div class="tool-arrow">→</div>
-      </div>
-    </a>
-
-    <a href="portfolio.html" class="tool-card">
-      <div class="tool-card-bar verde"></div>
-      <div class="tool-card-body">
-        <div style="display:flex;align-items:flex-start;justify-content:space-between">
-          <div class="tool-icone verde">🏆</div>
-          <span class="tool-status consul">Consultoria</span>
-        </div>
-        <div>
-          <div class="tool-nome">Portfólio Comercial</div>
-          <div class="tool-desc">Página de apresentação da GPL com pilares, planos, depoimentos e CTA. Envie para prospects e use em reuniões de fechamento.</div>
-        </div>
-      </div>
-      <div class="tool-card-footer">
-        <span>Apresentação · Fechamento de clientes</span>
-        <div class="tool-arrow">→</div>
-      </div>
-    </a>
-
-  </div>
-</section>
-
-<!-- FOOTER -->
-<footer>
-  <div class="ft-esq">
-    <img src="logo.png" alt="GPL" onerror="this.outerHTML='<div class=\'ft-logo-icon\'>🌿</div>'">
-    <div class="ft-txt">
-      <div class="f1">Gestão Pecuária Lucrativa</div>
-      <div class="f2">Rogério Avelino · (63) 99108-2453</div>
-    </div>
-  </div>
-  <div class="ft-links">
-    <a href="https://instagram.com/gestaolucrativa.pecuaria" class="ft-link" target="_blank">@gestaolucrativa.pecuaria</a>
-    <a href="https://wa.me/5563991082453" class="ft-link" target="_blank">WhatsApp</a>
-  </div>
-</footer>
+  </main>
+</div>
 
 <script>
-async function testarBT() {
-  const btn = document.getElementById('bt-btn-testar');
-  const res = document.getElementById('bt-resultado');
-  const badge = document.getElementById('bt-status-badge');
+var _url='', _nav='n-home';
 
-  btn.textContent = '⏳ Testando...';
-  btn.disabled = true;
-  res.style.display = 'none';
-
-  if (!navigator.bluetooth) {
-    badge.textContent = 'Não suportado';
-    badge.className = 'bt-badge desconect';
-    res.style.display = 'block';
-    res.style.background = '#fdeaea';
-    res.style.border = '1px solid #f5c0c0';
-    res.style.color = '#7a1a1a';
-    res.innerHTML = `<strong>🚨 Web Bluetooth não está ativo neste navegador.</strong><br><br>
-      1. Acesse: <code style="background:#1e1e1e;color:#8BC34A;padding:2px 6px;border-radius:4px">chrome://flags/#enable-web-bluetooth</code><br>
-      2. Mude para <strong>Enabled</strong><br>
-      3. Clique em <strong>Relaunch</strong> e volte aqui`;
-    btn.textContent = '🔵 Testar novamente';
-    btn.disabled = false;
-    return;
-  }
-
-  try {
-    badge.textContent = 'Procurando...';
-    badge.className = 'bt-badge tentando';
-    const device = await navigator.bluetooth.requestDevice({
-      acceptAllDevices: true,
-      optionalServices: ['generic_access','battery_service','heart_rate','weight_scale']
-    });
-    badge.textContent = 'Dispositivo encontrado!';
-    badge.className = 'bt-badge conectado';
-    res.style.display = 'block';
-    res.style.background = '#E8F5E9';
-    res.style.border = '1px solid #A5D6A7';
-    res.style.color = '#1B5E20';
-    res.innerHTML = `<strong>✅ Bluetooth funcionando!</strong> Dispositivo: <strong>${device.name || 'Sem nome'}</strong><br><br>
-      Agora abra o Sistema de Pesagem e conecte a balança lá dentro.`;
-  } catch(e) {
-    if (e.name === 'NotFoundError') {
-      badge.textContent = 'Nenhum device';
-      badge.className = 'bt-badge tentando';
-      res.style.display = 'block';
-      res.style.background = '#FFF8E1';
-      res.style.border = '1px solid #FFE082';
-      res.style.color = '#7a5800';
-      res.innerHTML = `<strong>⚠️ Bluetooth ativo, mas nenhum dispositivo foi selecionado.</strong><br><br>
-        Ligue a balança e coloque em modo pareamento (LED piscando azul) antes de testar novamente.`;
-    } else if (e.name === 'SecurityError') {
-      badge.textContent = 'Bloqueado';
-      badge.className = 'bt-badge desconect';
-      res.style.display = 'block';
-      res.style.background = '#fdeaea';
-      res.style.border = '1px solid #f5c0c0';
-      res.style.color = '#7a1a1a';
-      res.innerHTML = `<strong>🔒 Bluetooth bloqueado.</strong><br><br>
-        Clique no 🔒 cadeado na barra de endereço → Bluetooth → Permitir`;
-    } else {
-      badge.textContent = 'Erro';
-      badge.className = 'bt-badge desconect';
-      res.style.display = 'block';
-      res.style.background = '#fdeaea';
-      res.style.border = '1px solid #f5c0c0';
-      res.style.color = '#7a1a1a';
-      res.innerHTML = `<strong>Erro:</strong> ${e.message}<br><br>
-        Reinicie o Chrome e verifique se o Bluetooth do Windows está ativo.`;
-    }
-  }
-  btn.textContent = '🔵 Testar novamente';
-  btn.disabled = false;
+function toggleSb(){
+  document.getElementById('sidebar').classList.toggle('open');
+  document.getElementById('overlay').classList.toggle('show');
 }
+function closeSb(){
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('overlay').classList.remove('show');
+}
+function setActive(id){
+  document.querySelectorAll('.sb-item').forEach(function(i){i.classList.remove('active');});
+  var el=document.getElementById(id);
+  if(el) el.classList.add('active');
+  _nav=id;
+}
+function goHome(){
+  document.getElementById('home-panel').style.display='flex';
+  document.getElementById('iframe-panel').style.display='none';
+  setActive('n-home');
+  _url='';
+  closeSb();
+}
+function go(url, titulo, navId){
+  _url=url;
+  document.getElementById('iframe-title').textContent=titulo;
+  document.getElementById('home-panel').style.display='none';
+  document.getElementById('iframe-panel').style.display='flex';
+  document.getElementById('loading').style.display='flex';
+  var fr=document.getElementById('main-frame');
+  fr.src=url;
+  fr.onload=function(){ document.getElementById('loading').style.display='none'; };
+  setActive(navId);
+  closeSb();
+}
+function recarregar(){
+  if(!_url) return;
+  document.getElementById('loading').style.display='flex';
+  document.getElementById('main-frame').src=_url;
+}
+function abrirNova(){ if(_url) window.open(_url,'_blank'); }
+
+var dt=new Date();
+var m=['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+var el=document.getElementById('sb-dt');
+if(el) el.textContent=dt.getDate()+' '+m[dt.getMonth()]+' '+dt.getFullYear();
+
+document.addEventListener('keydown',function(e){ if(e.key==='Escape') goHome(); });
 </script>
 </body>
 </html>

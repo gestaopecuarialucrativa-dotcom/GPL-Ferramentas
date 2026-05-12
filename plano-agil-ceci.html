@@ -1,0 +1,1068 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Planejamento Ágil — Gestão Pecuária Lucrativa</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --v1:#1B5E20;--v2:#2E7D32;--v3:#388E3C;--v4:#4CAF50;--v5:#8BC34A;--v6:#DCEDC8;--v7:#F1F8E9;
+  --d1:#E65100;--d2:#F57F17;--d3:#FDD835;
+  --azul:#0D47A1;--azul-l:#E3F2FD;
+  --g1:#111;--g2:#2a2a2a;--g3:#555;--g4:#888;--g5:#bbb;--g6:#e4e4e4;--g7:#f4f4f4;
+  --rd:#C62828;--rdl:#FFEBEE;
+  --r:12px;--rs:8px;
+  --sh:0 2px 8px rgba(0,0,0,.07);--sh2:0 8px 24px rgba(0,0,0,.1)
+}
+html{font-size:15px;scroll-behavior:smooth}
+body{font-family:'DM Sans',sans-serif;background:var(--v7);color:var(--g1);min-height:100vh;-webkit-font-smoothing:antialiased}
+
+/* HEADER */
+.hd{background:var(--v1);padding:0 24px;height:60px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(0,0,0,.2)}
+.hd-brand{font-family:'Syne',sans-serif;font-size:15px;font-weight:700;color:white}
+.hd-brand span{color:var(--v5)}
+.hd-actions{display:flex;gap:8px}
+.hd-btn{padding:7px 14px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;border:none;font-family:'DM Sans',sans-serif;transition:all .2s}
+.hd-btn.outline{background:rgba(255,255,255,.1);color:white;border:1px solid rgba(255,255,255,.25)}
+.hd-btn.outline:hover{background:rgba(255,255,255,.2)}
+.hd-btn.solid{background:var(--v5);color:var(--v1)}
+.hd-btn.solid:hover{background:#A5D6A7}
+
+/* LAYOUT */
+.layout{max-width:1200px;margin:0 auto;padding:24px 16px}
+.page-title{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:var(--v1);margin-bottom:4px}
+.page-sub{font-size:13px;color:var(--g4);margin-bottom:24px}
+
+/* GRID */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:16px}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px}
+@media(max-width:768px){.g2,.g3,.g4{grid-template-columns:1fr}}
+
+/* CARD */
+.card{background:white;border-radius:var(--r);border:1px solid var(--v6);box-shadow:var(--sh);overflow:hidden;margin-bottom:16px}
+.card-head{padding:14px 20px;background:var(--v7);border-bottom:1px solid var(--v6);display:flex;align-items:center;gap:10px}
+.card-head-icon{width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0}
+.card-head-title{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:var(--v1)}
+.card-head-sub{font-size:11px;color:var(--g4)}
+.card-body{padding:20px}
+
+/* FORM */
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+.form-row.r3{grid-template-columns:1fr 1fr 1fr}
+.form-row.r1{grid-template-columns:1fr}
+@media(max-width:600px){.form-row,.form-row.r3{grid-template-columns:1fr}}
+.field{display:flex;flex-direction:column;gap:4px}
+.field label{font-size:11px;font-weight:600;color:var(--g4);text-transform:uppercase;letter-spacing:.4px}
+.field input,.field select{
+  padding:9px 12px;border:1.5px solid var(--g6);border-radius:var(--rs);
+  font-size:13px;font-family:'DM Sans',sans-serif;color:var(--g1);background:white;
+  transition:border-color .2s;outline:none
+}
+.field input:focus,.field select:focus{border-color:var(--v3)}
+.field input[readonly]{background:var(--v7);color:var(--v1);font-weight:600;border-color:var(--v6);cursor:default}
+.field input.calc{background:var(--v7);color:var(--v2);font-weight:700;border-color:var(--v6)}
+.field input.neg{background:var(--rdl);color:var(--rd);font-weight:700;border-color:#FFCDD2}
+
+/* KPI CARDS */
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px;margin-bottom:16px}
+.kpi{background:white;border-radius:var(--r);border:1px solid var(--v6);padding:14px 16px;position:relative;overflow:hidden}
+.kpi::before{content:'';position:absolute;top:0;left:0;right:0;height:3px}
+.kpi.verde::before{background:linear-gradient(90deg,var(--v2),var(--v5))}
+.kpi.azul::before{background:linear-gradient(90deg,var(--azul),#1976D2)}
+.kpi.laranja::before{background:linear-gradient(90deg,var(--d1),var(--d2))}
+.kpi.vermelho::before{background:linear-gradient(90deg,var(--rd),#EF5350)}
+.kpi-label{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.4px;color:var(--g4);margin-bottom:6px}
+.kpi-val{font-family:'Syne',sans-serif;font-size:20px;font-weight:800;color:var(--v1);line-height:1}
+.kpi-val.neg{color:var(--rd)}
+.kpi-val.neu{color:var(--g3)}
+.kpi-sub{font-size:11px;color:var(--g4);margin-top:4px}
+
+/* TABLE */
+.tbl-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;padding:9px 12px;background:var(--v7);color:var(--v2);font-weight:700;font-size:11px;border-bottom:2px solid var(--v6);white-space:nowrap}
+td{padding:7px 12px;border-bottom:1px solid var(--v7);vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr.total-row td{background:var(--v6);font-weight:700;color:var(--v1);border-top:2px solid var(--v4)}
+td input{border:1px solid var(--g6);border-radius:6px;padding:6px 8px;font-size:12px;font-family:'DM Sans',sans-serif;width:100%;min-width:80px;outline:none;background:white}
+td input:focus{border-color:var(--v3)}
+td input.calc{background:var(--v7);color:var(--v2);font-weight:600;border-color:var(--v6);cursor:default}
+td input.neg{background:var(--rdl);color:var(--rd);font-weight:600;border-color:#FFCDD2}
+td.lbl{font-weight:500;color:var(--g2);min-width:200px}
+.btn-add-row{background:var(--v7);border:1px dashed var(--v5);color:var(--v2);padding:8px 16px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;width:100%;margin-top:8px;font-family:'DM Sans',sans-serif;transition:all .2s}
+.btn-add-row:hover{background:var(--v6)}
+
+/* RESULT */
+.result-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:600px){.result-grid{grid-template-columns:1fr}}
+.result-box{border-radius:var(--r);padding:18px 20px;border:1px solid transparent}
+.result-box.verde{background:#E8F5E9;border-color:#A5D6A7}
+.result-box.laranja{background:#FFF3E0;border-color:#FFCC80}
+.result-box.vermelho{background:var(--rdl);border-color:#FFCDD2}
+.result-box.azul{background:var(--azul-l);border-color:#90CAF9}
+.result-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--g4);margin-bottom:6px}
+.result-val{font-family:'Syne',sans-serif;font-size:24px;font-weight:800;line-height:1;margin-bottom:4px}
+.result-val.v{color:var(--v1)}
+.result-val.l{color:#BF360C}
+.result-val.r{color:var(--rd)}
+.result-val.a{color:var(--azul)}
+.result-sub{font-size:12px;color:var(--g4);line-height:1.4}
+
+/* BENCHMARK */
+.bench-bar{height:12px;background:var(--g6);border-radius:6px;overflow:hidden;margin:8px 0 4px}
+.bench-fill{height:100%;border-radius:6px;transition:width .5s ease;background:linear-gradient(90deg,var(--v2),var(--v5))}
+.bench-fill.warn{background:linear-gradient(90deg,var(--d1),var(--d2))}
+.bench-fill.bad{background:linear-gradient(90deg,var(--rd),#EF5350)}
+.bench-labels{display:flex;justify-content:space-between;font-size:10px;color:var(--g4)}
+
+/* PLANO AÇÃO */
+.acao-table th,.acao-table td{padding:6px 8px}
+.acao-table td input{min-width:60px}
+.acao-num{width:30px;height:30px;border-radius:50%;background:var(--v6);color:var(--v1);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;margin:0 auto}
+
+/* TABS */
+.tabs{display:flex;gap:4px;margin-bottom:16px;background:white;border-radius:var(--r);border:1px solid var(--v6);padding:6px;overflow-x:auto}
+.tab{padding:8px 16px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;color:var(--g4);white-space:nowrap;transition:all .2s;border:none;background:transparent;font-family:'DM Sans',sans-serif}
+.tab.active{background:var(--v2);color:white}
+.tab:hover:not(.active){background:var(--v7);color:var(--v2)}
+.tab-content{display:none}
+.tab-content.active{display:block}
+
+/* SISTEMA BUTTONS */
+.sist-btn{padding:9px 18px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;border:1.5px solid var(--v6);background:white;color:var(--g3);font-family:'DM Sans',sans-serif;transition:all .2s}
+.sist-btn:hover{background:var(--v7);color:var(--v2);border-color:var(--v4)}
+.sist-btn.active{background:var(--v2);color:white;border-color:var(--v2)}
+
+/* PRINT */
+@media print{.hd,.hd-actions,.btn-add-row,.tabs,#sist-selector{display:none!important}.tab-content{display:block!important}body{background:white}}
+
+/* SEPARATOR */
+.sep{height:1px;background:var(--v6);margin:20px 0}
+.section-title{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;color:var(--v1);margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.section-title::after{content:'';flex:1;height:1px;background:var(--v6)}
+
+/* BADGE */
+.badge{display:inline-block;font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;text-transform:uppercase;letter-spacing:.3px}
+.badge.ok{background:#E8F5E9;color:var(--v1)}
+.badge.warn{background:#FFF8E1;color:#E65100}
+.badge.bad{background:var(--rdl);color:var(--rd)}
+</style>
+</head>
+<body>
+
+<header class="hd">
+  <div class="hd-brand">Gestão Pecuária <span>Lucrativa</span> · Planejamento Ágil</div>
+  <div class="hd-actions">
+    <button class="hd-btn outline" onclick="limpar()">🗑 Limpar</button>
+    <button class="hd-btn outline" onclick="salvar()">💾 Salvar</button>
+    <button class="hd-btn solid" onclick="window.print()">🖨 Imprimir</button>
+  </div>
+</header>
+
+<div class="layout">
+  <div class="page-title">Planejamento Ágil — Visão Safra</div>
+  <div class="page-sub">Preencha os dados da fazenda e os campos editáveis. Os cálculos são automáticos.</div>
+
+  <!-- SELETOR SISTEMA PRODUTIVO -->
+  <div id="sist-selector" style="background:white;border:1px solid var(--v6);border-radius:var(--r);padding:16px 20px;margin-bottom:16px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;box-shadow:var(--sh)">
+    <div style="font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:var(--v1);white-space:nowrap">Sistema Produtivo:</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="sist-btn active" id="btn-cria" onclick="setSistema('cria',this)">🐄 Cria</button>
+      <button class="sist-btn" id="btn-ciclo" onclick="setSistema('ciclo',this)">🔄 Ciclo Completo</button>
+      <button class="sist-btn" id="btn-recria" onclick="setSistema('recria',this)">📈 Recria e Engorda</button>
+    </div>
+    <div id="sist-desc" style="font-size:12px;color:var(--g4);flex:1;text-align:right">Foco em reprodução — fertilidade, desmame e cria de bezerros</div>
+  </div>
+
+  <!-- TABS -->
+  <div class="tabs">
+    <button class="tab active" onclick="showTab('t1',this)">📋 Fazenda</button>
+    <button class="tab" onclick="showTab('t2',this)">🐄 Receitas</button>
+    <button class="tab" onclick="showTab('t3',this)">📦 Estoque</button>
+    <button class="tab" onclick="showTab('t4',this)">💰 Desembolso</button>
+    <button class="tab" onclick="showTab('t5',this)">📊 Resultado</button>
+    <button class="tab" onclick="showTab('t6',this)">🎯 Plano de Ação</button>
+  </div>
+
+  <!-- TAB 1: FAZENDA -->
+  <div id="t1" class="tab-content active">
+    <div class="card">
+      <div class="card-head">
+        <div class="card-head-icon" style="background:#E8F5E9">🏡</div>
+        <div><div class="card-head-title">Dados da Propriedade</div><div class="card-head-sub">Identificação e valores base</div></div>
+      </div>
+      <div class="card-body">
+        <div class="form-row">
+          <div class="field"><label>Fazenda</label><input id="fazenda" type="text" placeholder="Nome da fazenda" oninput="atualizar()"></div>
+          <div class="field"><label>Produtor</label><input id="produtor" type="text" placeholder="Nome do produtor" oninput="atualizar()"></div>
+        </div>
+        <div class="form-row r3">
+          <div class="field"><label>Município</label><input id="municipio" type="text" placeholder="Cidade" oninput="atualizar()"></div>
+          <div class="field"><label>Estado</label><input id="estado" type="text" placeholder="UF" oninput="atualizar()"></div>
+          <div class="field"><label>Safra</label><input id="safra" type="text" placeholder="Ex: 2025/2026" oninput="atualizar()"></div>
+        </div>
+        <div class="sep"></div>
+        <div class="section-title">Área e Patrimônio</div>
+        <div class="form-row r3">
+          <div class="field"><label>Área Total (ha)</label><input id="area_total" type="number" placeholder="0" oninput="atualizar()"></div>
+          <div class="field"><label>Área Produtiva (ha)</label><input id="area_prod" type="number" placeholder="0" oninput="atualizar()"></div>
+          <div class="field"><label>Valor Hectare (R$/ha)</label><input id="val_ha" type="number" placeholder="0" oninput="atualizar()"></div>
+        </div>
+        <div class="form-row r3">
+          <div class="field"><label>Valor Fazenda (R$)</label><input id="val_fazenda" type="text" readonly class="calc"></div>
+          <div class="field"><label>Valor Rebanho (R$)</label><input id="val_rebanho" type="number" placeholder="0" oninput="atualizar()"></div>
+          <div class="field"><label>Potencial 4% Terra (R$)</label><input id="pot_terra" type="text" readonly class="calc"></div>
+        </div>
+        <div class="form-row">
+          <div class="field"><label>Potencial 20% Rebanho (R$)</label><input id="pot_rebanho" type="text" readonly class="calc"></div>
+          <div class="field"><label>Resultado Mínimo Necessário (R$)</label><input id="res_minimo" type="text" readonly class="calc"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <div class="card-head-icon" style="background:#FFF8E1">🎯</div>
+        <div><div class="card-head-title" id="metas-title">Metas de Reprodução e Mortalidade</div><div class="card-head-sub" id="metas-sub">Campos conforme o sistema produtivo selecionado</div></div>
+      </div>
+      <div class="card-body">
+
+        <!-- CRIA + CICLO COMPLETO -->
+        <div id="bloco-reproducao">
+          <div class="section-title">Reprodução</div>
+          <div class="form-row r3">
+            <div class="field"><label>Fertilidade (%)</label><input id="fertilidade" type="number" placeholder="0" step="0.1" oninput="atualizar()"></div>
+            <div class="field"><label>Perda Pré-Parto (%)</label><input id="perda_parto" type="number" placeholder="0" step="0.1" oninput="atualizar()"></div>
+            <div class="field"><label>Taxa de Desmame (%)</label><input id="desmame" type="number" placeholder="0" step="0.1" oninput="atualizar()"></div>
+          </div>
+          <div class="form-row r3">
+            <div class="field"><label>Peso ao Desmame (kg)</label><input id="peso_desmame" type="number" placeholder="0" oninput="atualizar()"></div>
+            <div class="field"><label>Kg Desmamado/Vaca Ex.</label><input id="kg_vaca" type="number" placeholder="0" oninput="atualizar()"></div>
+            <div class="field"><label>Vacas em Reprodução (cab)</label><input id="vacas_repro" type="number" placeholder="0" oninput="atualizar()"></div>
+          </div>
+          <!-- só ciclo completo -->
+          <div id="bloco-recria-interna" style="display:none">
+            <div class="sep"></div>
+            <div class="section-title">Recria (dentro do ciclo)</div>
+            <div class="form-row r3">
+              <div class="field"><label>GMD Recria (kg/dia)</label><input id="gmd_recria" type="number" placeholder="0" step="0.001" oninput="atualizar()"></div>
+              <div class="field"><label>Período Recria (dias)</label><input id="dias_recria" type="number" placeholder="0" oninput="atualizar()"></div>
+              <div class="field"><label>Lotação Recria (UA/ha)</label><input id="lot_recria" type="number" placeholder="0" step="0.01" oninput="atualizar()"></div>
+            </div>
+            <div class="sep"></div>
+            <div class="section-title">Engorda (dentro do ciclo)</div>
+            <div class="form-row r3">
+              <div class="field"><label>GMD Engorda (kg/dia)</label><input id="gmd_engorda_cc" type="number" placeholder="0" step="0.001" oninput="atualizar()"></div>
+              <div class="field"><label>Período Engorda (dias)</label><input id="dias_engorda_cc" type="number" placeholder="0" oninput="atualizar()"></div>
+              <div class="field"><label>Peso Abate Alvo (@)</label><input id="peso_abate_cc" type="number" placeholder="0" step="0.1" oninput="atualizar()"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- RECRIA E ENGORDA -->
+        <div id="bloco-re" style="display:none">
+          <div class="section-title">Metas de Desempenho</div>
+          <div class="form-row r3">
+            <div class="field"><label>GMD Meta (kg/dia)</label><input id="gmd_meta" type="number" placeholder="0" step="0.001" oninput="atualizar()"></div>
+            <div class="field"><label>Período (dias)</label><input id="dias_confinamento" type="number" placeholder="0" oninput="atualizar()"></div>
+            <div class="field"><label>Peso Entrada (@/cab)</label><input id="peso_entrada" type="number" placeholder="0" step="0.1" oninput="atualizar()"></div>
+          </div>
+          <div class="form-row r3">
+            <div class="field"><label>Peso Saída / Abate (@)</label><input id="peso_saida" type="number" placeholder="0" step="0.1" oninput="atualizar()"></div>
+            <div class="field"><label>Lotação Meta (UA/ha)</label><input id="lot_meta" type="number" placeholder="0" step="0.01" oninput="atualizar()"></div>
+            <div class="field"><label>Giro de Lote (lotes/ano)</label><input id="giro_lote" type="number" placeholder="0" step="0.1" oninput="atualizar()"></div>
+          </div>
+          <div class="form-row">
+            <div class="field"><label>@ Produzida/Cab (calculado)</label><input id="arr_prod_cab" type="text" readonly class="calc"></div>
+            <div class="field"><label>Arroba Produzida Projetada (total)</label><input id="arr_prod_tot" type="text" readonly class="calc"></div>
+          </div>
+          <div style="background:#F9FBE7;border:1px solid var(--v6);border-radius:8px;padding:12px 14px;margin-top:8px;font-size:12px;color:var(--g3)">
+            💡 <strong style="color:var(--v1)">Recria e Engorda:</strong> Sem reprodução — foco em GMD, lotação, custo/@ e resultado por hectare. Preencha o estoque com animais comprados.
+          </div>
+        </div>
+
+        <div class="sep"></div>
+        <div class="section-title">Mortalidade Meta</div>
+        <div class="form-row r3" id="bloco-mort-bez" >
+          <div class="field"><label>Mortalidade Bezerros (%)</label><input id="mort_bez" type="number" placeholder="0" step="0.1" oninput="atualizar()"></div>
+          <div class="field"><label>Mortalidade Jovens (%)</label><input id="mort_jov" type="number" value="1" step="0.1" oninput="atualizar()"></div>
+          <div class="field"><label>Mortalidade Adultos (%)</label><input id="mort_adu" type="number" value="1.5" step="0.1" oninput="atualizar()"></div>
+        </div>
+        <div class="form-row r3" id="bloco-mort-re" style="display:none">
+          <div class="field"><label>Mortalidade Jovens (%)</label><input id="mort_jov_re" type="number" value="1" step="0.1" oninput="atualizar()"></div>
+          <div class="field"><label>Mortalidade em Engorda (%)</label><input id="mort_eng" type="number" value="0.5" step="0.1" oninput="atualizar()"></div>
+          <div class="field"><label>Mortalidade Geral Meta (%)</label><input id="mort_geral_re" type="number" value="1" step="0.1" oninput="atualizar()"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 2: RECEITAS -->
+  <div id="t2" class="tab-content">
+    <div class="card">
+      <div class="card-head">
+        <div class="card-head-icon" style="background:#E8F5E9">💵</div>
+        <div><div class="card-head-title">Receitas — Categorias de Venda</div><div class="card-head-sub">Informe as categorias, quantidades, peso em @ e valor por @</div></div>
+      </div>
+      <div class="card-body">
+        <div class="tbl-wrap">
+          <table id="tbl-receitas">
+            <thead>
+              <tr>
+                <th>Categoria</th>
+                <th>Qtd (cab)</th>
+                <th>Peso (@/cab)</th>
+                <th>Valor (@) R$</th>
+                <th>Total (R$)</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="tbody-receitas">
+              <tr>
+                <td><input type="text" placeholder="Ex: Vacas descarte" oninput="calcReceitas()"></td>
+                <td><input type="number" placeholder="0" oninput="calcReceitas()"></td>
+                <td><input type="number" placeholder="0" step="0.1" oninput="calcReceitas()"></td>
+                <td><input type="number" placeholder="0" oninput="calcReceitas()"></td>
+                <td><input type="text" class="calc" readonly></td>
+                <td><button onclick="remRow(this,'tbody-receitas')" style="background:none;border:none;cursor:pointer;color:#ccc;font-size:16px">✕</button></td>
+              </tr>
+              <tr>
+                <td><input type="text" placeholder="Ex: Machos até 12m" oninput="calcReceitas()"></td>
+                <td><input type="number" placeholder="0" oninput="calcReceitas()"></td>
+                <td><input type="number" placeholder="0" step="0.1" oninput="calcReceitas()"></td>
+                <td><input type="number" placeholder="0" oninput="calcReceitas()"></td>
+                <td><input type="text" class="calc" readonly></td>
+                <td><button onclick="remRow(this,'tbody-receitas')" style="background:none;border:none;cursor:pointer;color:#ccc;font-size:16px">✕</button></td>
+              </tr>
+            </tbody>
+            <tfoot>
+              <tr class="total-row">
+                <td>TOTAL</td>
+                <td><input id="rec_total_cab" type="text" class="calc" readonly></td>
+                <td><input id="rec_media_peso" type="text" class="calc" readonly></td>
+                <td><input id="rec_media_val" type="text" class="calc" readonly></td>
+                <td><input id="rec_total_rs" type="text" class="calc" readonly></td>
+                <td></td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+        <button class="btn-add-row" onclick="addRow('tbody-receitas','rec')">+ Adicionar categoria</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 3: ESTOQUE -->
+  <div id="t3" class="tab-content">
+    <div class="card">
+      <div class="card-head">
+        <div class="card-head-icon" style="background:#E3F2FD">📦</div>
+        <div><div class="card-head-title">Estoque Pecuário</div><div class="card-head-sub">Movimentação do rebanho na safra</div></div>
+      </div>
+      <div class="card-body">
+        <div class="tbl-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Movimento</th>
+                <th>Cabeças</th>
+                <th>Peso/Cab (@)</th>
+                <th>Total (@)</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="lbl">Estoque Inicial</td>
+                <td><input id="est_ini_cab" type="number" placeholder="0" oninput="calcEstoque()"></td>
+                <td><input id="est_ini_peso" type="number" placeholder="0" step="0.01" oninput="calcEstoque()"></td>
+                <td><input id="est_ini_tot" type="text" class="calc" readonly></td>
+              </tr>
+              <tr>
+                <td class="lbl">Nascimentos</td>
+                <td><input id="nasc_cab" type="number" placeholder="0" oninput="calcEstoque()"></td>
+                <td><input id="nasc_peso" type="number" placeholder="0" step="0.01" oninput="calcEstoque()"></td>
+                <td><input id="nasc_tot" type="text" class="calc" readonly></td>
+              </tr>
+              <tr>
+                <td class="lbl">Compras</td>
+                <td><input id="comp_cab" type="number" placeholder="0" oninput="calcEstoque()"></td>
+                <td><input id="comp_peso" type="number" placeholder="0" step="0.01" oninput="calcEstoque()"></td>
+                <td><input id="comp_tot" type="text" class="calc" readonly></td>
+              </tr>
+              <tr>
+                <td class="lbl">Vendas</td>
+                <td><input id="vend_cab" type="number" placeholder="0" oninput="calcEstoque()"></td>
+                <td><input id="vend_peso" type="number" placeholder="0" step="0.01" oninput="calcEstoque()"></td>
+                <td><input id="vend_tot" type="text" class="calc" readonly></td>
+              </tr>
+              <tr>
+                <td class="lbl">Mortes</td>
+                <td><input id="mort_cab" type="number" placeholder="0" oninput="calcEstoque()"></td>
+                <td><input id="mort_peso" type="number" placeholder="0" step="0.01" oninput="calcEstoque()"></td>
+                <td><input id="mort_tot" type="text" class="calc" readonly></td>
+              </tr>
+              <tr class="total-row">
+                <td>Estoque Final</td>
+                <td><input id="est_fin_cab" type="text" class="calc" readonly></td>
+                <td><input id="est_fin_peso" type="text" class="calc" readonly></td>
+                <td><input id="est_fin_tot" type="text" class="calc" readonly></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="sep"></div>
+        <div class="form-row r3">
+          <div class="field"><label>Rebanho Médio (cab)</label><input id="reb_medio" type="text" readonly class="calc"></div>
+          <div class="field"><label>Val. Compra Bovinos (R$)</label><input id="val_compra_bov" type="number" placeholder="0" oninput="calcEstoque()"></div>
+          <div class="field"><label>Variação Estoque Pecuário (R$)</label><input id="var_estoque" type="text" readonly class="calc"></div>
+        </div>
+        <div class="form-row">
+          <div class="field"><label>Estoque Insumos Inicial (R$)</label><input id="estq_ins_ini" type="number" placeholder="0" oninput="atualizar()"></div>
+          <div class="field"><label>Estoque Insumos Final (R$)</label><input id="estq_ins_fin" type="number" placeholder="0" oninput="atualizar()"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 4: DESEMBOLSO -->
+  <div id="t4" class="tab-content">
+    <div class="card">
+      <div class="card-head">
+        <div class="card-head-icon" style="background:#FFF8E1">💸</div>
+        <div><div class="card-head-title">Desembolso — Centro de Custo</div><div class="card-head-sub">Custo por cabeça/mês · cálculo automático do total anual</div></div>
+      </div>
+      <div class="card-body">
+        <div class="tbl-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Centro de Custo</th>
+                <th>R$/Cab/Mês</th>
+                <th>R$/Cab/Ano</th>
+                <th>Total Anual (R$)</th>
+              </tr>
+            </thead>
+            <tbody id="tbody-desp">
+              <tr>
+                <td class="lbl">Insumos do Rebanho</td>
+                <td><input class="desp-cab" type="number" placeholder="0" step="0.01" oninput="calcDesp()"></td>
+                <td><input type="text" class="calc desp-ano" readonly></td>
+                <td><input type="text" class="calc desp-tot" readonly></td>
+              </tr>
+              <tr>
+                <td class="lbl">Mão de Obra Permanente</td>
+                <td><input class="desp-cab" type="number" placeholder="0" step="0.01" oninput="calcDesp()"></td>
+                <td><input type="text" class="calc desp-ano" readonly></td>
+                <td><input type="text" class="calc desp-tot" readonly></td>
+              </tr>
+              <tr>
+                <td class="lbl">Administração</td>
+                <td><input class="desp-cab" type="number" placeholder="0" step="0.01" oninput="calcDesp()"></td>
+                <td><input type="text" class="calc desp-ano" readonly></td>
+                <td><input type="text" class="calc desp-tot" readonly></td>
+              </tr>
+              <tr>
+                <td class="lbl">Parque de Máquinas</td>
+                <td><input class="desp-cab" type="number" placeholder="0" step="0.01" oninput="calcDesp()"></td>
+                <td><input type="text" class="calc desp-ano" readonly></td>
+                <td><input type="text" class="calc desp-tot" readonly></td>
+              </tr>
+              <tr>
+                <td class="lbl">Pastagem: Custeio + Investimentos</td>
+                <td><input class="desp-cab" type="number" placeholder="0" step="0.01" oninput="calcDesp()"></td>
+                <td><input type="text" class="calc desp-ano" readonly></td>
+                <td><input type="text" class="calc desp-tot" readonly></td>
+              </tr>
+              <tr>
+                <td class="lbl">Infraestrutura: Custeio + Investimentos</td>
+                <td><input class="desp-cab" type="number" placeholder="0" step="0.01" oninput="calcDesp()"></td>
+                <td><input type="text" class="calc desp-ano" readonly></td>
+                <td><input type="text" class="calc desp-tot" readonly></td>
+              </tr>
+              <tr>
+                <td class="lbl">Taxas e Impostos</td>
+                <td><input class="desp-cab" type="number" placeholder="0" step="0.01" oninput="calcDesp()"></td>
+                <td><input type="text" class="calc desp-ano" readonly></td>
+                <td><input type="text" class="calc desp-tot" readonly></td>
+              </tr>
+              <tr>
+                <td class="lbl">Outros</td>
+                <td><input class="desp-cab" type="number" placeholder="0" step="0.01" oninput="calcDesp()"></td>
+                <td><input type="text" class="calc desp-ano" readonly></td>
+                <td><input type="text" class="calc desp-tot" readonly></td>
+              </tr>
+            </tbody>
+            <tfoot>
+              <tr class="total-row">
+                <td>TOTAL</td>
+                <td><input id="desp_total_cab_mes" type="text" class="calc" readonly></td>
+                <td><input id="desp_total_cab_ano" type="text" class="calc" readonly></td>
+                <td><input id="desp_total_anual" type="text" class="calc" readonly></td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+        <div class="sep"></div>
+        <div class="form-row r3">
+          <div class="field"><label>Custeio/Cab/Mês (86%)</label><input id="custeio_cab" type="text" readonly class="calc"></div>
+          <div class="field"><label>Desembolso/Cab/Mês</label><input id="desemb_cab_mes" type="text" readonly class="calc"></div>
+          <div class="field"><label>Desembolso/@ Produzida</label><input id="desemb_arroba" type="text" readonly class="calc"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 5: RESULTADO -->
+  <div id="t5" class="tab-content">
+
+    <div class="kpi-grid">
+      <div class="kpi verde">
+        <div class="kpi-label">Produção Global</div>
+        <div class="kpi-val" id="kpi_prod_global">—</div>
+        <div class="kpi-sub">arrobas</div>
+      </div>
+      <div class="kpi verde">
+        <div class="kpi-label">Produção @/ha</div>
+        <div class="kpi-val" id="kpi_prod_ha">—</div>
+        <div class="kpi-sub">arrobas por hectare</div>
+      </div>
+      <div class="kpi azul">
+        <div class="kpi-label">GMD Global</div>
+        <div class="kpi-val" id="kpi_gmd">—</div>
+        <div class="kpi-sub">kg/animal/dia</div>
+      </div>
+      <div class="kpi azul">
+        <div class="kpi-label">Lotação UA/ha</div>
+        <div class="kpi-val" id="kpi_lotacao">—</div>
+        <div class="kpi-sub">unidades animais por ha</div>
+      </div>
+      <div class="kpi laranja">
+        <div class="kpi-label">Valor Médio Venda</div>
+        <div class="kpi-val" id="kpi_val_venda">—</div>
+        <div class="kpi-sub">R$ por arroba</div>
+      </div>
+      <div class="kpi laranja">
+        <div class="kpi-label">Mortalidade Geral</div>
+        <div class="kpi-val" id="kpi_mort">—</div>
+        <div class="kpi-sub">% do rebanho médio</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <div class="card-head-icon" style="background:#E8F5E9">📊</div>
+        <div><div class="card-head-title">Visão de Safra — Resultado Projetado</div></div>
+      </div>
+      <div class="card-body">
+        <div class="result-grid">
+          <div class="result-box verde">
+            <div class="result-label">Receita Total</div>
+            <div class="result-val v" id="res_receita">R$ 0</div>
+            <div class="result-sub">Valor total das vendas projetadas</div>
+          </div>
+          <div class="result-box vermelho">
+            <div class="result-label">Despesa Total</div>
+            <div class="result-val r" id="res_despesa">R$ 0</div>
+            <div class="result-sub">Desembolso total projetado</div>
+          </div>
+          <div class="result-box verde" id="box_resultado">
+            <div class="result-label">Resultado Produtivo</div>
+            <div class="result-val v" id="res_resultado">R$ 0</div>
+            <div class="result-sub" id="res_resultado_sub">Receita − Despesa + Variação Estoque</div>
+          </div>
+          <div class="result-box azul">
+            <div class="result-label">Resultado R$/ha</div>
+            <div class="result-val a" id="res_rpha">R$ 0</div>
+            <div class="result-sub">Resultado por hectare produtivo</div>
+          </div>
+          <div class="result-box laranja">
+            <div class="result-label">Margem sobre Venda</div>
+            <div class="result-val l" id="res_margem">0%</div>
+            <div class="result-sub">Resultado / Receita total</div>
+          </div>
+          <div class="result-box laranja">
+            <div class="result-label">Desembolso/@ Produzida</div>
+            <div class="result-val l" id="res_desemb_arr">R$ 0</div>
+            <div class="result-sub">Custo por arroba produzida</div>
+          </div>
+        </div>
+
+        <div class="sep"></div>
+        <div class="section-title">Benchmark de Referência</div>
+
+        <div style="margin-bottom:12px">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+            <span style="font-size:13px;font-weight:600;color:var(--g2)">Resultado vs. Meta Terra (4%)</span>
+            <span class="badge" id="bench_terra_badge">—</span>
+          </div>
+          <div class="bench-bar"><div class="bench-fill" id="bench_terra_bar" style="width:0%"></div></div>
+          <div class="bench-labels"><span id="bench_terra_real">Real: R$ 0</span><span id="bench_terra_meta">Meta: R$ 0</span></div>
+        </div>
+
+        <div style="margin-bottom:12px">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+            <span style="font-size:13px;font-weight:600;color:var(--g2)">Resultado vs. Meta Rebanho (20%)</span>
+            <span class="badge" id="bench_reb_badge">—</span>
+          </div>
+          <div class="bench-bar"><div class="bench-fill" id="bench_reb_bar" style="width:0%"></div></div>
+          <div class="bench-labels"><span id="bench_reb_real">Real: R$ 0</span><span id="bench_reb_meta">Meta: R$ 0</span></div>
+        </div>
+
+        <div>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+            <span style="font-size:13px;font-weight:600;color:var(--g2)">Margem sobre Venda vs. Meta 20%</span>
+            <span class="badge" id="bench_marg_badge">—</span>
+          </div>
+          <div class="bench-bar"><div class="bench-fill" id="bench_marg_bar" style="width:0%"></div></div>
+          <div class="bench-labels"><span id="bench_marg_real">Real: 0%</span><span>Meta: 20%</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <div class="card-head-icon" style="background:#F9FBE7">🎯</div>
+        <div><div class="card-head-title">Indicadores de Resultado</div></div>
+      </div>
+      <div class="card-body">
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr><th>Indicador</th><th>Valor</th><th>Como é calculado</th></tr></thead>
+            <tbody>
+              <tr><td class="lbl">Mortalidade Geral (%)</td><td><input id="ind_mort" type="text" class="calc" readonly></td><td style="font-size:11px;color:var(--g4)">mortes / rebanho médio</td></tr>
+              <tr><td class="lbl">GMD Global (kg)</td><td><input id="ind_gmd" type="text" class="calc" readonly></td><td style="font-size:11px;color:var(--g4)">kg produzidos / rebanho médio / 365 dias</td></tr>
+              <tr><td class="lbl">Lotação Global (UA/ha)</td><td><input id="ind_lot_ua" type="text" class="calc" readonly></td><td style="font-size:11px;color:var(--g4)">UAs / área produtiva</td></tr>
+              <tr><td class="lbl">Lotação Global (Cab/ha)</td><td><input id="ind_lot_cab" type="text" class="calc" readonly></td><td style="font-size:11px;color:var(--g4)">cabeças / área produtiva</td></tr>
+              <tr><td class="lbl">Custeio/Cab/Mês (R$)</td><td><input id="ind_custeio" type="text" class="calc" readonly></td><td style="font-size:11px;color:var(--g4)">86% do desembolso/cab/mês</td></tr>
+              <tr><td class="lbl">Desembolso/Cab/Mês (R$)</td><td><input id="ind_desemb" type="text" class="calc" readonly></td><td style="font-size:11px;color:var(--g4)">desembolso total / rebanho médio / 12</td></tr>
+              <tr><td class="lbl">Desembolso/@ Produzida (R$)</td><td><input id="ind_darr" type="text" class="calc" readonly></td><td style="font-size:11px;color:var(--g4)">desembolso total / total arrobas produzidas</td></tr>
+              <tr><td class="lbl">Valor Médio de Venda (R$/@)</td><td><input id="ind_vmv" type="text" class="calc" readonly></td><td style="font-size:11px;color:var(--g4)">média ponderada das vendas</td></tr>
+              <tr><td class="lbl">Produção @/ha</td><td><input id="ind_arrha" type="text" class="calc" readonly></td><td style="font-size:11px;color:var(--g4)">arrobas produzidas / área produtiva</td></tr>
+              <tr><td class="lbl">Resultado Produtivo R$/ha</td><td><input id="ind_respha" type="text" class="calc" readonly></td><td style="font-size:11px;color:var(--g4)">(val. venda − desemb./@) × @/ha</td></tr>
+              <tr><td class="lbl">Margem Operação Pecuária (%)</td><td><input id="ind_marg" type="text" class="calc" readonly></td><td style="font-size:11px;color:var(--g4)">resultado / receita</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 6: PLANO AÇÃO -->
+  <div id="t6" class="tab-content">
+    <div class="card">
+      <div class="card-head">
+        <div class="card-head-icon" style="background:#EDE7F6">📝</div>
+        <div><div class="card-head-title">Plano de Ação</div><div class="card-head-sub">Objetivos, ações e responsáveis da safra</div></div>
+      </div>
+      <div class="card-body">
+        <div class="tbl-wrap">
+          <table class="acao-table">
+            <thead>
+              <tr>
+                <th style="width:36px">#</th>
+                <th>Objetivo / Iniciativa</th>
+                <th>Ação</th>
+                <th>Quem?</th>
+                <th>Quando?</th>
+                <th>Onde?</th>
+                <th>Quanto? (R$)</th>
+                <th>Como?</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="tbody-acao">
+              <tr>
+                <td><div class="acao-num">1</div></td>
+                <td><input type="text" placeholder="Ex: Reduzir mortalidade"></td>
+                <td><input type="text" placeholder="Ex: Revisar protocolo sanitário"></td>
+                <td><input type="text" placeholder="Responsável"></td>
+                <td><input type="text" placeholder="Prazo"></td>
+                <td><input type="text" placeholder="Local"></td>
+                <td><input type="number" placeholder="0"></td>
+                <td><input type="text" placeholder="Como executar"></td>
+                <td><button onclick="remRow(this,'tbody-acao')" style="background:none;border:none;cursor:pointer;color:#ccc;font-size:16px">✕</button></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <button class="btn-add-row" onclick="addAcaoRow()">+ Adicionar ação</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ── TABS ──
+function showTab(id,btn){
+  document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  btn.classList.add('active');
+}
+
+// ── FORMAT ──
+function fmt(n,dec=0){
+  if(!isFinite(n)||isNaN(n))return '—';
+  return n.toLocaleString('pt-BR',{minimumFractionDigits:dec,maximumFractionDigits:dec});
+}
+function fmtR(n,dec=2){
+  if(!isFinite(n)||isNaN(n))return '—';
+  return 'R$ '+n.toLocaleString('pt-BR',{minimumFractionDigits:dec,maximumFractionDigits:dec});
+}
+function fmtP(n){
+  if(!isFinite(n)||isNaN(n))return '—';
+  return n.toFixed(2)+'%';
+}
+function v(id){return parseFloat(document.getElementById(id)?.value)||0}
+function set(id,val){const el=document.getElementById(id);if(el)el.value=val}
+function setEl(id,html){const el=document.getElementById(id);if(el)el.innerHTML=html}
+
+// ── SISTEMA PRODUTIVO ──
+let sistemaAtual='cria';
+function setSistema(s,btn){
+  sistemaAtual=s;
+  document.querySelectorAll('.sist-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+
+  const desc={
+    cria:'Foco em reprodução — fertilidade, desmame e cria de bezerros',
+    ciclo:'Reprodução + recria + engorda — ciclo completo na propriedade',
+    recria:'Sem reprodução — foco em GMD, lotação, custo/@ e resultado/ha'
+  };
+  document.getElementById('sist-desc').textContent=desc[s];
+
+  const titulos={
+    cria:'Metas de Reprodução e Mortalidade',
+    ciclo:'Metas de Reprodução, Recria e Engorda',
+    recria:'Metas de Desempenho — Recria e Engorda'
+  };
+  document.getElementById('metas-title').textContent=titulos[s];
+
+  // Blocos de reprodução
+  const blocoRepro=document.getElementById('bloco-reproducao');
+  const blocoRE=document.getElementById('bloco-re');
+  const blocoRecInterna=document.getElementById('bloco-recria-interna');
+  const blocoMortBez=document.getElementById('bloco-mort-bez');
+  const blocoMortRe=document.getElementById('bloco-mort-re');
+
+  if(s==='cria'){
+    blocoRepro.style.display='';
+    blocoRE.style.display='none';
+    blocoRecInterna.style.display='none';
+    blocoMortBez.style.display='';
+    blocoMortRe.style.display='none';
+  } else if(s==='ciclo'){
+    blocoRepro.style.display='';
+    blocoRE.style.display='none';
+    blocoRecInterna.style.display='';
+    blocoMortBez.style.display='';
+    blocoMortRe.style.display='none';
+  } else {
+    blocoRepro.style.display='none';
+    blocoRE.style.display='';
+    blocoMortBez.style.display='none';
+    blocoMortRe.style.display='';
+  }
+  atualizar();
+}
+
+// ── RECEITAS ──
+function calcReceitas(){
+  const rows=document.querySelectorAll('#tbody-receitas tr');
+  let totCab=0,totValor=0,arrobas=0;
+  rows.forEach(r=>{
+    const ins=r.querySelectorAll('input');
+    if(ins.length<5)return;
+    const cab=parseFloat(ins[1].value)||0;
+    const peso=parseFloat(ins[2].value)||0;
+    const valArr=parseFloat(ins[3].value)||0;
+    const tot=cab*peso*valArr;
+    ins[4].value=tot>0?fmtR(tot):'';
+    totCab+=cab;
+    totValor+=tot;
+    arrobas+=cab*peso;
+  });
+  set('rec_total_cab',totCab||'');
+  set('rec_media_peso',totCab>0?fmt(arrobas/totCab,2):'');
+  set('rec_media_val',arrobas>0?fmt(totValor/arrobas,2):'');
+  set('rec_total_rs',totValor>0?fmtR(totValor):'');
+  atualizar();
+}
+
+// ── ESTOQUE ──
+function calcEstoque(){
+  const eiC=v('est_ini_cab'),eiP=v('est_ini_peso');
+  const nC=v('nasc_cab'),nP=v('nasc_peso');
+  const cC=v('comp_cab'),cP=v('comp_peso');
+  const vC=v('vend_cab'),vP=v('vend_peso');
+  const mC=v('mort_cab'),mP=v('mort_peso');
+
+  set('est_ini_tot',eiC&&eiP?fmt(eiC*eiP,2):'');
+  set('nasc_tot',nC&&nP?fmt(nC*nP,2):'');
+  set('comp_tot',cC&&cP?fmt(cC*cP,2):'');
+  set('vend_tot',vC&&vP?fmt(vC*vP,2):'');
+  set('mort_tot',mC&&mP?fmt(mC*mP,2):'');
+
+  const efC=eiC+nC+cC-vC-mC;
+  const efArr=eiC*eiP+nC*nP+cC*cP-vC*vP-mC*mP;
+  const efP=efC>0?efArr/efC:0;
+  set('est_fin_cab',fmt(efC));
+  set('est_fin_peso',fmt(efP,2));
+  set('est_fin_tot',fmt(efArr,2));
+  set('reb_medio',fmt((eiC+efC)/2,1));
+  atualizar();
+}
+
+// ── DESEMBOLSO ──
+function calcDesp(){
+  const rebMedio=(parseFloat(document.getElementById('reb_medio')?.value?.replace(/\./g,'').replace(',','.'))||0);
+  const rows=document.querySelectorAll('#tbody-desp tr');
+  let totCabMes=0,totAnual=0;
+  rows.forEach(r=>{
+    const cabInp=r.querySelector('.desp-cab');
+    const anoInp=r.querySelector('.desp-ano');
+    const totInp=r.querySelector('.desp-tot');
+    if(!cabInp)return;
+    const cab=parseFloat(cabInp.value)||0;
+    const ano=cab*12;
+    const tot=ano*Math.max(rebMedio,1);
+    if(anoInp)anoInp.value=cab>0?fmt(ano,2):'';
+    if(totInp)totInp.value=tot>0?fmtR(tot):'';
+    totCabMes+=cab;
+    totAnual+=tot;
+  });
+  set('desp_total_cab_mes',fmt(totCabMes,2));
+  set('desp_total_cab_ano',fmt(totCabMes*12,2));
+  set('desp_total_anual',fmtR(totAnual));
+  atualizar();
+}
+
+// ── PRINCIPAL ──
+function atualizar(){
+  // Fazenda
+  const areaProd=v('area_prod')||v('area_total');
+  const areaTotal=v('area_total');
+  const valHa=v('val_ha');
+  const valFaz=areaTotal*valHa;
+  const valReb=v('val_rebanho');
+  set('val_fazenda',valFaz>0?fmtR(valFaz):'');
+  const potTerra=valFaz*0.04;
+  const potReb=valReb*0.20;
+  set('pot_terra',potTerra>0?fmtR(potTerra):'');
+  set('pot_rebanho',potReb>0?fmtR(potReb):'');
+  set('res_minimo',fmtR(potTerra+potReb));
+
+  // Receita
+  const totValRow=[];
+  const totArrRow=[];
+  document.querySelectorAll('#tbody-receitas tr').forEach(r=>{
+    const ins=r.querySelectorAll('input');
+    if(ins.length<5)return;
+    const cab=parseFloat(ins[1].value)||0;
+    const peso=parseFloat(ins[2].value)||0;
+    const valArr=parseFloat(ins[3].value)||0;
+    totValRow.push(cab*peso*valArr);
+    totArrRow.push(cab*peso);
+  });
+  const receita=totValRow.reduce((a,b)=>a+b,0);
+  const arrobasVendidas=totArrRow.reduce((a,b)=>a+b,0);
+
+  // Estoque
+  const eiC=v('est_ini_cab'),eiP=v('est_ini_peso');
+  const nC=v('nasc_cab'),nP=v('nasc_peso');
+  const cC=v('comp_cab'),cP=v('comp_peso');
+  const vC=v('vend_cab'),vP=v('vend_peso');
+  const mC=v('mort_cab'),mP=v('mort_peso');
+  const efC=eiC+nC+cC-vC-mC;
+  const efArr=eiC*eiP+nC*nP+cC*cP-vC*vP-mC*mP;
+  const rebMedio=(eiC+efC)/2;
+
+  // Recria e Engorda — projeção de @ produzida
+  if(sistemaAtual==='recria'){
+    const pesoEnt=v('peso_entrada');
+    const pesoSai=v('peso_saida');
+    const arrProdCab=Math.max(pesoSai-pesoEnt,0);
+    const giro=v('giro_lote')||1;
+    const rebM=Math.max(rebMedio,1);
+    const arrTot=arrProdCab*rebM*giro;
+    set('arr_prod_cab',fmt(arrProdCab,2));
+    set('arr_prod_tot',fmt(arrTot,1));
+  }
+
+  // Arrobas produzidas = vendas + variação positiva de estoque
+  const arrobaProd=arrobasVendidas+(efArr-(eiC*eiP));
+  const prodGlobal=Math.max(arrobaProd,0);
+  const prodHa=areaProd>0?prodGlobal/areaProd:0;
+
+  // Desembolso
+  let despTotal=0;
+  document.querySelectorAll('#tbody-desp tr').forEach(r=>{
+    const cabInp=r.querySelector('.desp-cab');
+    if(!cabInp)return;
+    const cab=parseFloat(cabInp.value)||0;
+    despTotal+=cab*12*Math.max(rebMedio,1);
+    // update ano/tot
+    const anoInp=r.querySelector('.desp-ano');
+    const totInp=r.querySelector('.desp-tot');
+    if(anoInp)anoInp.value=cab>0?fmt(cab*12,2):'';
+    if(totInp)totInp.value=cab>0?fmtR(cab*12*Math.max(rebMedio,1)):'';
+  });
+
+  let totCabMes=0;
+  document.querySelectorAll('.desp-cab').forEach(i=>totCabMes+=parseFloat(i.value)||0);
+  set('desp_total_cab_mes',fmt(totCabMes,2));
+  set('desp_total_cab_ano',fmt(totCabMes*12,2));
+  set('desp_total_anual',fmtR(despTotal));
+
+  const custeio=totCabMes*0.86;
+  const desembCabMes=rebMedio>0?despTotal/rebMedio/12:0;
+  const desembArr=prodGlobal>0?despTotal/prodGlobal:0;
+  set('custeio_cab',fmt(custeio,2));
+  set('desemb_cab_mes',fmt(desembCabMes,2));
+  set('desemb_arroba',fmt(desembArr,2));
+  set('ind_custeio',fmt(custeio,2));
+  set('ind_desemb',fmt(desembCabMes,2));
+  set('ind_darr',fmt(desembArr,2));
+
+  // Variação estoque pecuário
+  const valMedVenda=arrobasVendidas>0?receita/arrobasVendidas:0;
+  const varEstPec=efC>0?(efArr*valMedVenda)-(eiC*eiP*valMedVenda):0;
+  set('var_estoque',fmtR(varEstPec));
+
+  // Variação insumos
+  const varIns=(v('estq_ins_fin'))-(v('estq_ins_ini'));
+
+  // Resultado
+  const resultado=receita-despTotal+varEstPec+varIns;
+  const margem=receita>0?resultado/receita*100:0;
+  const resRpha=areaProd>0?resultado/areaProd:0;
+
+  // Mortalidade
+  const mortGeral=rebMedio>0?mC/rebMedio*100:0;
+
+  // GMD
+  const kgProd=prodGlobal*15;// 1@=15kg
+  const gmd=rebMedio>0&&kgProd>0?kgProd/rebMedio/365:0;
+
+  // Lotação
+  const lot_ua=areaProd>0?rebMedio*0.9/areaProd:0;// UA~0.9 media
+  const lot_cab=areaProd>0?rebMedio/areaProd:0;
+
+  // KPIs
+  setEl('kpi_prod_global',prodGlobal>0?fmt(prodGlobal,1):'—');
+  setEl('kpi_prod_ha',prodHa>0?fmt(prodHa,2)+'<span style="font-size:14px;font-weight:400"> @/ha</span>':'—');
+  setEl('kpi_gmd',gmd>0?fmt(gmd,3):'—');
+  setEl('kpi_lotacao',lot_ua>0?fmt(lot_ua,2):'—');
+  setEl('kpi_val_venda',valMedVenda>0?'R$ '+fmt(valMedVenda,2):'—');
+  setEl('kpi_mort',mortGeral>0?fmtP(mortGeral):'—');
+
+  // Results
+  setEl('res_receita',fmtR(receita));
+  setEl('res_despesa',fmtR(despTotal));
+  const resBox=document.getElementById('box_resultado');
+  setEl('res_resultado',fmtR(resultado));
+  if(resBox){resBox.className='result-box '+(resultado>=0?'verde':'vermelho')}
+  const resEl=document.getElementById('res_resultado');
+  if(resEl)resEl.className='result-val '+(resultado>=0?'v':'r');
+  setEl('res_rpha',fmtR(resRpha));
+  setEl('res_margem',fmtP(margem));
+  setEl('res_desemb_arr',fmtR(desembArr));
+
+  // Indicadores tabela
+  set('ind_mort',fmtP(mortGeral));
+  set('ind_gmd',fmt(gmd,3));
+  set('ind_lot_ua',fmt(lot_ua,2));
+  set('ind_lot_cab',fmt(lot_cab,2));
+  set('ind_vmv',fmtR(valMedVenda));
+  set('ind_arrha',fmt(prodHa,2));
+  set('ind_respha',fmtR(resRpha));
+  set('ind_marg',fmtP(margem));
+
+  // Benchmarks
+  const pct_terra=potTerra>0?Math.min(resultado/potTerra*100,150):0;
+  const pct_reb=potReb>0?Math.min(resultado/potReb*100,150):0;
+  const pct_marg=Math.min(margem/20*100,150);
+
+  function setBench(barId,badgeId,pct,real,meta){
+    const bar=document.getElementById(barId);
+    const badge=document.getElementById(badgeId);
+    if(!bar||!badge)return;
+    const p=Math.max(0,Math.min(pct,100));
+    bar.style.width=p+'%';
+    if(pct>=100){bar.className='bench-fill';badge.className='badge ok';badge.textContent='✓ Atingido'}
+    else if(pct>=70){bar.className='bench-fill warn';badge.className='badge warn';badge.textContent=fmt(pct,0)+'%'}
+    else{bar.className='bench-fill bad';badge.className='badge bad';badge.textContent=fmt(pct,0)+'%'}
+  }
+  setBench('bench_terra_bar','bench_terra_badge',pct_terra);
+  setBench('bench_reb_bar','bench_reb_badge',pct_reb);
+  setBench('bench_marg_bar','bench_marg_badge',pct_marg);
+  setEl('bench_terra_real','Real: '+fmtR(resultado));
+  setEl('bench_terra_meta','Meta: '+fmtR(potTerra));
+  setEl('bench_reb_real','Real: '+fmtR(resultado));
+  setEl('bench_reb_meta','Meta: '+fmtR(potReb));
+  setEl('bench_marg_real','Real: '+fmtP(margem));
+}
+
+// ── ADD/REMOVE ROWS ──
+function addRow(tbodyId, type){
+  const tbody=document.getElementById(tbodyId);
+  const tr=document.createElement('tr');
+  tr.innerHTML=`
+    <td><input type="text" placeholder="Categoria" oninput="calcReceitas()"></td>
+    <td><input type="number" placeholder="0" oninput="calcReceitas()"></td>
+    <td><input type="number" placeholder="0" step="0.1" oninput="calcReceitas()"></td>
+    <td><input type="number" placeholder="0" oninput="calcReceitas()"></td>
+    <td><input type="text" class="calc" readonly></td>
+    <td><button onclick="remRow(this,'${tbodyId}')" style="background:none;border:none;cursor:pointer;color:#ccc;font-size:16px">✕</button></td>`;
+  tbody.appendChild(tr);
+}
+function addAcaoRow(){
+  const tbody=document.getElementById('tbody-acao');
+  const n=tbody.querySelectorAll('tr').length+1;
+  const tr=document.createElement('tr');
+  tr.innerHTML=`
+    <td><div class="acao-num">${n}</div></td>
+    <td><input type="text" placeholder="Objetivo"></td>
+    <td><input type="text" placeholder="Ação"></td>
+    <td><input type="text" placeholder="Quem?"></td>
+    <td><input type="text" placeholder="Quando?"></td>
+    <td><input type="text" placeholder="Onde?"></td>
+    <td><input type="number" placeholder="0"></td>
+    <td><input type="text" placeholder="Como?"></td>
+    <td><button onclick="remRow(this,'tbody-acao')" style="background:none;border:none;cursor:pointer;color:#ccc;font-size:16px">✕</button></td>`;
+  tbody.appendChild(tr);
+}
+function remRow(btn,tbodyId){
+  const row=btn.closest('tr');
+  const tbody=document.getElementById(tbodyId);
+  if(tbody.querySelectorAll('tr').length>1){row.remove();atualizar();}
+}
+
+// ── SALVAR / LIMPAR ──
+function salvar(){
+  const data={
+    fazenda:document.getElementById('fazenda')?.value,
+    produtor:document.getElementById('produtor')?.value,
+    ts:new Date().toISOString()
+  };
+  localStorage.setItem('gpl_planejamento',JSON.stringify(data));
+  alert('Dados salvos localmente! Use Imprimir → PDF para salvar o relatório completo.');
+}
+function limpar(){
+  if(confirm('Limpar todos os dados?')){
+    document.querySelectorAll('input:not([readonly])').forEach(i=>{
+      if(i.type!='button')i.value='';
+    });
+    atualizar();
+  }
+}
+
+// Inicializar
+atualizar();
+</script>
+</body>
+</html>

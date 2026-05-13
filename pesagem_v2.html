@@ -19,22 +19,13 @@ html{font-size:16px}
 body{font-family:'DM Sans',sans-serif;background:var(--g7);color:var(--g1);min-height:100vh;-webkit-font-smoothing:antialiased}
 
 /* TOPBAR */
-.topbar{
-  background:var(--w);border-bottom:1px solid var(--g6);
-  height:58px;padding:0 24px;position:sticky;top:0;z-index:200;
-  display:flex;align-items:center;justify-content:space-between;gap:12px;
-  box-shadow:var(--sh)
-}
+.topbar{background:var(--w);border-bottom:1px solid var(--g6);height:58px;padding:0 24px;position:sticky;top:0;z-index:200;display:flex;align-items:center;justify-content:space-between;gap:12px;box-shadow:var(--sh)}
 .tb-left{display:flex;align-items:center;gap:16px}
 .tb-logo{height:36px;width:auto}
 .tb-title{font-family:'Syne',sans-serif;font-size:15px;font-weight:800;color:var(--v2)}
 .tb-sub{font-size:11px;color:var(--g4);display:block}
 .tb-right{display:flex;align-items:center;gap:8px}
-.tb-btn{
-  padding:6px 14px;border-radius:7px;font-size:12px;font-weight:600;
-  border:1px solid var(--g6);background:var(--w);color:var(--g3);
-  cursor:pointer;transition:all .15s;text-decoration:none;display:flex;align-items:center;gap:6px
-}
+.tb-btn{padding:6px 14px;border-radius:7px;font-size:12px;font-weight:600;border:1px solid var(--g6);background:var(--w);color:var(--g3);cursor:pointer;transition:all .15s;text-decoration:none;display:flex;align-items:center;gap:6px}
 .tb-btn:hover{border-color:var(--v4);color:var(--v2);background:var(--vl)}
 .tb-btn.primary{background:var(--v3);color:#fff;border-color:var(--v3)}
 .tb-btn.primary:hover{background:var(--v2)}
@@ -44,22 +35,12 @@ body{font-family:'DM Sans',sans-serif;background:var(--g7);color:var(--g1);min-h
 .sync-dot.syncing{background:var(--d3);animation:blink .8s infinite}
 @keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
 
-/* TABS NAVEGAÇÃO */
-.nav-tabs{
-  background:var(--w);border-bottom:2px solid var(--g6);
-  padding:0 24px;display:flex;gap:4px;overflow-x:auto
-}
-.nav-tab{
-  padding:12px 18px;font-size:13px;font-weight:600;color:var(--g4);
-  cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-2px;
-  white-space:nowrap;transition:all .15s;display:flex;align-items:center;gap:7px
-}
+/* TABS */
+.nav-tabs{background:var(--w);border-bottom:2px solid var(--g6);padding:0 24px;display:flex;gap:4px;overflow-x:auto}
+.nav-tab{padding:12px 18px;font-size:13px;font-weight:600;color:var(--g4);cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-2px;white-space:nowrap;transition:all .15s;display:flex;align-items:center;gap:7px}
 .nav-tab:hover{color:var(--g2)}
 .nav-tab.at{color:var(--v2);border-bottom-color:var(--v3)}
-.nav-badge{
-  background:var(--v5);color:var(--v1);font-size:10px;font-weight:700;
-  padding:2px 7px;border-radius:10px;min-width:20px;text-align:center
-}
+.nav-badge{background:var(--v5);color:var(--v1);font-size:10px;font-weight:700;padding:2px 7px;border-radius:10px;min-width:20px;text-align:center}
 
 /* LAYOUT */
 .page{display:none;padding:20px 24px 60px;max-width:1100px;margin:0 auto}
@@ -67,145 +48,152 @@ body{font-family:'DM Sans',sans-serif;background:var(--g7);color:var(--g1);min-h
 @keyframes fi{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
 
 /* FILTROS */
-.filtros{
-  display:flex;gap:10px;align-items:center;flex-wrap:wrap;
-  background:var(--w);border-radius:var(--r);padding:14px 18px;
-  margin-bottom:16px;border:1px solid var(--g6);box-shadow:var(--sh)
-}
-.fil-sel{
-  padding:7px 12px;border:1.5px solid var(--g6);border-radius:var(--rs);
-  font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;color:var(--g2);
-  background:var(--g8);outline:none;cursor:pointer;transition:border-color .15s
-}
+.filtros{display:flex;gap:10px;align-items:center;flex-wrap:wrap;background:var(--w);border-radius:var(--r);padding:14px 18px;margin-bottom:16px;border:1px solid var(--g6);box-shadow:var(--sh)}
+.fil-sel{padding:7px 12px;border:1.5px solid var(--g6);border-radius:var(--rs);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;color:var(--g2);background:var(--g8);outline:none;cursor:pointer;transition:border-color .15s}
 .fil-sel:focus{border-color:var(--v3)}
 .fil-label{font-size:12px;font-weight:600;color:var(--g4);white-space:nowrap}
 .fil-data{padding:7px 10px;border:1.5px solid var(--g6);border-radius:var(--rs);font-family:'DM Sans',sans-serif;font-size:13px;color:var(--g2);background:var(--g8);outline:none}
 .fil-data:focus{border-color:var(--v3)}
 
-/* STATS DO DIA */
+/* STATS */
 .stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px}
 @media(max-width:700px){.stats-row{grid-template-columns:repeat(2,1fr)}}
-.stat-card{
-  background:var(--w);border-radius:var(--r);padding:16px 18px;
-  border:1px solid var(--g6);box-shadow:var(--sh)
-}
+.stat-card{background:var(--w);border-radius:var(--r);padding:16px 18px;border:1px solid var(--g6);box-shadow:var(--sh)}
 .stat-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--g4);margin-bottom:5px}
 .stat-val{font-family:'Syne',sans-serif;font-size:26px;font-weight:800;color:var(--g1);line-height:1}
 .stat-val.vd{color:var(--v3)}.stat-val.am{color:var(--am)}.stat-val.rd{color:var(--rd)}
 .stat-sub{font-size:11px;color:var(--g5);margin-top:4px}
 
 /* PROTOCOLO */
-.proto-card{
-  background:linear-gradient(135deg,var(--v1),var(--v2));
-  border-radius:var(--r);padding:18px 22px;margin-bottom:16px;
-  box-shadow:0 4px 20px rgba(15,61,8,.3)
-}
+.proto-card{background:linear-gradient(135deg,var(--v1),var(--v2));border-radius:var(--r);padding:18px 22px;margin-bottom:16px;box-shadow:0 4px 20px rgba(15,61,8,.3)}
 .proto-titulo{font-family:'Syne',sans-serif;font-size:13px;font-weight:800;color:var(--d3);margin-bottom:12px;display:flex;align-items:center;gap:8px}
 .proto-modos{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}
-.proto-modo-btn{
-  padding:7px 14px;border-radius:7px;font-size:12px;font-weight:600;
-  border:1.5px solid rgba(255,255,255,.25);background:rgba(255,255,255,.1);
-  color:rgba(255,255,255,.75);cursor:pointer;transition:all .15s;display:flex;align-items:center;gap:6px
-}
+.proto-modo-btn{padding:7px 14px;border-radius:7px;font-size:12px;font-weight:600;border:1.5px solid rgba(255,255,255,.25);background:rgba(255,255,255,.1);color:rgba(255,255,255,.75);cursor:pointer;transition:all .15s;display:flex;align-items:center;gap:6px}
 .proto-modo-btn.at{background:rgba(255,255,255,.22);border-color:rgba(255,255,255,.5);color:#fff}
 .proto-meds{display:flex;flex-direction:column;gap:8px;margin-bottom:10px}
 .proto-med-row{display:grid;grid-template-columns:1fr 140px 36px;gap:8px;align-items:center}
-.proto-input{
-  padding:8px 12px;border-radius:7px;border:1.5px solid rgba(255,255,255,.2);
-  background:rgba(255,255,255,.12);color:#fff;font-family:'DM Sans',sans-serif;
-  font-size:13px;outline:none;width:100%;
-}
+.proto-input{padding:8px 12px;border-radius:7px;border:1.5px solid rgba(255,255,255,.2);background:rgba(255,255,255,.12);color:#fff;font-family:'DM Sans',sans-serif;font-size:13px;outline:none;width:100%}
 .proto-input::placeholder{color:rgba(255,255,255,.45)}
 .proto-input:focus{border-color:rgba(255,255,255,.5);background:rgba(255,255,255,.18)}
-.proto-add-btn{
-  padding:8px 14px;border-radius:7px;background:rgba(255,255,255,.15);
-  border:1.5px solid rgba(255,255,255,.25);color:#fff;font-size:12px;font-weight:600;
-  cursor:pointer;transition:all .15s
-}
+.proto-add-btn{padding:8px 14px;border-radius:7px;background:rgba(255,255,255,.15);border:1.5px solid rgba(255,255,255,.25);color:#fff;font-size:12px;font-weight:600;cursor:pointer;transition:all .15s}
 .proto-add-btn:hover{background:rgba(255,255,255,.25)}
-.proto-del-btn{
-  width:32px;height:32px;border-radius:7px;background:rgba(192,57,43,.4);
-  border:none;color:#fff;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center
-}
-.proto-del-btn:hover{background:rgba(192,57,43,.7)}
+.proto-del-btn{width:32px;height:32px;border-radius:7px;background:rgba(192,57,43,.4);border:none;color:#fff;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center}
 
-/* REGISTRO RÁPIDO */
-.reg-card{
+/* ═══════════════════════════════════════════
+   MODO DE PESAGEM — SELETOR
+═══════════════════════════════════════════ */
+.modo-card{
   background:var(--w);border-radius:var(--r);padding:18px 22px;
   margin-bottom:16px;border:1px solid var(--g6);box-shadow:var(--sh)
 }
+.modo-titulo{font-family:'Syne',sans-serif;font-size:13px;font-weight:800;color:var(--v2);margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.modo-opcoes{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:600px){.modo-opcoes{grid-template-columns:1fr}}
+.modo-btn{
+  padding:16px;border-radius:10px;border:2px solid var(--g6);background:var(--g8);
+  cursor:pointer;transition:all .2s;text-align:left;font-family:'DM Sans',sans-serif
+}
+.modo-btn:hover{border-color:var(--v4);background:var(--vl)}
+.modo-btn.ativo{border-color:var(--v3);background:var(--vl);box-shadow:0 0 0 3px rgba(45,138,16,.1)}
+.modo-btn-ico{font-size:28px;margin-bottom:8px;display:block}
+.modo-btn-titulo{font-family:'Syne',sans-serif;font-size:14px;font-weight:800;color:var(--v2);margin-bottom:4px}
+.modo-btn-desc{font-size:12px;color:var(--g4);line-height:1.5}
+.modo-badge{display:inline-block;font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;margin-top:6px}
+.modo-badge.bt{background:#e3f0fd;color:#1a5580}
+.modo-badge.man{background:var(--vl);color:var(--v2)}
+
+/* ═══════════════════════════════════════════
+   BLUETOOTH CARD
+═══════════════════════════════════════════ */
+.bt-card{
+  background:var(--w);border-radius:var(--r);padding:20px 22px;
+  margin-bottom:16px;border:1px solid var(--g6);box-shadow:var(--sh);
+  display:none
+}
+.bt-card.at{display:block}
+.bt-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px}
+.bt-titulo{font-family:'Syne',sans-serif;font-size:13px;font-weight:800;color:var(--v2);display:flex;align-items:center;gap:8px}
+.bt-status-wrap{display:flex;align-items:center;gap:8px}
+.bt-status{font-size:11px;font-weight:700;padding:4px 12px;border-radius:10px;letter-spacing:.5px;text-transform:uppercase}
+.bt-status.desconect{background:#fdeaea;color:var(--rd)}
+.bt-status.conectado{background:var(--vl);color:var(--v2)}
+.bt-status.buscando{background:#fef3dd;color:var(--d1)}
+
+/* Display de peso BT */
+.bt-peso-display{
+  background:linear-gradient(135deg,var(--v1),var(--v2));
+  border-radius:12px;padding:24px;text-align:center;margin-bottom:16px;
+  position:relative;overflow:hidden
+}
+.bt-peso-display::before{content:'';position:absolute;right:-30px;top:-30px;width:120px;height:120px;background:rgba(255,255,255,.05);border-radius:50%}
+.bt-peso-lbl{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:rgba(255,255,255,.5);margin-bottom:8px}
+.bt-peso-val{font-family:'Syne',sans-serif;font-size:56px;font-weight:800;color:#fff;line-height:1;margin-bottom:4px;transition:all .3s}
+.bt-peso-val.novo{color:var(--v5);animation:pulsePeso .5s ease}
+@keyframes pulsePeso{0%{transform:scale(1.05)}100%{transform:scale(1)}}
+.bt-peso-unit{font-size:16px;color:rgba(255,255,255,.6);font-weight:400}
+.bt-peso-estavel{font-size:11px;margin-top:6px;color:rgba(255,255,255,.5)}
+.bt-peso-estavel.ok{color:var(--v5)}
+
+.bt-acoes{display:flex;gap:10px;flex-wrap:wrap}
+.bt-btn{padding:10px 18px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;border:none;transition:all .2s;display:flex;align-items:center;gap:7px;text-decoration:none;font-family:'DM Sans',sans-serif}
+.bt-btn.v{background:var(--v3);color:#fff}.bt-btn.v:hover{background:var(--v2)}
+.bt-btn.g{background:var(--g6);color:var(--g2)}.bt-btn.g:hover{background:var(--g5);color:var(--g1)}
+.bt-btn.rd{background:var(--rd);color:#fff}.bt-btn.rd:hover{background:#a93226}
+.bt-btn.big{font-size:15px;font-weight:800;padding:14px 28px;letter-spacing:.5px}
+
+/* Passos BT */
+.bt-passos{display:flex;flex-direction:column;gap:10px;margin-bottom:16px}
+.bt-passo{display:flex;align-items:flex-start;gap:12px;padding:12px 14px;border-radius:10px;border:1px solid var(--g6);background:var(--g8);transition:background .2s}
+.bt-passo.ok{border-color:#c8e6b0;background:var(--vl)}
+.bt-passo.info{border-color:#c8dff5;background:#eaf3fd}
+.bp-num{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-size:12px;font-weight:700;flex-shrink:0;background:var(--g6);color:var(--g3)}
+.bt-passo.ok .bp-num{background:#c8e6b0;color:var(--v1)}
+.bt-passo.info .bp-num{background:#c8dff5;color:#1a5580}
+.bp-titulo{font-size:13px;font-weight:600;color:var(--g1);margin-bottom:2px}
+.bp-desc{font-size:12px;color:var(--g3);line-height:1.5}
+.bp-cmd{margin-top:6px;padding:6px 10px;background:#1e1e1e;border-radius:5px;font-family:monospace;font-size:11px;color:var(--v5);display:inline-block;word-break:break-all}
+
+/* ═══════════════════════════════════════════
+   REGISTRO MANUAL
+═══════════════════════════════════════════ */
+.reg-card{background:var(--w);border-radius:var(--r);padding:18px 22px;margin-bottom:16px;border:1px solid var(--g6);box-shadow:var(--sh);display:none}
+.reg-card.at{display:block}
 .reg-titulo{font-family:'Syne',sans-serif;font-size:13px;font-weight:800;color:var(--v2);margin-bottom:14px;display:flex;align-items:center;gap:8px}
 .reg-grid{display:grid;grid-template-columns:110px 110px 80px 130px 1fr;gap:10px;align-items:end;margin-bottom:10px}
 @media(max-width:700px){.reg-grid{grid-template-columns:1fr 1fr}}
 .campo-wrap label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--g4);display:block;margin-bottom:4px}
-.campo-input{
-  width:100%;padding:10px 12px;border:1.5px solid var(--g6);border-radius:var(--rs);
-  font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:var(--g1);
-  background:var(--g8);outline:none;transition:border-color .15s
-}
+.campo-input{width:100%;padding:10px 12px;border:1.5px solid var(--g6);border-radius:var(--rs);font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:var(--g1);background:var(--g8);outline:none;transition:border-color .15s}
 .campo-input:focus{border-color:var(--v3);background:var(--w)}
 .campo-input.sm{font-size:14px;font-weight:600}
-.campo-sel{
-  width:100%;padding:10px 12px;border:1.5px solid var(--g6);border-radius:var(--rs);
-  font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;color:var(--g1);
-  background:var(--g8);outline:none;cursor:pointer
-}
+.campo-sel{width:100%;padding:10px 12px;border:1.5px solid var(--g6);border-radius:var(--rs);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;color:var(--g1);background:var(--g8);outline:none;cursor:pointer}
 .campo-sel:focus{border-color:var(--v3)}
-.btn-salvar{
-  padding:10px 28px;background:var(--v3);border:none;border-radius:var(--rs);
-  color:#fff;font-family:'Syne',sans-serif;font-size:14px;font-weight:800;
-  letter-spacing:.5px;cursor:pointer;transition:all .2s;height:44px;align-self:end;width:100%
-}
+.btn-salvar{padding:10px 28px;background:var(--v3);border:none;border-radius:var(--rs);color:#fff;font-family:'Syne',sans-serif;font-size:14px;font-weight:800;letter-spacing:.5px;cursor:pointer;transition:all .2s;height:44px;align-self:end;width:100%}
 .btn-salvar:hover{background:var(--v2);transform:translateY(-1px)}
-.btn-salvar:active{transform:translateY(0)}
 
 /* INFO ANIMAL */
-.animal-info{
-  display:none;padding:12px 16px;background:var(--vl);border-radius:var(--rs);
-  border:1px solid #c8e6b0;margin-bottom:10px;
-  display:flex;gap:20px;flex-wrap:wrap;align-items:center
-}
+.animal-info-bar{display:none;padding:10px 14px;background:var(--vl);border-radius:var(--rs);border:1px solid #c8e6b0;margin-bottom:10px;gap:16px;flex-wrap:wrap;align-items:center}
+.animal-info-bar.show{display:flex}
 .ai-item{font-size:13px;color:var(--v1)}
-.ai-item strong{font-weight:700}
-.ai-gmd{font-family:'Syne',sans-serif;font-size:16px;font-weight:800}
-.ai-gmd.top{color:var(--v3)}.ai-gmd.med{color:var(--am)}.ai-gmd.low{color:var(--rd)}
+.td-gmd.top{color:var(--v3)}.td-gmd.med{color:var(--am)}.td-gmd.low{color:var(--rd)}.td-gmd.na{color:var(--g5)}
 
-/* MED INDIVIDUAL */
-.med-ind{
-  display:grid;grid-template-columns:1fr 160px;gap:10px;
-  padding:12px 16px;background:var(--rdl);border-radius:var(--rs);
-  border:1px solid #f5c0c0;margin-bottom:10px
-}
-.med-ind label{color:var(--rd);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px}
-
-/* PESAGENS TABLE */
+/* TABELA */
 .table-wrap{background:var(--w);border-radius:var(--r);border:1px solid var(--g6);box-shadow:var(--sh);overflow:hidden}
-.table-header{
-  padding:14px 20px;background:var(--g8);border-bottom:1px solid var(--g6);
-  display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px
-}
+.table-header{padding:14px 20px;background:var(--g8);border-bottom:1px solid var(--g6);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px}
 .table-header h3{font-family:'Syne',sans-serif;font-size:13px;font-weight:800;color:var(--v2)}
 .table-actions{display:flex;gap:8px}
 table{width:100%;border-collapse:collapse}
 thead tr{background:var(--v2)}
-thead th{
-  padding:10px 14px;font-family:'Syne',sans-serif;font-size:10px;font-weight:700;
-  color:#fff;text-transform:uppercase;letter-spacing:.8px;text-align:left;white-space:nowrap
-}
+thead th{padding:10px 14px;font-family:'Syne',sans-serif;font-size:10px;font-weight:700;color:#fff;text-transform:uppercase;letter-spacing:.8px;text-align:left;white-space:nowrap}
 tbody tr{border-bottom:1px solid var(--g6);transition:background .1s}
 tbody tr:hover{background:var(--g8)}
 tbody td{padding:11px 14px;font-size:13px;color:var(--g2)}
 .td-num{font-family:'Syne',sans-serif;font-weight:800;font-size:15px;color:var(--g1)}
 .td-peso{font-family:'Syne',sans-serif;font-weight:700;font-size:14px}
 .td-gmd{font-family:'Syne',sans-serif;font-size:13px;font-weight:700}
-.td-gmd.top{color:var(--v3)}.td-gmd.med{color:var(--am)}.td-gmd.low{color:var(--rd)}.td-gmd.na{color:var(--g5)}
 .td-badge{display:inline-block;padding:2px 8px;border-radius:6px;font-size:10px;font-weight:700}
 .td-badge.m{background:#e4f0fb;color:var(--az)}.td-badge.f{background:#fde8f5;color:#a020a0}
 .td-actions{display:flex;gap:6px}
-.btn-sm{
-  padding:5px 10px;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;
-  border:1px solid var(--g6);background:var(--w);color:var(--g3);transition:all .15s
-}
+.btn-sm{padding:5px 10px;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;border:1px solid var(--g6);background:var(--w);color:var(--g3);transition:all .15s}
 .btn-sm:hover{border-color:var(--v4);color:var(--v2)}
 .btn-sm.del:hover{border-color:var(--rd);color:var(--rd);background:var(--rdl)}
 .paginacao{display:flex;align-items:center;justify-content:space-between;padding:12px 18px;border-top:1px solid var(--g6);flex-wrap:wrap;gap:8px}
@@ -217,10 +205,7 @@ tbody td{padding:11px 14px;font-size:13px;color:var(--g2)}
 /* LOTES */
 .lotes-grid{display:flex;flex-direction:column;gap:10px}
 .lote-card{background:var(--w);border-radius:var(--r);border:1px solid var(--g6);box-shadow:var(--sh);overflow:hidden}
-.lote-header{
-  padding:14px 20px;display:flex;align-items:center;justify-content:space-between;
-  cursor:pointer;transition:background .15s;gap:12px;flex-wrap:wrap
-}
+.lote-header{padding:14px 20px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;transition:background .15s;gap:12px;flex-wrap:wrap}
 .lote-header:hover{background:var(--g8)}
 .lote-header.at{background:var(--vl);border-bottom:1px solid #c8e6b0}
 .lote-nome{font-family:'Syne',sans-serif;font-size:15px;font-weight:800;color:var(--v2)}
@@ -234,10 +219,7 @@ tbody td{padding:11px 14px;font-size:13px;color:var(--g2)}
 
 /* RELATÓRIOS */
 .rel-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px;margin-bottom:20px}
-.rel-card{
-  background:var(--w);border-radius:var(--r);padding:20px;border:1px solid var(--g6);
-  box-shadow:var(--sh);cursor:pointer;transition:all .2s;position:relative;overflow:hidden
-}
+.rel-card{background:var(--w);border-radius:var(--r);padding:20px;border:1px solid var(--g6);box-shadow:var(--sh);cursor:pointer;transition:all .2s;position:relative;overflow:hidden}
 .rel-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--v3)}
 .rel-card.do::before{background:var(--d2)}
 .rel-card.vd::before{background:var(--v3)}
@@ -247,16 +229,11 @@ tbody td{padding:11px 14px;font-size:13px;color:var(--g2)}
 .rel-icone{font-size:32px;margin-bottom:10px;display:block}
 .rel-nome{font-family:'Syne',sans-serif;font-size:14px;font-weight:800;color:var(--g1);margin-bottom:6px}
 .rel-desc{font-size:12px;color:var(--g4);line-height:1.5}
-#relOutput{display:none}
-.rel-output-header{
-  display:flex;align-items:center;justify-content:space-between;padding:16px 20px;
-  background:var(--g8);border-bottom:1px solid var(--g6);border-radius:var(--r) var(--r) 0 0;
-  flex-wrap:wrap;gap:8px
-}
+.rel-output-header{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;background:var(--g8);border-bottom:1px solid var(--g6);border-radius:var(--r) var(--r) 0 0;flex-wrap:wrap;gap:8px}
 .rel-output-header h3{font-family:'Syne',sans-serif;font-size:14px;font-weight:800;color:var(--v2)}
 .rel-body{padding:20px}
 
-/* MODAL EDITAR */
+/* MODAL */
 .modal-over{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:500;align-items:center;justify-content:center;padding:20px}
 .modal-over.at{display:flex}
 .modal{background:var(--w);border-radius:16px;padding:28px;max-width:520px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.2);max-height:90vh;overflow-y:auto}
@@ -272,39 +249,33 @@ tbody td{padding:11px 14px;font-size:13px;color:var(--g2)}
 .btn-modal.rd{background:var(--rd);color:#fff}
 
 /* TOAST */
-.toast{
-  position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(100px);
-  background:var(--g2);color:#fff;padding:12px 22px;border-radius:10px;
-  font-size:13px;font-weight:600;z-index:9999;transition:transform .3s;white-space:nowrap;
-  box-shadow:0 8px 32px rgba(0,0,0,.25)
-}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(100px);background:var(--g2);color:#fff;padding:12px 22px;border-radius:10px;font-size:13px;font-weight:600;z-index:9999;transition:transform .3s;white-space:nowrap;box-shadow:0 8px 32px rgba(0,0,0,.25)}
 .toast.ok{background:var(--v2)}
 .toast.warn{background:var(--am)}
 .toast.err{background:var(--rd)}
 .toast.show{transform:translateX(-50%) translateY(0)}
 
-/* CONFIRM DIALOG */
+/* CONFIRM */
 .conf-over{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:600;align-items:center;justify-content:center}
 .conf-over.at{display:flex}
 .conf{background:var(--w);border-radius:14px;padding:28px;max-width:400px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,.2);text-align:center}
 .conf h4{font-family:'Syne',sans-serif;font-size:17px;font-weight:800;margin-bottom:10px}
 .conf p{font-size:14px;color:var(--g3);margin-bottom:20px;line-height:1.5}
 .conf-btns{display:flex;gap:10px;justify-content:center}
-
 .empty{text-align:center;padding:48px 20px;color:var(--g5);font-size:14px}
 .empty-ico{font-size:40px;margin-bottom:12px;display:block}
 
 /* PRINT */
-@media print{
-  .topbar,.nav-tabs,.filtros,.proto-card,.reg-card,.tb-btn,.nav-tab,.paginacao,.rel-grid,.table-actions,.td-actions{display:none!important}
-  .page{padding:0!important}
-  table{font-size:11px}
-}
+@media print{.topbar,.nav-tabs,.filtros,.proto-card,.modo-card,.bt-card,.reg-card,.tb-btn,.nav-tab,.paginacao,.rel-grid,.table-actions,.td-actions{display:none!important}.page{padding:0!important}table{font-size:11px}}
+
+/* EXTRAS */
+.sep{height:1px;background:var(--g6);margin:12px 0}
+.med-extra-row{display:grid;grid-template-columns:1fr 150px;gap:10px;margin-bottom:10px}
+.proto-chks{display:none;margin-bottom:12px;padding:10px;background:rgba(240,200,74,.1);border-radius:8px;border:1px solid rgba(240,200,74,.3)}
 </style>
 </head>
 <body>
 
-<!-- TOPBAR -->
 <div class="topbar">
   <div class="tb-left">
     <img src="logo.png" class="tb-logo" alt="" onerror="this.style.display='none'">
@@ -315,13 +286,11 @@ tbody td{padding:11px 14px;font-size:13px;color:var(--g2)}
   </div>
   <div class="tb-right">
     <div class="tb-sync"><div class="sync-dot" id="syncDot"></div><span id="syncTxt">Carregando...</span></div>
-    <button class="tb-btn" onclick="sincronizar()" title="Sincronizar com Google Sheets">⟳ Sync</button>
-    <button class="tb-btn primary" id="btnBT" onclick="conectarBT()">🔵 Bluetooth</button>
+    <button class="tb-btn" onclick="sincronizar()">⟳ Sync</button>
     <a href="index.html" class="tb-btn">← Início</a>
   </div>
 </div>
 
-<!-- TABS -->
 <div class="nav-tabs">
   <div class="nav-tab at" onclick="irTab('pesagem')" id="tab-pesagem">🐄 Pesagem <span class="nav-badge" id="badge-hoje">0</span></div>
   <div class="nav-tab" onclick="irTab('lotes')" id="tab-lotes">📦 Lotes <span class="nav-badge" id="badge-lotes">0</span></div>
@@ -329,10 +298,9 @@ tbody td{padding:11px 14px;font-size:13px;color:var(--g2)}
   <div class="nav-tab" onclick="irTab('config')" id="tab-config">⚙️ Config</div>
 </div>
 
-<!-- PAGE: PESAGEM -->
+<!-- PAGE PESAGEM -->
 <div class="page at" id="page-pesagem">
 
-  <!-- FILTROS -->
   <div class="filtros" style="margin-top:16px">
     <span class="fil-label">Fazenda:</span>
     <select class="fil-sel" id="pFazFil" onchange="renderPes()"><option value="">Todas</option></select>
@@ -343,7 +311,6 @@ tbody td{padding:11px 14px;font-size:13px;color:var(--g2)}
     <button class="tb-btn" onclick="limparFiltros()">✕ Limpar</button>
   </div>
 
-  <!-- STATS -->
   <div class="stats-row">
     <div class="stat-card"><div class="stat-label">Animais Hoje</div><div class="stat-val vd" id="stHoje">0</div><div class="stat-sub">pesados no dia</div></div>
     <div class="stat-card"><div class="stat-label">Peso Médio</div><div class="stat-val" id="stPMedio">—</div><div class="stat-sub">kg médio hoje</div></div>
@@ -362,16 +329,146 @@ tbody td{padding:11px 14px;font-size:13px;color:var(--g2)}
     <button class="proto-add-btn" onclick="addMed()">➕ Adicionar medicamento</button>
   </div>
 
-  <!-- REGISTRO RÁPIDO -->
-  <div class="reg-card">
-    <div class="reg-titulo">⚡ Registro Rápido — Número → Enter → Peso → Enter → Lote → Enter</div>
+  <!-- ═══════ SELETOR DE MODO ═══════ -->
+  <div class="modo-card">
+    <div class="modo-titulo">⚖️ Como você vai pesar os animais hoje?</div>
+    <div class="modo-opcoes">
 
-    <!-- Info animal (histórico GMD) -->
-    <div id="animalInfo" style="display:none;padding:10px 14px;background:var(--vl);border-radius:8px;border:1px solid #c8e6b0;margin-bottom:10px;gap:16px;flex-wrap:wrap;align-items:center">
-      <div style="font-size:12px;color:var(--v1)">Último: <strong id="infoUltPeso">—</strong> kg em <strong id="infoUltData">—</strong></div>
-      <div style="font-size:12px;color:var(--v1)">Dias: <strong id="infoDias">—</strong></div>
-      <div style="font-size:12px;color:var(--v1)">GMD atual: <strong id="infoGmd" class="td-gmd">—</strong></div>
+      <button class="modo-btn ativo" id="btnModoBT" onclick="selecionarModo('bt')">
+        <span class="modo-btn-ico">🔵</span>
+        <div class="modo-btn-titulo">Balança com Bluetooth</div>
+        <div class="modo-btn-desc">Conecta a balança via Bluetooth. O peso aparece automaticamente na tela assim que o animal estabilizar. Clique Registrar para salvar.</div>
+        <span class="modo-badge bt">Automático · Bluetooth</span>
+      </button>
+
+      <button class="modo-btn" id="btnModoManual" onclick="selecionarModo('manual')">
+        <span class="modo-btn-ico">✏️</span>
+        <div class="modo-btn-titulo">Digitação Manual</div>
+        <div class="modo-btn-desc">Olhe o display da balança, anote o peso e digite aqui. Ideal quando o Bluetooth não está disponível ou como backup.</div>
+        <span class="modo-badge man">Manual · Digitação</span>
+      </button>
+
     </div>
+  </div>
+
+  <!-- ═══════ BLUETOOTH CARD ═══════ -->
+  <div class="bt-card at" id="btCard">
+    <div class="bt-header">
+      <div class="bt-titulo">🔵 Balança Bluetooth</div>
+      <div class="bt-status-wrap">
+        <span class="bt-status desconect" id="btStatusBadge">Desconectada</span>
+        <button class="bt-btn g" onclick="conectarBT()" id="btnConectarBT" style="padding:6px 12px;font-size:12px">Conectar</button>
+      </div>
+    </div>
+
+    <!-- Quando desconectado: passos -->
+    <div id="btPassos">
+      <div class="bt-passos">
+        <div class="bt-passo info">
+          <div class="bp-num">1</div>
+          <div>
+            <div class="bp-titulo">Ligue a balança e ative o modo Bluetooth</div>
+            <div class="bp-desc">Segure o botão Bluetooth da balança por 3–5 segundos até o LED piscar em azul. Fique a menos de 2 metros.</div>
+          </div>
+        </div>
+        <div class="bt-passo info">
+          <div class="bp-num">2</div>
+          <div>
+            <div class="bp-titulo">Clique em "Conectar" acima</div>
+            <div class="bp-desc">Uma lista de dispositivos vai aparecer. Selecione sua balança. Caso não apareça, verifique se o Bluetooth do aparelho está ativo.</div>
+          </div>
+        </div>
+        <div class="bt-passo info">
+          <div class="bp-num">3</div>
+          <div>
+            <div class="bp-titulo">Se não aparecer no Chrome, libere o Bluetooth</div>
+            <div class="bp-desc">No computador: acesse o endereço abaixo e mude para Enabled, depois reinicie o Chrome.</div>
+            <div class="bp-cmd">chrome://flags/#enable-web-bluetooth → Enabled → Reiniciar</div>
+          </div>
+        </div>
+      </div>
+      <button class="bt-btn g" onclick="selecionarModo('manual')" style="margin-top:4px">✏️ Usar modo manual em vez disso</button>
+    </div>
+
+    <!-- Quando conectado: display de peso -->
+    <div id="btConectado" style="display:none">
+      <div class="bt-peso-display">
+        <div class="bt-peso-lbl">Peso na Balança</div>
+        <div class="bt-peso-val" id="btPesoVal">— —</div>
+        <div class="bt-peso-unit">kg</div>
+        <div class="bt-peso-estavel" id="btPesoStatus">Aguardando animal...</div>
+      </div>
+
+      <!-- FALLBACK: digitar peso manualmente quando BT não transmite -->
+      <div style="background:#FFF8E1;border:1px solid #FFE082;border-radius:10px;padding:14px 16px;margin-bottom:14px">
+        <div style="font-size:11px;font-weight:700;color:#E65100;text-transform:uppercase;letter-spacing:.6px;margin-bottom:8px">⚠️ Peso não chegou automaticamente? Digite aqui:</div>
+        <div style="display:flex;gap:10px;align-items:flex-end">
+          <div class="campo-wrap" style="flex:1">
+            <label>Peso (kg) — digite o valor do display</label>
+            <input class="campo-input" id="btPesoDigitado" type="number" placeholder="Ex: 385.5" step="0.1"
+              oninput="usarPesoDigitado(this.value)"
+              style="font-size:22px;border-color:#FFE082">
+          </div>
+          <button class="bt-btn v" onclick="confirmarPesoDigitado()" style="height:44px;margin-bottom:0">
+            ✓ Usar este peso
+          </button>
+        </div>
+      </div>
+
+      <!-- Campos complementares -->
+      <div style="display:grid;grid-template-columns:110px 80px 120px 1fr;gap:10px;margin-bottom:12px;align-items:end">
+        <div class="campo-wrap">
+          <label>Nº Animal</label>
+          <input class="campo-input" id="btNum" type="text" placeholder="303" autocomplete="off" oninput="calcGmdLiveBT()">
+        </div>
+        <div class="campo-wrap">
+          <label>Lote</label>
+          <input class="campo-input sm" id="btLote" type="number" placeholder="1">
+        </div>
+        <div class="campo-wrap">
+          <label>Sexo</label>
+          <select class="campo-sel" id="btSexo">
+            <option value="macho">🐂 Macho</option>
+            <option value="femea">🐄 Fêmea</option>
+          </select>
+        </div>
+        <div class="campo-wrap">
+          <label>Observação</label>
+          <input class="campo-input sm" id="btObs" placeholder="Observação...">
+        </div>
+      </div>
+
+      <!-- Info GMD ao vivo BT -->
+      <div id="btAnimalInfo" class="animal-info-bar" style="margin-bottom:12px"></div>
+
+      <!-- Med individual BT -->
+      <div class="med-extra-row">
+        <div class="campo-wrap">
+          <label style="color:var(--rd)">🚨 Med. Individual</label>
+          <input class="campo-input sm" id="btMedExtra" placeholder="Medicamento específico..." style="border-color:#f5c0c0">
+        </div>
+        <div class="campo-wrap">
+          <label style="color:var(--rd)">Dose</label>
+          <input class="campo-input sm" id="btMedExtraDose" placeholder="Ex: 5ml" style="border-color:#f5c0c0">
+        </div>
+      </div>
+
+      <div class="proto-chks" id="btProtoCHKS"></div>
+
+      <div class="bt-acoes">
+        <button class="bt-btn v big" onclick="savPesagemBT()" id="btnRegistrarBT">
+          💾 REGISTRAR PESO
+        </button>
+        <button class="bt-btn rd" onclick="desconectarBT()">✕ Desconectar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════ MANUAL CARD ═══════ -->
+  <div class="reg-card" id="regCard">
+    <div class="reg-titulo">✏️ Registro Manual — Número → Enter → Peso → Enter → Lote → Enter</div>
+
+    <div id="manualAnimalInfo" class="animal-info-bar" style="margin-bottom:10px"></div>
 
     <div class="reg-grid">
       <div class="campo-wrap">
@@ -404,19 +501,17 @@ tbody td{padding:11px 14px;font-size:13px;color:var(--g2)}
       </div>
     </div>
 
-    <!-- Med individual -->
-    <div style="display:grid;grid-template-columns:1fr 150px;gap:10px;margin-bottom:10px">
+    <div class="med-extra-row">
       <div class="campo-wrap">
         <label style="color:var(--rd)">🚨 Med. Individual (doença/lesão neste animal)</label>
-        <input class="campo-input sm" id="pMedExtra" placeholder="Ex: Oxitetraciclina, Alamycin..." style="border-color:#f5c0c0">
+        <input class="campo-input sm" id="pMedExtra" placeholder="Ex: Oxitetraciclina..." style="border-color:#f5c0c0">
       </div>
       <div class="campo-wrap">
         <label style="color:var(--rd)">Dose</label>
-        <input class="campo-input sm" id="pMedExtraDose" placeholder="Ex: 5ml, 3 comp." style="border-color:#f5c0c0">
+        <input class="campo-input sm" id="pMedExtraDose" placeholder="Ex: 5ml" style="border-color:#f5c0c0">
       </div>
     </div>
 
-    <!-- Dados extras (colapsável) -->
     <div style="display:grid;grid-template-columns:1fr 1fr 1fr 2fr;gap:10px;margin-bottom:12px">
       <div class="campo-wrap">
         <label>Data Compra</label>
@@ -436,13 +531,12 @@ tbody td{padding:11px 14px;font-size:13px;color:var(--g2)}
       </div>
     </div>
 
-    <!-- Checkboxes protocolo (modo específico) -->
-    <div id="protoCHKS" style="display:none;margin-bottom:12px;padding:10px;background:rgba(240,200,74,.1);border-radius:8px;border:1px solid rgba(240,200,74,.3)"></div>
+    <div class="proto-chks" id="protoCHKS"></div>
 
     <button class="btn-salvar" onclick="savPesagem()">💾 SALVAR PESAGEM</button>
   </div>
 
-  <!-- TABELA PESAGENS DO DIA -->
+  <!-- TABELA -->
   <div class="table-wrap">
     <div class="table-header">
       <h3>Pesagens de Hoje</h3>
@@ -453,10 +547,7 @@ tbody td{padding:11px 14px;font-size:13px;color:var(--g2)}
     <div style="overflow-x:auto">
       <table>
         <thead>
-          <tr>
-            <th>Nº</th><th>Peso</th><th>Lote</th><th>Sexo</th><th>GMD</th>
-            <th>Protocolo</th><th>Med. Individual</th><th>Obs</th><th>Ações</th>
-          </tr>
+          <tr><th>Nº</th><th>Peso</th><th>Lote</th><th>Sexo</th><th>GMD</th><th>Protocolo</th><th>Med. Individual</th><th>Obs</th><th>Modo</th><th>Ações</th></tr>
         </thead>
         <tbody id="tbPes"></tbody>
       </table>
@@ -466,73 +557,28 @@ tbody td{padding:11px 14px;font-size:13px;color:var(--g2)}
       <div class="pag-btns" id="pagBtns"></div>
     </div>
   </div>
+</div>
 
-</div><!-- /page pesagem -->
-
-<!-- PAGE: LOTES -->
+<!-- PAGE LOTES -->
 <div class="page" id="page-lotes">
   <div style="margin-top:16px" id="lotesContainer"></div>
 </div>
 
-<!-- PAGE: RELATÓRIOS -->
+<!-- PAGE RELATÓRIOS -->
 <div class="page" id="page-relatorios">
   <div style="margin-top:16px;margin-bottom:12px;background:var(--w);border-radius:var(--r);padding:14px 18px;border:1px solid var(--g6);box-shadow:var(--sh);display:flex;align-items:center;gap:12px;flex-wrap:wrap">
     <span class="fil-label">🏡 Fazenda:</span>
-    <select class="fil-sel" id="relFazFil" onchange="atualizarFazRel()" style="min-width:200px">
-      <option value="">Todas as fazendas</option>
-    </select>
+    <select class="fil-sel" id="relFazFil" onchange="atualizarFazRel()" style="min-width:200px"><option value="">Todas as fazendas</option></select>
     <span id="relFazInfo" style="font-size:12px;color:var(--g4)"></span>
   </div>
   <div class="rel-grid" style="margin-top:0">
-    <div class="rel-card" onclick="gerarRel('dia')">
-      <span class="rel-icone">📅</span>
-      <div class="rel-nome">Relatório do Dia</div>
-      <div class="rel-desc">Todos os animais pesados hoje com GMD, protocolo aplicado e médias do dia.</div>
-    </div>
-    <div class="rel-card do" onclick="gerarRel('lote')">
-      <span class="rel-icone">📦</span>
-      <div class="rel-nome">Relatório por Lote</div>
-      <div class="rel-desc">Resumo completo de cada lote: animais, peso médio, GMD médio e evolução.</div>
-    </div>
-    <div class="rel-card az" onclick="gerarRel('animal')">
-      <span class="rel-icone">🐂</span>
-      <div class="rel-nome">Animal Individual</div>
-      <div class="rel-desc">Histórico completo de um animal: todas as pesagens, GMD por período e medicamentos.</div>
-    </div>
-    <div class="rel-card" onclick="gerarRel('fazenda')">
-      <span class="rel-icone">🏡</span>
-      <div class="rel-nome">Relatório por Fazenda</div>
-      <div class="rel-desc">Visão geral de uma fazenda: rebanho, lotes, GMD médio e desempenho.</div>
-    </div>
-    <div class="rel-card rd" onclick="gerarRel('protocolo')">
-      <span class="rel-icone">💉</span>
-      <div class="rel-nome">Protocolo Sanitário</div>
-      <div class="rel-desc">Histórico de medicamentos aplicados por animal, lote e data.</div>
-    </div>
-    <div class="rel-card do" onclick="gerarRel('geral')">
-      <span class="rel-icone">📊</span>
-      <div class="rel-nome">Relatório Geral</div>
-      <div class="rel-desc">Visão completa do rebanho: todos os animais, médias e comparativo com benchmarks.</div>
-    </div>
-    <div class="rel-card vd" onclick="gerarRel('gmd')">
-      <span class="rel-icone">📈</span>
-      <div class="rel-nome">Relatório GMD</div>
-      <div class="rel-desc">GMD por animal (evolução) e GMD médio por lote comparado com benchmarks Inttegra. Top 30%, média e piores fazendas.</div>
-    </div>
+    <div class="rel-card" onclick="gerarRel('dia')"><span class="rel-icone">📅</span><div class="rel-nome">Relatório do Dia</div><div class="rel-desc">Todos os animais pesados hoje com GMD, protocolo e médias.</div></div>
+    <div class="rel-card do" onclick="gerarRel('lote')"><span class="rel-icone">📦</span><div class="rel-nome">Relatório por Lote</div><div class="rel-desc">Resumo por lote: animais, peso médio, GMD e evolução.</div></div>
+    <div class="rel-card az" onclick="gerarRel('animal')"><span class="rel-icone">🐂</span><div class="rel-nome">Animal Individual</div><div class="rel-desc">Histórico completo de um animal: pesagens, GMD e medicamentos.</div></div>
+    <div class="rel-card" onclick="gerarRel('fazenda')"><span class="rel-icone">🏡</span><div class="rel-nome">Relatório por Fazenda</div><div class="rel-desc">Visão geral da fazenda: rebanho, lotes e desempenho.</div></div>
+    <div class="rel-card rd" onclick="gerarRel('protocolo')"><span class="rel-icone">💉</span><div class="rel-nome">Protocolo Sanitário</div><div class="rel-desc">Histórico de medicamentos por animal, lote e data.</div></div>
+    <div class="rel-card vd" onclick="gerarRel('gmd')"><span class="rel-icone">📈</span><div class="rel-nome">Relatório GMD</div><div class="rel-desc">GMD por animal e lote comparado com benchmarks Inttegra.</div></div>
   </div>
-
-  <!-- Seletor fazenda para relatório -->
-  <div id="selFazendaDiv" style="display:none;margin-bottom:16px;background:var(--w);border-radius:var(--r);padding:18px;border:1px solid var(--g6)">
-    <div style="font-family:Syne,sans-serif;font-size:13px;font-weight:800;color:var(--v2);margin-bottom:10px">Selecione a Fazenda</div>
-    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
-      <select class="fil-sel" id="relFazSelect" style="min-width:200px">
-        <option value="">Todas as fazendas</option>
-      </select>
-      <button class="btn-salvar" style="max-width:160px;height:40px;font-size:13px" onclick="gerarRelFazenda()">Gerar</button>
-    </div>
-  </div>
-
-  <!-- Seletor animal individual -->
   <div id="selAnimalDiv" style="display:none;margin-bottom:16px;background:var(--w);border-radius:var(--r);padding:18px;border:1px solid var(--g6)">
     <div style="font-family:Syne,sans-serif;font-size:13px;font-weight:800;color:var(--v2);margin-bottom:10px">Nº do Animal</div>
     <div style="display:flex;gap:10px;align-items:center">
@@ -540,7 +586,13 @@ tbody td{padding:11px 14px;font-size:13px;color:var(--g2)}
       <button class="btn-salvar" style="max-width:160px;height:40px;font-size:13px" onclick="gerarRelAnimal()">Gerar</button>
     </div>
   </div>
-
+  <div id="selFazendaDiv" style="display:none;margin-bottom:16px;background:var(--w);border-radius:var(--r);padding:18px;border:1px solid var(--g6)">
+    <div style="font-family:Syne,sans-serif;font-size:13px;font-weight:800;color:var(--v2);margin-bottom:10px">Selecione a Fazenda</div>
+    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+      <select class="fil-sel" id="relFazSelect" style="min-width:200px"><option value="">Todas</option></select>
+      <button class="btn-salvar" style="max-width:160px;height:40px;font-size:13px" onclick="gerarRelFazenda()">Gerar</button>
+    </div>
+  </div>
   <div id="relOutput" style="display:none;background:var(--w);border-radius:var(--r);border:1px solid var(--g6);box-shadow:var(--sh);overflow:hidden">
     <div class="rel-output-header">
       <h3 id="relTitulo">Relatório</h3>
@@ -554,26 +606,23 @@ tbody td{padding:11px 14px;font-size:13px;color:var(--g2)}
   </div>
 </div>
 
-<!-- PAGE: CONFIG -->
+<!-- PAGE CONFIG -->
 <div class="page" id="page-config">
   <div style="margin-top:16px;max-width:600px">
     <div class="table-wrap" style="margin-bottom:16px">
       <div class="table-header"><h3>⚙️ Google Sheets</h3></div>
       <div style="padding:20px;display:flex;flex-direction:column;gap:12px">
-        <div class="campo-wrap">
-          <label>URL do Apps Script</label>
-          <input class="campo-input sm" id="shUrl" placeholder="https://script.google.com/macros/s/...">
-        </div>
+        <div class="campo-wrap"><label>URL do Apps Script</label><input class="campo-input sm" id="shUrl" placeholder="https://script.google.com/macros/s/..."></div>
         <div style="display:flex;gap:10px;flex-wrap:wrap">
           <button class="btn-salvar" style="max-width:160px;height:40px;font-size:13px" onclick="salvarUrl()">💾 Salvar URL</button>
-          <button class="tb-btn" onclick="testarUrl()">🔗 Testar conexão</button>
-          <button class="tb-btn" onclick="enviarTudo()">📤 Enviar tudo para Sheets</button>
+          <button class="tb-btn" onclick="testarUrl()">🔗 Testar</button>
+          <button class="tb-btn" onclick="enviarTudo()">📤 Enviar tudo</button>
         </div>
         <div id="connStatus" style="font-size:13px;color:var(--g4)">—</div>
       </div>
     </div>
     <div class="table-wrap">
-      <div class="table-header"><h3>💾 Backup dos Dados</h3></div>
+      <div class="table-header"><h3>💾 Backup</h3></div>
       <div style="padding:20px;display:flex;gap:10px;flex-wrap:wrap">
         <button class="tb-btn" onclick="exportarBackup()">⬇ Exportar JSON</button>
         <button class="tb-btn" onclick="document.getElementById('importFile').click()">⬆ Importar JSON</button>
@@ -598,10 +647,7 @@ tbody td{padding:11px 14px;font-size:13px;color:var(--g2)}
       <div class="modal-campo"><label>GMD (kg/dia)</label><input id="editGmd" type="number" step="0.001"></div>
       <div class="modal-campo" style="grid-column:1/-1"><label>Observação</label><input id="editObs" type="text"></div>
       <div class="modal-campo"><label>Med. Individual</label><input id="editMedExtra" type="text"></div>
-      <div class="modal-campo"><label>Dose Med. Individual</label><input id="editMedExtraDose" type="text"></div>
-      <div class="modal-campo"><label>Data Compra</label><input id="editDataCompra" type="date"></div>
-      <div class="modal-campo"><label>Data Venda</label><input id="editDataVenda" type="date"></div>
-      <div class="modal-campo"><label>Valor Venda R$</label><input id="editValorVenda" type="number"></div>
+      <div class="modal-campo"><label>Dose</label><input id="editMedExtraDose" type="text"></div>
     </div>
     <div class="modal-actions">
       <button class="btn-modal g" onclick="fecharModal()">Cancelar</button>
@@ -623,63 +669,52 @@ tbody td{padding:11px 14px;font-size:13px;color:var(--g2)}
   </div>
 </div>
 
-<!-- TOAST -->
 <div class="toast" id="toastEl"></div>
 
 <script>
-// ══════════════════════════════════════════════════════════════
-// STORAGE & DB
-// ══════════════════════════════════════════════════════════════
-var LS = {
+// ═══════════════════════════════════════════════
+// STORAGE
+// ═══════════════════════════════════════════════
+var LS={
   g:function(k){try{var v=localStorage.getItem('gpl_'+k);return v?JSON.parse(v):null;}catch(e){return null;}},
   s:function(k,v){try{localStorage.setItem('gpl_'+k,JSON.stringify(v));}catch(e){}}
 };
-
-var DB = {};
-function loadDB() {
-  DB.fazendas  = LS.g('fazendas')||[];
-  DB.pesagens  = LS.g('pesagens')||[];
-  DB.protoDia  = LS.g('protoDia')||{modo:'todos', medicamentos:[]};
-  DB.syncQ     = LS.g('syncQ')||[];
-  DB.shUrl     = LS.g('shUrl')||'https://script.google.com/macros/s/AKfycby2BBCLhLzVlWDy2JeudfSs-iBL8dvMIoNtCYQsk7oqJigvlk2Q_T9ZCNCc0CqRGAVtyw/exec';
-  DB.online    = navigator.onLine;
-  DB.btDevice  = null;
-  DB.btChar    = null;
+var DB={};
+function loadDB(){
+  DB.fazendas=LS.g('fazendas')||[];
+  DB.pesagens=LS.g('pesagens')||[];
+  DB.protoDia=LS.g('protoDia')||{modo:'todos',medicamentos:[]};
+  DB.syncQ=LS.g('syncQ')||[];
+  DB.shUrl=LS.g('shUrl')||'';
+  DB.online=navigator.onLine;
+  DB.btDevice=null;
+  DB.btChar=null;
+  DB.btPesoAtual=null;
 }
-
-function sv(k){ LS.s(k, DB[k]); }
-
-function lw(tbl, op, rec) {
-  if (!DB[tbl]) DB[tbl]=[];
-  if (op==='add') DB[tbl].push(rec);
-  else if (op==='upd') { var i=DB[tbl].findIndex(function(r){return r.id===rec.id;}); if(i>=0)DB[tbl][i]=rec; else DB[tbl].push(rec); }
-  else if (op==='del') DB[tbl]=DB[tbl].filter(function(r){return String(r.id)!==String(rec.id);});
+function sv(k){LS.s(k,DB[k]);}
+function lw(tbl,op,rec){
+  if(!DB[tbl])DB[tbl]=[];
+  if(op==='add')DB[tbl].push(rec);
+  else if(op==='upd'){var i=DB[tbl].findIndex(function(r){return r.id===rec.id;});if(i>=0)DB[tbl][i]=rec;else DB[tbl].push(rec);}
+  else if(op==='del')DB[tbl]=DB[tbl].filter(function(r){return String(r.id)!==String(rec.id);});
   sv(tbl);
-  // Marca pendente sem disparar sync automático
   DB.syncQ.push({ts:Date.now()});
-  if(DB.syncQ.length > 500) DB.syncQ = DB.syncQ.slice(-100); // limita fila
+  if(DB.syncQ.length>500)DB.syncQ=DB.syncQ.slice(-100);
   sv('syncQ');
   updSt();
 }
 
-// ══════════════════════════════════════════════════════════════
-// UTILIDADES
-// ══════════════════════════════════════════════════════════════
-function ge(id){ return document.getElementById(id); }
-function gv(id){ var el=ge(id); return el?el.value:''; }
-function sv2(id,v){ var el=ge(id); if(el) el.value=v; }
+// ═══════════════════════════════════════════════
+// UTILS
+// ═══════════════════════════════════════════════
+function ge(id){return document.getElementById(id);}
+function gv(id){var el=ge(id);return el?el.value:'';}
+function sv2(id,v){var el=ge(id);if(el)el.value=v;}
 function N(n,d){return isNaN(n)?'—':n.toLocaleString('pt-BR',{minimumFractionDigits:d||0,maximumFractionDigits:d||0});}
-function M(n){return isNaN(n)?'—':'R$ '+n.toLocaleString('pt-BR',{minimumFractionDigits:0,maximumFractionDigits:0});}
-function hoje(){ return new Date().toISOString().split('T')[0]; }
-function fmtData(d){ if(!d)return'—'; try{var p=d.split('-');return p[2]+'/'+p[1]+'/'+p[0];}catch(e){return d;} }
-
+function hoje(){return new Date().toISOString().split('T')[0];}
+function fmtData(d){if(!d)return'—';try{var p=d.split('-');return p[2]+'/'+p[1]+'/'+p[0];}catch(e){return d;}}
 var _toastT;
-function toast(msg,tipo){
-  var el=ge('toastEl'); if(!el)return;
-  el.textContent=msg; el.className='toast '+(tipo||'')+ ' show';
-  clearTimeout(_toastT); _toastT=setTimeout(function(){el.classList.remove('show');},3200);
-}
-
+function toast(msg,tipo){var el=ge('toastEl');if(!el)return;el.textContent=msg;el.className='toast '+(tipo||'')+' show';clearTimeout(_toastT);_toastT=setTimeout(function(){el.classList.remove('show');},3200);}
 function updSt(){
   var dot=ge('syncDot'),txt=ge('syncTxt');
   var pending=(DB.syncQ||[]).length;
@@ -689,61 +724,51 @@ function updSt(){
   else{dot.className='sync-dot online';txt.textContent='Sincronizado ✓';}
 }
 
-// ══════════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════
+// MODO DE PESAGEM
+// ═══════════════════════════════════════════════
+var modoAtual='bt';
+function selecionarModo(modo){
+  modoAtual=modo;
+  ge('btnModoBT').classList.toggle('ativo',modo==='bt');
+  ge('btnModoManual').classList.toggle('ativo',modo==='manual');
+  ge('btCard').classList.toggle('at',modo==='bt');
+  ge('regCard').classList.toggle('at',modo==='manual');
+  if(modo==='manual'){
+    sv2('pData',hoje());
+    setTimeout(function(){ge('pNum').focus();},100);
+  }
+}
+
+// ═══════════════════════════════════════════════
 // NAVEGAÇÃO
-// ══════════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════
 function irTab(tab){
   document.querySelectorAll('.page').forEach(function(p){p.classList.remove('at');});
   document.querySelectorAll('.nav-tab').forEach(function(t){t.classList.remove('at');});
   ge('page-'+tab).classList.add('at');
   ge('tab-'+tab).classList.add('at');
-  if(tab==='pesagem') renderPes();
-  if(tab==='lotes') renderLotes();
+  if(tab==='pesagem')renderPes();
+  if(tab==='lotes')renderLotes();
   if(tab==='relatorios'){
-    // Popula select de fazenda
-    var sel=ge('relFazSelect');
-    if(sel){
-      sel.innerHTML='<option value="">Todas as fazendas</option>';
-      (DB.fazendas||[]).forEach(function(f){
-        var o=document.createElement('option');
-        o.value=f.id;o.textContent=f.nome;sel.appendChild(o);
-      });
-    }
+    var sel=ge('relFazFil');
+    if(sel){sel.innerHTML='<option value="">Todas as fazendas</option>';(DB.fazendas||[]).forEach(function(f){var o=document.createElement('option');o.value=f.id;o.textContent=f.nome;sel.appendChild(o);});}
+    var sel2=ge('relFazSelect');
+    if(sel2){sel2.innerHTML='<option value="">Todas</option>';(DB.fazendas||[]).forEach(function(f){var o=document.createElement('option');o.value=f.id;o.textContent=f.nome;sel2.appendChild(o);});}
     ge('selFazendaDiv').style.display='none';
     ge('selAnimalDiv').style.display='none';
     ge('relOutput').style.display='none';
-    // Popula select de fazenda nos relatórios
-    var selRF = ge('relFazFil');
-    if(selRF){
-      var curVal = selRF.value;
-      selRF.innerHTML='<option value="">Todas as fazendas</option>';
-      (DB.fazendas||[]).forEach(function(f){
-        var o=document.createElement('option');
-        o.value=f.id; o.textContent=f.nome; selRF.appendChild(o);
-      });
-      // Sincroniza com filtro da aba pesagem
-      var fazPes = gv('pFazFil');
-      if(fazPes) selRF.value=fazPes;
-      else if(curVal) selRF.value=curVal;
-    }
     atualizarFazRel();
   }
 }
 
-// ══════════════════════════════════════════════════════════════
-// PROTOCOLO DO DIA
-// ══════════════════════════════════════════════════════════════
-function setModo(modo){
-  DB.protoDia.modo = modo;
-  sv('protoDia');
-  ge('modoTodosBtn').classList.toggle('at', modo==='todos');
-  ge('modoEspecBtn').classList.toggle('at', modo==='especifico');
-  renderProtoCHKS();
-}
-
+// ═══════════════════════════════════════════════
+// PROTOCOLO
+// ═══════════════════════════════════════════════
+function setModo(modo){DB.protoDia.modo=modo;sv('protoDia');ge('modoTodosBtn').classList.toggle('at',modo==='todos');ge('modoEspecBtn').classList.toggle('at',modo==='especifico');renderProtoCHKS();}
 function renderMeds(){
-  var meds = DB.protoDia.medicamentos||[];
-  if(!meds.length) meds = [{nome:'',dose:''}];
+  var meds=DB.protoDia.medicamentos||[];
+  if(!meds.length)meds=[{nome:'',dose:''}];
   var h='';
   meds.forEach(function(m,i){
     h+='<div class="proto-med-row">';
@@ -752,933 +777,448 @@ function renderMeds(){
     h+='<button class="proto-del-btn" onclick="delMed('+i+')">×</button>';
     h+='</div>';
   });
-  ge('listaMeds').innerHTML = h;
+  ge('listaMeds').innerHTML=h;
 }
-
-function addMed(){
-  if(!DB.protoDia.medicamentos) DB.protoDia.medicamentos=[];
-  DB.protoDia.medicamentos.push({nome:'',dose:''});
-  sv('protoDia');
-  renderMeds();
-  // Foca no novo campo
-  var idx = DB.protoDia.medicamentos.length - 1;
-  setTimeout(function(){ var el=ge('mNome_'+idx); if(el) el.focus(); }, 50);
-}
-
-function delMed(i){
-  DB.protoDia.medicamentos.splice(i,1);
-  sv('protoDia');
-  renderMeds();
-}
-
-function salvarMed(){
-  var meds=[];
-  var i=0;
-  while(ge('mNome_'+i)){
-    meds.push({nome:gv('mNome_'+i), dose:gv('mDose_'+i)});
-    i++;
-  }
-  DB.protoDia.medicamentos = meds;
-  sv('protoDia');
-}
-
+function addMed(){if(!DB.protoDia.medicamentos)DB.protoDia.medicamentos=[];DB.protoDia.medicamentos.push({nome:'',dose:''});sv('protoDia');renderMeds();}
+function delMed(i){DB.protoDia.medicamentos.splice(i,1);sv('protoDia');renderMeds();}
+function salvarMed(){var meds=[];var i=0;while(ge('mNome_'+i)){meds.push({nome:gv('mNome_'+i),dose:gv('mDose_'+i)});i++;}DB.protoDia.medicamentos=meds;sv('protoDia');}
 function renderProtoCHKS(){
-  var div = ge('protoCHKS');
-  if(!div) return;
-  if(DB.protoDia.modo !== 'especifico'){ div.style.display='none'; return; }
-  var meds = (DB.protoDia.medicamentos||[]).filter(function(m){return m.nome;});
-  if(!meds.length){ div.style.display='none'; return; }
-  div.style.display='block';
-  var h='<div style="font-size:11px;font-weight:700;color:#7a5800;margin-bottom:8px;text-transform:uppercase;letter-spacing:.8px">Marcar medicamentos para este animal:</div>';
-  h+='<div style="display:flex;gap:10px;flex-wrap:wrap">';
-  meds.forEach(function(m,i){
-    h+='<label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer">';
-    h+='<input type="checkbox" class="chkMed" data-idx="'+i+'" checked style="accent-color:var(--v3)"> ';
-    h+=m.nome+(m.dose?' ('+m.dose+')':'');
-    h+='</label>';
+  var divM=ge('protoCHKS'),divBT=ge('btProtoCHKS');
+  var meds=(DB.protoDia.medicamentos||[]).filter(function(m){return m.nome;});
+  var show=DB.protoDia.modo==='especifico'&&meds.length;
+  [divM,divBT].forEach(function(div){
+    if(!div)return;
+    if(!show){div.style.display='none';return;}
+    div.style.display='block';
+    var h='<div style="font-size:11px;font-weight:700;color:#7a5800;margin-bottom:8px;text-transform:uppercase;letter-spacing:.8px">Marcar para este animal:</div>';
+    h+='<div style="display:flex;gap:10px;flex-wrap:wrap">';
+    meds.forEach(function(m,i){h+='<label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer"><input type="checkbox" class="chkMed" data-idx="'+i+'" checked style="accent-color:var(--v3)"> '+m.nome+(m.dose?' ('+m.dose+')':'')+'</label>';});
+    h+='</div>';
+    div.innerHTML=h;
   });
-  h+='</div>';
-  div.innerHTML=h;
 }
 
-// ══════════════════════════════════════════════════════════════
-// GMD AO VIVO
-// ══════════════════════════════════════════════════════════════
-function calcGmdLive(){
-  var num = gv('pNum').trim();
-  var dataAtual = gv('pData') || hoje();
-  var fazId = gv('pFazFil') || ((DB.fazendas||[])[0]||{}).id||'';
-  if(!num){ ge('animalInfo').style.display='none'; return; }
+// ═══════════════════════════════════════════════
+// BLUETOOTH
+// ═══════════════════════════════════════════════
+async function conectarBT(){
+  if(!navigator.bluetooth){
+    toast('Web Bluetooth não suportado. Use Chrome desktop ou Android','err');
+    return;
+  }
+  var btn=ge('btnConectarBT');
+  btn.textContent='⏳ Buscando...';
+  btn.disabled=true;
+  try{
+    var device=await navigator.bluetooth.requestDevice({
+      acceptAllDevices:true,
+      optionalServices:['generic_access','battery_service','weight_scale','0000fff0-0000-1000-8000-00805f9b34fb','00001234-0000-1000-8000-00805f9b34fb']
+    });
+    DB.btDevice=device;
+    var server=await device.gatt.connect();
+    toast('✅ '+device.name+' conectada!','ok');
+    ge('btStatusBadge').textContent='Conectada: '+(device.name||'Balança');
+    ge('btStatusBadge').className='bt-status conectado';
+    ge('btPassos').style.display='none';
+    ge('btConectado').style.display='block';
+    ge('btnConectarBT').style.display='none';
 
-  var ult = (DB.pesagens||[]).filter(function(x){
-    var mesmaFaz = !fazId || x.fazId===fazId;
-    return String(x.num)===String(num) && mesmaFaz && x.data < dataAtual;
-  }).sort(function(a,b){return b.data.localeCompare(a.data);})[0];
+    // Tenta se inscrever nas notificações de peso
+    try{
+      var service=await server.getPrimaryService('weight_scale');
+      var char=await service.getCharacteristic('weight_measurement');
+      DB.btChar=char;
+      await char.startNotifications();
+      char.addEventListener('characteristicvaluechanged',function(e){
+        var v=e.target.value;
+        var peso=0;
+        // Tenta múltiplos formatos de balança
+        if(v.byteLength>=3){
+          var flags=v.getUint8(0);
+          if(flags&0x01){peso=v.getUint16(1,true)/200;}
+          else{peso=v.getUint16(1,true)/200;}
+        }
+        if(peso>0&&peso<2000){receberPesoBT(peso);}
+      });
+      toast('📡 Recebendo peso automaticamente!','ok');
+    }catch(e){
+      // Balança não tem serviço padrão — simula recebimento manual
+      toast('⚠️ Balança conectada mas sem transmissão automática. Insira o peso manualmente se necessário.','warn');
+      ativarModoBTManual();
+    }
 
-  if(!ult){ ge('animalInfo').style.display='none'; return; }
-
-  var dias = Math.round((new Date(dataAtual) - new Date(ult.data)) / (1000*60*60*24));
-  var pessoAtual = parseFloat(gv('pPeso'));
-  ge('animalInfo').style.cssText='display:flex;padding:10px 14px;background:var(--vl);border-radius:8px;border:1px solid #c8e6b0;margin-bottom:10px;gap:16px;flex-wrap:wrap;align-items:center';
-  ge('infoUltPeso').textContent = ult.peso + ' kg';
-  ge('infoUltData').textContent = fmtData(ult.data);
-  ge('infoDias').textContent = dias + ' dias';
-
-  if(pessoAtual > 0 && dias > 0){
-    var gmd = ((pessoAtual - ult.peso)/dias);
-    var el = ge('infoGmd');
-    el.textContent = gmd.toFixed(3) + ' kg/dia';
-    el.className = 'td-gmd ' + (gmd>=0.668?'top':gmd>=0.45?'med':'low');
-  } else {
-    ge('infoGmd').textContent = '— aguardando peso';
-    ge('infoGmd').className = 'td-gmd na';
+  }catch(e){
+    btn.textContent='Conectar';
+    btn.disabled=false;
+    if(e.name==='NotFoundError')toast('Nenhum dispositivo selecionado','warn');
+    else toast('Erro: '+e.message,'err');
   }
 }
 
-// ══════════════════════════════════════════════════════════════
-// SALVAR PESAGEM
-// ══════════════════════════════════════════════════════════════
+function ativarModoBTManual(){
+  // Já tem campo de digitação no HTML — só foca nele
+  var el=ge('btPesoDigitado');
+  if(el){
+    el.focus();
+    toast('⚠️ Balança conectada mas sem transmissão automática. Digite o peso no campo amarelo.','warn');
+  }
+}
+
+function usarPesoDigitado(v){
+  var p=parseFloat(v);
+  if(p>0&&p<2000){
+    DB.btPesoAtual=p;
+    // Atualiza display também
+    var el=ge('btPesoVal');
+    if(el){el.textContent=p.toFixed(1);el.classList.add('novo');setTimeout(function(){el.classList.remove('novo');},500);}
+    ge('btPesoStatus').textContent='✅ Peso digitado: '+p.toFixed(1)+' kg';
+    ge('btPesoStatus').className='bt-peso-estavel ok';
+  }
+}
+
+function confirmarPesoDigitado(){
+  var v=parseFloat(gv('btPesoDigitado'));
+  if(!v||v<=0){toast('⚠️ Digite o peso primeiro!','warn');ge('btPesoDigitado').focus();return;}
+  if(v>1200){toast('⚠️ Peso '+v+'kg parece alto. Confira!','warn');return;}
+  if(v<20){toast('⚠️ Peso '+v+'kg parece baixo. Confira!','warn');return;}
+  usarPesoDigitado(v);
+  toast('✅ Peso '+v.toFixed(1)+' kg confirmado!','ok');
+  // Foca no número do animal
+  var numEl=ge('btNum');
+  if(numEl)numEl.focus();
+}
+
+function receberPesoBT(peso){
+  DB.btPesoAtual=peso;
+  var el=ge('btPesoVal');
+  if(el){
+    el.textContent=peso.toFixed(1);
+    el.classList.add('novo');
+    setTimeout(function(){el.classList.remove('novo');},500);
+  }
+  ge('btPesoStatus').textContent='✅ Peso estável — pronto para registrar';
+  ge('btPesoStatus').className='bt-peso-estavel ok';
+  // Foca no número do animal
+  var numEl=ge('btNum');
+  if(numEl&&!numEl.value)numEl.focus();
+}
+
+function desconectarBT(){
+  if(DB.btDevice&&DB.btDevice.gatt.connected){DB.btDevice.gatt.disconnect();}
+  DB.btDevice=null;DB.btChar=null;DB.btPesoAtual=null;
+  ge('btStatusBadge').textContent='Desconectada';
+  ge('btStatusBadge').className='bt-status desconect';
+  ge('btPassos').style.display='';
+  ge('btConectado').style.display='none';
+  ge('btnConectarBT').style.display='';
+  ge('btnConectarBT').textContent='Conectar';
+  ge('btnConectarBT').disabled=false;
+  ge('btPesoVal').textContent='— —';
+  toast('Balança desconectada','warn');
+}
+
+function calcGmdLiveBT(){
+  var num=gv('btNum').trim();
+  calcGmdLiveBase(num,'btAnimalInfo');
+}
+
+function savPesagemBT(){
+  var num=gv('btNum').trim();
+  // Pega peso: primeiro do BT automático, depois do campo digitado
+  var pesoDigitado=parseFloat(gv('btPesoDigitado'))||0;
+  var peso=DB.btPesoAtual||pesoDigitado||0;
+  var lote=parseInt(gv('btLote'))||1;
+  if(!num){toast('⚠️ Informe o número do animal!','warn');ge('btNum').focus();return;}
+  if(!peso||peso<=0){toast('⚠️ Sem peso! Aguarde a balança transmitir ou digite no campo amarelo.','warn');ge('btPesoDigitado').focus();return;}
+  if(peso>1200){toast('⚠️ Peso '+peso+'kg parece alto. Confira!','warn');return;}
+  if(peso<20){toast('⚠️ Peso '+peso+'kg parece baixo. Confira!','warn');return;}
+  salvarRegistro(num,peso,lote,gv('btSexo')||'macho',hoje(),gv('btObs')||'','bt','btProtoCHKS',gv('btMedExtra')||'',gv('btMedExtraDose')||'','','',0);
+  // Limpa campos BT
+  sv2('btNum','');sv2('btLote','');sv2('btObs','');sv2('btMedExtra','');sv2('btMedExtraDose','');
+  sv2('btPesoDigitado','');
+  ge('btAnimalInfo').classList.remove('show');
+  ge('btPesoVal').textContent='— —';
+  ge('btPesoStatus').textContent='Aguardando próximo animal...';
+  ge('btPesoStatus').className='bt-peso-estavel';
+  DB.btPesoAtual=null;
+  ge('btNum').focus();
+}
+
+// ═══════════════════════════════════════════════
+// GMD AO VIVO
+// ═══════════════════════════════════════════════
+function calcGmdLive(){
+  var num=gv('pNum').trim();
+  calcGmdLiveBase(num,'manualAnimalInfo');
+}
+
+function calcGmdLiveBase(num,infoId){
+  var dataAtual=gv('pData')||hoje();
+  var fazId=gv('pFazFil')||((DB.fazendas||[])[0]||{}).id||'';
+  var infoEl=ge(infoId);
+  if(!num||!infoEl){if(infoEl)infoEl.classList.remove('show');return;}
+  var ult=(DB.pesagens||[]).filter(function(x){return String(x.num)===String(num)&&(!fazId||x.fazId===fazId)&&x.data<dataAtual;}).sort(function(a,b){return b.data.localeCompare(a.data);})[0];
+  if(!ult){infoEl.classList.remove('show');return;}
+  var dias=Math.round((new Date(dataAtual)-new Date(ult.data))/(1000*60*60*24));
+  var pesoAtual=parseFloat(gv('pPeso'))||0;
+  infoEl.classList.add('show');
+  var gmdTxt='— aguardando peso';
+  var gmdCls='na';
+  if(pesoAtual>0&&dias>0){var gmd=(pesoAtual-ult.peso)/dias;gmdTxt=gmd.toFixed(3)+' kg/dia';gmdCls=gmd>=0.668?'top':gmd>=0.45?'med':'low';}
+  infoEl.innerHTML='<span class="ai-item">Último: <strong>'+ult.peso+' kg</strong> em <strong>'+fmtData(ult.data)+'</strong></span><span class="ai-item">Dias: <strong>'+dias+'</strong></span><span class="ai-item">GMD: <strong class="td-gmd '+gmdCls+'">'+gmdTxt+'</strong></span>';
+}
+
+// ═══════════════════════════════════════════════
+// SALVAR (MANUAL)
+// ═══════════════════════════════════════════════
 function savPesagem(){
-  var num  = gv('pNum').trim();
-  var peso = parseFloat(gv('pPeso'));
-  var lote = parseInt(gv('pLote'))||1;
-  var data = gv('pData')||hoje();
-  var fazId= gv('pFazFil')||((DB.fazendas||[])[0]||{}).id||'';
-
-  if (!num){toast('⚠️ Informe o número do animal!','warn');ge('pNum').focus();return;}
-  if (!peso||peso<=0){toast('⚠️ Informe o peso!','warn');ge('pPeso').focus();return;}
-  if (peso>1200){toast('⚠️ Peso '+peso+'kg parece alto. Confira!','warn');return;}
-  if (peso<20){toast('⚠️ Peso '+peso+'kg parece baixo. Confira!','warn');return;}
-
-  // Duplicado?
+  var num=gv('pNum').trim();
+  var peso=parseFloat(gv('pPeso'));
+  var lote=parseInt(gv('pLote'))||1;
+  var data=gv('pData')||hoje();
+  if(!num){toast('⚠️ Informe o número do animal!','warn');ge('pNum').focus();return;}
+  if(!peso||peso<=0){toast('⚠️ Informe o peso!','warn');ge('pPeso').focus();return;}
+  if(peso>1200){toast('⚠️ Peso '+peso+'kg parece alto. Confira!','warn');return;}
+  if(peso<20){toast('⚠️ Peso '+peso+'kg parece baixo. Confira!','warn');return;}
+  var fazId=gv('pFazFil')||((DB.fazendas||[])[0]||{}).id||'';
   var dup=(DB.pesagens||[]).find(function(x){return String(x.num)===String(num)&&x.data===data&&x.fazId===fazId;});
   if(dup){
     showConf('⚠️','Animal já pesado hoje!','Animal '+num+' pesado com '+dup.peso+'kg. Atualizar para '+peso+'kg?',function(){
-      dup.peso=peso; dup.lote=lote; dup.obs=gv('pObs')||dup.obs;
-      recalcGmd(dup); lw('pesagens','upd',dup);
-      limparCampos(); toast('✅ Animal '+num+' atualizado → '+peso+' kg','ok');
-      renderPes();
+      dup.peso=peso;dup.lote=lote;dup.obs=gv('pObs')||dup.obs;recalcGmd(dup);lw('pesagens','upd',dup);
+      limparCamposManual();toast('✅ Animal '+num+' atualizado → '+peso+' kg','ok');renderPes();
     });
     return;
   }
+  salvarRegistro(num,peso,lote,gv('pSexo')||'macho',data,gv('pObs')||'','manual','protoCHKS',gv('pMedExtra')||'',gv('pMedExtraDose')||'',gv('pDataCompra')||'',gv('pDataVenda')||'',parseFloat(gv('pValorVenda'))||0);
+  limparCamposManual();
+  ge('pNum').focus();
+}
 
-  // GMD
+function salvarRegistro(num,peso,lote,sexo,data,obs,modo,chksId,medExtra,medExtraDose,dataCompra,dataVenda,valorVenda){
+  var fazId=gv('pFazFil')||((DB.fazendas||[])[0]||{}).id||'';
   var ant=(DB.pesagens||[]).filter(function(x){return String(x.num)===String(num)&&x.fazId===fazId&&x.data<data;}).sort(function(a,b){return b.data.localeCompare(a.data);})[0];
   var gmd=0;
-  if(ant){ var dias=(new Date(data)-new Date(ant.data))/(1000*60*60*24); if(dias>0) gmd=parseFloat(((peso-ant.peso)/dias).toFixed(3)); }
-
-  // Protocolo
+  if(ant){var dias=(new Date(data)-new Date(ant.data))/(1000*60*60*24);if(dias>0)gmd=parseFloat(((peso-ant.peso)/dias).toFixed(3));}
   var prot=DB.protoDia||{modo:'todos',medicamentos:[]};
   var meds=(prot.medicamentos||[]).filter(function(m){return m.nome;});
   var medsParaSalvar=[];
   if(prot.modo==='especifico'){
-    var chks=document.querySelectorAll('.chkMed');
-    chks.forEach(function(chk){ if(chk.checked){ var i=parseInt(chk.getAttribute('data-idx')); if(meds[i]) medsParaSalvar.push({nome:meds[i].nome,dose:meds[i].dose}); } });
-  } else {
-    medsParaSalvar = meds;
-  }
-
-  var p={
-    id:'p'+Date.now(),
-    num:num, peso:peso, lote:lote,
-    sexo:gv('pSexo')||'macho',
-    obs:gv('pObs')||'',
-    data:data, fazId:fazId,
-    gmd:gmd,
-    medicamentos:medsParaSalvar,
-    medExtra:gv('pMedExtra')||'',
-    medExtraDose:gv('pMedExtraDose')||'',
-    dataCompra:gv('pDataCompra')||'',
-    dataVenda:gv('pDataVenda')||'',
-    valorVenda:parseFloat(gv('pValorVenda'))||0,
-    criadoEm:new Date().toISOString()
-  };
-
+    var chks=document.querySelectorAll('#'+chksId+' .chkMed');
+    chks.forEach(function(chk){if(chk.checked){var i=parseInt(chk.getAttribute('data-idx'));if(meds[i])medsParaSalvar.push({nome:meds[i].nome,dose:meds[i].dose});}});
+  }else{medsParaSalvar=meds;}
+  var p={id:'p'+Date.now(),num:num,peso:peso,lote:lote,sexo:sexo,obs:obs,data:data,fazId:fazId,gmd:gmd,medicamentos:medsParaSalvar,medExtra:medExtra,medExtraDose:medExtraDose,dataCompra:dataCompra,dataVenda:dataVenda,valorVenda:valorVenda,modo:modo,criadoEm:new Date().toISOString()};
   lw('pesagens','add',p);
-  limparCampos();
   var gc=gmd>=0.668?'🟢':gmd>=0.45?'🟡':gmd>0?'🔴':'';
   toast('✅ '+num+' · '+peso+' kg · Lote '+lote+(gmd?' · '+gc+' '+gmd.toFixed(3)+' kg/dia':' · 1ª pesagem'),'ok');
-  ge('pNum').focus();
   renderPes();
 }
 
-function recalcGmd(p){
-  var ant=(DB.pesagens||[]).filter(function(x){return String(x.num)===String(p.num)&&x.fazId===p.fazId&&x.data<p.data;}).sort(function(a,b){return b.data.localeCompare(a.data);})[0];
-  if(ant){var dias=(new Date(p.data)-new Date(ant.data))/(1000*60*60*24);if(dias>0)p.gmd=parseFloat(((p.peso-ant.peso)/dias).toFixed(3));}
-}
+function recalcGmd(p){var ant=(DB.pesagens||[]).filter(function(x){return String(x.num)===String(p.num)&&x.fazId===p.fazId&&x.data<p.data;}).sort(function(a,b){return b.data.localeCompare(a.data);})[0];if(ant){var dias=(new Date(p.data)-new Date(ant.data))/(1000*60*60*24);if(dias>0)p.gmd=parseFloat(((p.peso-ant.peso)/dias).toFixed(3));}}
+function limparCamposManual(){sv2('pNum','');sv2('pPeso','');sv2('pObs','');sv2('pMedExtra','');sv2('pMedExtraDose','');ge('manualAnimalInfo').classList.remove('show');}
 
-function limparCampos(){
-  sv2('pNum',''); sv2('pPeso',''); sv2('pObs','');
-  sv2('pMedExtra',''); sv2('pMedExtraDose','');
-  ge('animalInfo').style.display='none';
-}
-
-// Paginação
-var _pagPes = 0;
-var _pagSize = 20;
-
-// ══════════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════
 // RENDER PESAGENS
-// ══════════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════
+var _pagPes=0,_pagSize=20;
 function renderPes(){
-  var fazId = gv('pFazFil');
-  var dataFil = gv('pDataFil'); // vazio = sem filtro de data (mostra todos)
-  var loteFil = gv('pLoteFil');
-  // Se não tiver filtro de data, padrão é hoje
-  if(!dataFil) { dataFil = hoje(); sv2('pDataFil', hoje()); }
-
-  var peses=(DB.pesagens||[]).filter(function(p){
-    if(fazId&&p.fazId!==fazId) return false;
-    if(dataFil&&p.data!==dataFil) return false;
-    if(loteFil&&String(p.lote)!==String(loteFil)) return false;
-    return true;
-  }).sort(function(a,b){return b.criadoEm>a.criadoEm?1:-1;});
-
-  // Stats
+  var fazId=gv('pFazFil');
+  var dataFil=gv('pDataFil');
+  if(!dataFil){dataFil=hoje();sv2('pDataFil',hoje());}
+  var loteFil=gv('pLoteFil');
+  var peses=(DB.pesagens||[]).filter(function(p){if(fazId&&p.fazId!==fazId)return false;if(dataFil&&p.data!==dataFil)return false;if(loteFil&&String(p.lote)!==String(loteFil))return false;return true;}).sort(function(a,b){return b.criadoEm>a.criadoEm?1:-1;});
   var pHoje=(DB.pesagens||[]).filter(function(p){return p.data===hoje();});
-  ge('stHoje').textContent = pHoje.length;
-  ge('badge-hoje').textContent = pHoje.length;
+  ge('stHoje').textContent=pHoje.length;ge('badge-hoje').textContent=pHoje.length;
   if(pHoje.length){
-    var pm = pHoje.reduce(function(s,p){return s+p.peso;},0)/pHoje.length;
-    ge('stPMedio').textContent = pm.toFixed(0)+' kg';
-    var at = pHoje.reduce(function(s,p){return s+(p.peso*0.52/15);},0);
-    ge('stArr').textContent = at.toFixed(1)+' @';
-    var comGmd = pHoje.filter(function(p){return p.gmd>0;});
-    if(comGmd.length){
-      var gm = comGmd.reduce(function(s,p){return s+p.gmd;},0)/comGmd.length;
-      ge('stGmd').textContent = gm.toFixed(3);
-      ge('stGmd').className = 'stat-val '+(gm>=0.668?'vd':gm>=0.45?'am':'rd');
-    } else {
-      ge('stGmd').textContent='—'; ge('stGmd').className='stat-val';
-    }
-  } else {
-    ge('stPMedio').textContent=ge('stArr').textContent=ge('stGmd').textContent='—';
-  }
-
-  // Paginação
-  var total = peses.length;
-  var start = _pagPes * _pagSize;
-  var pag = peses.slice(start, start+_pagSize);
-  ge('pagInfo').textContent = 'Mostrando '+(pag.length?start+1:0)+'-'+(start+pag.length)+' de '+total;
-
-  // Botões paginação
-  var totalPag = Math.ceil(total/_pagSize);
-  var ph='';
-  for(var i=0;i<totalPag;i++){
-    ph+='<button class="pag-btn'+(i===_pagPes?' at':'')+('" onclick="goPage('+i+')">'+(i+1)+'</button>');
-  }
+    var pm=pHoje.reduce(function(s,p){return s+p.peso;},0)/pHoje.length;
+    ge('stPMedio').textContent=pm.toFixed(0)+' kg';
+    var at=pHoje.reduce(function(s,p){return s+(p.peso*0.52/15);},0);
+    ge('stArr').textContent=at.toFixed(1)+' @';
+    var comGmd=pHoje.filter(function(p){return p.gmd>0;});
+    if(comGmd.length){var gm=comGmd.reduce(function(s,p){return s+p.gmd;},0)/comGmd.length;ge('stGmd').textContent=gm.toFixed(3);ge('stGmd').className='stat-val '+(gm>=0.668?'vd':gm>=0.45?'am':'rd');}
+    else{ge('stGmd').textContent='—';ge('stGmd').className='stat-val';}
+  }else{ge('stPMedio').textContent=ge('stArr').textContent=ge('stGmd').textContent='—';}
+  var total=peses.length,start=_pagPes*_pagSize,pag=peses.slice(start,start+_pagSize);
+  ge('pagInfo').textContent='Mostrando '+(pag.length?start+1:0)+'-'+(start+pag.length)+' de '+total;
+  var totalPag=Math.ceil(total/_pagSize),ph='';
+  for(var i=0;i<totalPag;i++)ph+='<button class="pag-btn'+(i===_pagPes?' at':'')+('" onclick="goPage('+i+')">'+(i+1)+'</button>');
   ge('pagBtns').innerHTML=ph;
-
-  // Tabela
   var h='';
-  if(!pag.length){
-    h='<tr><td colspan="9" class="empty"><span class="empty-ico">🐄</span>Nenhuma pesagem encontrada</td></tr>';
-  } else {
+  if(!pag.length){h='<tr><td colspan="10" class="empty"><span class="empty-ico">🐄</span>Nenhuma pesagem encontrada</td></tr>';}
+  else{
     pag.forEach(function(p){
       var gc=p.gmd>0?(p.gmd>=0.668?'top':p.gmd>=0.45?'med':'low'):'na';
       var gmdTxt=p.gmd>0?p.gmd.toFixed(3):'1ª pes.';
       var protTxt=(p.medicamentos&&p.medicamentos.length)?p.medicamentos.map(function(m){return m.nome+(m.dose?' '+m.dose:'');}).join(', '):'—';
       var medE=p.medExtra?('<span style="color:var(--rd);font-weight:600">'+p.medExtra+(p.medExtraDose?' '+p.medExtraDose:'')+'</span>'):'—';
-      h+='<tr>';
-      h+='<td class="td-num">'+p.num+'</td>';
-      h+='<td class="td-peso">'+p.peso+' kg</td>';
-      h+='<td>'+p.lote+'</td>';
-      h+='<td><span class="td-badge '+(p.sexo==='femea'?'f':'m')+'">'+( p.sexo==='femea'?'Fêmea':'Macho')+'</span></td>';
-      h+='<td class="td-gmd '+gc+'">'+gmdTxt+'</td>';
-      h+='<td style="font-size:12px">'+protTxt+'</td>';
-      h+='<td>'+medE+'</td>';
-      h+='<td style="font-size:12px;color:var(--g4)">'+( p.obs||'—')+'</td>';
-      h+='<td><div class="td-actions"><button class="btn-sm" onclick="abrirEditar(\''+p.id+'\')">✏️</button><button class="btn-sm del" onclick="deletarPes(\''+p.id+'\')">🗑</button></div></td>';
-      h+='</tr>';
+      var modoBadge=p.modo==='bt'?'<span style="background:#e3f0fd;color:#1a5580;font-size:9px;font-weight:700;padding:1px 6px;border-radius:6px">BT</span>':'<span style="background:var(--vl);color:var(--v2);font-size:9px;font-weight:700;padding:1px 6px;border-radius:6px">Manual</span>';
+      h+='<tr><td class="td-num">'+p.num+'</td><td class="td-peso">'+p.peso+' kg</td><td>'+p.lote+'</td><td><span class="td-badge '+(p.sexo==='femea'?'f':'m')+'">'+( p.sexo==='femea'?'Fêmea':'Macho')+'</span></td><td class="td-gmd '+gc+'">'+gmdTxt+'</td><td style="font-size:12px">'+protTxt+'</td><td>'+medE+'</td><td style="font-size:12px;color:var(--g4)">'+(p.obs||'—')+'</td><td>'+modoBadge+'</td><td><div class="td-actions"><button class="btn-sm" onclick="abrirEditar(\''+p.id+'\')">✏️</button><button class="btn-sm del" onclick="deletarPes(\''+p.id+'\')">🗑</button></div></td></tr>';
     });
   }
   ge('tbPes').innerHTML=h;
 }
-
 function goPage(p){_pagPes=p;renderPes();}
 
-// ══════════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════
 // EDITAR / DELETAR
-// ══════════════════════════════════════════════════════════════
-function abrirEditar(id){
-  var p=(DB.pesagens||[]).find(function(x){return x.id===id;});
-  if(!p) return;
-  sv2('editId',p.id); sv2('editNum',p.num); sv2('editPeso',p.peso);
-  sv2('editLote',p.lote); sv2('editSexo',p.sexo); sv2('editData',p.data);
-  sv2('editGmd',p.gmd||0); sv2('editObs',p.obs||'');
-  sv2('editMedExtra',p.medExtra||''); sv2('editMedExtraDose',p.medExtraDose||'');
-  sv2('editDataCompra',p.dataCompra||''); sv2('editDataVenda',p.dataVenda||'');
-  sv2('editValorVenda',p.valorVenda||0);
-  ge('modalEditar').classList.add('at');
-}
+// ═══════════════════════════════════════════════
+function abrirEditar(id){var p=(DB.pesagens||[]).find(function(x){return x.id===id;});if(!p)return;sv2('editId',p.id);sv2('editNum',p.num);sv2('editPeso',p.peso);sv2('editLote',p.lote);sv2('editSexo',p.sexo);sv2('editData',p.data);sv2('editGmd',p.gmd||0);sv2('editObs',p.obs||'');sv2('editMedExtra',p.medExtra||'');sv2('editMedExtraDose',p.medExtraDose||'');ge('modalEditar').classList.add('at');}
+function fecharModal(){ge('modalEditar').classList.remove('at');}
+function salvarEdicao(){var id=gv('editId');var p=(DB.pesagens||[]).find(function(x){return x.id===id;});if(!p){toast('Não encontrado','err');return;}p.num=gv('editNum');p.peso=parseFloat(gv('editPeso'));p.lote=parseInt(gv('editLote'))||1;p.sexo=gv('editSexo');p.data=gv('editData');p.gmd=parseFloat(gv('editGmd'))||0;p.obs=gv('editObs');p.medExtra=gv('editMedExtra');p.medExtraDose=gv('editMedExtraDose');lw('pesagens','upd',p);fecharModal();toast('✅ Pesagem atualizada','ok');renderPes();}
+function deletarPes(id){showConf('🗑️','Deletar pesagem','Esta ação não pode ser desfeita.',function(){lw('pesagens','del',{id:id});toast('Deletado','warn');renderPes();});}
 
-function fecharModal(){ ge('modalEditar').classList.remove('at'); }
-
-function salvarEdicao(){
-  var id = gv('editId');
-  var p=(DB.pesagens||[]).find(function(x){return x.id===id;});
-  if(!p){ toast('Registro não encontrado','err'); return; }
-  p.num=gv('editNum'); p.peso=parseFloat(gv('editPeso')); p.lote=parseInt(gv('editLote'))||1;
-  p.sexo=gv('editSexo'); p.data=gv('editData'); p.gmd=parseFloat(gv('editGmd'))||0;
-  p.obs=gv('editObs'); p.medExtra=gv('editMedExtra'); p.medExtraDose=gv('editMedExtraDose');
-  p.dataCompra=gv('editDataCompra'); p.dataVenda=gv('editDataVenda');
-  p.valorVenda=parseFloat(gv('editValorVenda'))||0;
-  lw('pesagens','upd',p);
-  fecharModal(); toast('✅ Pesagem atualizada','ok'); renderPes();
-}
-
-function deletarPes(id){
-  showConf('🗑️','Deletar pesagem','Esta ação não pode ser desfeita. Continuar?',function(){
-    lw('pesagens','del',{id:id}); toast('Registro deletado','warn'); renderPes();
-  });
-}
-
-// ══════════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════
 // LOTES
-// ══════════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════
 function renderLotes(){
-  var fazId = gv('pFazFil');
+  var fazId=gv('pFazFil');
   var lotes={};
-  (DB.pesagens||[]).filter(function(p){
-    return !fazId || p.fazId===fazId;
-  }).forEach(function(p){
-    var k=String(p.lote||'sem lote');
-    if(!lotes[k]) lotes[k]={lote:k,animais:[],datas:[]};
-    lotes[k].animais.push(p);
-    if(p.data&&!lotes[k].datas.includes(p.data)) lotes[k].datas.push(p.data);
-  });
-
+  (DB.pesagens||[]).filter(function(p){return!fazId||p.fazId===fazId;}).forEach(function(p){var k=String(p.lote||'sem lote');if(!lotes[k])lotes[k]={lote:k,animais:[],datas:[]};lotes[k].animais.push(p);if(p.data&&!lotes[k].datas.includes(p.data))lotes[k].datas.push(p.data);});
   var keys=Object.keys(lotes).sort(function(a,b){return parseInt(a)-parseInt(b);});
   ge('badge-lotes').textContent=keys.length;
-
-  if(!keys.length){
-    ge('lotesContainer').innerHTML='<div class="empty"><span class="empty-ico">📦</span>Nenhum lote registrado ainda</div>';
-    return;
-  }
-
-  var h='<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px">';
-  h+='<span style="font-family:Syne,sans-serif;font-size:13px;font-weight:800;color:var(--v2)">'+keys.length+' Lotes · '+((DB.pesagens||[]).filter(function(p){return !fazId||p.fazId===fazId;}).length)+' animais</span>';
-  h+='<button class="tb-btn" onclick="expandirTodos()">⊞ Expandir todos</button>';
-  h+='</div>';
-  h+='<div class="lotes-grid">';
+  if(!keys.length){ge('lotesContainer').innerHTML='<div class="empty"><span class="empty-ico">📦</span>Nenhum lote registrado ainda</div>';return;}
+  var h='<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px"><span style="font-family:Syne,sans-serif;font-size:13px;font-weight:800;color:var(--v2)">'+keys.length+' Lotes</span><button class="tb-btn" onclick="expandirTodos()">⊞ Expandir todos</button></div><div class="lotes-grid">';
   keys.forEach(function(k){
-    var lt=lotes[k];
-    var n=lt.animais.length;
+    var lt=lotes[k],n=lt.animais.length;
     var pm=lt.animais.reduce(function(s,a){return s+a.peso;},0)/n;
-    var pesoTotal=lt.animais.reduce(function(s,a){return s+a.peso;},0);
-    var arTotal=lt.animais.reduce(function(s,a){return s+(a.peso*0.52/15);},0);
     var comGmd=lt.animais.filter(function(a){return a.gmd>0;});
-    var gm=comGmd.length?comGmd.reduce(function(s,a){return s+a.gmd;},0)/comGmd.length:0;
+    var gm=comGmd.length?comGmd.reduce(function(s,p){return s+p.gmd;},0)/comGmd.length:0;
     var ultData=lt.datas.sort().slice(-1)[0];
     var machos=lt.animais.filter(function(a){return a.sexo==='macho';}).length;
-    var femeas=n-machos;
-
-    h+='<div class="lote-card">';
-    h+='<div class="lote-header" onclick="toggleLote(\'lote_'+k+'\')">';
-    h+='<div><div class="lote-nome">Lote '+k+'</div></div>';
-    h+='<div class="lote-meta">';
-    h+='<div class="lm-item">🐄 <span class="lm-val">'+n+'</span> animais</div>';
-    h+='<div class="lm-item">⚖️ <span class="lm-val">'+pm.toFixed(0)+'kg</span> médio</div>';
-    if(gm>0) h+='<div class="lm-item">📈 <span class="lm-val" style="color:'+(gm>=0.668?'var(--v3)':gm>=0.45?'var(--am)':'var(--rd)')+'">'+gm.toFixed(3)+' kg/d</span></div>';
-    h+='<div class="lm-item">♂ '+machos+' ♀ '+femeas+'</div>';
-    h+='<div class="lm-item">📅 '+fmtData(ultData)+'</div>';
-    h+='</div><div class="lote-caret">▼</div></div>';
-
-    h+='<div class="lote-body" id="lote_'+k+'">';
-    h+='<div style="overflow-x:auto"><table><thead><tr><th>Nº</th><th>Peso</th><th>Sexo</th><th>GMD</th><th>Data</th><th>Protocolo</th><th>Med. Ind.</th><th>Obs</th></tr></thead><tbody>';
+    h+='<div class="lote-card"><div class="lote-header" onclick="toggleLote(\'lote_'+k+'\')"><div><div class="lote-nome">Lote '+k+'</div></div><div class="lote-meta"><div class="lm-item">🐄 <span class="lm-val">'+n+'</span></div><div class="lm-item">⚖️ <span class="lm-val">'+pm.toFixed(0)+'kg</span></div>'+(gm>0?'<div class="lm-item">📈 <span class="lm-val" style="color:'+(gm>=0.668?'var(--v3)':gm>=0.45?'var(--am)':'var(--rd)')+'">'+gm.toFixed(3)+' kg/d</span></div>':'')+'<div class="lm-item">♂'+machos+' ♀'+(n-machos)+'</div><div class="lm-item">'+fmtData(ultData)+'</div></div><div class="lote-caret">▼</div></div>';
+    h+='<div class="lote-body" id="lote_'+k+'"><div style="overflow-x:auto"><table><thead><tr><th>Nº</th><th>Peso</th><th>Sexo</th><th>GMD</th><th>Data</th><th>Modo</th><th>Protocolo</th></tr></thead><tbody>';
     lt.animais.sort(function(a,b){return a.num>b.num?1:-1;}).forEach(function(a){
       var gc=a.gmd>0?(a.gmd>=0.668?'top':a.gmd>=0.45?'med':'low'):'na';
       var prot=(a.medicamentos&&a.medicamentos.length)?a.medicamentos.map(function(m){return m.nome;}).join(', '):'—';
-      h+='<tr><td class="td-num">'+a.num+'</td><td class="td-peso">'+a.peso+' kg</td>';
-      h+='<td><span class="td-badge '+(a.sexo==='femea'?'f':'m')+'">'+(a.sexo==='femea'?'F':'M')+'</span></td>';
-      h+='<td class="td-gmd '+gc+'">'+(a.gmd>0?a.gmd.toFixed(3):'1ª')+'</td>';
-      h+='<td>'+fmtData(a.data)+'</td><td style="font-size:12px">'+prot+'</td>';
-      h+='<td style="font-size:12px;color:var(--rd)">'+(a.medExtra||'—')+'</td>';
-      h+='<td style="font-size:12px;color:var(--g4)">'+(a.obs||'—')+'</td></tr>';
+      var mb=a.modo==='bt'?'BT':'Manual';
+      h+='<tr><td class="td-num">'+a.num+'</td><td class="td-peso">'+a.peso+' kg</td><td><span class="td-badge '+(a.sexo==='femea'?'f':'m')+'">'+(a.sexo==='femea'?'F':'M')+'</span></td><td class="td-gmd '+gc+'">'+(a.gmd>0?a.gmd.toFixed(3):'1ª')+'</td><td>'+fmtData(a.data)+'</td><td style="font-size:11px">'+mb+'</td><td style="font-size:12px">'+prot+'</td></tr>';
     });
-    h+='</tbody></table></div></div>';
-    h+='</div>';
+    h+='</tbody></table></div></div></div>';
   });
   h+='</div>';
   ge('lotesContainer').innerHTML=h;
 }
+function expandirTodos(){document.querySelectorAll('.lote-body').forEach(function(b){b.classList.add('at');if(b.previousElementSibling)b.previousElementSibling.classList.add('at');});}
+function toggleLote(id){var body=ge(id),header=body.previousElementSibling;body.classList.toggle('at');header.classList.toggle('at');}
 
-function expandirTodos(){
-  document.querySelectorAll('.lote-body').forEach(function(b){
-    b.classList.add('at');
-    if(b.previousElementSibling) b.previousElementSibling.classList.add('at');
-  });
-}
-
-function toggleLote(id){
-  var body=ge(id),header=body.previousElementSibling;
-  body.classList.toggle('at');
-  header.classList.toggle('at');
-}
-
-// ══════════════════════════════════════════════════════════════
-// RELATÓRIOS
-// ══════════════════════════════════════════════════════════════
-var _relAtual = null;
-
-function atualizarFazRel(){
-  var fazId = gv('relFazFil');
-  var info = ge('relFazInfo');
-  if(info){
-    var total = (DB.pesagens||[]).filter(function(p){return !fazId||p.fazId===fazId;}).length;
-    info.textContent = total + ' pesagens';
-  }
-  // Fecha relatório aberto para forçar regenerar
-  if(ge('relOutput')) ge('relOutput').style.display='none';
-}
-
-function gerarRelFazenda(){
-  var fazId = gv('relFazFil') || gv('relFazSelect');
-  var peses = (DB.pesagens||[]).filter(function(p){ return !fazId||p.fazId===fazId; });
-  var fazNome = fazId ? ((DB.fazendas||[]).find(function(f){return f.id===fazId;})||{}).nome||fazId : 'Todas as Fazendas';
-  ge('relTitulo').textContent = '🏡 ' + fazNome;
-  ge('relBody').innerHTML = buildRelFazenda(peses);
-  ge('relOutput').style.display='block';
-  ge('relOutput').scrollIntoView({behavior:'smooth'});
-}
-
+// ═══════════════════════════════════════════════
+// RELATÓRIOS (simplificado)
+// ═══════════════════════════════════════════════
+function atualizarFazRel(){var fazId=gv('relFazFil');var info=ge('relFazInfo');if(info){var total=(DB.pesagens||[]).filter(function(p){return!fazId||p.fazId===fazId;}).length;info.textContent=total+' pesagens';}}
 function gerarRel(tipo){
-  ge('selAnimalDiv').style.display = tipo==='animal' ? 'block' : 'none';
-  ge('selFazendaDiv').style.display = tipo==='fazenda' ? 'block' : 'none';
-  if(tipo==='animal'||tipo==='fazenda') return;
-  _relAtual = tipo;
-  // Aplica filtro de fazenda do seletor próprio de relatórios
-  var fazFilRel = gv('relFazFil') || gv('pFazFil');
-  var peses = (DB.pesagens||[]).filter(function(p){
-    return !fazFilRel || p.fazId===fazFilRel;
-  });
-  var titulo='', corpo='';
-
-  if(tipo==='dia'){
-    var dataRelFil = gv('pDataFil')||hoje();
-    titulo = '📅 Pesagem do Dia — '+fmtData(dataRelFil);
-    var ph=peses.filter(function(p){return p.data===dataRelFil;});
-    corpo = buildTableRel(ph, 'dia');
-  }
-  else if(tipo==='lote'){
-    titulo = '📦 Relatório por Lote';
-    corpo = buildRelLotes(peses);
-  }
-  else if(tipo==='fazenda'){
-    titulo = '🏡 Relatório por Fazenda';
-    // Mostra seletor de fazenda
-    ge('selFazendaDiv').style.display='block';
-    ge('relOutput').style.display='none';
-    return;
-  }
-  else if(tipo==='protocolo'){
-    titulo = '💉 Protocolo Sanitário';
-    corpo = buildRelProtocolo(peses);
-  }
-  else if(tipo==='geral'){
-    titulo = '📊 Relatório Geral do Rebanho';
-    corpo = buildRelGeral(peses);
-  }
-  else if(tipo==='gmd'){
-    titulo = '📈 Relatório GMD — Benchmarks Inttegra';
-    corpo = buildRelGMD(peses);
-  }
-
-  ge('relTitulo').textContent = titulo;
-  ge('relBody').innerHTML = corpo;
-  ge('relOutput').style.display = 'block';
-  ge('relOutput').scrollIntoView({behavior:'smooth'});
-}
-
-function gerarRelAnimal(){
-  var num = gv('relAnimalNum').trim();
-  if(!num){toast('Informe o número do animal','warn');return;}
-  var fazFilAn = gv('relFazFil') || gv('pFazFil');
-  var peses=(DB.pesagens||[]).filter(function(p){
-    return String(p.num)===String(num) && (!fazFilAn||p.fazId===fazFilAn);
-  }).sort(function(a,b){return a.data.localeCompare(b.data);});
-  if(!peses.length){toast('Animal '+num+' não encontrado','warn');return;}
-  _relAtual='animal';
-  ge('relTitulo').textContent='🐂 Animal '+num+' — Histórico Completo';
-  ge('relBody').innerHTML=buildRelAnimal(num, peses);
+  ge('selAnimalDiv').style.display=tipo==='animal'?'block':'none';
+  ge('selFazendaDiv').style.display=tipo==='fazenda'?'block':'none';
+  if(tipo==='animal'||tipo==='fazenda')return;
+  var fazId=gv('relFazFil');
+  var peses=(DB.pesagens||[]).filter(function(p){return!fazId||p.fazId===fazId;});
+  var titulo='',corpo='';
+  if(tipo==='dia'){var d=gv('pDataFil')||hoje();titulo='📅 Pesagem — '+fmtData(d);corpo=buildTableRel(peses.filter(function(p){return p.data===d;}));}
+  else if(tipo==='lote'){titulo='📦 Por Lote';corpo=buildRelLotes(peses);}
+  else if(tipo==='protocolo'){titulo='💉 Protocolo Sanitário';corpo=buildRelProtocolo(peses);}
+  else if(tipo==='gmd'){titulo='📈 Relatório GMD';corpo=buildRelGMD(peses);}
+  else{titulo='📊 Relatório Geral';corpo=buildRelGeral(peses);}
+  ge('relTitulo').textContent=titulo;
+  ge('relBody').innerHTML=corpo;
   ge('relOutput').style.display='block';
   ge('relOutput').scrollIntoView({behavior:'smooth'});
 }
-
-function buildTableRel(peses, tipo){
-  if(!peses.length) return '<div class="empty"><span class="empty-ico">🐄</span>Nenhum registro encontrado</div>';
+function gerarRelAnimal(){var num=gv('relAnimalNum').trim();if(!num){toast('Informe o número','warn');return;}var peses=(DB.pesagens||[]).filter(function(p){return String(p.num)===String(num);}).sort(function(a,b){return a.data.localeCompare(b.data);});if(!peses.length){toast('Animal não encontrado','warn');return;}ge('relTitulo').textContent='🐂 Animal '+num;ge('relBody').innerHTML=buildRelAnimal(num,peses);ge('relOutput').style.display='block';ge('relOutput').scrollIntoView({behavior:'smooth'});}
+function gerarRelFazenda(){var fazId=gv('relFazFil')||gv('relFazSelect');var peses=(DB.pesagens||[]).filter(function(p){return!fazId||p.fazId===fazId;});ge('relTitulo').textContent='🏡 Fazenda';ge('relBody').innerHTML=buildTableRel(peses);ge('relOutput').style.display='block';ge('relOutput').scrollIntoView({behavior:'smooth'});}
+function fecharRel(){ge('relOutput').style.display='none';}
+function buildTableRel(peses){
+  if(!peses.length)return'<div class="empty"><span class="empty-ico">🐄</span>Nenhum registro</div>';
   var pm=peses.reduce(function(s,p){return s+p.peso;},0)/peses.length;
   var comGmd=peses.filter(function(p){return p.gmd>0;});
   var gm=comGmd.length?comGmd.reduce(function(s,p){return s+p.gmd;},0)/comGmd.length:0;
-
-  var h='<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px">';
-  h+='<div class="stat-card"><div class="stat-label">Total Animais</div><div class="stat-val vd">'+peses.length+'</div></div>';
-  h+='<div class="stat-card"><div class="stat-label">Peso Médio</div><div class="stat-val">'+pm.toFixed(0)+' kg</div></div>';
-  h+='<div class="stat-card"><div class="stat-label">Total Arrobas</div><div class="stat-val">'+(peses.reduce(function(s,p){return s+(p.peso*.52/15);},0)).toFixed(1)+' @</div></div>';
-  h+='<div class="stat-card"><div class="stat-label">GMD Médio</div><div class="stat-val '+(gm>=0.668?'vd':gm>=0.45?'am':'rd')+'">'+(gm>0?gm.toFixed(3):'—')+'</div></div>';
-  h+='</div>';
-
-  h+='<div style="overflow-x:auto"><table><thead><tr><th>Nº</th><th>Peso</th><th>Lote</th><th>Sexo</th><th>GMD</th><th>Data</th><th>Protocolo</th><th>Med. Individual</th><th>Obs</th></tr></thead><tbody>';
+  var h='<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px"><div class="stat-card"><div class="stat-label">Total</div><div class="stat-val vd">'+peses.length+'</div></div><div class="stat-card"><div class="stat-label">Peso Médio</div><div class="stat-val">'+pm.toFixed(0)+' kg</div></div><div class="stat-card"><div class="stat-label">Total @</div><div class="stat-val">'+(peses.reduce(function(s,p){return s+(p.peso*.52/15);},0)).toFixed(1)+'</div></div><div class="stat-card"><div class="stat-label">GMD Médio</div><div class="stat-val '+(gm>=0.668?'vd':gm>=0.45?'am':'rd')+'">'+(gm>0?gm.toFixed(3):'—')+'</div></div></div>';
+  h+='<div style="overflow-x:auto"><table><thead><tr><th>Nº</th><th>Peso</th><th>Lote</th><th>Sexo</th><th>GMD</th><th>Data</th><th>Modo</th><th>Protocolo</th><th>Med.Individual</th><th>Obs</th></tr></thead><tbody>';
   peses.forEach(function(p){
-    var gc=p.gmd>0?(p.gmd>=0.668?'top':p.gmd>=0.45?'med':'low'):'na';
-    var prot=(p.medicamentos&&p.medicamentos.length)?p.medicamentos.map(function(m){return m.nome+(m.dose?' '+m.dose:'');}).join(', '):'—';
-    h+='<tr><td class="td-num">'+p.num+'</td><td class="td-peso">'+p.peso+' kg</td>';
-    h+='<td>'+p.lote+'</td><td><span class="td-badge '+(p.sexo==='femea'?'f':'m')+'">'+(p.sexo==='femea'?'Fêmea':'Macho')+'</span></td>';
-    h+='<td class="td-gmd '+gc+'">'+(p.gmd>0?p.gmd.toFixed(3):'1ª')+'</td>';
-    h+='<td>'+fmtData(p.data)+'</td><td style="font-size:12px">'+prot+'</td>';
-    h+='<td style="font-size:12px;color:var(--rd)">'+(p.medExtra||'—')+'</td>';
-    h+='<td style="font-size:12px;color:var(--g4)">'+(p.obs||'—')+'</td></tr>';
-  });
-  h+='</tbody></table></div>';
-  return h;
-}
-
-function buildRelLotes(peses){
-  var lotes={};
-  peses.forEach(function(p){
-    var k=String(p.lote||'sem lote');
-    if(!lotes[k]) lotes[k]=[];
-    lotes[k].push(p);
-  });
-  var h='';
-  Object.keys(lotes).sort(function(a,b){return parseInt(a)-parseInt(b);}).forEach(function(k){
-    var lt=lotes[k],n=lt.length;
-    var pm=lt.reduce(function(s,p){return s+p.peso;},0)/n;
-    var comGmd=lt.filter(function(p){return p.gmd>0;});
-    var gm=comGmd.length?comGmd.reduce(function(s,p){return s+p.gmd;},0)/comGmd.length:0;
-    var at=lt.reduce(function(s,p){return s+(p.peso*.52/15);},0);
-    h+='<div style="margin-bottom:24px"><div style="font-family:Syne,sans-serif;font-size:16px;font-weight:800;color:var(--v2);margin-bottom:10px;padding:10px 14px;background:var(--vl);border-radius:8px;display:flex;gap:20px;flex-wrap:wrap">';
-    h+='<span>Lote '+k+'</span><span>'+n+' animais</span><span>'+pm.toFixed(0)+' kg médio</span><span>'+(gm>0?gm.toFixed(3)+' kg/d GMD':'—')+'</span><span>'+at.toFixed(1)+' @</span></div>';
-    h+=buildTableRel(lt,'lote');
-    h+='</div>';
-  });
-  return h||'<div class="empty">Nenhum dado</div>';
-}
-
-function buildRelFazenda(peses){
-  var fazMap={};
-  (DB.fazendas||[]).forEach(function(f){fazMap[f.id]=f;});
-  var grupos={};
-  peses.forEach(function(p){
-    var k=p.fazId||'sem_fazenda';
-    if(!grupos[k]) grupos[k]=[];
-    grupos[k].push(p);
-  });
-  var h='';
-  Object.keys(grupos).forEach(function(k){
-    var faz=fazMap[k]||{nome:k};
-    var lt=grupos[k],n=lt.length;
-    var pm=lt.reduce(function(s,p){return s+p.peso;},0)/n;
-    h+='<div style="margin-bottom:24px"><div style="font-family:Syne,sans-serif;font-size:16px;font-weight:800;color:var(--v2);margin-bottom:10px;padding:10px 14px;background:var(--vl);border-radius:8px">';
-    h+=faz.nome+' <span style="font-size:13px;font-weight:400;color:var(--g3)">· '+n+' animais · '+pm.toFixed(0)+'kg médio</span></div>';
-    h+=buildTableRel(lt,'fazenda');
-    h+='</div>';
-  });
-  return h||'<div class="empty">Nenhuma fazenda com pesagens</div>';
-}
-
-function buildRelAnimal(num, peses){
-  var h='<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px">';
-  h+='<div class="stat-card"><div class="stat-label">Total Pesagens</div><div class="stat-val vd">'+peses.length+'</div></div>';
-  h+='<div class="stat-card"><div class="stat-label">Último Peso</div><div class="stat-val">'+peses[peses.length-1].peso+' kg</div></div>';
-  var comGmd=peses.filter(function(p){return p.gmd>0;});
-  var gm=comGmd.length?comGmd.reduce(function(s,p){return s+p.gmd;},0)/comGmd.length:0;
-  h+='<div class="stat-card"><div class="stat-label">GMD Médio</div><div class="stat-val '+(gm>=0.668?'vd':gm>=0.45?'am':'rd')+'">'+(gm>0?gm.toFixed(3):'—')+'</div></div>';
-  h+='</div>';
-  h+='<div style="overflow-x:auto"><table><thead><tr><th>Data</th><th>Peso</th><th>Lote</th><th>GMD</th><th>Ganho</th><th>Protocolo</th><th>Med. Individual</th><th>Obs</th></tr></thead><tbody>';
-  peses.forEach(function(p,i){
-    var ganho=i>0?(p.peso-peses[i-1].peso):0;
     var gc=p.gmd>0?(p.gmd>=0.668?'top':p.gmd>=0.45?'med':'low'):'na';
     var prot=(p.medicamentos&&p.medicamentos.length)?p.medicamentos.map(function(m){return m.nome;}).join(', '):'—';
-    h+='<tr><td>'+fmtData(p.data)+'</td><td class="td-peso">'+p.peso+' kg</td><td>'+p.lote+'</td>';
-    h+='<td class="td-gmd '+gc+'">'+(p.gmd>0?p.gmd.toFixed(3):'1ª')+'</td>';
-    h+='<td style="color:'+(ganho>0?'var(--v3)':ganho<0?'var(--rd)':'var(--g4)')+';">'+(i>0?(ganho>0?'+':'')+ganho.toFixed(1)+' kg':'—')+'</td>';
-    h+='<td style="font-size:12px">'+prot+'</td>';
-    h+='<td style="font-size:12px;color:var(--rd)">'+(p.medExtra||'—')+'</td>';
-    h+='<td style="font-size:12px;color:var(--g4)">'+(p.obs||'—')+'</td></tr>';
+    h+='<tr><td class="td-num">'+p.num+'</td><td class="td-peso">'+p.peso+' kg</td><td>'+p.lote+'</td><td><span class="td-badge '+(p.sexo==='femea'?'f':'m')+'">'+(p.sexo==='femea'?'Fêmea':'Macho')+'</span></td><td class="td-gmd '+gc+'">'+(p.gmd>0?p.gmd.toFixed(3):'1ª')+'</td><td>'+fmtData(p.data)+'</td><td style="font-size:11px">'+(p.modo==='bt'?'BT':'Manual')+'</td><td style="font-size:12px">'+prot+'</td><td style="font-size:12px;color:var(--rd)">'+(p.medExtra||'—')+'</td><td style="font-size:12px;color:var(--g4)">'+(p.obs||'—')+'</td></tr>';
   });
-  h+='</tbody></table></div>';
-  return h;
+  return h+'</tbody></table></div>';
 }
-
-function buildRelProtocolo(peses){
-  var h='<div style="overflow-x:auto"><table><thead><tr><th>Animal</th><th>Data</th><th>Lote</th><th>Medicamento</th><th>Dose</th><th>Tipo</th></tr></thead><tbody>';
-  var rows=[];
-  peses.forEach(function(p){
-    (p.medicamentos||[]).forEach(function(m){
-      if(m.nome) rows.push({num:p.num,data:p.data,lote:p.lote,nome:m.nome,dose:m.dose||'—',tipo:'Protocolo Dia'});
-    });
-    if(p.medExtra) rows.push({num:p.num,data:p.data,lote:p.lote,nome:p.medExtra,dose:p.medExtraDose||'—',tipo:'Individual'});
-  });
-  rows.sort(function(a,b){return b.data.localeCompare(a.data);}).forEach(function(r){
-    h+='<tr><td class="td-num">'+r.num+'</td><td>'+fmtData(r.data)+'</td><td>'+r.lote+'</td>';
-    h+='<td><strong>'+r.nome+'</strong></td><td>'+r.dose+'</td>';
-    h+='<td><span class="td-badge '+(r.tipo==='Individual'?'f':'m')+'">'+r.tipo+'</span></td></tr>';
-  });
-  if(!rows.length) h+='<tr><td colspan="6" class="empty">Nenhum medicamento registrado</td></tr>';
-  h+='</tbody></table></div>';
-  return h;
-}
-
-function buildRelGeral(peses){
-  if(!peses.length) return '<div class="empty"><span class="empty-ico">📊</span>Nenhum dado disponível</div>';
-  var pm=peses.reduce(function(s,p){return s+p.peso;},0)/peses.length;
-  var comGmd=peses.filter(function(p){return p.gmd>0;});
-  var gm=comGmd.length?comGmd.reduce(function(s,p){return s+p.gmd;},0)/comGmd.length:0;
-  var top30=comGmd.filter(function(p){return p.gmd>=0.668;}).length;
-  var at=peses.reduce(function(s,p){return s+(p.peso*.52/15);},0);
-
-  var h='<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px">';
-  h+='<div class="stat-card"><div class="stat-label">Total Pesagens</div><div class="stat-val vd">'+peses.length+'</div></div>';
-  h+='<div class="stat-card"><div class="stat-label">Peso Médio</div><div class="stat-val">'+pm.toFixed(0)+' kg</div></div>';
-  h+='<div class="stat-card"><div class="stat-label">Total Arrobas</div><div class="stat-val">'+at.toFixed(1)+' @</div></div>';
-  h+='<div class="stat-card"><div class="stat-label">GMD Médio</div><div class="stat-val '+(gm>=0.668?'vd':gm>=0.45?'am':'rd')+'">'+(gm>0?gm.toFixed(3):'—')+'</div></div>';
-  h+='</div>';
-  h+='<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px">';
-  h+='<div class="stat-card"><div class="stat-label">vs Média Inttegra (0,403)</div><div class="stat-val '+(gm>=0.403?'vd':'rd')+'">'+(gm>0?(gm>=0.403?'▲ ':'▼ ')+((Math.abs(gm-0.403)/0.403)*100).toFixed(0)+'%':'—')+'</div></div>';
-  h+='<div class="stat-card"><div class="stat-label">vs Top 30% (0,668)</div><div class="stat-val '+(gm>=0.668?'vd':'rd')+'">'+(gm>0?(gm>=0.668?'▲ ':'▼ ')+((Math.abs(gm-0.668)/0.668)*100).toFixed(0)+'%':'—')+'</div></div>';
-  h+='<div class="stat-card"><div class="stat-label">Animais Top 30%</div><div class="stat-val vd">'+top30+'<span style="font-size:13px;color:var(--g4)"> de '+comGmd.length+'</span></div></div>';
-  h+='</div>';
-  h+=buildTableRel(peses,'geral');
-  return h;
-}
-
+function buildRelLotes(peses){var lotes={};peses.forEach(function(p){var k=String(p.lote||'sem lote');if(!lotes[k])lotes[k]=[];lotes[k].push(p);});var h='';Object.keys(lotes).sort(function(a,b){return parseInt(a)-parseInt(b);}).forEach(function(k){var lt=lotes[k],n=lt.length;var pm=lt.reduce(function(s,p){return s+p.peso;},0)/n;var comGmd=lt.filter(function(p){return p.gmd>0;});var gm=comGmd.length?comGmd.reduce(function(s,p){return s+p.gmd;},0)/comGmd.length:0;h+='<div style="margin-bottom:24px"><div style="font-family:Syne,sans-serif;font-size:16px;font-weight:800;color:var(--v2);margin-bottom:10px;padding:10px 14px;background:var(--vl);border-radius:8px;display:flex;gap:20px;flex-wrap:wrap"><span>Lote '+k+'</span><span>'+n+' animais</span><span>'+pm.toFixed(0)+' kg</span><span>'+(gm>0?gm.toFixed(3)+' kg/d GMD':'—')+'</span></div>'+buildTableRel(lt)+'</div>';});return h||'<div class="empty">Nenhum dado</div>';}
+function buildRelAnimal(num,peses){var h='<div style="overflow-x:auto"><table><thead><tr><th>Data</th><th>Peso</th><th>Lote</th><th>GMD</th><th>Ganho</th><th>Modo</th><th>Protocolo</th><th>Obs</th></tr></thead><tbody>';peses.forEach(function(p,i){var ganho=i>0?(p.peso-peses[i-1].peso):0;var gc=p.gmd>0?(p.gmd>=0.668?'top':p.gmd>=0.45?'med':'low'):'na';var prot=(p.medicamentos&&p.medicamentos.length)?p.medicamentos.map(function(m){return m.nome;}).join(', '):'—';h+='<tr><td>'+fmtData(p.data)+'</td><td class="td-peso">'+p.peso+' kg</td><td>'+p.lote+'</td><td class="td-gmd '+gc+'">'+(p.gmd>0?p.gmd.toFixed(3):'1ª')+'</td><td style="color:'+(ganho>0?'var(--v3)':ganho<0?'var(--rd)':'var(--g4)')+';">'+(i>0?(ganho>0?'+':'')+ganho.toFixed(1)+' kg':'—')+'</td><td style="font-size:11px">'+(p.modo==='bt'?'BT':'Manual')+'</td><td style="font-size:12px">'+prot+'</td><td style="font-size:12px;color:var(--g4)">'+(p.obs||'—')+'</td></tr>';});return h+'</tbody></table></div>';}
+function buildRelProtocolo(peses){var h='<div style="overflow-x:auto"><table><thead><tr><th>Animal</th><th>Data</th><th>Lote</th><th>Medicamento</th><th>Dose</th><th>Tipo</th></tr></thead><tbody>';var rows=[];peses.forEach(function(p){(p.medicamentos||[]).forEach(function(m){if(m.nome)rows.push({num:p.num,data:p.data,lote:p.lote,nome:m.nome,dose:m.dose||'—',tipo:'Protocolo'});});if(p.medExtra)rows.push({num:p.num,data:p.data,lote:p.lote,nome:p.medExtra,dose:p.medExtraDose||'—',tipo:'Individual'});});rows.sort(function(a,b){return b.data.localeCompare(a.data);}).forEach(function(r){h+='<tr><td class="td-num">'+r.num+'</td><td>'+fmtData(r.data)+'</td><td>'+r.lote+'</td><td><strong>'+r.nome+'</strong></td><td>'+r.dose+'</td><td><span class="td-badge '+(r.tipo==='Individual'?'f':'m')+'">'+r.tipo+'</span></td></tr>';});if(!rows.length)h+='<tr><td colspan="6" class="empty">Nenhum medicamento registrado</td></tr>';return h+'</tbody></table></div>';}
+function buildRelGeral(peses){if(!peses.length)return'<div class="empty">Nenhum dado</div>';return buildTableRel(peses);}
 function buildRelGMD(peses){
-  var BENCH = {
-    piores:  {gmd:0.200, label:'Piores 25%',  cor:'#c0392b'},
-    media:   {gmd:0.403, label:'Média Geral',  cor:'#e67e22'},
-    top30:   {gmd:0.668, label:'Top 30%',      cor:'#27ae60'},
-  };
-
-  // ── POR LOTE ──
-  var lotes={};
-  peses.forEach(function(p){
-    var k='Lote '+String(p.lote||'—');
-    if(!lotes[k]) lotes[k]=[];
-    lotes[k].push(p);
-  });
-
-  var h='';
-
-  // Tabela resumo por lote
-  h+='<div style="margin-bottom:24px">';
-  h+='<div style="font-family:Syne,sans-serif;font-size:14px;font-weight:800;color:var(--v2);margin-bottom:12px">📦 GMD Médio por Lote vs Benchmarks</div>';
-  h+='<div style="overflow-x:auto"><table><thead><tr>';
-  h+='<th>Lote</th><th>Animais</th><th>GMD Médio</th><th>vs Piores (0,200)</th><th>vs Média (0,403)</th><th>vs Top 30% (0,668)</th><th>Classificação</th>';
-  h+='</tr></thead><tbody>';
-
-  Object.keys(lotes).sort().forEach(function(k){
-    var lt=lotes[k];
-    var comGmd=lt.filter(function(p){return p.gmd>0;});
-    if(!comGmd.length) return;
-    var gm=comGmd.reduce(function(s,p){return s+p.gmd;},0)/comGmd.length;
-    var vsPiores=((gm-0.200)/0.200*100).toFixed(0);
-    var vsMedia=((gm-0.403)/0.403*100).toFixed(0);
-    var vsTop=((gm-0.668)/0.668*100).toFixed(0);
-    var cls=gm>=0.668?'🏆 Top 30%':gm>=0.403?'✅ Acima da Média':gm>=0.200?'⚠️ Abaixo da Média':'🚨 Crítico';
-    var gc=gm>=0.668?'vd':gm>=0.403?'am':'rd';
-    h+='<tr>';
-    h+='<td><strong>'+k+'</strong></td>';
-    h+='<td>'+comGmd.length+'</td>';
-    h+='<td class="td-gmd '+gc+'">'+gm.toFixed(3)+' kg/d</td>';
-    h+='<td style="color:'+(vsPiores>=0?'var(--v3)':'var(--rd)')+'">'+(vsPiores>=0?'▲ +':'')+vsPiores+'%</td>';
-    h+='<td style="color:'+(vsMedia>=0?'var(--v3)':'var(--rd)')+'">'+(vsMedia>=0?'▲ +':'')+vsMedia+'%</td>';
-    h+='<td style="color:'+(vsTop>=0?'var(--v3)':'var(--rd)')+'">'+(vsTop>=0?'▲ +':'')+vsTop+'%</td>';
-    h+='<td>'+cls+'</td>';
-    h+='</tr>';
-  });
-  h+='</tbody></table></div></div>';
-
-  // ── RÉGUA DE REFERÊNCIA ──
-  h+='<div style="background:white;border:1px solid var(--g6);border-radius:var(--r);padding:20px;margin-bottom:24px">';
-  h+='<div style="font-family:Syne,sans-serif;font-size:14px;font-weight:800;color:var(--v2);margin-bottom:16px">📏 Régua de Referência Inttegra — GMD Global</div>';
-  h+='<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px">';
-  [
-    {label:'Piores 25%', val:'< 0,200', cor:'#c0392b', bg:'#fdeaea'},
-    {label:'25% a 50%',  val:'0,200 — 0,350', cor:'#e67e22', bg:'#fef3e2'},
-    {label:'50% a 75%',  val:'0,350 — 0,500', cor:'#f39c12', bg:'#fefbe6'},
-    {label:'Top 25%',    val:'> 0,500', cor:'#27ae60', bg:'#e8f7e0'},
-  ].forEach(function(b){
-    h+='<div style="padding:14px;border-radius:8px;background:'+b.bg+';text-align:center">';
-    h+='<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:'+b.cor+';margin-bottom:4px">'+b.label+'</div>';
-    h+='<div style="font-family:Syne,sans-serif;font-size:18px;font-weight:800;color:'+b.cor+'">'+b.val+'</div>';
-    h+='<div style="font-size:10px;color:#888;margin-top:2px">kg/dia</div></div>';
-  });
-  h+='</div>';
-  h+='<div style="font-size:11px;color:var(--g4);font-style:italic">Fonte: Benchmarks Inttegra · Safra 2020/2021 · 637 fazendas · GMD Global (recria-engorda). Top 30% rentáveis: 0,668 kg/dia</div>';
-  h+='</div>';
-
-  // ── POR ANIMAL ──
-  h+='<div style="font-family:Syne,sans-serif;font-size:14px;font-weight:800;color:var(--v2);margin-bottom:12px">🐂 GMD por Animal (Evolução)</div>';
-  var porAnimal={};
-  peses.forEach(function(p){
-    if(!porAnimal[p.num]) porAnimal[p.num]=[];
-    porAnimal[p.num].push(p);
-  });
-  var animaisComGmd=Object.keys(porAnimal).filter(function(k){
-    return porAnimal[k].some(function(p){return p.gmd>0;});
-  }).sort();
-
-  if(!animaisComGmd.length){
-    h+='<div class="empty">Nenhum animal com GMD calculado. Necessário pelo menos 2 pesagens do mesmo animal.</div>';
-  } else {
-    h+='<div style="overflow-x:auto"><table><thead><tr><th>Animal</th><th>Lote</th><th>Pesagens</th><th>GMD Médio</th><th>Último GMD</th><th>Trend</th><th>vs Top 30%</th></tr></thead><tbody>';
-    animaisComGmd.forEach(function(num){
-      var hist=porAnimal[num].sort(function(a,b){return a.data.localeCompare(b.data);});
-      var comGmd=hist.filter(function(p){return p.gmd>0;});
-      var gmdMed=comGmd.reduce(function(s,p){return s+p.gmd;},0)/comGmd.length;
-      var ultGmd=comGmd[comGmd.length-1].gmd;
-      var trend=comGmd.length>=2?(comGmd[comGmd.length-1].gmd>comGmd[0].gmd?'📈 Subindo':'📉 Caindo'):'—';
-      var vsTop=((gmdMed-0.668)/0.668*100).toFixed(0);
-      var gc=gmdMed>=0.668?'vd':gmdMed>=0.403?'am':'rd';
-      h+='<tr>';
-      h+='<td class="td-num">'+num+'</td>';
-      h+='<td>'+hist[hist.length-1].lote+'</td>';
-      h+='<td>'+hist.length+'</td>';
-      h+='<td class="td-gmd '+gc+'">'+gmdMed.toFixed(3)+'</td>';
-      h+='<td class="td-gmd '+gc+'">'+ultGmd.toFixed(3)+'</td>';
-      h+='<td>'+trend+'</td>';
-      h+='<td style="color:'+(vsTop>=0?'var(--v3)':'var(--rd)')+'">'+(vsTop>=0?'▲ +':'')+vsTop+'%</td>';
-      h+='</tr>';
-    });
-    h+='</tbody></table></div>';
-  }
-  return h;
+  var lotes={};peses.forEach(function(p){var k='Lote '+String(p.lote||'—');if(!lotes[k])lotes[k]=[];lotes[k].push(p);});
+  var h='<div style="overflow-x:auto;margin-bottom:24px"><table><thead><tr><th>Lote</th><th>Animais</th><th>GMD Médio</th><th>vs Média (0,403)</th><th>vs Top 30% (0,668)</th><th>Classificação</th></tr></thead><tbody>';
+  Object.keys(lotes).sort().forEach(function(k){var lt=lotes[k];var comGmd=lt.filter(function(p){return p.gmd>0;});if(!comGmd.length)return;var gm=comGmd.reduce(function(s,p){return s+p.gmd;},0)/comGmd.length;var vsMedia=((gm-0.403)/0.403*100).toFixed(0);var vsTop=((gm-0.668)/0.668*100).toFixed(0);var cls=gm>=0.668?'🏆 Top 30%':gm>=0.403?'✅ Acima Média':'⚠️ Abaixo Média';var gc=gm>=0.668?'vd':gm>=0.403?'am':'rd';h+='<tr><td><strong>'+k+'</strong></td><td>'+comGmd.length+'</td><td class="td-gmd '+gc+'">'+gm.toFixed(3)+' kg/d</td><td style="color:'+(vsMedia>=0?'var(--v3)':'var(--rd)')+'">'+(vsMedia>=0?'▲ +':'')+vsMedia+'%</td><td style="color:'+(vsTop>=0?'var(--v3)':'var(--rd)')+'">'+(vsTop>=0?'▲ +':'')+vsTop+'%</td><td>'+cls+'</td></tr>';});
+  return h+'</tbody></table></div>'+buildTableRel(peses);
 }
+function exportarRelCSV(){var rows=[['Nº','Peso','Lote','Sexo','GMD','Data','Modo','Protocolo','Med.Individual','Obs']];(DB.pesagens||[]).forEach(function(p){var prot=(p.medicamentos||[]).map(function(m){return m.nome;}).join('|');rows.push([p.num,p.peso,p.lote,p.sexo,p.gmd||'',p.data,p.modo||'manual',prot,p.medExtra||'',p.obs||'']);});downloadCSV(rows,'relatorio_pesagem.csv');}
+function exportarDia(){var peses=(DB.pesagens||[]).filter(function(p){return p.data===hoje();});var rows=[['Nº','Peso','Lote','Sexo','GMD','Modo','Protocolo','Med.Individual','Obs']];peses.forEach(function(p){var prot=(p.medicamentos||[]).map(function(m){return m.nome;}).join('|');rows.push([p.num,p.peso,p.lote,p.sexo,p.gmd||'',p.modo||'manual',prot,p.medExtra||'',p.obs||'']);});downloadCSV(rows,'pesagem_'+hoje()+'.csv');}
+function downloadCSV(rows,nome){var csv=rows.map(function(r){return r.map(function(c){return'"'+(c||'').toString().replace(/"/g,'""')+'"';}).join(',');}).join('\n');var a=document.createElement('a');a.href='data:text/csv;charset=utf-8,\uFEFF'+encodeURIComponent(csv);a.download=nome;a.click();}
 
-function fecharRel(){ ge('relOutput').style.display='none'; }
-
-function exportarRelCSV(){
-  var rows=[['Nº','Peso','Lote','Sexo','GMD','Data','Protocolo','Med.Individual','Obs']];
-  (DB.pesagens||[]).forEach(function(p){
-    var prot=(p.medicamentos||[]).map(function(m){return m.nome;}).join(' | ');
-    rows.push([p.num,p.peso,p.lote,p.sexo,p.gmd||'',p.data,prot,p.medExtra||'',p.obs||'']);
-  });
-  downloadCSV(rows,'relatorio_pesagem.csv');
-}
-
-function exportarDia(){
-  var peses=(DB.pesagens||[]).filter(function(p){return p.data===hoje();});
-  var rows=[['Nº','Peso','Lote','Sexo','GMD','Protocolo','Med.Individual','Obs']];
-  peses.forEach(function(p){
-    var prot=(p.medicamentos||[]).map(function(m){return m.nome;}).join(' | ');
-    rows.push([p.num,p.peso,p.lote,p.sexo,p.gmd||'',prot,p.medExtra||'',p.obs||'']);
-  });
-  downloadCSV(rows,'pesagem_'+hoje()+'.csv');
-}
-
-function downloadCSV(rows, nome){
-  var csv=rows.map(function(r){return r.map(function(c){return '"'+(c||'').toString().replace(/"/g,'""')+'"';}).join(',');}).join('\n');
-  var a=document.createElement('a');
-  a.href='data:text/csv;charset=utf-8,\uFEFF'+encodeURIComponent(csv);
-  a.download=nome; a.click();
-}
-
-// ══════════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════
 // SYNC / SHEETS
-// ══════════════════════════════════════════════════════════════
-function sincronizar(){
-  if(!DB.online){toast('📶 Sem internet. Dados salvos localmente.','warn');return;}
-  if(!DB.shUrl){toast('Configure a URL do Google Sheets primeiro','warn');irTab('config');return;}
-  enviarTudo();
-}
-
-function trySync(){ /* desativado — use o botão Sync manual */ }
-
-var _syncando = false;
+// ═══════════════════════════════════════════════
+function sincronizar(){if(!DB.online){toast('📶 Offline. Dados salvos localmente.','warn');return;}enviarTudo();}
+var _syncando=false;
 function enviarTudo(){
-  if(_syncando){toast('⏳ Aguarde, já está enviando...','warn');return;}
-  if(!DB.shUrl){toast('Configure a URL primeiro','warn');irTab('config');return;}
-  if(!DB.online){toast('📶 Sem internet. Dados salvos localmente.','warn');return;}
-  _syncando = true;
+  if(_syncando){toast('⏳ Já está enviando...','warn');return;}
+  if(!DB.shUrl){toast('Configure a URL do Sheets primeiro','warn');irTab('config');return;}
+  if(!DB.online){toast('📶 Offline. Dados salvos localmente.','warn');return;}
+  _syncando=true;
   var dot=ge('syncDot'),txt=ge('syncTxt');
-  if(dot) dot.className='sync-dot syncing';
-  if(txt) txt.textContent='Enviando...';
-  toast('📤 Enviando para o Google Sheets...','');
-  var payload={
-    acao:'sync',
-    fazendas: DB.fazendas||[],
-    pesagens: DB.pesagens||[]
-  };
-  fetch(DB.shUrl,{
-    method:'POST',
-    redirect:'follow',
-    headers:{'Content-Type':'text/plain'},
-    body:JSON.stringify(payload)
-  })
+  if(dot)dot.className='sync-dot syncing';if(txt)txt.textContent='Enviando...';
+  toast('📤 Enviando para Google Sheets...','');
+  fetch(DB.shUrl,{method:'POST',redirect:'follow',headers:{'Content-Type':'text/plain'},body:JSON.stringify({acao:'sync',fazendas:DB.fazendas||[],pesagens:DB.pesagens||[]})})
   .then(function(r){return r.json();})
-  .then(function(d){
-    _syncando=false;
-    if(d.ok){
-      DB.syncQ=[];
-      sv('syncQ');
-      if(dot) dot.className='sync-dot online';
-      if(txt) txt.textContent='Sincronizado ✓';
-      updSt();
-      toast('✅ '+d.pesagens+' pesagens · '+d.fazendas+' fazendas enviadas!','ok');
-    } else {
-      if(dot) dot.className='sync-dot';
-      if(txt) txt.textContent='Erro na sync';
-      toast('Erro Sheets: '+(d.erro||'resposta inválida'),'err');
-    }
-  })
-  .catch(function(e){
-    _syncando=false;
-    if(dot) dot.className='sync-dot';
-    if(txt) txt.textContent='Erro de conexão';
-    toast('Sem conexão com o Sheets. Dados salvos localmente.','warn');
-  });
+  .then(function(d){_syncando=false;if(d.ok){DB.syncQ=[];sv('syncQ');if(dot)dot.className='sync-dot online';if(txt)txt.textContent='Sincronizado ✓';updSt();toast('✅ '+d.pesagens+' pesagens enviadas!','ok');}else{if(dot)dot.className='sync-dot';if(txt)txt.textContent='Erro';toast('Erro: '+(d.erro||'resposta inválida'),'err');}})
+  .catch(function(){_syncando=false;if(dot)dot.className='sync-dot';if(txt)txt.textContent='Erro de conexão';toast('Sem conexão com o Sheets.','warn');});
 }
+function salvarUrl(){var u=gv('shUrl').trim();if(!u){toast('Cole a URL do Apps Script','warn');return;}DB.shUrl=u;LS.s('shUrl',u);toast('✅ URL salva!','ok');testarUrl();}
+function testarUrl(){var url=DB.shUrl;if(!url){toast('Configure a URL primeiro','warn');return;}ge('connStatus').textContent='⏳ Testando...';fetch(url+'?acao=ping').then(function(r){return r.json();}).then(function(d){ge('connStatus').textContent=d.ok?'✅ Conectado!':'⚠️ Resposta inesperada';}).catch(function(){ge('connStatus').textContent='🔴 Não conectou';});}
 
-function salvarUrl(){
-  var u=gv('shUrl').trim();
-  if(!u){toast('Cole a URL do Apps Script','warn');return;}
-  DB.shUrl=u; LS.s('shUrl',u); toast('✅ URL salva!','ok');
-  testarUrl();
-}
-
-function testarUrl(){
-  var url=DB.shUrl;
-  if(!url){toast('Configure a URL primeiro','warn');return;}
-  ge('connStatus').textContent='⏳ Testando...';
-  fetch(url+'?acao=ping').then(function(r){return r.json();})
-    .then(function(d){ge('connStatus').textContent=d.ok?'✅ Conectado! Versão '+d.versao:'⚠️ Resposta inesperada';})
-    .catch(function(){ge('connStatus').textContent='🔴 Não foi possível conectar';});
-}
-
-// ══════════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════
 // BACKUP
-// ══════════════════════════════════════════════════════════════
-function exportarBackup(){
-  var data={fazendas:DB.fazendas,pesagens:DB.pesagens,exportadoEm:new Date().toISOString()};
-  var a=document.createElement('a');
-  a.href='data:application/json;charset=utf-8,'+encodeURIComponent(JSON.stringify(data,null,2));
-  a.download='backup_gestao_'+hoje()+'.json'; a.click();
-  toast('✅ Backup exportado','ok');
-}
+// ═══════════════════════════════════════════════
+function exportarBackup(){var data={fazendas:DB.fazendas,pesagens:DB.pesagens,exportadoEm:new Date().toISOString()};var a=document.createElement('a');a.href='data:application/json;charset=utf-8,'+encodeURIComponent(JSON.stringify(data,null,2));a.download='backup_gpl_'+hoje()+'.json';a.click();toast('✅ Backup exportado','ok');}
+function importarBackup(e){var file=e.target.files[0];if(!file)return;var reader=new FileReader();reader.onload=function(ev){try{var data=JSON.parse(ev.target.result);if(data.fazendas)data.fazendas.forEach(function(f){lw('fazendas','upd',f);});if(data.pesagens)data.pesagens.forEach(function(p){lw('pesagens','upd',p);});DB.syncQ=[];sv('syncQ');popFazendas();toast('✅ '+(data.pesagens||[]).length+' pesagens importadas!','ok');renderPes();renderLotes();updSt();}catch(err){toast('Erro ao importar: '+err.message,'err');}};reader.readAsText(file);}
+function confirmarLimpar(){showConf('🗑️','Limpar TODOS os dados','ATENÇÃO: Apaga tudo permanentemente. Faça backup primeiro!',function(){localStorage.clear();loadDB();renderPes();toast('Dados limpos','warn');});}
 
-function importarBackup(e){
-  var file=e.target.files[0]; if(!file) return;
-  var reader=new FileReader();
-  reader.onload=function(ev){
-    try{
-      var data=JSON.parse(ev.target.result);
-      if(data.fazendas){
-        data.fazendas.forEach(function(f){lw('fazendas','upd',f);});
-      }
-      if(data.pesagens){
-        data.pesagens.forEach(function(p){lw('pesagens','upd',p);});
-      }
-      DB.syncQ=[];
-      sv('syncQ');
-      popFazendas();
-      toast('✅ '+(data.fazendas||[]).length+' fazendas e '+(data.pesagens||[]).length+' pesagens importadas! Clique Sync para enviar ao Sheets.','ok');
-      renderPes(); renderLotes(); updSt();
-    }catch(err){toast('Erro ao importar: '+err.message,'err');}
-  };
-  reader.readAsText(file);
-}
-
-function confirmarLimpar(){
-  showConf('🗑️','Limpar todos os dados','ATENÇÃO: Isso apaga TODOS os dados locais permanentemente. Faça um backup primeiro!',function(){
-    localStorage.clear(); loadDB(); renderPes(); toast('Dados limpos','warn');
-  });
-}
-
-// ══════════════════════════════════════════════════════════════
-// BLUETOOTH
-// ══════════════════════════════════════════════════════════════
-async function conectarBT(){
-  if(!navigator.bluetooth){
-    toast('Web Bluetooth não suportado. Use Chrome no desktop ou Android','err');
-    return;
-  }
-  try{
-    toast('🔵 Procurando balança...','');
-    var device=await navigator.bluetooth.requestDevice({
-      acceptAllDevices:true,
-      optionalServices:['generic_access','battery_service','weight_scale','00001234-0000-1000-8000-00805f9b34fb']
-    });
-    DB.btDevice=device;
-    var server=await device.gatt.connect();
-    toast('✅ '+device.name+' conectada!','ok');
-    ge('btnBT').textContent='🟢 '+device.name;
-    ge('btnBT').style.background='var(--v3)';
-  }catch(e){
-    if(e.name==='NotFoundError') toast('Nenhum dispositivo selecionado','warn');
-    else toast('Erro BT: '+e.message,'err');
-  }
-}
-
-// ══════════════════════════════════════════════════════════════
-// CONFIRM DIALOG
-// ══════════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════
+// CONFIRM / MODAL
+// ═══════════════════════════════════════════════
 var _confCb=null;
-function showConf(ico,tit,txt,cb){
-  ge('confIco').textContent=ico; ge('confTit').textContent=tit; ge('confTxt').textContent=txt;
-  _confCb=cb; ge('confOver').classList.add('at');
-}
-function fecharConf(){ ge('confOver').classList.remove('at'); _confCb=null; }
-ge('confOkBtn').onclick=function(){ fecharConf(); if(_confCb) _confCb(); };
-
-// Fechar modal clicando fora
+function showConf(ico,tit,txt,cb){ge('confIco').textContent=ico;ge('confTit').textContent=tit;ge('confTxt').textContent=txt;_confCb=cb;ge('confOver').classList.add('at');}
+function fecharConf(){ge('confOver').classList.remove('at');_confCb=null;}
+ge('confOkBtn').onclick=function(){fecharConf();if(_confCb)_confCb();};
 ge('modalEditar').addEventListener('click',function(e){if(e.target===this)fecharModal();});
 ge('confOver').addEventListener('click',function(e){if(e.target===this)fecharConf();});
 
-// ══════════════════════════════════════════════════════════════
-// FILTROS
-// ══════════════════════════════════════════════════════════════
-function limparFiltros(){
-  sv2('pFazFil',''); sv2('pDataFil',''); sv2('pLoteFil','');
-  _pagPes=0; renderPes();
-}
+function limparFiltros(){sv2('pFazFil','');sv2('pDataFil','');sv2('pLoteFil','');_pagPes=0;renderPes();}
 
-// ══════════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════
 // INIT
-// ══════════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════
 function popFazendas(){
-  var sel=ge('pFazFil');
-  if(!sel) return;
+  var sel=ge('pFazFil');if(!sel)return;
   var val=sel.value;
   sel.innerHTML='<option value="">Todas as fazendas</option>';
-  (DB.fazendas||[]).forEach(function(f){
-    var opt=document.createElement('option');
-    opt.value=f.id; opt.textContent=f.nome;
-    sel.appendChild(opt);
-  });
-  // Auto-seleciona se tiver só uma fazenda
-  if((DB.fazendas||[]).length===1) sel.value=DB.fazendas[0].id;
-  else if(val) sel.value=val;
+  (DB.fazendas||[]).forEach(function(f){var opt=document.createElement('option');opt.value=f.id;opt.textContent=f.nome;sel.appendChild(opt);});
+  if((DB.fazendas||[]).length===1)sel.value=DB.fazendas[0].id;
+  else if(val)sel.value=val;
 }
-
 window.addEventListener('online',function(){DB.online=true;updSt();});
 window.addEventListener('offline',function(){DB.online=false;updSt();});
-
 window.onload=function(){
   loadDB();
-
-  // Data hoje
   var dt=new Date();
   var dias=['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
   var meses=['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
   ge('dtHoje').textContent=dias[dt.getDay()]+', '+dt.getDate()+' de '+meses[dt.getMonth()]+' de '+dt.getFullYear();
-
-  // Preenche fazendas no select
   popFazendas();
-
-  // Data default = hoje
-  sv2('pData', hoje());
-
-  // URL config
-  if(DB.shUrl) sv2('shUrl', DB.shUrl);
-
-  // Protocolo
+  sv2('pData',hoje());
+  if(DB.shUrl)sv2('shUrl',DB.shUrl);
   var prot=DB.protoDia||{modo:'todos',medicamentos:[]};
-  ge('modoTodosBtn').classList.toggle('at', prot.modo!=='especifico');
-  ge('modoEspecBtn').classList.toggle('at', prot.modo==='especifico');
-  if(!prot.medicamentos||!prot.medicamentos.length) prot.medicamentos=[{nome:'',dose:''}];
+  ge('modoTodosBtn').classList.toggle('at',prot.modo!=='especifico');
+  ge('modoEspecBtn').classList.toggle('at',prot.modo==='especifico');
+  if(!prot.medicamentos||!prot.medicamentos.length)prot.medicamentos=[{nome:'',dose:''}];
   renderMeds();
-
   renderPes();
   updSt();
 };

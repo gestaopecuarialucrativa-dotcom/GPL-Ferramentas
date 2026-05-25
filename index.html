@@ -246,6 +246,57 @@ input[type=file]{display:none}
   .overlay-sb.show{display:block}
   .tb-brand{border-right:none}
 }
+
+/* ═══════════════════════════════════════════════
+   IMPRESSÃO / PDF  — só a aba de análise
+═══════════════════════════════════════════════ */
+@media print{
+  /* Oculta tudo que não é a análise */
+  body{overflow:visible!important;background:white!important}
+  .topbar,.sidebar,.overlay-sb,.tb-right,.ap-actions,
+  .tab-nav,.tab-nav *,.hist-wrap,.lm-wrap,.comp-wrap,
+  #painel-home,.ap-header-btns{display:none!important}
+  .main-content{margin-left:0!important;padding:0!important;overflow:visible!important;height:auto!important}
+  .tab-content{display:none!important}
+  .tab-content.on{display:block!important;break-inside:avoid}
+
+  /* Cabeçalho de impressão com logo */
+  .ap-panel::before{
+    content:'';
+    display:block;
+    background:#1B5E20;
+    color:white;
+    padding:12px 18px;
+    border-radius:8px 8px 0 0;
+    margin-bottom:10px;
+  }
+  .print-header{
+    display:flex!important;
+    align-items:center;
+    justify-content:space-between;
+    background:#1B5E20;
+    color:white;
+    padding:12px 18px;
+    border-radius:8px 8px 0 0;
+    margin-bottom:10px;
+  }
+  .print-header .ph-title{font-size:16px;font-weight:800;font-family:Arial,sans-serif}
+  .print-header .ph-sub{font-size:10px;opacity:.6;margin-top:2px}
+  .print-footer{
+    display:flex!important;
+    justify-content:space-between;
+    font-size:10px;
+    color:#555;
+    border-top:1px solid #ddd;
+    margin-top:14px;
+    padding-top:6px;
+  }
+
+  /* Ajustes de tabela */
+  .lc-grid,.tab-content table{width:100%!important;font-size:11px!important}
+  .lc-card{break-inside:avoid!important}
+  @page{size:A4;margin:10mm}
+}
 </style>
 </head>
 <body>
@@ -431,6 +482,14 @@ input[type=file]{display:none}
 
     <!-- ANALISE PANEL -->
     <div class="analise-panel" id="analise-panel" style="display:none">
+      <!-- Cabeçalho visível apenas na impressão/PDF -->
+      <div class="print-header" style="display:none">
+        <div>
+          <div class="ph-title">🐄 Análise de Rebanho — <span id="ph-fazenda"></span></div>
+          <div class="ph-sub">Gestão Pecuária Lucrativa · Rogério Avelino · (63) 99108-2453 · @gestaolucrativa.pecuaria</div>
+        </div>
+        <div style="font-size:11px;opacity:.7" id="print-date"></div>
+      </div>
       <div class="ap-bar">
         <div class="ap-title" id="ap-title">📊 Análise de Rebanho</div>
         <div class="ap-btns">
@@ -1165,6 +1224,16 @@ function carregarEstado(){
 // PLANILHA MODELO
 // ══════════════════════════════════════════════════
 function baixarPlanilhaModelo(){
+  var a=document.createElement('a');
+  a.href='https://gestaopecuarialucrativa-dotcom.github.io/Gest-o-Pecu-ria-Lucrativa---Rogerio-Avelino/Planilha_Pesagem_GPL.xlsx';
+  a.download='Planilha_Pesagem_GPL.xlsx';
+  a.target='_blank';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  if(typeof notif==='function') notif('📥 Baixando planilha Excel...');
+}
+function _baixarPlanilhaModelo_antigo(){
   var wb=XLSX.utils.book_new();
   var data=[
     ['nome fazenda','Fazenda Modelo','','','','','','','','','','','data',''],
@@ -1191,6 +1260,11 @@ function baixarPlanilhaModelo(){
 // PDF
 // ══════════════════════════════════════════════════
 function gerarPDF(){
+  // Preenche data de impressão
+  var phf=document.getElementById('ph-fazenda');
+  if(phf){var fi=document.getElementById('inp-fazenda');phf.textContent=fi?fi.value:'';}
+  var pd=document.getElementById('print-date');
+  if(pd){var n=new Date();pd.textContent=n.toLocaleDateString('pt-BR')+' — '+n.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});}
   var cs=document.querySelectorAll('.tab-content');
   cs.forEach(function(c){c.setAttribute('dw',c.classList.contains('on')?'1':'0');c.classList.add('on');});
   setTimeout(function(){

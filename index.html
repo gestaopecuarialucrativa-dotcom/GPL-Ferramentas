@@ -118,14 +118,15 @@ iframe{flex:1;border:none;width:100%;background:white}
 /* CARDS LOTE */
 .lote-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;margin-bottom:16px}
 .lote-card{background:white;border-radius:10px;padding:12px 14px;border:2px solid transparent;cursor:pointer;transition:all .18s;position:relative;overflow:hidden;box-shadow:var(--sh)}
-.lote-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--lc,var(--v4))}
-.lote-card:hover,.lote-card.on{border-color:var(--lc,var(--v4));transform:translateY(-2px);box-shadow:var(--sh2)}
-.lc-num{font-size:10px;font-weight:800;color:var(--lc,var(--v2));text-transform:uppercase;letter-spacing:.8px;font-family:'Syne',sans-serif}
-.lc-peso{font-family:'Syne','Arial Black',Arial,sans-serif;font-size:22px;font-weight:800;line-height:1.1;margin:3px 0 1px}
+.lote-card::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;background:#1B5E20;border-radius:10px 10px 0 0}
+.lote-card:hover,.lote-card.on{border-color:#1B5E20;transform:translateY(-2px);box-shadow:var(--sh2)}
+.lc-num{font-size:10px;font-weight:800;color:#1B5E20;text-transform:uppercase;letter-spacing:.8px;font-family:'DM Sans',Arial,sans-serif}
+.lc-peso{font-family:'DM Sans','Arial Black',Arial,sans-serif;font-size:22px;font-weight:800;line-height:1.1;color:#111;margin:3px 0 1px}
 .lc-peso span{font-size:11px;font-weight:500;color:var(--g4)}
 .lc-sup{font-size:10px;color:var(--g4);margin-bottom:6px}
-.lc-dias{background:var(--v7);border-radius:5px;padding:3px 6px;font-size:10px;font-weight:700;color:var(--v1);text-align:center}
+.lc-dias{background:#E8F5E9;border:1px solid #C8E6C9;border-radius:5px;padding:3px 8px;font-size:10px;font-weight:700;color:#1B5E20;text-align:center;display:inline-block}
 .lc-qtd{position:absolute;top:9px;right:8px;font-size:9px;font-weight:700;color:var(--g4);background:var(--g7);border-radius:20px;padding:1px 5px}
+.lc-badge-ok{background:#E8F5E9;border:1px solid #A5D6A7;border-radius:5px;padding:3px 8px;font-size:10px;font-weight:700;color:#1B5E20;text-align:center;display:inline-block;margin-top:2px}
 
 /* TABS */
 .tab-bar{display:flex;background:var(--v1);overflow-x:auto;scrollbar-width:none;flex-shrink:0}
@@ -649,7 +650,7 @@ var _urlIframe = '', _navAtivo = 'n-home';
 var _importDados = null;
 var _arqAnt = null, _arqAtu = null;
 
-var CORES_LOTE = ['#2E7D32','#1565C0','#6A1B9A','#AD1457','#BF360C','#E65100','#00695C'];
+var CORES_LOTE = ['#1B5E20','#1B5E20','#1B5E20','#1B5E20','#1B5E20','#1B5E20','#1B5E20','#1B5E20','#1B5E20','#1B5E20'];
 
 // ══════════════════════════════════════════════════
 // SHA1
@@ -743,7 +744,10 @@ function buildLoteCards(){
       +'<div class="lc-num">Lote 0'+l+'</div>'
       +'<div class="lc-peso">'+s.med.toFixed(1)+'<span> kg</span></div>'
       +'<div class="lc-sup">'+(suplNome[l]||'—')+'</div>'
-      +'<div class="lc-dias">'+dt+'</div>';
+      +(s.dias===0
+        ?'<div class="lc-badge-ok">PRONTO P/ ABATE</div>'
+        :'<div class="lc-dias">'+s.dias+' dias</div>'
+      );
     g.appendChild(d);
   });
 }
@@ -1353,125 +1357,163 @@ function gerarPDF(){
   var gmdV=(document.getElementById('inp-gmd')||{}).value||gmd;
   var metaV=(document.getElementById('inp-meta')||{}).value||meta;
   var now=new Date();
-  var nowStr=now.toLocaleDateString('pt-BR')+' '+now.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
-
-  // Monta HTML do PDF
+  var nowStr=now.toLocaleDateString('pt-BR')+' em '+now.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
   var lts=getLotes();
   var totalAnim=0;lts.forEach(function(l){totalAnim+=(RAW[String(l)]||[]).length;});
 
-  var cardsHTML='<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px">';
+  /* ── CARDS DOS LOTES ── */
+  var cardsHTML='<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px">';
   lts.forEach(function(l){
     var s=calcStats(l);
-    var badge=s.dias>0?s.dias+' dias':'PRONTO';
-    var badgeColor=s.dias>0?'#E65100':'#1B5E20';
-    cardsHTML+='<div style="border:1.5px solid #4CAF50;border-radius:6px;padding:8px 10px;background:white">'
-      +'<div style="font-size:9px;font-weight:800;color:#1B5E20;text-transform:uppercase;letter-spacing:.5px">LOTE 0'+l+'</div>'
-      +'<div style="font-size:20px;font-weight:800;color:#111;line-height:1.2;margin:2px 0">'+s.med.toFixed(1)+'<span style="font-size:10px;color:#666;font-weight:500"> kg</span></div>'
-      +'<div style="font-size:9px;color:#555;margin-bottom:4px">'+(suplNome[l]||'—')+'</div>'
-      +'<div style="font-size:8px;font-weight:700;color:white;background:'+badgeColor+';padding:2px 7px;border-radius:10px;display:inline-block">'+badge+'</div>'
+    var badgeHTML=s.dias===0
+      ?'<div style="background:#E8F5E9;border:1px solid #A5D6A7;border-radius:5px;padding:3px 8px;font-size:9px;font-weight:700;color:#1B5E20;display:inline-block">PRONTO P/ ABATE</div>'
+      :'<div style="background:#E8F5E9;border:1px solid #A5D6A7;border-radius:5px;padding:3px 8px;font-size:9px;font-weight:700;color:#1B5E20;display:inline-block">'+s.dias+' dias</div>';
+    cardsHTML+='<div style="border:1px solid #ddd;border-top:4px solid #1B5E20;border-radius:8px;padding:10px 12px;background:white;position:relative">'
+      +'<div style="position:absolute;top:8px;right:8px;font-size:8px;color:#999;background:#f5f5f5;border-radius:10px;padding:1px 6px">'+s.n+' animais</div>'
+      +'<div style="font-size:9px;font-weight:800;color:#1B5E20;text-transform:uppercase;letter-spacing:.8px;margin-bottom:3px">LOTE 0'+l+'</div>'
+      +'<div style="font-size:20px;font-weight:800;color:#111;line-height:1.1;margin-bottom:2px">'+s.med.toFixed(1)+'<span style="font-size:10px;font-weight:500;color:#888"> kg</span></div>'
+      +'<div style="font-size:9px;color:#666;margin-bottom:6px">'+(suplNome[l]||'—')+'</div>'
+      +badgeHTML
       +'</div>';
   });
   cardsHTML+='</div>';
 
-  // Tabela resumo por lote
-  var tblHTML='<table style="width:100%;border-collapse:collapse;font-size:10px;margin-bottom:12px">'
-    +'<thead><tr style="background:#1B5E20;color:white">'
-    +'<th style="padding:5px 7px;text-align:left">Lote</th>'
-    +'<th style="padding:5px 7px;text-align:center">Animais</th>'
-    +'<th style="padding:5px 7px;text-align:center">Peso Total (kg)</th>'
-    +'<th style="padding:5px 7px;text-align:center">Min (kg)</th>'
-    +'<th style="padding:5px 7px;text-align:center">Max (kg)</th>'
-    +'<th style="padding:5px 7px;text-align:center">Média (kg)</th>'
-    +'<th style="padding:5px 7px;text-align:center">Amplitude</th>'
-    +'<th style="padding:5px 7px;text-align:center">Cons./dia</th>'
-    +'<th style="padding:5px 7px;text-align:center">Dias p/Abate</th>'
-    +'<th style="padding:5px 7px;text-align:left">Suplemento</th>'
+  /* ── TABELA RESUMO ── */
+  var tblHTML='<table style="width:100%;border-collapse:collapse;font-size:10px;margin-bottom:14px">'
+    +'<thead><tr style="background:#1B5E20">'
+    +'<th style="padding:6px 8px;text-align:left;color:white;font-weight:700">Lote</th>'
+    +'<th style="padding:6px 8px;text-align:center;color:white;font-weight:700">Animais</th>'
+    +'<th style="padding:6px 8px;text-align:center;color:white;font-weight:700">Peso Total (kg)</th>'
+    +'<th style="padding:6px 8px;text-align:center;color:white;font-weight:700">Mín (kg)</th>'
+    +'<th style="padding:6px 8px;text-align:center;color:white;font-weight:700">Máx (kg)</th>'
+    +'<th style="padding:6px 8px;text-align:center;color:white;font-weight:700">Média (kg)</th>'
+    +'<th style="padding:6px 8px;text-align:center;color:white;font-weight:700">Amplitude</th>'
+    +'<th style="padding:6px 8px;text-align:center;color:white;font-weight:700">Cons./dia</th>'
+    +'<th style="padding:6px 8px;text-align:center;color:white;font-weight:700">Dias p/Abate</th>'
+    +'<th style="padding:6px 8px;text-align:left;color:white;font-weight:700">Suplemento</th>'
     +'</tr></thead><tbody>';
   lts.forEach(function(l,i){
     var s=calcStats(l);
-    var bg=i%2===1?'#F1F8E9':'white';
+    var bg=i%2===1?'#F9FBF9':'white';
     tblHTML+='<tr style="background:'+bg+'">'
-      +'<td style="padding:4px 7px;font-weight:700;color:#1B5E20">LOTE 0'+l+'</td>'
-      +'<td style="padding:4px 7px;text-align:center">'+s.n+'</td>'
-      +'<td style="padding:4px 7px;text-align:center">'+(s.tot).toFixed(0)+'</td>'
-      +'<td style="padding:4px 7px;text-align:center">'+s.mn.toFixed(0)+'</td>'
-      +'<td style="padding:4px 7px;text-align:center">'+s.mx.toFixed(0)+'</td>'
-      +'<td style="padding:4px 7px;text-align:center;font-weight:700">'+s.med.toFixed(1)+'</td>'
-      +'<td style="padding:4px 7px;text-align:center">'+s.amp.toFixed(0)+'</td>'
-      +'<td style="padding:4px 7px;text-align:center">'+(s.cons!=null?s.cons.toFixed(3)+' kg':'Livre')+'</td>'
-      +'<td style="padding:4px 7px;text-align:center">'+(s.dias>0?s.dias:'-')+'</td>'
-      +'<td style="padding:4px 7px">'+(suplNome[l]||'—')+'</td>'
+      +'<td style="padding:5px 8px;font-weight:700;color:#1B5E20;border-bottom:1px solid #eee">LOTE 0'+l+'</td>'
+      +'<td style="padding:5px 8px;text-align:center;border-bottom:1px solid #eee">'+s.n+'</td>'
+      +'<td style="padding:5px 8px;text-align:center;border-bottom:1px solid #eee">'+s.tot.toFixed(0)+'</td>'
+      +'<td style="padding:5px 8px;text-align:center;border-bottom:1px solid #eee">'+s.mn.toFixed(0)+'</td>'
+      +'<td style="padding:5px 8px;text-align:center;border-bottom:1px solid #eee">'+s.mx.toFixed(0)+'</td>'
+      +'<td style="padding:5px 8px;text-align:center;font-weight:700;border-bottom:1px solid #eee">'+s.med.toFixed(1)+'</td>'
+      +'<td style="padding:5px 8px;text-align:center;border-bottom:1px solid #eee">'+s.amp.toFixed(0)+'</td>'
+      +'<td style="padding:5px 8px;text-align:center;border-bottom:1px solid #eee">'+(s.cons!=null?s.cons.toFixed(3)+' kg':'Livre')+'</td>'
+      +'<td style="padding:5px 8px;text-align:center;border-bottom:1px solid #eee">'+(s.dias>0?s.dias:'-')+'</td>'
+      +'<td style="padding:5px 8px;border-bottom:1px solid #eee">'+(suplNome[l]||'—')+'</td>'
       +'</tr>';
   });
   tblHTML+='</tbody></table>';
 
-  // Tabela detalhada por lote
+  /* ── DETALHAMENTO POR LOTE ── */
   var detHTML='';
   lts.forEach(function(l){
     var animais=RAW[String(l)]||[];
     if(!animais.length)return;
     var s=calcStats(l);
-    detHTML+='<div style="margin-top:12px;break-inside:avoid">'
-      +'<div style="background:#2E7D32;color:white;padding:6px 10px;border-radius:5px 5px 0 0;font-weight:700;font-size:11px">'
-      +'LOTE 0'+l+' — '+(suplNome[l]||'—')+' · '+animais.length+' animais · Média: '+s.med.toFixed(1)+' kg</div>'
+    detHTML+='<div style="margin-top:14px;break-inside:avoid">'
+      +'<div style="background:#1B5E20;color:white;padding:7px 12px;border-radius:6px 6px 0 0;font-weight:700;font-size:11px">'
+      +'LOTE 0'+l+' — '+(suplNome[l]||'—')+' &nbsp;·&nbsp; '+animais.length+' animais &nbsp;·&nbsp; Média: '+s.med.toFixed(1)+' kg'
+      +'</div>'
       +'<table style="width:100%;border-collapse:collapse;font-size:9px">'
-      +'<thead><tr style="background:#E8F5E9"><th style="padding:3px 6px;text-align:center">#</th><th style="padding:3px 6px">Brinco</th><th style="padding:3px 6px;text-align:center">Peso(kg)</th><th style="padding:3px 6px;text-align:center">Arrobas</th><th style="padding:3px 6px;text-align:center">% Meta</th><th style="padding:3px 6px;text-align:center">Status</th></tr></thead>'
-      +'<tbody>';
+      +'<thead><tr style="background:#E8F5E9">'
+      +'<th style="padding:4px 7px;text-align:center;color:#1B5E20;border-bottom:1px solid #ddd">#</th>'
+      +'<th style="padding:4px 7px;text-align:left;color:#1B5E20;border-bottom:1px solid #ddd">Brinco</th>'
+      +'<th style="padding:4px 7px;text-align:center;color:#1B5E20;border-bottom:1px solid #ddd">Peso (kg)</th>'
+      +'<th style="padding:4px 7px;text-align:center;color:#1B5E20;border-bottom:1px solid #ddd">Arrobas</th>'
+      +'<th style="padding:4px 7px;text-align:center;color:#1B5E20;border-bottom:1px solid #ddd">% Meta</th>'
+      +'<th style="padding:4px 7px;text-align:center;color:#1B5E20;border-bottom:1px solid #ddd">Status</th>'
+      +'</tr></thead><tbody>';
     animais.forEach(function(a,i){
       var arr=(a.p/15).toFixed(2);
       var pct=meta>0?Math.round(a.p/meta*100):0;
-      var ok=a.p>=meta;
+      var ok=a.p>=parseFloat(metaV||meta);
       var bg=i%2===1?'#FAFFF8':'white';
-      detHTML+='<tr style="background:'+bg+'"><td style="padding:2px 6px;text-align:center;color:#999">'+(i+1)+'</td>'
-        +'<td style="padding:2px 6px">'+a.b+'</td>'
-        +'<td style="padding:2px 6px;text-align:center;font-weight:700">'+a.p.toFixed(1)+'</td>'
-        +'<td style="padding:2px 6px;text-align:center">'+arr+'</td>'
-        +'<td style="padding:2px 6px;text-align:center">'+pct+'%</td>'
-        +'<td style="padding:2px 6px;text-align:center"><span style="background:'+(ok?'#1B5E20':'#E65100')+';color:white;padding:1px 5px;border-radius:8px;font-size:8px">'+(ok?'PRONTO':'ENGORDA')+'</span></td>'
-        +'</tr>';
+      detHTML+='<tr style="background:'+bg+'">'
+        +'<td style="padding:3px 7px;text-align:center;color:#aaa;border-bottom:1px solid #f0f0f0">'+(i+1)+'</td>'
+        +'<td style="padding:3px 7px;border-bottom:1px solid #f0f0f0">'+a.b+'</td>'
+        +'<td style="padding:3px 7px;text-align:center;font-weight:700;border-bottom:1px solid #f0f0f0">'+a.p.toFixed(1)+'</td>'
+        +'<td style="padding:3px 7px;text-align:center;border-bottom:1px solid #f0f0f0">'+arr+'</td>'
+        +'<td style="padding:3px 7px;text-align:center;border-bottom:1px solid #f0f0f0">'+pct+'%</td>'
+        +'<td style="padding:3px 7px;text-align:center;border-bottom:1px solid #f0f0f0">'
+        +'<span style="background:'+(ok?'#1B5E20':'#2E7D32')+';color:white;padding:1px 6px;border-radius:8px;font-size:8px">'+(ok?'PRONTO':'ENGORDA')+'</span>'
+        +'</td></tr>';
     });
     detHTML+='</tbody></table></div>';
   });
 
-  var logoTag='<div style="font-size:22px;font-weight:800;color:#8BC34A;letter-spacing:-1px">GPL</div>';
-
+  /* ── HTML COMPLETO — papel timbrado ── */
   var html='<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8">'
     +'<title>Análise de Rebanho — '+fazenda+'</title>'
-    +'<style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:Arial,sans-serif;font-size:11px;background:white;color:#1a1a1a;padding:14px}'
-    +'@page{size:A4;margin:8mm}@media print{.no-print{display:none!important}body{padding:6px}}</style></head><body>'
-    +'<div style="background:#1B5E20;color:white;padding:12px 16px;border-radius:7px;display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">'
-    +'<div style="display:flex;align-items:center;gap:12px">'+logoTag+'<div>'
-    +'<div style="font-size:15px;font-weight:800">🐄 Análise de Rebanho — '+fazenda+'</div>'
-    +'<div style="font-size:9px;opacity:.55;margin-top:2px">Gestão Pecuária Lucrativa · Rogério Avelino · (63) 99108-2453 · @gestaolucrativa.pecuaria</div>'
-    +'</div></div>'
-    +'<div style="text-align:right;font-size:9px;opacity:.7"><div>Pesagem: '+dataPesFmt+'</div><div>Gerado: '+nowStr+'</div></div>'
-    +'</div>'
-    +'<div style="background:#F1F8E9;border:1px solid #DCEDC8;border-radius:6px;padding:8px 14px;margin-bottom:12px;display:flex;gap:20px;font-size:10px">'
-    +'<div><strong>Total animais:</strong> '+totalAnim+'</div>'
-    +'<div><strong>Lotes:</strong> '+lts.length+'</div>'
-    +'<div><strong>GMD:</strong> '+gmdV+' kg/dia</div>'
-    +'<div><strong>Meta:</strong> '+metaV+' kg</div>'
-    +'<div><strong>Data:</strong> '+dataPesFmt+'</div>'
-    +'</div>'
-    +cardsHTML
-    +'<div style="font-size:11px;font-weight:800;color:#1B5E20;border-bottom:2px solid #4CAF50;padding-bottom:4px;margin-bottom:8px">Resumo por Lote</div>'
-    +tblHTML
-    +'<div style="font-size:11px;font-weight:800;color:#1B5E20;border-bottom:2px solid #4CAF50;padding-bottom:4px;margin-bottom:8px;margin-top:14px">Detalhamento por Animal</div>'
-    +detHTML
-    +'<div style="margin-top:14px;padding:8px 14px;background:#1B5E20;color:rgba(255,255,255,.6);border-radius:6px;display:flex;justify-content:space-between;font-size:9px" class="no-print">'
-    +'<div><strong style="color:white">Gestão Pecuária Lucrativa</strong> · Rogério Avelino</div>'
-    +'<div>📞 (63) 99108-2453 · @gestaolucrativa.pecuaria</div>'
-    +'</div>'
-    +'<div style="text-align:center;margin-top:12px" class="no-print">'
-    +'<button onclick="window.print()" style="padding:10px 28px;background:#1B5E20;color:white;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;margin-right:8px">🖨️ Imprimir / Salvar PDF</button>'
-    +'<button onclick="window.close()" style="padding:10px 18px;background:#666;color:white;border:none;border-radius:8px;font-size:13px;cursor:pointer">✕ Fechar</button>'
-    +'</div></body></html>';
+    +'<style>'
+    +'*{margin:0;padding:0;box-sizing:border-box}'
+    +'body{font-family:Arial,sans-serif;font-size:11px;background:white;color:#1a1a1a;padding:0}'
+    +'@page{size:A4 portrait;margin:12mm 14mm}'
+    +'@media print{.no-print{display:none!important}body{padding:0}}'
+    +'.page{padding:18px 20px}'
+    +'</style></head><body><div class="page">'
 
-  var w=window.open('','_blank','width=960,height=800');
+    /* ── TIMBRADO TOPO ── */
+    +'<div style="display:flex;align-items:center;justify-content:space-between;padding-bottom:12px;border-bottom:2px solid #1B5E20;margin-bottom:14px">'
+      +'<div style="display:flex;align-items:center;gap:12px">'
+        +'<img src="data:image/png;base64,'+logo_b64+'" style="height:52px;width:auto" alt="GPL">'
+        +'<div>'
+          +'<div style="font-size:13px;font-weight:800;color:#1B5E20;line-height:1.2">Gestão Pecuária Lucrativa</div>'
+          +'<div style="font-size:9px;color:#555;margin-top:1px">Rogério Avelino — Consultor</div>'
+          +'<div style="font-size:9px;color:#555">(63) 99108-2453 · @gestaolucrativa.pecuaria</div>'
+        +'</div>'
+      +'</div>'
+      +'<div style="text-align:right">'
+        +'<div style="font-size:15px;font-weight:800;color:#1B5E20">Análise de Rebanho</div>'
+        +'<div style="font-size:10px;color:#555;margin-top:2px">'+fazenda+'</div>'
+        +'<div style="font-size:9px;color:#888;margin-top:1px">Emitido em '+nowStr+'</div>'
+      +'</div>'
+    +'</div>'
+
+    /* ── FAIXA DE DADOS ── */
+    +'<div style="background:#F1F8E9;border:1px solid #C8E6C9;border-radius:7px;padding:10px 16px;margin-bottom:14px;display:flex;gap:24px;flex-wrap:wrap">'
+      +'<div><span style="font-size:9px;color:#555;text-transform:uppercase;font-weight:700;letter-spacing:.5px;display:block">Fazenda</span><span style="font-size:12px;font-weight:700;color:#111">'+fazenda+'</span></div>'
+      +'<div><span style="font-size:9px;color:#555;text-transform:uppercase;font-weight:700;letter-spacing:.5px;display:block">Data Pesagem</span><span style="font-size:12px;font-weight:700;color:#111">'+dataPesFmt+'</span></div>'
+      +'<div><span style="font-size:9px;color:#555;text-transform:uppercase;font-weight:700;letter-spacing:.5px;display:block">Total Animais</span><span style="font-size:12px;font-weight:700;color:#1B5E20">'+totalAnim+'</span></div>'
+      +'<div><span style="font-size:9px;color:#555;text-transform:uppercase;font-weight:700;letter-spacing:.5px;display:block">Lotes</span><span style="font-size:12px;font-weight:700;color:#111">'+lts.length+'</span></div>'
+      +'<div><span style="font-size:9px;color:#555;text-transform:uppercase;font-weight:700;letter-spacing:.5px;display:block">GMD</span><span style="font-size:12px;font-weight:700;color:#111">'+gmdV+' kg/dia</span></div>'
+      +'<div><span style="font-size:9px;color:#555;text-transform:uppercase;font-weight:700;letter-spacing:.5px;display:block">Meta Abate</span><span style="font-size:12px;font-weight:700;color:#111">'+metaV+' kg</span></div>'
+    +'</div>'
+
+    /* ── TÍTULO SEÇÃO CARDS ── */
+    +'<div style="font-size:11px;font-weight:800;color:#1B5E20;border-left:3px solid #1B5E20;padding-left:8px;margin-bottom:10px">Resumo por Lote</div>'
+    +cardsHTML
+
+    /* ── TÍTULO TABELA ── */
+    +'<div style="font-size:11px;font-weight:800;color:#1B5E20;border-left:3px solid #1B5E20;padding-left:8px;margin-bottom:8px;margin-top:4px">Análise Técnica por Lote</div>'
+    +tblHTML
+
+    /* ── TÍTULO DETALHAMENTO ── */
+    +'<div style="font-size:11px;font-weight:800;color:#1B5E20;border-left:3px solid #1B5E20;padding-left:8px;margin-bottom:8px;margin-top:4px">Detalhamento por Animal</div>'
+    +detHTML
+
+    /* ── RODAPÉ TIMBRADO ── */
+    +'<div style="margin-top:18px;padding-top:10px;border-top:1px solid #C8E6C9;display:flex;justify-content:space-between;align-items:center">'
+      +'<div style="font-size:9px;color:#777"><strong style="color:#1B5E20">Gestão Pecuária Lucrativa</strong> · Rogério Avelino — Consultor</div>'
+      +'<div style="font-size:9px;color:#777">📞 (63) 99108-2453 · @gestaolucrativa.pecuaria</div>'
+    +'</div>'
+
+    +'</div>'/* /page */
+    +'<div style="text-align:center;padding:16px" class="no-print">'
+      +'<button onclick="window.print()" style="padding:10px 28px;background:#1B5E20;color:white;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;margin-right:8px">🖨️ Imprimir / Salvar PDF</button>'
+      +'<button onclick="window.close()" style="padding:10px 18px;background:#888;color:white;border:none;border-radius:8px;font-size:13px;cursor:pointer">✕ Fechar</button>'
+    +'</div>'
+    +'</body></html>';
+
+  var w=window.open('','_blank','width=960,height=820');
   if(w){w.document.write(html);w.document.close();}
   else{alert('Permita pop-ups para gerar o PDF!');}
 }
-
 // ══════════════════════════════════════════════════
 // HELPERS
 // ══════════════════════════════════════════════════

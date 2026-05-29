@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="GPL Cliente">
+<meta name="theme-color" content="#1B5E20">
+<title>GPL — Portal do Cliente</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --v1:#1B5E20;--v2:#2E7D32;--v3:#388E3C;--v4:#4CAF50;--v5:#8BC34A;--v6:#DCEDC8;--v7:#F1F8E9;
+  --g1:#111;--g3:#555;--g4:#888;--g5:#bbb;--g6:#E8E8E8;--g7:#F5F5F5;
+  --sh:0 2px 8px rgba(0,0,0,.07);--sh2:0 8px 24px rgba(0,0,0,.12)
+}
+html,body{height:100%;font-family:'DM Sans',sans-serif;background:#F0F4F0;overflow:hidden}
+
+/* TOPBAR */
+.topbar{height:52px;background:var(--v1);display:flex;align-items:center;justify-content:space-between;padding:0 16px;box-shadow:0 2px 10px rgba(0,0,0,.25);flex-shrink:0}
+.tb-left{display:flex;align-items:center;gap:10px}
+.tb-logo{height:30px;border-radius:6px}
+.tb-title{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:white;line-height:1.2}
+.tb-title small{display:block;font-size:10px;color:rgba(255,255,255,.5);font-weight:400}
+.tb-right{display:flex;gap:8px;align-items:center}
+.tb-btn{padding:6px 12px;border-radius:7px;font-size:11px;font-weight:600;cursor:pointer;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.1);color:white;font-family:'DM Sans',sans-serif;text-decoration:none;display:flex;align-items:center;gap:5px}
+.tb-btn:hover{background:rgba(255,255,255,.22)}
+.tb-btn.wpp{background:#25D366;border-color:#25D366}
+
+/* LAYOUT */
+.layout{display:flex;height:calc(100vh - 52px)}
+
+/* SIDEBAR */
+.sidebar{width:210px;background:white;border-right:1px solid var(--v6);overflow-y:auto;flex-shrink:0;padding:12px 0}
+.sb-section{padding:6px 14px 2px;font-size:9px;font-weight:700;color:var(--g4);text-transform:uppercase;letter-spacing:.8px}
+.sb-item{display:flex;align-items:center;gap:10px;padding:10px 14px;cursor:pointer;border-radius:8px;margin:1px 6px;transition:all .15s;text-decoration:none;color:var(--g1)}
+.sb-item:hover{background:var(--v7)}
+.sb-item.on{background:var(--v7);border-left:3px solid var(--v1)}
+.sb-icon{font-size:16px;width:24px;text-align:center;flex-shrink:0}
+.sb-txt{flex:1;min-width:0}
+.sb-label{font-size:12px;font-weight:600;color:var(--g1);display:block}
+.sb-sub{font-size:10px;color:var(--g4);display:block;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* MAIN */
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.iframe-bar{padding:8px 14px;background:white;border-bottom:1px solid var(--g6);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.iframe-title{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:var(--v1)}
+.iframe-btns{display:flex;gap:6px}
+.iframe-btn{padding:5px 11px;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;border:1px solid var(--g6);background:white;color:var(--g3);font-family:'DM Sans',sans-serif;text-decoration:none;display:flex;align-items:center;gap:4px}
+.iframe-btn:hover{border-color:var(--v4);color:var(--v2);background:var(--v7)}
+.iframe-wrap{flex:1;position:relative}
+iframe{width:100%;height:100%;border:none;background:white}
+.loading{position:absolute;inset:0;background:white;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:12px;z-index:10}
+.loading .spin{width:36px;height:36px;border:3px solid var(--v6);border-top-color:var(--v2);border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading p{font-size:12px;color:var(--g4)}
+
+/* HOME PANEL */
+.home-panel{flex:1;overflow-y:auto;padding:20px}
+.home-fazenda{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:var(--v1);margin-bottom:4px}
+.home-sub{font-size:12px;color:var(--g4);margin-bottom:20px}
+.tools-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px}
+.tool-card{background:white;border-radius:12px;border:1px solid var(--v6);padding:16px;cursor:pointer;transition:all .2s;box-shadow:var(--sh);text-decoration:none;display:block;position:relative;overflow:hidden}
+.tool-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--v2)}
+.tool-card:hover{transform:translateY(-2px);box-shadow:var(--sh2);border-color:var(--v4)}
+.tool-icon{font-size:28px;margin-bottom:10px}
+.tool-name{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:var(--g1);margin-bottom:4px}
+.tool-desc{font-size:11px;color:var(--g4);line-height:1.5}
+.tool-tags{display:flex;gap:4px;flex-wrap:wrap;margin-top:8px}
+.tool-tag{font-size:9px;font-weight:600;color:var(--v2);background:var(--v7);border-radius:10px;padding:2px 7px}
+
+/* MOBILE */
+.sb-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:98}
+.sb-toggle{display:none;background:none;border:none;color:white;font-size:20px;cursor:pointer;padding:4px 8px}
+@media(max-width:640px){
+  .sidebar{position:fixed;left:-220px;top:52px;bottom:0;z-index:99;transition:left .25s;box-shadow:none}
+  .sidebar.open{left:0;box-shadow:4px 0 20px rgba(0,0,0,.2)}
+  .sb-overlay.open{display:block}
+  .sb-toggle{display:block}
+  .tools-grid{grid-template-columns:1fr 1fr}
+}
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <div class="tb-left">
+    <button class="sb-toggle" onclick="toggleSb()">☰</button>
+    <img src="logo.png" class="tb-logo" alt="GPL" onerror="this.style.display='none'">
+    <div class="tb-title">
+      <span id="tb-fazenda">Portal do Cliente</span>
+      <small>Gestão Pecuária Lucrativa</small>
+    </div>
+  </div>
+  <div class="tb-right">
+    <a href="https://wa.me/5563991082453" target="_blank" class="tb-btn wpp">💬 Consultor</a>
+    <button class="tb-btn" onclick="sair()">🚪 Sair</button>
+  </div>
+</div>
+
+<div class="layout">
+  <!-- SIDEBAR -->
+  <div class="sb-overlay" id="sb-overlay" onclick="toggleSb()"></div>
+  <div class="sidebar" id="sidebar">
+    <div class="sb-section">Ferramentas</div>
+    <div id="sb-tools"></div>
+    <div style="padding:12px 14px;margin-top:8px;border-top:1px solid #eee">
+      <a href="https://wa.me/5563991082453" target="_blank" class="sb-item" style="margin:0">
+        <div class="sb-icon">💬</div>
+        <div class="sb-txt"><span class="sb-label">WhatsApp</span><span class="sb-sub">Falar com consultor</span></div>
+      </a>
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main" id="main-area">
+    <!-- HOME -->
+    <div class="home-panel" id="home-panel">
+      <div class="home-fazenda" id="home-fazenda">Carregando...</div>
+      <div class="home-sub">Selecione uma ferramenta abaixo</div>
+      <div class="tools-grid" id="tools-grid"></div>
+    </div>
+    <!-- IFRAME -->
+    <div id="iframe-panel" style="display:none;flex:1;flex-direction:column;height:100%">
+      <div class="iframe-bar">
+        <div class="iframe-title" id="iframe-title">Ferramenta</div>
+        <div class="iframe-btns">
+          <button class="iframe-btn" onclick="voltarHome()">← Início</button>
+          <button class="iframe-btn" onclick="abrirNova()">↗ Nova aba</button>
+        </div>
+      </div>
+      <div class="iframe-wrap">
+        <div class="loading" id="loading">
+          <div class="spin"></div>
+          <p>Carregando...</p>
+        </div>
+        <iframe id="main-frame" src="" onload="document.getElementById('loading').style.display='none'"></iframe>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════════════════
+// FERRAMENTAS DISPONÍVEIS
+// ══════════════════════════════════════════════════════
+var TODAS_FERRAMENTAS = [
+  {id:'pesagem',       icon:'🐄', nome:'Sistema de Pesagem',      desc:'Pesagem com Bluetooth, lotes e histórico',        tags:['Campo','Offline'],       url:'pesagem_v2.html'},
+  {id:'analise',       icon:'📊', nome:'Análise de Rebanho',      desc:'Lotes, projeção de abate e relatório PDF',        tags:['Consultoria','PDF'],      url:'analise-rebanho-cliente.html'},
+  {id:'ceci',          icon:'📋', nome:'Planejamento Ágil CECI',  desc:'Cria · Recria · Engorda — visão de safra',        tags:['Planejamento'],          url:'plano-agil-ceci.html'},
+  {id:'plano',         icon:'📈', nome:'Plano Ágil Pecuário',     desc:'Meta, rebanho e lotação por pasto',               tags:['Meta','Lotação'],        url:'plano_agil_v3.html'},
+  {id:'bezerro',       icon:'🐂', nome:'Calculadora do Bezerro',  desc:'GMD, ROI e simulação de compra',                  tags:['Compra','GMD'],          url:'arroba_bezerro.html'},
+  {id:'viabilidade',   icon:'💰', nome:'Viabilidade de Lote',     desc:'Lucro, margem e benchmarks GPL',                  tags:['Financeiro'],            url:'viabilidade_lote.html'},
+  {id:'checklist',     icon:'✅', nome:'Checklist Auditoria',     desc:'32 itens de diagnóstico — 1ª visita',             tags:['Diagnóstico'],           url:'checklist-auditoria.html'},
+  {id:'relatorio',     icon:'📄', nome:'Relatório de Performance',desc:'Papel timbrado GPL, KPIs e PDF',                  tags:['Relatório','PDF'],       url:'relatorio-performance.html'},
+  {id:'portfolio',     icon:'🏆', nome:'Portfólio Comercial',     desc:'Apresentação GPL, planos e proposta',             tags:['Comercial'],             url:'portfolio.html'},
+  {id:'levantamento',  icon:'📝', nome:'Formulário Levantamento', desc:'Diagnóstico inicial para novos clientes',         tags:['Captação'],              url:'levantamento_form.html'},
+  {id:'instagram',     icon:'📱', nome:'Levantamento Instagram',  desc:'Stories · Bio · Link direto',                     tags:['Captação','Instagram'],  url:'levantamento_instagram.html'},
+];
+
+// ══════════════════════════════════════════════════════
+// AUTENTICAÇÃO
+// ══════════════════════════════════════════════════════
+var SESSAO = null;
+
+(function init(){
+  try{
+    var s = sessionStorage.getItem('gpl_auth');
+    if(s) SESSAO = JSON.parse(s);
+  }catch(e){}
+
+  if(!SESSAO || !SESSAO.fazenda){
+    window.location.href='login.html';
+    return;
+  }
+
+  // Verifica expiração (8 horas)
+  if(SESSAO.ts && Date.now() - SESSAO.ts > 8*60*60*1000){
+    sessionStorage.removeItem('gpl_auth');
+    window.location.href='login.html';
+    return;
+  }
+
+  // Monta interface
+  document.getElementById('tb-fazenda').textContent = SESSAO.fazenda;
+  document.getElementById('home-fazenda').textContent = SESSAO.fazenda;
+  document.title = SESSAO.fazenda + ' — GPL';
+
+  renderFerramentas();
+})();
+
+function renderFerramentas(){
+  var ids = SESSAO.ferramentas || [];
+  var ferramentas = ids.length > 0
+    ? TODAS_FERRAMENTAS.filter(function(f){ return ids.indexOf(f.id)>=0; })
+    : TODAS_FERRAMENTAS;
+
+  // Grid home
+  var grid = document.getElementById('tools-grid');
+  grid.innerHTML = '';
+  ferramentas.forEach(function(f){
+    var div = document.createElement('div');
+    div.className = 'tool-card';
+    div.innerHTML = '<div class="tool-icon">'+f.icon+'</div>'
+      +'<div class="tool-name">'+f.nome+'</div>'
+      +'<div class="tool-desc">'+f.desc+'</div>'
+      +'<div class="tool-tags">'+f.tags.map(function(t){return '<span class="tool-tag">'+t+'</span>';}).join('')+'</div>';
+    div.addEventListener('click', function(){ abrirFerramenta(f); });
+    grid.appendChild(div);
+  });
+
+  // Sidebar
+  var sb = document.getElementById('sb-tools');
+  sb.innerHTML = '';
+  ferramentas.forEach(function(f){
+    var a = document.createElement('a');
+    a.href = '#';
+    a.className = 'sb-item';
+    a.id = 'sb-'+f.id;
+    a.innerHTML = '<div class="sb-icon">'+f.icon+'</div>'
+      +'<div class="sb-txt"><span class="sb-label">'+f.nome+'</span><span class="sb-sub">'+f.tags.join(' · ')+'</span></div>';
+    a.addEventListener('click', function(e){
+      e.preventDefault();
+      abrirFerramenta(f);
+      if(window.innerWidth<=640) toggleSb();
+    });
+    sb.appendChild(a);
+  });
+}
+
+// ── NAVEGAÇÃO ────────────────────────────────────────
+var _urlAtual = '';
+function abrirFerramenta(f){
+  _urlAtual = f.url;
+  document.getElementById('iframe-title').textContent = f.icon+' '+f.nome;
+  document.getElementById('loading').style.display='flex';
+  document.getElementById('main-frame').src = f.url;
+  document.getElementById('home-panel').style.display='none';
+  var ip = document.getElementById('iframe-panel');
+  ip.style.display='flex';
+  // Marca ativo no sidebar
+  document.querySelectorAll('.sb-item').forEach(function(el){ el.classList.remove('on'); });
+  var sbEl = document.getElementById('sb-'+f.id);
+  if(sbEl) sbEl.classList.add('on');
+}
+
+function voltarHome(){
+  document.getElementById('iframe-panel').style.display='none';
+  document.getElementById('home-panel').style.display='block';
+  document.getElementById('main-frame').src='';
+  document.querySelectorAll('.sb-item').forEach(function(el){ el.classList.remove('on'); });
+  _urlAtual='';
+}
+
+function abrirNova(){
+  if(_urlAtual) window.open(_urlAtual,'_blank');
+}
+
+// ── MOBILE SIDEBAR ───────────────────────────────────
+function toggleSb(){
+  document.getElementById('sidebar').classList.toggle('open');
+  document.getElementById('sb-overlay').classList.toggle('open');
+}
+
+// ── SAIR ─────────────────────────────────────────────
+function sair(){
+  if(confirm('Deseja sair?')){
+    sessionStorage.removeItem('gpl_auth');
+    window.location.href='login.html';
+  }
+}
+</script>
+</body>
+</html>

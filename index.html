@@ -399,9 +399,155 @@ input[type=file]{display:none}
 .mpdf-gerar:disabled{background:#bbb;cursor:not-allowed}
 .mpdf-cancel{padding:9px 16px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;border:1px solid #ddd;background:white;color:#666;font-family:'DM Sans',sans-serif}
 
+
+/* ── GESTOR DE CLIENTES ──────────────────────────── */
+.gestor-wrap{padding:20px;overflow-y:auto;height:100%}
+.gestor-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px}
+.gestor-title{font-family:'Syne',sans-serif;font-size:18px;font-weight:800;color:var(--v1)}
+.gestor-sub{font-size:11px;color:var(--g4);margin-top:2px}
+.btn-nova-fazenda{padding:9px 18px;border-radius:8px;background:var(--v2);color:white;border:none;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:6px;transition:all .15s}
+.btn-nova-fazenda:hover{background:var(--v1)}
+
+/* Lista de fazendas */
+.fazendas-lista{display:flex;flex-direction:column;gap:10px}
+.fazenda-card-g{background:white;border-radius:12px;border:1px solid var(--v6);overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.06)}
+.fazenda-card-g-head{padding:14px 16px;display:flex;align-items:center;justify-content:space-between;gap:10px}
+.fcg-info{flex:1;min-width:0}
+.fcg-nome{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;color:var(--g1)}
+.fcg-meta{font-size:10px;color:var(--g4);margin-top:2px}
+.fcg-status{display:inline-block;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700}
+.fcg-status.ativo{background:#E8F5E9;color:#1B5E20}
+.fcg-status.inativo{background:#FFEBEE;color:#C62828}
+.fcg-btns{display:flex;gap:6px;flex-shrink:0;flex-wrap:wrap}
+.fcg-btn{padding:5px 11px;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;border:1px solid var(--g6);background:white;color:var(--g3);font-family:'DM Sans',sans-serif;transition:all .15s;white-space:nowrap}
+.fcg-btn:hover{border-color:var(--v4);color:var(--v2);background:var(--v7)}
+.fcg-btn.link{background:var(--v7);border-color:var(--v5);color:var(--v2)}
+.fcg-btn.link:hover{background:var(--v2);color:white;border-color:var(--v2)}
+.fcg-btn.del{border-color:#FFCDD2;color:#C62828}
+.fcg-btn.del:hover{background:#FFEBEE}
+.fcg-ferramentas{padding:8px 16px 12px;border-top:1px solid var(--v7);display:flex;gap:5px;flex-wrap:wrap}
+.fcg-ferr-tag{font-size:9px;font-weight:600;color:var(--v2);background:var(--v7);border-radius:10px;padding:2px 7px}
+
+/* Empty state */
+.gestor-empty{text-align:center;padding:40px 20px;color:var(--g4)}
+.gestor-empty .ge-icon{font-size:40px;margin-bottom:12px}
+.gestor-empty p{font-size:12px;line-height:1.7}
+
+/* Modal nova fazenda */
+#modal-nova-fazenda{position:fixed;inset:0;z-index:800;background:rgba(0,0,0,.55);display:none;align-items:center;justify-content:center;padding:20px;overflow-y:auto}
+#modal-nova-fazenda.open{display:flex}
+.mnf-card{background:white;border-radius:14px;width:100%;max-width:560px;overflow:hidden;box-shadow:0 24px 60px rgba(0,0,0,.3);max-height:90vh;overflow-y:auto}
+.mnf-head{background:var(--v1);padding:14px 18px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:1}
+.mnf-title{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;color:white}
+.mnf-close{width:28px;height:28px;border-radius:6px;background:rgba(255,255,255,.12);border:none;color:white;font-size:16px;cursor:pointer}
+.mnf-body{padding:20px}
+.mnf-field{margin-bottom:14px}
+.mnf-label{font-size:10px;font-weight:700;color:var(--g4);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:5px}
+.mnf-input{width:100%;border:1px solid var(--g6);border-radius:8px;padding:9px 12px;font-size:13px;font-family:'DM Sans',sans-serif;color:var(--g1);background:var(--g7);transition:border-color .15s;outline:none}
+.mnf-input:focus{border-color:var(--v4);background:white}
+.mnf-section{font-size:11px;font-weight:700;color:var(--v1);margin:16px 0 10px;padding-bottom:4px;border-bottom:1px solid var(--v6)}
+.mnf-tools-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px;margin-bottom:8px}
+.mnf-tool-item{border:1.5px solid var(--g6);border-radius:8px;padding:8px 10px;cursor:pointer;transition:all .15s;user-select:none;display:flex;align-items:center;gap:6px}
+.mnf-tool-item.sel{background:var(--v7);border-color:var(--v2)}
+.mnf-tool-item:hover{border-color:var(--v4)}
+.mnf-tool-item .mti-icon{font-size:14px;flex-shrink:0}
+.mnf-tool-item .mti-nome{font-size:11px;font-weight:600;color:var(--g1)}
+.mnf-sel-btns{display:flex;gap:6px;margin-bottom:10px}
+.mnf-sel-btn{padding:4px 10px;border-radius:5px;font-size:10px;font-weight:600;cursor:pointer;border:1px solid var(--g6);background:white;color:var(--g3);font-family:'DM Sans',sans-serif}
+.mnf-sel-btn:hover{background:var(--v7);border-color:var(--v4);color:var(--v2)}
+.mnf-pin-hint{font-size:10px;color:var(--g4);margin-top:4px;line-height:1.5}
+.mnf-foot{padding:14px 18px;border-top:1px solid var(--g6);display:flex;gap:8px;justify-content:flex-end;background:white;position:sticky;bottom:0}
+.mnf-save{padding:9px 22px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;border:none;background:var(--v2);color:white;font-family:'DM Sans',sans-serif}
+.mnf-save:hover{background:var(--v1)}
+.mnf-cancel{padding:9px 16px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;border:1px solid var(--g6);background:white;color:var(--g3);font-family:'DM Sans',sans-serif}
+
+/* Modal link */
+#modal-link-cliente{position:fixed;inset:0;z-index:810;background:rgba(0,0,0,.55);display:none;align-items:center;justify-content:center;padding:20px}
+#modal-link-cliente.open{display:flex}
+.mlc-card{background:white;border-radius:14px;width:100%;max-width:500px;overflow:hidden;box-shadow:0 24px 60px rgba(0,0,0,.3)}
+.mlc-head{background:var(--v1);padding:14px 18px;display:flex;align-items:center;justify-content:space-between}
+.mlc-title{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;color:white}
+.mlc-close{width:28px;height:28px;border-radius:6px;background:rgba(255,255,255,.12);border:none;color:white;font-size:16px;cursor:pointer}
+.mlc-body{padding:20px}
+.mlc-fazenda{font-family:'Syne',sans-serif;font-size:16px;font-weight:800;color:var(--v1);margin-bottom:4px}
+.mlc-pin{font-size:12px;color:var(--g3);margin-bottom:16px}
+.mlc-link-box{background:var(--g7);border:1px solid var(--g6);border-radius:8px;padding:10px 12px;font-size:11px;color:var(--g1);word-break:break-all;margin-bottom:12px;font-family:monospace;line-height:1.6}
+.mlc-btns{display:flex;gap:8px;flex-wrap:wrap}
+.mlc-btn{padding:8px 16px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;border:1px solid var(--g6);background:white;color:var(--g3);font-family:'DM Sans',sans-serif;transition:all .15s;display:flex;align-items:center;gap:5px}
+.mlc-btn:hover{background:var(--v7);border-color:var(--v4);color:var(--v2)}
+.mlc-btn.wpp{background:#25D366;border-color:#25D366;color:white}
+.mlc-btn.wpp:hover{background:#1ebe5c}
+.mlc-btn.copy{background:var(--v2);border-color:var(--v2);color:white}
+.mlc-btn.copy:hover{background:var(--v1)}
+.mlc-notif{font-size:11px;color:var(--v2);font-weight:600;margin-top:8px;display:none}
+
 </style>
 </head>
 <body>
+
+<!-- MODAL NOVA FAZENDA -->
+<div id="modal-nova-fazenda" onclick="if(event.target===this)fecharModalNF()">
+  <div class="mnf-card">
+    <div class="mnf-head">
+      <div class="mnf-title" id="mnf-modal-title">➕ Nova Fazenda</div>
+      <button class="mnf-close" onclick="fecharModalNF()">✕</button>
+    </div>
+    <div class="mnf-body">
+      <div class="mnf-field">
+        <label class="mnf-label">Nome da Fazenda *</label>
+        <input class="mnf-input" id="mnf-nome" type="text" placeholder="Ex: Fazenda Estrela">
+      </div>
+      <div class="mnf-field">
+        <label class="mnf-label">Proprietário</label>
+        <input class="mnf-input" id="mnf-prop" type="text" placeholder="Nome do produtor">
+      </div>
+      <div class="mnf-field">
+        <label class="mnf-label">PIN de acesso (4 dígitos) *</label>
+        <input class="mnf-input" id="mnf-pin" type="tel" maxlength="4" placeholder="Ex: 1234" pattern="[0-9]{4}">
+        <div class="mnf-pin-hint">O cliente usará este PIN para entrar. Anote e envie junto com o link.</div>
+      </div>
+      <div class="mnf-field">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+          <label class="mnf-label" style="margin:0">Status</label>
+          <label style="display:flex;align-items:center;gap:5px;font-size:12px;cursor:pointer">
+            <input type="checkbox" id="mnf-ativo" checked> Ativo
+          </label>
+        </div>
+      </div>
+      <div class="mnf-section">Ferramentas liberadas para o cliente</div>
+      <div class="mnf-sel-btns">
+        <button class="mnf-sel-btn" onclick="selecionarTodasFerramentas(true)">✅ Todas</button>
+        <button class="mnf-sel-btn" onclick="selecionarTodasFerramentas(false)">☐ Nenhuma</button>
+      </div>
+      <div class="mnf-tools-grid" id="mnf-tools-grid"></div>
+    </div>
+    <div class="mnf-foot">
+      <button class="mnf-cancel" onclick="fecharModalNF()">Cancelar</button>
+      <button class="mnf-save" onclick="salvarFazendaGestor()">💾 Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL LINK CLIENTE -->
+<div id="modal-link-cliente" onclick="if(event.target===this)fecharModalLink()">
+  <div class="mlc-card">
+    <div class="mlc-head">
+      <div class="mlc-title">🔗 Link de Acesso — Cliente</div>
+      <button class="mlc-close" onclick="fecharModalLink()">✕</button>
+    </div>
+    <div class="mlc-body">
+      <div class="mlc-fazenda" id="mlc-fazenda"></div>
+      <div class="mlc-pin" id="mlc-pin"></div>
+      <div style="font-size:11px;color:var(--g4);margin-bottom:8px">Link para enviar ao cliente:</div>
+      <div class="mlc-link-box" id="mlc-link-box"></div>
+      <div class="mlc-btns">
+        <button class="mlc-btn copy" onclick="copiarLink()">📋 Copiar Link</button>
+        <button class="mlc-btn wpp" onclick="enviarLinkWpp()">💬 Enviar WhatsApp</button>
+      </div>
+      <div class="mlc-notif" id="mlc-notif">✅ Link copiado!</div>
+    </div>
+  </div>
+</div>
 
 
 <!-- MODAL PDF LOTES -->
@@ -470,6 +616,10 @@ input[type=file]{display:none}
     </a>
     <div class="sb-div"></div>
     <div class="sb-section">Consultoria</div>
+    <a class="sb-item" id="n-gestor" href="#" onclick="goGestor();return false">
+      <div class="sb-icon">🔑</div>
+      <div class="sb-txt"><span class="sb-label">Gestor de Clientes</span><span class="sb-sub">Links · PIN · Acesso</span></div>
+    </a>
     <a class="sb-item" id="n-analise" href="#" onclick="goAnalise();return false">
       <div class="sb-icon">📊</div>
       <div class="sb-txt"><span class="sb-label">Análise de Rebanho</span><span class="sb-sub">Pesagem · Lotes · Projeção</span></div>
@@ -502,6 +652,22 @@ input[type=file]{display:none}
   </nav>
 
   <main class="content" id="content">
+
+    <!-- GESTOR DE CLIENTES PANEL -->
+    <div class="analise-panel" id="gestor-panel" style="display:none;overflow-y:auto">
+      <div class="gestor-wrap">
+        <div class="gestor-header">
+          <div>
+            <div class="gestor-title">🔑 Gestor de Clientes</div>
+            <div class="gestor-sub">Crie links de acesso com PIN para cada fazenda cliente</div>
+          </div>
+          <button class="btn-nova-fazenda" onclick="abrirModalNF()">➕ Nova Fazenda</button>
+        </div>
+        <div id="gestor-lista">
+          <div class="gestor-empty"><div class="ge-icon">🏡</div><p>Nenhuma fazenda cadastrada ainda.<br>Clique em <strong>Nova Fazenda</strong> para começar.</p></div>
+        </div>
+      </div>
+    </div>
 
     <!-- HOME PANEL -->
     <div class="home" id="home-panel">
@@ -735,7 +901,7 @@ function sha1(str){
 function toggleSb(){document.getElementById('sidebar').classList.toggle('open');document.getElementById('overlay-sb').classList.toggle('show');}
 function closeSb(){document.getElementById('sidebar').classList.remove('open');document.getElementById('overlay-sb').classList.remove('show');}
 function setActive(id){document.querySelectorAll('.sb-item').forEach(function(i){i.classList.remove('active');});var el=document.getElementById(id);if(el)el.classList.add('active');_navAtivo=id;}
-function showPanel(id){['home-panel','iframe-panel','analise-panel'].forEach(function(p){document.getElementById(p).style.display='none';});document.getElementById(id).style.display=(id==='home-panel'?'flex':'flex');if(id==='analise-panel')document.getElementById(id).style.display='flex';}
+function showPanel(id){['home-panel','iframe-panel','analise-panel','gestor-panel'].forEach(function(p){var el=document.getElementById(p);if(el)el.style.display='none';});var t=document.getElementById(id);if(t)t.style.display='flex';}
 function goHome(){showPanel('home-panel');setActive('n-home');_urlIframe='';closeSb();}
 function goIframe(url,titulo,navId){_urlIframe=url;document.getElementById('iframe-title').textContent=titulo;showPanel('iframe-panel');document.getElementById('loading').style.display='flex';var fr=document.getElementById('main-frame');fr.src=url;fr.onload=function(){document.getElementById('loading').style.display='none';};setActive(navId);closeSb();}
 function goAnalise(){showPanel('analise-panel');setActive('n-analise');closeSb();buildAnaliseUI();}
@@ -1720,6 +1886,286 @@ function fecharSplash(){
 
 // Fecha automaticamente em 3 segundos
 setTimeout(function(){fecharSplash();}, 3000);
+
+
+/* ══════════════════════════════════════════════════
+   GESTOR DE CLIENTES
+══════════════════════════════════════════════════ */
+var FERRAMENTAS_DISPONIVEIS = [
+  {id:'pesagem',     icon:'🐄', nome:'Sistema de Pesagem',       url:'pesagem_v2.html'},
+  {id:'analise',     icon:'📊', nome:'Análise de Rebanho',       url:'analise-rebanho-cliente.html'},
+  {id:'ceci',        icon:'📋', nome:'Planejamento Ágil CECI',   url:'plano-agil-ceci.html'},
+  {id:'plano',       icon:'📈', nome:'Plano Ágil Pecuário',      url:'plano_agil_v3.html'},
+  {id:'bezerro',     icon:'🐂', nome:'Calculadora do Bezerro',   url:'arroba_bezerro.html'},
+  {id:'viabilidade', icon:'💰', nome:'Viabilidade de Lote',      url:'viabilidade_lote.html'},
+  {id:'checklist',   icon:'✅', nome:'Checklist Auditoria',      url:'checklist-auditoria.html'},
+  {id:'relatorio',   icon:'📄', nome:'Relatório de Performance', url:'relatorio-performance.html'},
+  {id:'portfolio',   icon:'🏆', nome:'Portfólio Comercial',      url:'portfolio.html'},
+  {id:'levantamento',icon:'📝', nome:'Formulário Levantamento',  url:'levantamento_form.html'},
+  {id:'instagram',   icon:'📱', nome:'Levantamento Instagram',   url:'levantamento_instagram.html'},
+];
+
+var _editandoIdx = -1; // -1 = nova fazenda, >= 0 = editando
+
+/* ── Navegação ──────────────────────────────────── */
+function goGestor(){
+  showPanel('gestor-panel');
+  setActive('n-gestor');
+  closeSb();
+  renderGestorLista();
+}
+
+/* ── Storage ────────────────────────────────────── */
+function getClientesFazendas(){
+  try{ return JSON.parse(localStorage.getItem('gpl_clientes')||'[]'); }catch(e){ return []; }
+}
+function saveClientesFazendas(arr){
+  localStorage.setItem('gpl_clientes', JSON.stringify(arr));
+}
+
+/* ── SHA1 (mesmo do login.html) ─────────────────── */
+function sha1Gestor(str){
+  function rotl(n,s){return(n<<s)|(n>>>(32-s));}
+  function tohex(n){var s='';for(var i=28;i>=0;i-=4)s+='0123456789abcdef'.charAt((n>>>i)&0xf);return s;}
+  var msg=unescape(encodeURIComponent(str));
+  var W=[],H=[0x67452301,0xEFCDAB89,0x98BADCFE,0x10325476,0xC3D2E1F0];
+  msg+=String.fromCharCode(0x80);
+  while(msg.length%64!==56)msg+=String.fromCharCode(0);
+  var len=(str.length)*8;
+  for(var i=0;i<8;i++)msg+=String.fromCharCode((i<4)?0:(len>>>((7-i)*8))&0xff);
+  for(var chunk=0;chunk<msg.length;chunk+=64){
+    for(var i=0;i<16;i++){W[i]=(msg.charCodeAt(chunk+i*4)<<24)|(msg.charCodeAt(chunk+i*4+1)<<16)|(msg.charCodeAt(chunk+i*4+2)<<8)|msg.charCodeAt(chunk+i*4+3);}
+    for(var i=16;i<80;i++)W[i]=rotl(W[i-3]^W[i-8]^W[i-14]^W[i-16],1);
+    var a=H[0],b=H[1],cc=H[2],d=H[3],e=H[4],f,k,temp;
+    for(var i=0;i<80;i++){
+      if(i<20){f=(b&cc)|((~b)&d);k=0x5A827999;}
+      else if(i<40){f=b^cc^d;k=0x6ED9EBA1;}
+      else if(i<60){f=(b&cc)|(b&d)|(cc&d);k=0x8F1BBCDC;}
+      else{f=b^cc^d;k=0xCA62C1D6;}
+      temp=(rotl(a,5)+f+e+k+W[i])&0xFFFFFFFF;
+      e=d;d=cc;cc=rotl(b,30);b=a;a=temp;
+    }
+    H[0]=(H[0]+a)&0xFFFFFFFF;H[1]=(H[1]+b)&0xFFFFFFFF;
+    H[2]=(H[2]+cc)&0xFFFFFFFF;H[3]=(H[3]+d)&0xFFFFFFFF;H[4]=(H[4]+e)&0xFFFFFFFF;
+  }
+  return tohex(H[0])+tohex(H[1])+tohex(H[2])+tohex(H[3])+tohex(H[4]);
+}
+
+/* ── Gera URL do cliente ─────────────────────────── */
+function gerarURLCliente(fazenda){
+  // Base da URL: pega a URL atual sem parâmetros
+  var base = window.location.href.split('?')[0].replace('index.html','');
+  if(base.slice(-1)!=='/') base+='/';
+  // Dados embutidos no link via base64
+  var cfg = {
+    fazenda: fazenda.nome,
+    pinHash: fazenda.pinHash,
+    ferramentas: fazenda.ferramentas,
+    ativo: fazenda.ativo !== false,
+    logoB64: 'logo.png'
+  };
+  var encoded = encodeURIComponent(btoa(JSON.stringify(cfg)));
+  return base + 'login.html?d=' + encoded;
+}
+
+/* ── Modal Nova Fazenda ──────────────────────────── */
+function abrirModalNF(idx){
+  _editandoIdx = (idx !== undefined) ? idx : -1;
+  var fazendas = getClientesFazendas();
+  var faz = _editandoIdx >= 0 ? fazendas[_editandoIdx] : null;
+
+  // Título
+  document.getElementById('mnf-modal-title').textContent = faz ? '✏️ Editar Fazenda' : '➕ Nova Fazenda';
+
+  // Campos
+  document.getElementById('mnf-nome').value = faz ? faz.nome : '';
+  document.getElementById('mnf-prop').value = faz ? (faz.prop||'') : '';
+  document.getElementById('mnf-pin').value  = '';
+  document.getElementById('mnf-ativo').checked = faz ? (faz.ativo !== false) : true;
+
+  // Monta grid de ferramentas
+  var grid = document.getElementById('mnf-tools-grid');
+  grid.innerHTML = '';
+  FERRAMENTAS_DISPONIVEIS.forEach(function(f){
+    var selecionada = faz ? (faz.ferramentas||[]).indexOf(f.id)>=0 : true;
+    var div = document.createElement('div');
+    div.className = 'mnf-tool-item' + (selecionada?' sel':'');
+    div.dataset.id = f.id;
+    div.innerHTML = '<span class="mti-icon">'+f.icon+'</span><span class="mti-nome">'+f.nome+'</span>';
+    div.addEventListener('click', function(){
+      div.classList.toggle('sel');
+    });
+    grid.appendChild(div);
+  });
+
+  document.getElementById('modal-nova-fazenda').classList.add('open');
+  setTimeout(function(){ document.getElementById('mnf-nome').focus(); }, 200);
+}
+
+function fecharModalNF(){
+  document.getElementById('modal-nova-fazenda').classList.remove('open');
+}
+
+function selecionarTodasFerramentas(sel){
+  document.querySelectorAll('.mnf-tool-item').forEach(function(el){
+    sel ? el.classList.add('sel') : el.classList.remove('sel');
+  });
+}
+
+function salvarFazendaGestor(){
+  var nome = document.getElementById('mnf-nome').value.trim();
+  var prop = document.getElementById('mnf-prop').value.trim();
+  var pin  = document.getElementById('mnf-pin').value.trim();
+  var ativo = document.getElementById('mnf-ativo').checked;
+
+  if(!nome){ alert('Informe o nome da fazenda!'); return; }
+
+  var fazendas = getClientesFazendas();
+  var ferramentas = [];
+  document.querySelectorAll('.mnf-tool-item.sel').forEach(function(el){
+    ferramentas.push(el.dataset.id);
+  });
+
+  if(_editandoIdx >= 0){
+    // Editando — mantém pinHash se PIN não foi alterado
+    var faz = fazendas[_editandoIdx];
+    faz.nome = nome;
+    faz.prop = prop;
+    faz.ferramentas = ferramentas;
+    faz.ativo = ativo;
+    if(pin.length===4 && /^[0-9]{4}$/.test(pin)){
+      faz.pin = pin;
+      faz.pinHash = sha1Gestor(pin);
+    }
+  } else {
+    // Nova
+    if(!pin || pin.length!==4 || !/^[0-9]{4}$/.test(pin)){
+      alert('Informe um PIN de 4 dígitos!'); return;
+    }
+    fazendas.push({
+      id: Date.now(),
+      nome: nome,
+      prop: prop,
+      pin: pin,
+      pinHash: sha1Gestor(pin),
+      ferramentas: ferramentas,
+      ativo: ativo,
+      criadoEm: new Date().toLocaleDateString('pt-BR')
+    });
+  }
+
+  saveClientesFazendas(fazendas);
+  fecharModalNF();
+  renderGestorLista();
+  notif('✅ Fazenda "'+ nome +'" salva!');
+}
+
+/* ── Lista de Fazendas ───────────────────────────── */
+function renderGestorLista(){
+  var fazendas = getClientesFazendas();
+  var c = document.getElementById('gestor-lista');
+  if(!c) return;
+
+  if(!fazendas.length){
+    c.innerHTML = '<div class="gestor-empty"><div class="ge-icon">🏡</div><p>Nenhuma fazenda cadastrada ainda.<br>Clique em <strong>Nova Fazenda</strong> para começar.</p></div>';
+    return;
+  }
+
+  var html = '<div class="fazendas-lista">';
+  fazendas.forEach(function(faz, i){
+    var ferrNomes = (faz.ferramentas||[]).map(function(id){
+      var f = FERRAMENTAS_DISPONIVEIS.find(function(x){ return x.id===id; });
+      return f ? f.icon+' '+f.nome : id;
+    });
+    html += '<div class="fazenda-card-g">';
+    html += '<div class="fazenda-card-g-head">';
+    html += '<div class="fcg-info">';
+    html += '<div class="fcg-nome">🏡 '+escHtml(faz.nome)+'</div>';
+    html += '<div class="fcg-meta">'+(faz.prop?escHtml(faz.prop)+' · ':'')+' PIN: '+faz.pin+' · Criado: '+(faz.criadoEm||'—')+'</div>';
+    html += '</div>';
+    html += '<span class="fcg-status '+(faz.ativo?'ativo':'inativo')+'">'+(faz.ativo?'Ativo':'Bloqueado')+'</span>';
+    html += '<div class="fcg-btns">';
+    html += '<button class="fcg-btn link" onclick="abrirModalLink('+i+')">🔗 Link</button>';
+    html += '<button class="fcg-btn" onclick="abrirModalNF('+i+')">✏️ Editar</button>';
+    html += '<button class="fcg-btn del" onclick="excluirFazendaGestor('+i+')">🗑</button>';
+    html += '</div></div>';
+    if(ferrNomes.length){
+      html += '<div class="fcg-ferramentas">';
+      ferrNomes.forEach(function(fn){
+        html += '<span class="fcg-ferr-tag">'+fn+'</span>';
+      });
+      html += '</div>';
+    }
+    html += '</div>';
+  });
+  html += '</div>';
+  c.innerHTML = html;
+}
+
+function excluirFazendaGestor(i){
+  var fazendas = getClientesFazendas();
+  if(!confirm('Excluir fazenda "'+fazendas[i].nome+'"?')) return;
+  fazendas.splice(i,1);
+  saveClientesFazendas(fazendas);
+  renderGestorLista();
+  notif('🗑 Fazenda excluída');
+}
+
+/* ── Modal Link ──────────────────────────────────── */
+var _linkAtual = '';
+function abrirModalLink(i){
+  var fazendas = getClientesFazendas();
+  var faz = fazendas[i];
+  if(!faz) return;
+  _linkAtual = gerarURLCliente(faz);
+  document.getElementById('mlc-fazenda').textContent = '🏡 '+faz.nome;
+  document.getElementById('mlc-pin').textContent = 'PIN do cliente: '+faz.pin+'   |   Ferramentas: '+(faz.ferramentas||[]).length;
+  document.getElementById('mlc-link-box').textContent = _linkAtual;
+  document.getElementById('mlc-notif').style.display='none';
+  document.getElementById('modal-link-cliente').classList.add('open');
+}
+
+function fecharModalLink(){
+  document.getElementById('modal-link-cliente').classList.remove('open');
+}
+
+function copiarLink(){
+  if(!_linkAtual) return;
+  navigator.clipboard.writeText(_linkAtual).then(function(){
+    var n = document.getElementById('mlc-notif');
+    n.style.display='block';
+    setTimeout(function(){ n.style.display='none'; }, 2500);
+  }).catch(function(){
+    // fallback
+    var ta = document.createElement('textarea');
+    ta.value = _linkAtual;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    var n = document.getElementById('mlc-notif');
+    n.style.display='block';
+    setTimeout(function(){ n.style.display='none'; }, 2500);
+  });
+}
+
+function enviarLinkWpp(){
+  if(!_linkAtual) return;
+  var fazendas = getClientesFazendas();
+  var faz = fazendas.find(function(f){ return gerarURLCliente(f)===_linkAtual; }) || {};
+  var msg = '🐄 *Gestão Pecuária Lucrativa*\n\n'
+    +'Olá! Segue seu acesso ao sistema:\n\n'
+    +'🏡 *Fazenda:* '+(faz.nome||'')+'\n'
+    +'🔑 *PIN:* '+(faz.pin||'')+'\n\n'
+    +'🔗 *Link de acesso:*\n'+_linkAtual+'\n\n'
+    +'_Rogério Avelino · (63) 99108-2453_';
+  window.open('https://wa.me/?text='+encodeURIComponent(msg),'_blank');
+}
+
+/* ── Helper ─────────────────────────────────────── */
+function escHtml(s){
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
 
 </script>
 </body></html>

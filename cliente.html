@@ -235,13 +235,18 @@ function renderFerramentas(){
 var _urlAtual = '';
 function abrirFerramenta(f){
   _urlAtual = f.url;
+  // Ferramentas que podem ter restrição de iframe — abre em nova aba
+  var abreNova = ['analise','checklist','relatorio','portfolio','ceci','plano','bezerro','viabilidade','levantamento','instagram'];
+  if(abreNova.indexOf(f.id) >= 0){
+    window.open(f.url, '_blank');
+    return;
+  }
   document.getElementById('iframe-title').textContent = f.icon+' '+f.nome;
   document.getElementById('loading').style.display='flex';
   document.getElementById('main-frame').src = f.url;
   document.getElementById('home-panel').style.display='none';
   var ip = document.getElementById('iframe-panel');
   ip.style.display='flex';
-  // Marca ativo no sidebar
   document.querySelectorAll('.sb-item').forEach(function(el){ el.classList.remove('on'); });
   var sbEl = document.getElementById('sb-'+f.id);
   if(sbEl) sbEl.classList.add('on');

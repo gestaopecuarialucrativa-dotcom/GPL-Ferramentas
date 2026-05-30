@@ -537,12 +537,19 @@ input[type=file]{display:none}
     </div>
     <div class="mlc-body">
       <div class="mlc-fazenda" id="mlc-fazenda"></div>
-      <div class="mlc-pin" id="mlc-pin"></div>
-      <div style="font-size:11px;color:var(--g4);margin-bottom:8px">Link para enviar ao cliente:</div>
-      <div class="mlc-link-box" id="mlc-link-box"></div>
-      <div class="mlc-btns">
+      <div id="mlc-ferramentas" style="display:flex;gap:4px;flex-wrap:wrap;margin:6px 0 12px"></div>
+      <div style="background:var(--v7);border:1px solid var(--v6);border-radius:8px;padding:10px 14px;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between">
+        <div>
+          <div style="font-size:9px;font-weight:700;color:var(--g4);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">PIN do cliente</div>
+          <div style="font-size:28px;font-weight:900;color:var(--v1);letter-spacing:8px;font-family:'Syne',sans-serif" id="mlc-pin-big"></div>
+        </div>
+        <div style="font-size:9px;color:var(--g4);text-align:right">Envie este PIN<br>junto com o link</div>
+      </div>
+      <div style="font-size:10px;font-weight:600;color:var(--g3);margin-bottom:5px">🔗 Link de acesso:</div>
+      <div class="mlc-link-box" id="mlc-link-box" style="font-size:9px;max-height:60px;overflow-y:auto"></div>
+      <div class="mlc-btns" style="margin-top:12px">
         <button class="mlc-btn copy" onclick="copiarLink()">📋 Copiar Link</button>
-        <button class="mlc-btn wpp" onclick="enviarLinkWpp()">💬 Enviar WhatsApp</button>
+        <button class="mlc-btn wpp" onclick="enviarLinkWpp()">💬 WhatsApp</button>
       </div>
       <div class="mlc-notif" id="mlc-notif">✅ Link copiado!</div>
     </div>
@@ -1580,17 +1587,17 @@ function gerarPDF(lotesSelec){
   var totalAnim=0;lts.forEach(function(l){totalAnim+=(RAW[String(l)]||[]).length;});
 
   /* ── CARDS DOS LOTES ── */
-  var cardsHTML='<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px">';
+  var cardsHTML='<div style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:12px">';
   lts.forEach(function(l){
     var s=calcStats(l);
     var badgeHTML=s.dias===0
-      ?'<div style="background:#E8F5E9;border:1px solid #A5D6A7;border-radius:5px;padding:3px 8px;font-size:9px;font-weight:700;color:#1B5E20;display:inline-block">PRONTO P/ ABATE</div>'
-      :'<div style="background:#E8F5E9;border:1px solid #A5D6A7;border-radius:5px;padding:3px 8px;font-size:9px;font-weight:700;color:#1B5E20;display:inline-block">'+s.dias+' dias</div>';
-    cardsHTML+='<div style="border:1px solid #ddd;border-top:4px solid #1B5E20;border-radius:8px;padding:10px 12px;background:white;position:relative">'
+      ?'<div class="badge-ok">PRONTO P/ ABATE</div>'
+      :'<div class="badge-dias">'+s.dias+' dias</div>';
+    cardsHTML+='<div class="lote-card-pdf">'
       +'<div style="position:absolute;top:8px;right:8px;font-size:8px;color:#999;background:#f5f5f5;border-radius:10px;padding:1px 6px">'+s.n+' animais</div>'
-      +'<div style="font-size:9px;font-weight:800;color:#1B5E20;text-transform:uppercase;letter-spacing:.8px;margin-bottom:3px">LOTE 0'+l+'</div>'
-      +'<div style="font-size:20px;font-weight:800;color:#111;line-height:1.1;margin-bottom:2px">'+s.med.toFixed(1)+'<span style="font-size:10px;font-weight:500;color:#888"> kg</span></div>'
-      +'<div style="font-size:9px;color:#666;margin-bottom:6px">'+(suplNome[l]||'—')+'</div>'
+      +'<div class="lc-num">LOTE 0'+l+'</div>'
+      +'<div class="lc-peso">'+s.med.toFixed(1)+'<span> kg</span></div>'
+      +'<div class="lc-sup">'+(suplNome[l]||'—')+'</div>'
       +badgeHTML
       +'</div>';
   });
@@ -1662,7 +1669,7 @@ function gerarPDF(lotesSelec){
         +'<td style="padding:3px 7px;text-align:center;border-bottom:1px solid #f0f0f0">'+arr+'</td>'
         +'<td style="padding:3px 7px;text-align:center;border-bottom:1px solid #f0f0f0">'+pct+'%</td>'
         +'<td style="padding:3px 7px;text-align:center;border-bottom:1px solid #f0f0f0">'
-        +'<span style="background:'+statusBg+';color:white;padding:1px 6px;border-radius:8px;font-size:8px">'+statusLbl+'</span>'
+        +'<span class="status-'+statusLbl.toLowerCase()+'">'+statusLbl+'</span>'
         +'</td></tr>';
     });
     detHTML+='</tbody></table></div>';
@@ -1673,10 +1680,41 @@ function gerarPDF(lotesSelec){
     +'<title>Análise de Rebanho — '+fazenda+'</title>'
     +'<style>'
     +'*{margin:0;padding:0;box-sizing:border-box}'
-    +'body{font-family:Arial,sans-serif;font-size:11px;background:white;color:#1a1a1a;padding:0}'
-    +'@page{size:A4 landscape;margin:10mm 12mm}'
-    +'@media print{.no-print{display:none!important}body{padding:0}}'
-    +'.page{padding:18px 20px}'
+    +'body{font-family:Arial,sans-serif;font-size:11px;background:#F8FFF8;color:#1a1a1a;padding:0}'
+    +'@page{size:A4 landscape;margin:8mm 10mm}'
+    +'@media print{.no-print{display:none!important}body{padding:0;background:white}}'
+    +'.page{padding:14px 18px}'
+    +'.lote-card-pdf{border:none;border-top:4px solid #1B5E20;border-radius:10px;padding:10px 12px;background:white;box-shadow:0 2px 8px rgba(27,94,32,.12)}'
+    +'.lc-num{font-size:8px;font-weight:800;color:#1B5E20;text-transform:uppercase;letter-spacing:.6px;margin-bottom:2px}'
+    +'.lc-peso{font-size:20px;font-weight:900;color:#111;line-height:1;margin-bottom:2px}'
+    +'.lc-peso span{font-size:10px;color:#888;font-weight:400}'
+    +'.lc-sup{font-size:9px;color:#555;margin-bottom:4px}'
+    +'.lc-animais{font-size:8px;color:#aaa}'
+    +'.badge-ok{background:#1B5E20;color:white;border-radius:4px;padding:2px 8px;font-size:8px;font-weight:700;display:inline-block;margin-top:3px}'
+    +'.badge-dias{background:#FF8F00;color:white;border-radius:4px;padding:2px 8px;font-size:8px;font-weight:700;display:inline-block;margin-top:3px}'
+    +'table{width:100%;border-collapse:collapse;font-size:9px;border-radius:8px;overflow:hidden}'
+    +'thead tr{background:linear-gradient(135deg,#1B5E20,#2E7D32)}'
+    +'thead th{color:white;padding:6px 8px;text-align:left;font-size:8px;text-transform:uppercase;letter-spacing:.4px;font-weight:700}'
+    +'thead th:not(:first-child){text-align:center}'
+    +'tbody td{padding:4px 8px;border-bottom:1px solid #E8F5E9}'
+    +'tbody td:not(:first-child){text-align:center}'
+    +'tbody tr:nth-child(even) td{background:#F1F8E9}'
+    +'.td-lote{font-weight:800;color:#1B5E20}'
+    +'.det-head{background:linear-gradient(135deg,#1B5E20,#388E3C);color:white;padding:7px 12px;border-radius:8px 8px 0 0;font-weight:700;font-size:10px;margin-top:12px;display:flex;justify-content:space-between;align-items:center}'
+    +'.det-head span{font-size:9px;opacity:.75;font-weight:400}'
+    +'.det-table{border:1px solid #C8E6C9;border-top:none;border-radius:0 0 8px 8px;overflow:hidden}'
+    +'.det-table thead tr{background:#4CAF50}'
+    +'.det-table tbody tr:nth-child(even) td{background:#F9FFF9}'
+    +'.status-pronto{background:#1B5E20;color:white;border-radius:3px;padding:1px 6px;font-size:8px;font-weight:700;display:inline-block}'
+    +'.status-engorda{background:#E65100;color:white;border-radius:3px;padding:1px 6px;font-size:8px;font-weight:700;display:inline-block}'
+    +'.status-recria{background:#1565C0;color:white;border-radius:3px;padding:1px 6px;font-size:8px;font-weight:700;display:inline-block}'
+    +'.faixa{display:flex;gap:16px;flex-wrap:wrap;background:linear-gradient(135deg,#1B5E20,#2E7D32);border-radius:8px;padding:10px 16px;margin-bottom:12px}'
+    +'.faixa-item label{font-size:8px;text-transform:uppercase;letter-spacing:.6px;font-weight:700;color:rgba(255,255,255,.6);display:block}'
+    +'.faixa-item span{font-size:13px;font-weight:800;color:white}'
+    +'.sec-title{font-size:11px;font-weight:800;color:#1B5E20;display:flex;align-items:center;gap:6px;margin:10px 0 8px}'
+    +'.sec-title::before{content:"";display:inline-block;width:4px;height:14px;background:#4CAF50;border-radius:2px}'
+    +'.rodape{margin-top:12px;padding:8px 12px;background:linear-gradient(135deg,#1B5E20,#2E7D32);border-radius:6px;display:flex;justify-content:space-between;color:rgba(255,255,255,.7);font-size:8px;align-items:center}'
+    +'.rodape strong{color:white}'
     +'</style></head><body><div class="page">'
 
     /* ── TIMBRADO TOPO ── */
@@ -1697,17 +1735,17 @@ function gerarPDF(lotesSelec){
     +'</div>'
 
     /* ── FAIXA DE DADOS ── */
-    +'<div style="background:#F1F8E9;border:1px solid #C8E6C9;border-radius:7px;padding:10px 16px;margin-bottom:14px;display:flex;gap:24px;flex-wrap:wrap">'
-      +'<div><span style="font-size:9px;color:#555;text-transform:uppercase;font-weight:700;letter-spacing:.5px;display:block">Fazenda</span><span style="font-size:12px;font-weight:700;color:#111">'+fazenda+'</span></div>'
-      +'<div><span style="font-size:9px;color:#555;text-transform:uppercase;font-weight:700;letter-spacing:.5px;display:block">Data Pesagem</span><span style="font-size:12px;font-weight:700;color:#111">'+dataPesFmt+'</span></div>'
-      +'<div><span style="font-size:9px;color:#555;text-transform:uppercase;font-weight:700;letter-spacing:.5px;display:block">Total Animais</span><span style="font-size:12px;font-weight:700;color:#1B5E20">'+totalAnim+'</span></div>'
-      +'<div><span style="font-size:9px;color:#555;text-transform:uppercase;font-weight:700;letter-spacing:.5px;display:block">Lotes</span><span style="font-size:12px;font-weight:700;color:#111">'+lts.length+'</span></div>'
-      +'<div><span style="font-size:9px;color:#555;text-transform:uppercase;font-weight:700;letter-spacing:.5px;display:block">GMD</span><span style="font-size:12px;font-weight:700;color:#111">'+gmdV+' kg/dia</span></div>'
-      +'<div><span style="font-size:9px;color:#555;text-transform:uppercase;font-weight:700;letter-spacing:.5px;display:block">Meta Abate</span><span style="font-size:12px;font-weight:700;color:#111">'+metaV+' kg</span></div>'
+    +'<div class="faixa">'
+      +'<div class="faixa-item"><label>Fazenda</label><span>'+fazenda+'</span></div>'
+      +'<div class="faixa-item"><label>Data Pesagem</label><span>'+dataPesFmt+'</span></div>'
+      +'<div class="faixa-item"><label>Total Animais</span><span style="font-size:12px;font-weight:700;color:#1B5E20">'+totalAnim+'</span></div>'
+      +'<div class="faixa-item"><label>Lotes</label><span>'+lts.length+'</span></div>'
+      +'<div class="faixa-item"><label>GMD</label><span>'+gmdV+' kg/dia</span></div>'
+      +'<div class="faixa-item"><label>Meta Abate</label><span>'+metaV+' kg</span></div>'
     +'</div>'
 
     /* ── TÍTULO SEÇÃO CARDS ── */
-    +'<div style="font-size:11px;font-weight:800;color:#1B5E20;border-left:3px solid #1B5E20;padding-left:8px;margin-bottom:10px">Resumo por Lote</div>'
+    +'<div class="sec-title">Resumo por Lote</div>'
     +cardsHTML
 
     /* ── TÍTULO TABELA ── */
@@ -1719,10 +1757,7 @@ function gerarPDF(lotesSelec){
     +detHTML
 
     /* ── RODAPÉ TIMBRADO ── */
-    +'<div style="margin-top:18px;padding-top:10px;border-top:1px solid #C8E6C9;display:flex;justify-content:space-between;align-items:center">'
-      +'<div style="font-size:9px;color:#777"><strong style="color:#1B5E20">Gestão Pecuária Lucrativa</strong> · Rogério Avelino — Consultor</div>'
-      +'<div style="font-size:9px;color:#777">📞 (63) 99108-2453 · @gestaolucrativa.pecuaria</div>'
-    +'</div>'
+        +'<div class="rodape"><div><strong>Gestão Pecuária Lucrativa</strong> · Rogério Avelino — Consultor</div><div>📞 (63) 99108-2453 · @gestaolucrativa.pecuaria</div></div>'
 
     +'</div>'/* /page */
     +'<div style="text-align:center;padding:16px" class="no-print">'
@@ -1893,7 +1928,7 @@ setTimeout(function(){fecharSplash();}, 3000);
 ══════════════════════════════════════════════════ */
 var FERRAMENTAS_DISPONIVEIS = [
   {id:'pesagem',     icon:'🐄', nome:'Sistema de Pesagem',       url:'pesagem_v2.html'},
-  {id:'analise',     icon:'📊', nome:'Análise de Rebanho',       url:'analise-rebanho-cliente.html'},
+  {id:'analise',     icon:'📊', nome:'Análise de Rebanho',       url:'analise-rebanho.html'},
   {id:'ceci',        icon:'📋', nome:'Planejamento Ágil CECI',   url:'plano-agil-ceci.html'},
   {id:'plano',       icon:'📈', nome:'Plano Ágil Pecuário',      url:'plano_agil_v3.html'},
   {id:'bezerro',     icon:'🐂', nome:'Calculadora do Bezerro',   url:'arroba_bezerro.html'},
@@ -2113,13 +2148,24 @@ function excluirFazendaGestor(i){
 
 /* ── Modal Link ──────────────────────────────────── */
 var _linkAtual = '';
+var _fazAtual = null;
 function abrirModalLink(i){
   var fazendas = getClientesFazendas();
   var faz = fazendas[i];
   if(!faz) return;
+  _fazAtual = faz;
   _linkAtual = gerarURLCliente(faz);
-  document.getElementById('mlc-fazenda').textContent = '🏡 '+faz.nome;
-  document.getElementById('mlc-pin').textContent = 'PIN do cliente: '+faz.pin+'   |   Ferramentas: '+(faz.ferramentas||[]).length;
+  document.getElementById('mlc-fazenda').textContent = '🏡 '+faz.nome+(faz.prop?' — '+faz.prop:'');
+  document.getElementById('mlc-pin-big').textContent = faz.pin;
+  // Ferramentas
+  var ferrDiv=document.getElementById('mlc-ferramentas');
+  if(ferrDiv){
+    ferrDiv.innerHTML='';
+    (faz.ferramentas||[]).forEach(function(id){
+      var f=FERRAMENTAS_DISPONIVEIS.find(function(x){return x.id===id;});
+      if(f){var sp=document.createElement('span');sp.style.cssText='font-size:9px;font-weight:600;color:var(--v2);background:var(--v7);border-radius:10px;padding:2px 8px;border:1px solid var(--v6)';sp.textContent=f.icon+' '+f.nome;ferrDiv.appendChild(sp);}
+    });
+  }
   document.getElementById('mlc-link-box').textContent = _linkAtual;
   document.getElementById('mlc-notif').style.display='none';
   document.getElementById('modal-link-cliente').classList.add('open');
@@ -2150,15 +2196,491 @@ function copiarLink(){
 }
 
 function enviarLinkWpp(){
-  if(!_linkAtual) return;
+  if(!_linkAtual||!_fazAtual) return;
+  var faz = _fazAtual;
+  var ferrNomes=(faz.ferramentas||[]).map(function(id){
+    var f=FERRAMENTAS_DISPONIVEIS.find(function(x){return x.id===id;});
+    return f?f.icon+' '+f.nome:'';
+  }).filter(Boolean).join(', ');
+  var msg = '🌿 *Gestão Pecuária Lucrativa*\n'
+    +'━━━━━━━━━━━━━━━━━━━━\n'
+    +'🏡 *Fazenda:* '+faz.nome+'\n'
+    +(faz.prop?'👤 *Produtor:* '+faz.prop+'\n':'')
+    +'\n'
+    +'🔑 *Seu PIN de acesso:* *'+faz.pin+'*\n'
+    +'\n'
+    +'📱 *Ferramentas disponíveis:*\n'
+    +ferrNomes+'\n'
+    +'\n'
+    +'🔗 *Clique para acessar:*\n'+_linkAtual+'\n'
+    +'\n'
+    +'━━━━━━━━━━━━━━━━━━━━\n'
+    +'_Rogério Avelino — Consultor GPL_\n'
+    +'_📞 (63) 99108-2453_\n'
+    +'_@gestaolucrativa.pecuaria_';
+  window.open('https://wa.me/?text='+encodeURIComponent(msg),'_blank');
+}
+
+/* ── Helper ─────────────────────────────────────── */
+function escHtml(s){
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+</script>
+</body></html>+'<div class="badge-ok">PRONTO P/ ABATE</div>'
+      :'<div class="badge-dias">'+s.dias+' dias</div>';
+    cardsHTML+='<div class="lote-card-pdf">'
+      +'<div style="position:absolute;top:8px;right:8px;font-size:8px;color:#999;background:#f5f5f5;border-radius:10px;padding:1px 6px">'+s.n+' animais</div>'
+      +'<div class="lc-num">LOTE 0'+l+'</div>'
+      +'<div class="lc-peso">'+s.med.toFixed(1)+'<span> kg</span></div>'
+      +'<div class="lc-sup">'+(suplNome[l]||'—')+'</div>'
+      +badgeHTML
+      +'</div>';
+  });
+  cardsHTML+='</div>';
+
+  /* ── TABELA RESUMO ── */
+
+function ftbl(inp,tid){
+  var q=inp.value.toLowerCase();
+  var rows=document.querySelectorAll('#'+tid+' tbody tr');
+  rows.forEach(function(r){r.style.display=(r.cells[1]&&r.cells[1].textContent.toLowerCase().indexOf(q)>=0)?'':'none';});
+}
+
+
+/* ── MODAL PDF ─────────────────────────────────── */
+function abrirModalPDF(){
+  var lts=getLotes();
+  if(!lts||!lts.length){alert('Nenhum dado para gerar PDF.');return;}
+  var grid=document.getElementById('mpdf-lotes-grid');
+  if(!grid)return;
+  grid.innerHTML='';
+  lts.forEach(function(l){
+    var s=calcStats(l);
+    var div=document.createElement('div');
+    div.className='mpdf-lote-item sel';
+    div.dataset.lote=l;
+    div.innerHTML='<div class="mpdf-lote-num">LOTE 0'+l+'</div>'
+      +'<div class="mpdf-lote-med">'+s.med.toFixed(1)+' kg</div>'
+      +'<div class="mpdf-lote-n">'+s.n+' animais</div>';
+    div.addEventListener('click',function(){
+      div.classList.toggle('sel');
+      atualizarBtnGerarPDF();
+    });
+    grid.appendChild(div);
+  });
+  atualizarBtnGerarPDF();
+  document.getElementById('modal-pdf-lotes').classList.add('open');
+}
+function fecharModalPDF(){
+  document.getElementById('modal-pdf-lotes').classList.remove('open');
+}
+function selecionarTodosLotesPDF(sel){
+  document.querySelectorAll('.mpdf-lote-item').forEach(function(it){
+    sel?it.classList.add('sel'):it.classList.remove('sel');
+  });
+  atualizarBtnGerarPDF();
+}
+function atualizarBtnGerarPDF(){
+  var n=document.querySelectorAll('.mpdf-lote-item.sel').length;
+  var btn=document.getElementById('mpdf-gerar-btn');
+  if(btn){btn.disabled=n===0;btn.textContent='🖨️ Gerar PDF ('+n+' lote'+(n!==1?'s':'')+')';} 
+}
+function confirmarGerarPDF(){
+  var sel=document.querySelectorAll('.mpdf-lote-item.sel');
+  if(!sel.length){alert('Selecione ao menos 1 lote.');return;}
+  var ls=[];sel.forEach(function(it){ls.push(parseInt(it.dataset.lote));});
+  gerarPDF(ls);
+}
+
+/* ── EXCLUIR HISTÓRICO ──────────────────────────── */
+function excluirHistorico(idx,event){
+  if(event)event.stopPropagation();
+  var hist=loadHist();
+  if(!hist[idx])return;
+  if(!confirm('Excluir pesagem de '+fmtISO(hist[idx].data)+' — '+hist[idx].fazenda+'?'))return;
+  hist.splice(idx,1);
+  saveHist(hist);
+  document.querySelectorAll('.tab-content').forEach(function(t){
+    if(t.innerHTML.indexOf('Histórico de Pesagens')>=0) t.innerHTML=buildHistorico();
+  });
+}
+
+function fecharOv(id){document.getElementById(id).classList.remove('show');}
+function fecharOvSe(e,id){if(e.target===document.getElementById(id))fecharOv(id);}
+
+// ══════════════════════════════════════════════════
+// DEMO DATA (Fazenda Demonstrativa)
+// ══════════════════════════════════════════════════
+function carregarDemo(){
+  Object.keys(RAW).forEach(function(k){delete RAW[k];});
+  function gen(n,min,max){var a=[];for(var i=0;i<n;i++){var p=Math.round((min+Math.random()*(max-min))*10)/10;a.push({b:String(100+i+1),p:p});}return a.sort(function(a,b){return a.p-b.p;});}
+  RAW['1']=gen(35,360,430); RAW['2']=gen(50,300,380); RAW['3']=gen(45,260,330);
+  RAW['4']=gen(40,220,290); RAW['5']=gen(60,170,250); RAW['6']=gen(80,130,210); RAW['7']=gen(30,110,180);
+  suplNome={1:'Supl. Energético',2:'Supl. Energético',3:'Supl. Proteico',4:'Supl. Proteico',5:'Sal Mineral',6:'Sal Adensado',7:'Sal Adensado'};
+  suplPct={1:0.3,2:0.3,3:0.1,4:0.1,5:null,6:0.05,7:0.05};
+  gmd=0.5;meta=450;
+  dataPesagemISO='2025-03-15';
+  document.getElementById('inp-fazenda').value='Fazenda Demonstrativa';
+  document.getElementById('inp-gmd').value='0.500';
+  document.getElementById('inp-meta').value='450';
+  document.getElementById('inp-data').value='2025-03-15';
+  salvarNoHistorico('Fazenda Demonstrativa','2025-03-15');
+  salvarEstado();
+  goAnalise();
+}
+
+// ══════════════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════════════
+var _dt=new Date();
+var _m=['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+var _el=document.getElementById('sb-dt');
+if(_el)_el.textContent=_dt.getDate()+' '+_m[_dt.getMonth()]+' '+_dt.getFullYear();
+
+document.addEventListener('keydown',function(e){if(e.key==='Escape')goHome();});
+
+// ── INIT: começa zerado, carrega estado salvo se existir ──
+if(!carregarEstado()){
+  // Campos limpos
+  var _fz=document.getElementById('inp-fazenda');if(_fz)_fz.value='';
+  var _dt2=document.getElementById('inp-data');
+  if(_dt2){var _dn=new Date();_dt2.value=_dn.getFullYear()+'-'+String(_dn.getMonth()+1).padStart(2,'0')+'-'+String(_dn.getDate()).padStart(2,'0');}
+  // Injeta Fazenda Estrela no histórico se ainda não existir
+  (function(){
+    var _h=loadHist();
+    if(_h.some(function(x){return x.fazenda==='Fazenda Estrela';}))return;
+    var _r={};
+    _r['1']=[{"b":"6","p":377},{"b":"55x","p":380},{"b":"49x","p":383},{"b":"41","p":383},{"b":"56","p":386},{"b":"51xxx","p":387},{"b":"220","p":387},{"b":"115","p":388},{"b":"52","p":388},{"b":"116","p":390},{"b":"55","p":393},{"b":"64","p":394},{"b":"74","p":395},{"b":"251","p":396},{"b":"65x","p":397},{"b":"57","p":399},{"b":"101","p":400},{"b":"131","p":403},{"b":"53","p":405},{"b":"63","p":406},{"b":"121","p":408},{"b":"72","p":409},{"b":"132","p":410},{"b":"46","p":411},{"b":"77","p":413},{"b":"82","p":416},{"b":"87","p":417},{"b":"99","p":418},{"b":"113","p":421},{"b":"68","p":424},{"b":"78","p":425},{"b":"44","p":431},{"b":"92","p":439},{"b":"43","p":446},{"b":"86","p":479},{"b":"100","p":481},{"b":"80","p":489},{"b":"93","p":518}];
+    _r['2']=[{"b":"rachado","p":282},{"b":"mae","p":323},{"b":"377x","p":330},{"b":"65","p":339},{"b":"180","p":340},{"b":"200","p":340},{"b":"162","p":341},{"b":"274","p":341},{"b":"342","p":341},{"b":"165","p":342},{"b":"275","p":342},{"b":"350","p":342},{"b":"370","p":343},{"b":"256","p":344},{"b":"339","p":344},{"b":"359","p":344},{"b":"192","p":345},{"b":"272","p":345},{"b":"313","p":345},{"b":"343","p":346},{"b":"359x","p":346},{"b":"133","p":347},{"b":"167","p":347},{"b":"361","p":347},{"b":"164","p":348},{"b":"195","p":348},{"b":"363","p":349},{"b":"171","p":350},{"b":"301","p":350},{"b":"367","p":351},{"b":"177","p":352},{"b":"184","p":352},{"b":"378","p":352},{"b":"230","p":353},{"b":"374","p":353},{"b":"214","p":355},{"b":"249","p":355},{"b":"329","p":356},{"b":"175","p":357},{"b":"380","p":357},{"b":"231","p":358},{"b":"306","p":358},{"b":"310","p":358},{"b":"122","p":359},{"b":"232","p":360},{"b":"315","p":360},{"b":"349","p":360},{"b":"353","p":360},{"b":"154","p":361},{"b":"166","p":361},{"b":"174","p":361},{"b":"261","p":361},{"b":"270","p":361},{"b":"298","p":362},{"b":"321","p":362},{"b":"330","p":362},{"b":"265","p":363},{"b":"283","p":363},{"b":"319","p":363},{"b":"334","p":363},{"b":"338","p":363},{"b":"373","p":363},{"b":"376","p":364},{"b":"251","p":365},{"b":"302","p":365},{"b":"323","p":365},{"b":"271","p":366},{"b":"280","p":367},{"b":"362","p":367},{"b":"263","p":368},{"b":"316","p":368},{"b":"347","p":369},{"b":"358","p":369},{"b":"379","p":370},{"b":"266","p":371},{"b":"286","p":371},{"b":"348","p":371},{"b":"366","p":371},{"b":"384","p":371},{"b":"279","p":373},{"b":"354","p":374},{"b":"383","p":375},{"b":"386","p":388}];
+    _r['3']=[{"b":"320","p":259},{"b":"4","p":270},{"b":"251","p":275},{"b":"223","p":288},{"b":"153","p":289},{"b":"42","p":290},{"b":"282","p":292},{"b":"55","p":295},{"b":"297","p":295},{"b":"27","p":296},{"b":"268","p":296},{"b":"58","p":297},{"b":"89","p":297},{"b":"285","p":298},{"b":"53","p":299},{"b":"79","p":299},{"b":"206","p":299},{"b":"82","p":300},{"b":"193","p":300},{"b":"236","p":300},{"b":"83","p":301},{"b":"207","p":301},{"b":"18","p":302},{"b":"36","p":302},{"b":"51","p":302},{"b":"86","p":302},{"b":"98","p":302},{"b":"105","p":302},{"b":"135","p":302},{"b":"291","p":302},{"b":"309","p":302},{"b":"29","p":303},{"b":"52","p":303},{"b":"67","p":303},{"b":"73","p":303},{"b":"84","p":303},{"b":"117","p":303},{"b":"156","p":303},{"b":"209","p":303},{"b":"214","p":303},{"b":"239","p":303},{"b":"244","p":303},{"b":"290","p":303},{"b":"295","p":303},{"b":"312","p":303},{"b":"57","p":304},{"b":"100","p":304},{"b":"115","p":304},{"b":"123","p":304},{"b":"138","p":304},{"b":"158","p":304},{"b":"173","p":304},{"b":"192","p":304},{"b":"210","p":304},{"b":"218","p":304},{"b":"221","p":304},{"b":"231","p":304},{"b":"307","p":304},{"b":"318","p":304},{"b":"61","p":305},{"b":"76","p":305},{"b":"87","p":305},{"b":"97","p":305},{"b":"107","p":305},{"b":"139","p":305},{"b":"185","p":305},{"b":"196","p":305},{"b":"215","p":305},{"b":"220","p":305},{"b":"246","p":305},{"b":"254","p":305},{"b":"311","p":305},{"b":"344","p":346}];
+    _r['4']=[{"b":"BA07","p":225},{"b":"348","p":226},{"b":"K50","p":230},{"b":"BA12","p":237},{"b":"295","p":242},{"b":"BA15","p":243},{"b":"K40","p":247},{"b":"BA02","p":249},{"b":"BA03","p":250},{"b":"BA01","p":251},{"b":"K30","p":252},{"b":"BA14","p":253},{"b":"K20","p":255},{"b":"BA04","p":256},{"b":"BA06","p":258},{"b":"K10","p":259},{"b":"BA09","p":261},{"b":"BA10","p":263},{"b":"BA08","p":264},{"b":"BA11","p":265},{"b":"BA13","p":267},{"b":"K60","p":268},{"b":"348x","p":269},{"b":"K70","p":270},{"b":"BA05","p":271},{"b":"K80","p":272},{"b":"K90","p":274},{"b":"K100","p":275},{"b":"K110","p":277},{"b":"K120","p":278},{"b":"K130","p":280},{"b":"K140","p":281},{"b":"K150","p":283},{"b":"K160","p":284},{"b":"K170","p":286},{"b":"K180","p":287},{"b":"K190","p":289},{"b":"K200","p":290},{"b":"K210","p":292},{"b":"K220","p":293},{"b":"K230","p":295},{"b":"K240","p":296},{"b":"K250","p":298},{"b":"K260","p":299},{"b":"K270","p":301},{"b":"K280","p":302},{"b":"K290","p":304},{"b":"K300","p":305},{"b":"K310","p":307},{"b":"K320","p":308},{"b":"K330","p":310},{"b":"K340","p":311},{"b":"K350","p":313},{"b":"K360","p":314},{"b":"K370","p":316},{"b":"K380","p":317},{"b":"K390","p":319},{"b":"K400","p":310}];
+    _r['5']=[{"b":"k1","p":165},{"b":"254","p":178},{"b":"387","p":195},{"b":"304","p":200},{"b":"360","p":202},{"b":"309","p":205},{"b":"264","p":207},{"b":"332","p":208},{"b":"333","p":209},{"b":"303","p":210},{"b":"357","p":212},{"b":"258","p":213},{"b":"335","p":215},{"b":"283","p":216},{"b":"330","p":218},{"b":"262","p":219},{"b":"260","p":220},{"b":"267","p":221},{"b":"326","p":222},{"b":"336","p":224},{"b":"259","p":225},{"b":"385","p":226},{"b":"356","p":227},{"b":"257","p":228},{"b":"328","p":229},{"b":"261","p":230},{"b":"327","p":231},{"b":"253","p":232},{"b":"329","p":233},{"b":"271","p":234},{"b":"324","p":235},{"b":"323","p":236},{"b":"270","p":238},{"b":"255","p":239},{"b":"280","p":240},{"b":"256","p":241},{"b":"268","p":242},{"b":"272","p":243},{"b":"325","p":245},{"b":"269","p":246},{"b":"278","p":247},{"b":"276","p":248},{"b":"274","p":249},{"b":"273","p":250},{"b":"275","p":251},{"b":"277","p":252},{"b":"281","p":253},{"b":"279","p":254},{"b":"282","p":255},{"b":"284","p":256},{"b":"285","p":257},{"b":"286","p":258},{"b":"287","p":260},{"b":"288","p":261},{"b":"289","p":262},{"b":"290","p":263},{"b":"291","p":265},{"b":"292","p":266},{"b":"293","p":268},{"b":"294","p":269},{"b":"296","p":271},{"b":"297","p":272},{"b":"298","p":274},{"b":"299","p":275},{"b":"300","p":277},{"b":"301","p":278},{"b":"302","p":280},{"b":"305","p":281},{"b":"306","p":283},{"b":"307","p":349}];
+    _r['6']=[{"b":"k3","p":125},{"b":"mamad","p":125},{"b":"K83","p":128},{"b":"393","p":129},{"b":"K84","p":131},{"b":"K86","p":133},{"b":"K87","p":134},{"b":"K88","p":135},{"b":"K89","p":136},{"b":"K91","p":138},{"b":"K92","p":139},{"b":"K93","p":140},{"b":"K94","p":141},{"b":"K95","p":143},{"b":"K96","p":144},{"b":"K97","p":145},{"b":"K98","p":147},{"b":"K99","p":148},{"b":"K100","p":150},{"b":"K101","p":151},{"b":"K102","p":153},{"b":"K103","p":154},{"b":"K104","p":156},{"b":"K105","p":157},{"b":"K106","p":159},{"b":"K107","p":160},{"b":"K108","p":162},{"b":"K109","p":163},{"b":"K110","p":165},{"b":"K111","p":166},{"b":"K112","p":168},{"b":"K113","p":169},{"b":"K114","p":171},{"b":"K115","p":172},{"b":"K116","p":174},{"b":"K117","p":175},{"b":"K118","p":177},{"b":"K119","p":178},{"b":"K120","p":180},{"b":"K121","p":181},{"b":"K122","p":183},{"b":"K123","p":184},{"b":"K124","p":186},{"b":"K125","p":187},{"b":"K126","p":189},{"b":"K127","p":190},{"b":"K128","p":192},{"b":"K129","p":193},{"b":"K130","p":195},{"b":"K131","p":196},{"b":"K132","p":198},{"b":"K133","p":199},{"b":"K134","p":201},{"b":"K135","p":202},{"b":"K136","p":204},{"b":"K137","p":205},{"b":"K138","p":207},{"b":"K139","p":208},{"b":"K140","p":210},{"b":"K141","p":211},{"b":"K142","p":213},{"b":"K143","p":214},{"b":"K144","p":216},{"b":"K145","p":217},{"b":"K146","p":219},{"b":"K147","p":220},{"b":"K148","p":222},{"b":"K149","p":223},{"b":"K150","p":225},{"b":"K151","p":226},{"b":"K152","p":228},{"b":"K153","p":229},{"b":"K154","p":231},{"b":"K155","p":232},{"b":"K156","p":234},{"b":"K157","p":235},{"b":"K158","p":237},{"b":"K159","p":238},{"b":"K160","p":240},{"b":"K161","p":241},{"b":"K162","p":243},{"b":"K163","p":244},{"b":"K164","p":246},{"b":"K165","p":247},{"b":"K166","p":249},{"b":"K167","p":250},{"b":"K168","p":252},{"b":"K169","p":253},{"b":"K170","p":255},{"b":"K171","p":256},{"b":"K172","p":258},{"b":"K173","p":259},{"b":"K174","p":261},{"b":"K175","p":262},{"b":"K176","p":264},{"b":"K177","p":265},{"b":"K178","p":267},{"b":"K179","p":268},{"b":"K180","p":270},{"b":"K181","p":271},{"b":"K182","p":273},{"b":"K183","p":274},{"b":"K184","p":276},{"b":"K185","p":277},{"b":"K186","p":279},{"b":"K187","p":280},{"b":"K188","p":282},{"b":"K189","p":283},{"b":"K190","p":285},{"b":"K191","p":286},{"b":"K192","p":288},{"b":"K193","p":289},{"b":"K194","p":291},{"b":"K195","p":292},{"b":"K196","p":294},{"b":"K197","p":295},{"b":"K198","p":297},{"b":"K199","p":298},{"b":"K200","p":300},{"b":"k2","p":542}];
+    var _sn={1:'Supl. Energético',2:'Supl. Energético',3:'Supl. Proteico',4:'Supl. Proteico',5:'Sal Mineral',6:'Sal Adensado'};
+    var _sp={1:0.3,2:0.3,3:0.1,4:0.1,5:null,6:0.05};
+    _h.push({fazenda:'Fazenda Estrela',data:'2025-05-09',gmd:0.5,meta:450,raw:_r,suplNome:_sn,suplPct:_sp,savedAt:new Date().toISOString()});
+    saveHist(_h);
+  })();
+}
+
+/* ── SPLASH: aparece 1x por dia ─────────────── */
+(function(){
+  var hoje = new Date().toDateString();
+  var ultimo = localStorage.getItem('gpl_splash_dt');
+  if(ultimo === hoje){
+    var el=document.getElementById('gpl-splash');
+    if(el) el.style.display='none';
+  }
+})();
+
+function fecharSplash(){
+  var el=document.getElementById('gpl-splash');
+  if(!el||el.style.display==='none') return;
+  el.classList.add('hide');
+  localStorage.setItem('gpl_splash_dt', new Date().toDateString());
+  setTimeout(function(){el.style.display='none';},500);
+}
+
+// Fecha automaticamente em 3 segundos
+setTimeout(function(){fecharSplash();}, 3000);
+
+
+/* ══════════════════════════════════════════════════
+   GESTOR DE CLIENTES
+══════════════════════════════════════════════════ */
+var FERRAMENTAS_DISPONIVEIS = [
+  {id:'pesagem',     icon:'🐄', nome:'Sistema de Pesagem',       url:'pesagem_v2.html'},
+  {id:'analise',     icon:'📊', nome:'Análise de Rebanho',       url:'analise-rebanho.html'},
+  {id:'ceci',        icon:'📋', nome:'Planejamento Ágil CECI',   url:'plano-agil-ceci.html'},
+  {id:'plano',       icon:'📈', nome:'Plano Ágil Pecuário',      url:'plano_agil_v3.html'},
+  {id:'bezerro',     icon:'🐂', nome:'Calculadora do Bezerro',   url:'arroba_bezerro.html'},
+  {id:'viabilidade', icon:'💰', nome:'Viabilidade de Lote',      url:'viabilidade_lote.html'},
+  {id:'checklist',   icon:'✅', nome:'Checklist Auditoria',      url:'checklist-auditoria.html'},
+  {id:'relatorio',   icon:'📄', nome:'Relatório de Performance', url:'relatorio-performance.html'},
+  {id:'portfolio',   icon:'🏆', nome:'Portfólio Comercial',      url:'portfolio.html'},
+  {id:'levantamento',icon:'📝', nome:'Formulário Levantamento',  url:'levantamento_form.html'},
+  {id:'instagram',   icon:'📱', nome:'Levantamento Instagram',   url:'levantamento_instagram.html'},
+];
+
+var _editandoIdx = -1; // -1 = nova fazenda, >= 0 = editando
+
+/* ── Navegação ──────────────────────────────────── */
+function goGestor(){
+  showPanel('gestor-panel');
+  setActive('n-gestor');
+  closeSb();
+  renderGestorLista();
+}
+
+/* ── Storage ────────────────────────────────────── */
+function getClientesFazendas(){
+  try{ return JSON.parse(localStorage.getItem('gpl_clientes')||'[]'); }catch(e){ return []; }
+}
+function saveClientesFazendas(arr){
+  localStorage.setItem('gpl_clientes', JSON.stringify(arr));
+}
+
+/* ── SHA1 (mesmo do login.html) ─────────────────── */
+function sha1Gestor(str){
+  function rotl(n,s){return(n<<s)|(n>>>(32-s));}
+  function tohex(n){var s='';for(var i=28;i>=0;i-=4)s+='0123456789abcdef'.charAt((n>>>i)&0xf);return s;}
+  var msg=unescape(encodeURIComponent(str));
+  var W=[],H=[0x67452301,0xEFCDAB89,0x98BADCFE,0x10325476,0xC3D2E1F0];
+  msg+=String.fromCharCode(0x80);
+  while(msg.length%64!==56)msg+=String.fromCharCode(0);
+  var len=(str.length)*8;
+  for(var i=0;i<8;i++)msg+=String.fromCharCode((i<4)?0:(len>>>((7-i)*8))&0xff);
+  for(var chunk=0;chunk<msg.length;chunk+=64){
+    for(var i=0;i<16;i++){W[i]=(msg.charCodeAt(chunk+i*4)<<24)|(msg.charCodeAt(chunk+i*4+1)<<16)|(msg.charCodeAt(chunk+i*4+2)<<8)|msg.charCodeAt(chunk+i*4+3);}
+    for(var i=16;i<80;i++)W[i]=rotl(W[i-3]^W[i-8]^W[i-14]^W[i-16],1);
+    var a=H[0],b=H[1],cc=H[2],d=H[3],e=H[4],f,k,temp;
+    for(var i=0;i<80;i++){
+      if(i<20){f=(b&cc)|((~b)&d);k=0x5A827999;}
+      else if(i<40){f=b^cc^d;k=0x6ED9EBA1;}
+      else if(i<60){f=(b&cc)|(b&d)|(cc&d);k=0x8F1BBCDC;}
+      else{f=b^cc^d;k=0xCA62C1D6;}
+      temp=(rotl(a,5)+f+e+k+W[i])&0xFFFFFFFF;
+      e=d;d=cc;cc=rotl(b,30);b=a;a=temp;
+    }
+    H[0]=(H[0]+a)&0xFFFFFFFF;H[1]=(H[1]+b)&0xFFFFFFFF;
+    H[2]=(H[2]+cc)&0xFFFFFFFF;H[3]=(H[3]+d)&0xFFFFFFFF;H[4]=(H[4]+e)&0xFFFFFFFF;
+  }
+  return tohex(H[0])+tohex(H[1])+tohex(H[2])+tohex(H[3])+tohex(H[4]);
+}
+
+/* ── Gera URL do cliente ─────────────────────────── */
+function gerarURLCliente(fazenda){
+  // Base da URL: pega a URL atual sem parâmetros
+  var base = window.location.href.split('?')[0].replace('index.html','');
+  if(base.slice(-1)!=='/') base+='/';
+  // Dados embutidos no link via base64
+  var cfg = {
+    fazenda: fazenda.nome,
+    pinHash: fazenda.pinHash,
+    ferramentas: fazenda.ferramentas,
+    ativo: fazenda.ativo !== false,
+    logoB64: 'logo.png'
+  };
+  var encoded = encodeURIComponent(btoa(JSON.stringify(cfg)));
+  return base + 'login.html?d=' + encoded;
+}
+
+/* ── Modal Nova Fazenda ──────────────────────────── */
+function abrirModalNF(idx){
+  _editandoIdx = (idx !== undefined) ? idx : -1;
   var fazendas = getClientesFazendas();
-  var faz = fazendas.find(function(f){ return gerarURLCliente(f)===_linkAtual; }) || {};
-  var msg = '🐄 *Gestão Pecuária Lucrativa*\n\n'
-    +'Olá! Segue seu acesso ao sistema:\n\n'
-    +'🏡 *Fazenda:* '+(faz.nome||'')+'\n'
-    +'🔑 *PIN:* '+(faz.pin||'')+'\n\n'
-    +'🔗 *Link de acesso:*\n'+_linkAtual+'\n\n'
-    +'_Rogério Avelino · (63) 99108-2453_';
+  var faz = _editandoIdx >= 0 ? fazendas[_editandoIdx] : null;
+
+  // Título
+  document.getElementById('mnf-modal-title').textContent = faz ? '✏️ Editar Fazenda' : '➕ Nova Fazenda';
+
+  // Campos
+  document.getElementById('mnf-nome').value = faz ? faz.nome : '';
+  document.getElementById('mnf-prop').value = faz ? (faz.prop||'') : '';
+  document.getElementById('mnf-pin').value  = '';
+  document.getElementById('mnf-ativo').checked = faz ? (faz.ativo !== false) : true;
+
+  // Monta grid de ferramentas
+  var grid = document.getElementById('mnf-tools-grid');
+  grid.innerHTML = '';
+  FERRAMENTAS_DISPONIVEIS.forEach(function(f){
+    var selecionada = faz ? (faz.ferramentas||[]).indexOf(f.id)>=0 : true;
+    var div = document.createElement('div');
+    div.className = 'mnf-tool-item' + (selecionada?' sel':'');
+    div.dataset.id = f.id;
+    div.innerHTML = '<span class="mti-icon">'+f.icon+'</span><span class="mti-nome">'+f.nome+'</span>';
+    div.addEventListener('click', function(){
+      div.classList.toggle('sel');
+    });
+    grid.appendChild(div);
+  });
+
+  document.getElementById('modal-nova-fazenda').classList.add('open');
+  setTimeout(function(){ document.getElementById('mnf-nome').focus(); }, 200);
+}
+
+function fecharModalNF(){
+  document.getElementById('modal-nova-fazenda').classList.remove('open');
+}
+
+function selecionarTodasFerramentas(sel){
+  document.querySelectorAll('.mnf-tool-item').forEach(function(el){
+    sel ? el.classList.add('sel') : el.classList.remove('sel');
+  });
+}
+
+function salvarFazendaGestor(){
+  var nome = document.getElementById('mnf-nome').value.trim();
+  var prop = document.getElementById('mnf-prop').value.trim();
+  var pin  = document.getElementById('mnf-pin').value.trim();
+  var ativo = document.getElementById('mnf-ativo').checked;
+
+  if(!nome){ alert('Informe o nome da fazenda!'); return; }
+
+  var fazendas = getClientesFazendas();
+  var ferramentas = [];
+  document.querySelectorAll('.mnf-tool-item.sel').forEach(function(el){
+    ferramentas.push(el.dataset.id);
+  });
+
+  if(_editandoIdx >= 0){
+    // Editando — mantém pinHash se PIN não foi alterado
+    var faz = fazendas[_editandoIdx];
+    faz.nome = nome;
+    faz.prop = prop;
+    faz.ferramentas = ferramentas;
+    faz.ativo = ativo;
+    if(pin.length===4 && /^[0-9]{4}$/.test(pin)){
+      faz.pin = pin;
+      faz.pinHash = sha1Gestor(pin);
+    }
+  } else {
+    // Nova
+    if(!pin || pin.length!==4 || !/^[0-9]{4}$/.test(pin)){
+      alert('Informe um PIN de 4 dígitos!'); return;
+    }
+    fazendas.push({
+      id: Date.now(),
+      nome: nome,
+      prop: prop,
+      pin: pin,
+      pinHash: sha1Gestor(pin),
+      ferramentas: ferramentas,
+      ativo: ativo,
+      criadoEm: new Date().toLocaleDateString('pt-BR')
+    });
+  }
+
+  saveClientesFazendas(fazendas);
+  fecharModalNF();
+  renderGestorLista();
+  notif('✅ Fazenda "'+ nome +'" salva!');
+}
+
+/* ── Lista de Fazendas ───────────────────────────── */
+function renderGestorLista(){
+  var fazendas = getClientesFazendas();
+  var c = document.getElementById('gestor-lista');
+  if(!c) return;
+
+  if(!fazendas.length){
+    c.innerHTML = '<div class="gestor-empty"><div class="ge-icon">🏡</div><p>Nenhuma fazenda cadastrada ainda.<br>Clique em <strong>Nova Fazenda</strong> para começar.</p></div>';
+    return;
+  }
+
+  var html = '<div class="fazendas-lista">';
+  fazendas.forEach(function(faz, i){
+    var ferrNomes = (faz.ferramentas||[]).map(function(id){
+      var f = FERRAMENTAS_DISPONIVEIS.find(function(x){ return x.id===id; });
+      return f ? f.icon+' '+f.nome : id;
+    });
+    html += '<div class="fazenda-card-g">';
+    html += '<div class="fazenda-card-g-head">';
+    html += '<div class="fcg-info">';
+    html += '<div class="fcg-nome">🏡 '+escHtml(faz.nome)+'</div>';
+    html += '<div class="fcg-meta">'+(faz.prop?escHtml(faz.prop)+' · ':'')+' PIN: '+faz.pin+' · Criado: '+(faz.criadoEm||'—')+'</div>';
+    html += '</div>';
+    html += '<span class="fcg-status '+(faz.ativo?'ativo':'inativo')+'">'+(faz.ativo?'Ativo':'Bloqueado')+'</span>';
+    html += '<div class="fcg-btns">';
+    html += '<button class="fcg-btn link" onclick="abrirModalLink('+i+')">🔗 Link</button>';
+    html += '<button class="fcg-btn" onclick="abrirModalNF('+i+')">✏️ Editar</button>';
+    html += '<button class="fcg-btn del" onclick="excluirFazendaGestor('+i+')">🗑</button>';
+    html += '</div></div>';
+    if(ferrNomes.length){
+      html += '<div class="fcg-ferramentas">';
+      ferrNomes.forEach(function(fn){
+        html += '<span class="fcg-ferr-tag">'+fn+'</span>';
+      });
+      html += '</div>';
+    }
+    html += '</div>';
+  });
+  html += '</div>';
+  c.innerHTML = html;
+}
+
+function excluirFazendaGestor(i){
+  var fazendas = getClientesFazendas();
+  if(!confirm('Excluir fazenda "'+fazendas[i].nome+'"?')) return;
+  fazendas.splice(i,1);
+  saveClientesFazendas(fazendas);
+  renderGestorLista();
+  notif('🗑 Fazenda excluída');
+}
+
+/* ── Modal Link ──────────────────────────────────── */
+var _linkAtual = '';
+var _fazAtual = null;
+function abrirModalLink(i){
+  var fazendas = getClientesFazendas();
+  var faz = fazendas[i];
+  if(!faz) return;
+  _fazAtual = faz;
+  _linkAtual = gerarURLCliente(faz);
+  document.getElementById('mlc-fazenda').textContent = '🏡 '+faz.nome+(faz.prop?' — '+faz.prop:'');
+  document.getElementById('mlc-pin-big').textContent = faz.pin;
+  // Ferramentas
+  var ferrDiv=document.getElementById('mlc-ferramentas');
+  if(ferrDiv){
+    ferrDiv.innerHTML='';
+    (faz.ferramentas||[]).forEach(function(id){
+      var f=FERRAMENTAS_DISPONIVEIS.find(function(x){return x.id===id;});
+      if(f){var sp=document.createElement('span');sp.style.cssText='font-size:9px;font-weight:600;color:var(--v2);background:var(--v7);border-radius:10px;padding:2px 8px;border:1px solid var(--v6)';sp.textContent=f.icon+' '+f.nome;ferrDiv.appendChild(sp);}
+    });
+  }
+  document.getElementById('mlc-link-box').textContent = _linkAtual;
+  document.getElementById('mlc-notif').style.display='none';
+  document.getElementById('modal-link-cliente').classList.add('open');
+}
+
+function fecharModalLink(){
+  document.getElementById('modal-link-cliente').classList.remove('open');
+}
+
+function copiarLink(){
+  if(!_linkAtual) return;
+  navigator.clipboard.writeText(_linkAtual).then(function(){
+    var n = document.getElementById('mlc-notif');
+    n.style.display='block';
+    setTimeout(function(){ n.style.display='none'; }, 2500);
+  }).catch(function(){
+    // fallback
+    var ta = document.createElement('textarea');
+    ta.value = _linkAtual;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    var n = document.getElementById('mlc-notif');
+    n.style.display='block';
+    setTimeout(function(){ n.style.display='none'; }, 2500);
+  });
+}
+
+function enviarLinkWpp(){
+  if(!_linkAtual||!_fazAtual) return;
+  var faz = _fazAtual;
+  var ferrNomes=(faz.ferramentas||[]).map(function(id){
+    var f=FERRAMENTAS_DISPONIVEIS.find(function(x){return x.id===id;});
+    return f?f.icon+' '+f.nome:'';
+  }).filter(Boolean).join(', ');
+  var msg = '🌿 *Gestão Pecuária Lucrativa*\n'
+    +'━━━━━━━━━━━━━━━━━━━━\n'
+    +'🏡 *Fazenda:* '+faz.nome+'\n'
+    +(faz.prop?'👤 *Produtor:* '+faz.prop+'\n':'')
+    +'\n'
+    +'🔑 *Seu PIN de acesso:* *'+faz.pin+'*\n'
+    +'\n'
+    +'📱 *Ferramentas disponíveis:*\n'
+    +ferrNomes+'\n'
+    +'\n'
+    +'🔗 *Clique para acessar:*\n'+_linkAtual+'\n'
+    +'\n'
+    +'━━━━━━━━━━━━━━━━━━━━\n'
+    +'_Rogério Avelino — Consultor GPL_\n'
+    +'_📞 (63) 99108-2453_\n'
+    +'_@gestaolucrativa.pecuaria_';
   window.open('https://wa.me/?text='+encodeURIComponent(msg),'_blank');
 }
 

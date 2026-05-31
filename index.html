@@ -2170,12 +2170,12 @@ function copiarLink(){
 }
 
 function enviarLinkWpp(){
-  if(!_linkAtual||!_fazAtual) return;
+  if(!_linkAtual||!_fazAtual){alert('Gere o link primeiro!');return;}
   var faz=_fazAtual;
   var ferrNomes=(faz.ferramentas||[]).map(function(id){
     var f=FERRAMENTAS_DISPONIVEIS.find(function(x){return x.id===id;});
     return f?f.icon+' '+f.nome:'';
-  }).filter(Boolean).join(', ');
+  }).filter(Boolean).join('\n');
   var msg='🌿 *Gestão Pecuária Lucrativa*\n'
     +'━━━━━━━━━━━━━━━━━━━━\n'
     +'🏡 *Fazenda:* '+faz.nome+'\n'
@@ -2186,139 +2186,89 @@ function enviarLinkWpp(){
     +'📱 *Ferramentas disponíveis:*\n'
     +ferrNomes+'\n'
     +'\n'
-    +'🔗 *Clique para acessar:*\n'+_linkAtual+'\n'
+    +'🔗 *Clique para acessar:*\n'
+    +_linkAtual+'\n'
     +'\n'
     +'━━━━━━━━━━━━━━━━━━━━\n'
     +'_Rogério Avelino — Consultor GPL_\n'
-    +'_📞 (63) 99108-2453_\n'
-    +'_@gestaolucrativa.pecuaria_';
-  window.open('https://wa.me/?text='+encodeURIComponent(msg),'_blank');
+    +'_📞 (63) 99108-2453_';
+  var url='https://wa.me/?text='+encodeURIComponent(msg);
+  window.open(url,'_blank');
 }
-
-/* ── Helper ─────────────────────────────────────── */
 function escHtml(s){
   return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
 
 /* ══════════════════════════════════════════════════
-   IMPORTAR XLSX — lê planilha preenchida pelo cliente
-   Detecta automaticamente:
-   - GPL (cabeçalho ~linha 16, cols A=Nº, B=Peso, C=Lote)
-   - Pesagem_de_gado (cabeçalho ~linha 9, mesmas cols)
+   IMPORTAR XLSX
 ══════════════════════════════════════════════════ */
 function importarXLSXIndex(input){
-  if(!input.files||!input.files[0])return;
+  if(!input||!input.files||!input.files[0])return;
   var file=input.files[0];
   input.value='';
-
   var reader=new FileReader();
   reader.onload=function(e){
     try{
       var data=new Uint8Array(e.target.result);
       var wb=XLSX.read(data,{type:'array'});
-
-      // Pega primeira aba com dados (ignora instruções)
-      var sheetName=wb.SheetNames.find(function(s){
-        return s.toLowerCase().indexOf('instruc')<0 && s.toLowerCase().indexOf('instrução')<0;
+      // Pega primeira aba com dados
+      var sn=wb.SheetNames.find(function(s){
+        return s.toLowerCase().indexOf('instruc')<0&&s.toLowerCase().indexOf('instrução')<0;
       })||wb.SheetNames[0];
-      var ws=wb.Sheets[sheetName];
+      var ws=wb.Sheets[sn];
       var rows=XLSX.utils.sheet_to_json(ws,{header:1,defval:''});
 
-      // Detecta cabeçalho (linha com Nº/Numero + Peso)
-      var headerRow=-1;
-      var colNum=0,colPeso=1,colLote=2,colObs=3;
+      // Detecta linha do cabeçalho
+      var headerRow=-1,colNum=0,colPeso=1,colLote=2,colObs=3;
       for(var i=0;i<Math.min(25,rows.length);i++){
         var r=rows[i];
         var a=String(r[0]||'').toLowerCase().trim();
         var b=String(r[1]||'').toLowerCase().trim();
-        if((a.indexOf('numer')>=0||a.indexOf('nº')>=0||a.indexOf('brinco')>=0||a.indexOf('animal')>=0||a.indexOf('n°')>=0)
-          &&(b.indexOf('peso')>=0)){
+        if((a.indexOf('numer')>=0||a.indexOf('nº')>=0||a.indexOf('n°')>=0||
+            a.indexOf('brinco')>=0||a.indexOf('animal')>=0||a==='#')
+          &&b.indexOf('peso')>=0){
           headerRow=i;
-          r.forEach(function(cell,ci){
-            var cl=String(cell||'').toLowerCase().trim();
-            if(cl.indexOf('lote')>=0&&ci>1) colLote=ci;
-            if(cl.indexOf('obs')>=0) colObs=ci;
-          });
+          for(var ci=0;ci<r.length;ci++){
+            var cl=String(r[ci]||'').toLowerCase().trim();
+            if(cl.indexOf('lote')>=0&&ci>1)colLote=ci;
+            if(cl.indexOf('obs')>=0)colObs=ci;
+          }
           break;
         }
       }
-
-      if(headerRow<0){
-        if(typeof notif==='function') notif('⚠️ Formato não reconhecido. Use a planilha GPL.');
-        else alert('Formato não reconhecido. Use a planilha GPL.');
-        return;
-      }
+      if(headerRow<0){notif('⚠️ Formato não reconhecido. Use a planilha GPL.');return;}
 
       // Lê dados
       var rawData={};
-      var totalImport=0;
-      var fazendaXLSX='', dataXLSX='';
-
-      // Tenta pegar nome da fazenda e data do cabeçalho
-      for(var ri=0;ri<headerRow;ri++){
-        var r2=rows[ri];
-        for(var ci=0;ci<r2.length;ci++){
-          var v=String(r2[ci]||'').trim();
-          if(v && ci>0){
-            // Verifica se célula anterior tem label "Fazenda" ou "Nome"
-            var prev=String(r2[ci-1]||'').toLowerCase();
-            if(prev.indexOf('fazenda')>=0) fazendaXLSX=v;
-            if(prev.indexOf('data')>=0 && v.length>3) dataXLSX=v;
-          }
-        }
-      }
-
-      for(var ri2=headerRow+1;ri2<rows.length;ri2++){
-        var row=rows[ri2];
+      var total=0;
+      for(var ri=headerRow+1;ri<rows.length;ri++){
+        var row=rows[ri];
         var num=String(row[colNum]||'').trim();
-        var pesoRaw=row[colPeso];
-        var loteRaw=row[colLote];
+        var peso=parseFloat(String(row[colPeso]||'').replace(',','.'));
+        var loteNum=parseInt(String(row[colLote]||'').replace(/[^0-9]/g,''));
         var obs=String(row[colObs]||'').trim();
-        var peso=parseFloat(String(pesoRaw||'').replace(',','.'));
-        var loteNum=parseInt(String(loteRaw||'').replace(/[^0-9]/g,''));
-
-        if(!num&&(isNaN(peso)||peso<=0))continue;
         if(isNaN(peso)||peso<=0)continue;
         if(isNaN(loteNum)||loteNum<=0||loteNum>20)continue;
-
         if(!rawData[loteNum])rawData[loteNum]=[];
-        rawData[loteNum].push({brinco:num||('Ani-'+(rawData[loteNum]?rawData[loteNum].length+1:1)),peso:peso});
-        totalImport++;
+        rawData[loteNum].push({b:num||String(rawData[loteNum].length+1),p:peso,obs:obs});
+        total++;
       }
+      if(total===0){notif('⚠️ Nenhum dado com peso encontrado.');return;}
 
-      if(totalImport===0){
-        if(typeof notif==='function') notif('⚠️ Nenhum dado encontrado na planilha.');
-        else alert('Nenhum dado encontrado na planilha.');
-        return;
-      }
-
-      // Distribui nos lotes do sistema RAW
-      // Limpa RAW atual
+      // Carrega no RAW
       Object.keys(RAW).forEach(function(k){delete RAW[k];});
       var lotesNums=Object.keys(rawData).map(Number).sort(function(a,b){return a-b;});
-      lotesNums.forEach(function(ln){
-        RAW[String(ln)]=rawData[ln].map(function(a){return {b:a.brinco,p:a.peso};});
-      });
+      lotesNums.forEach(function(ln){RAW[String(ln)]=rawData[ln];});
 
-      // Atualiza nome da fazenda se encontrou
-      var inpFaz=document.getElementById('inp-fazenda');
-      if(fazendaXLSX && inpFaz && !inpFaz.value) inpFaz.value=fazendaXLSX;
-
-      // Salva estado e recalcula
-      salvarEstado();
+      // Recalcula e atualiza UI
       recalcular();
       buildAnaliseUI();
-
-      var msg='✅ Planilha importada: '+totalImport+' animais em '+lotesNums.length+' lotes!';
-      if(typeof notif==='function') notif(msg,4000);
-      else alert(msg);
-
+      salvarEstado();
+      notif('✅ '+total+' animais importados em '+lotesNums.length+' lotes!',4000);
     }catch(err){
-      console.error('Erro importar xlsx:',err);
-      var msg='❌ Erro ao ler planilha: '+err.message;
-      if(typeof notif==='function') notif(msg);
-      else alert(msg);
+      console.error(err);
+      notif('❌ Erro: '+err.message);
     }
   };
   reader.readAsArrayBuffer(file);

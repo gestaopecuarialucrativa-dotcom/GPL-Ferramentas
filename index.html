@@ -1349,16 +1349,18 @@ function lerXLSXBase(file,cb){
           if(lb==='responsavel'||lb==='responsável'||lb==='responsável:'||lb==='responsavel:')respEnc=respEnc||vl;
         }
       }
-      var hRow=-1;
+      // Acha o cabecalho de forma flexivel: a 1a linha que tenha uma coluna com "peso" E outra com "lote".
+      // Aceita nomes simples (Numero/Peso/Lote) e descritivos (Peso (kg)/Lote (1 a 10)/No Animal / Brinco).
+      var _normH=function(x){return String(x||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim();};
+      var _achaCol=function(arr,termos){for(var k=0;k<arr.length;k++){for(var t=0;t<termos.length;t++){if(arr[k].indexOf(termos[t])>=0)return k;}}return -1;};
+      var hRow=-1,iN=-1,iP=-1,iL=-1;
       for(var i=0;i<json.length;i++){
         if(!json[i])continue;
-        for(var j=0;j<json[i].length;j++){if(String(json[i][j]||'').toLowerCase().trim()==='numero'){hRow=i;break;}}
-        if(hRow>=0)break;
+        var hh=json[i].map(_normH);
+        var cp=_achaCol(hh,['peso']), cl=_achaCol(hh,['lote']);
+        if(cp>=0&&cl>=0&&cp!==cl&&hh[cp].length<=30&&hh[cl].length<=30){hRow=i;iP=cp;iL=cl;iN=_achaCol(hh,['numero','brinco','animal']);break;}
       }
-      if(hRow<0){cb(null,'Coluna "Numero" nao encontrada');return;}
-      var hdr=json[hRow].map(function(x){return String(x||'').toLowerCase().trim();});
-      var iN=hdr.indexOf('numero'),iP=hdr.indexOf('peso'),iL=hdr.indexOf('lote');
-      if(iP<0||iL<0){cb(null,'Colunas Peso ou Lote nao encontradas');return;}
+      if(hRow<0){cb(null,'Cabecalho nao encontrado (precisa ter uma coluna com "Peso" e outra com "Lote")');return;}
       var grupos={};
       for(var i=hRow+1;i<json.length;i++){
         var row=json[i];if(!row)continue;

@@ -1624,6 +1624,12 @@ function gerarPDF(lotesSelec){
     cardsHTML+='<div style="font-size:8px;font-weight:800;color:#1B5E20;text-transform:uppercase;letter-spacing:.6px;margin-bottom:3px">LOTE 0'+l+'</div>';
     cardsHTML+='<div style="font-size:20px;font-weight:900;color:#111;line-height:1;margin-bottom:3px">'+s.med.toFixed(1)+'<span style="font-size:10px;color:#888;font-weight:400"> kg</span></div>';
     cardsHTML+='<div style="font-size:9px;color:#555;margin-bottom:6px">'+(suplNome[l]||'—')+'</div>';
+    var pctMeta=parseFloat(metaV||meta)>0?Math.round(s.med/parseFloat(metaV||meta)*100):0;
+    var pctW=Math.min(pctMeta,100);
+    var barColor=s.dias===0?'#E65100':'#4CAF50';
+    cardsHTML+='<div style="background:#E8F5E9;border-radius:4px;height:6px;margin-bottom:5px;overflow:hidden">'
+              +'<div style="background:'+barColor+';height:6px;border-radius:4px;width:'+pctW+'%;-webkit-print-color-adjust:exact;print-color-adjust:exact"></div></div>';
+    cardsHTML+='<div style="font-size:8px;color:#2E7D32;font-weight:700;margin-bottom:4px">'+pctMeta+'% da meta</div>';
     cardsHTML+='<div style="background:'+badgeCor+';color:white;border-radius:4px;padding:2px 7px;font-size:8px;font-weight:700;display:inline-block">'+badgeTxt+'</div>';
     cardsHTML+='</div>';
   });
@@ -1680,6 +1686,7 @@ function gerarPDF(lotesSelec){
     detHTML+='<th style="color:white;padding:4px 7px;text-align:left;font-size:8px">Brinco</th>';
     detHTML+='<th style="color:white;padding:4px 7px;text-align:center;font-size:8px">Peso (kg)</th>';
     detHTML+='<th style="color:white;padding:4px 7px;text-align:center;font-size:8px">Arrobas</th>';
+    detHTML+='<th style="color:white;padding:4px 7px;text-align:center;font-size:8px">Progresso</th>';
     detHTML+='<th style="color:white;padding:4px 7px;text-align:center;font-size:8px">% Meta</th>';
     detHTML+='<th style="color:white;padding:4px 7px;text-align:center;font-size:8px">Status</th>';
     detHTML+='</tr></thead><tbody>';
@@ -1695,6 +1702,12 @@ function gerarPDF(lotesSelec){
       detHTML+='<td style="padding:3px 7px;border-bottom:1px solid #f0f0f0">'+a.b+'</td>';
       detHTML+='<td style="padding:3px 7px;text-align:center;font-weight:700;border-bottom:1px solid #f0f0f0">'+a.p.toFixed(1)+'</td>';
       detHTML+='<td style="padding:3px 7px;text-align:center;border-bottom:1px solid #f0f0f0">'+arr+'</td>';
+      var pctWd=Math.min(pct,100);
+      var barCol2=ok?'#1B5E20':(a.p>=300?'#E65100':'#1565C0');
+      detHTML+='<td style="padding:3px 7px;text-align:center;border-bottom:1px solid #f0f0f0;min-width:80px">'
+              +'<div style="background:#E8F5E9;border-radius:3px;height:5px;overflow:hidden;-webkit-print-color-adjust:exact;print-color-adjust:exact">'
+              +'<div style="background:'+barCol2+';height:5px;width:'+pctWd+'%;-webkit-print-color-adjust:exact;print-color-adjust:exact"></div></div>'
+              +'</td>';
       detHTML+='<td style="padding:3px 7px;text-align:center;border-bottom:1px solid #f0f0f0">'+pct+'%</td>';
       detHTML+='<td style="padding:3px 7px;text-align:center;border-bottom:1px solid #f0f0f0"><span style="background:'+statusBg+';color:white;border-radius:3px;padding:1px 5px;font-size:8px;font-weight:700">'+statusTxt+'</span></td>';
       detHTML+='</tr>';

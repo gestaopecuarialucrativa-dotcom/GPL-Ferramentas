@@ -817,12 +817,12 @@ input[type=file]{display:none}
       <div class="ap-bar">
         <div class="ap-title" id="ap-title">📊 Análise de Rebanho</div>
         <div class="ap-btns">
-          <button class="ap-btn green" onclick="abrirModalImport()">📥 Importar Fazenda</button>
-        <button class="ap-btn green" onclick="document.getElementById('file-xlsx-import').click()" style="background:#388E3C">📊 Importar Planilha</button>
+          <button class="ap-btn green consultor-only" onclick="abrirModalImport()">📥 Importar Fazenda</button>
+        <button class="ap-btn green consultor-only" onclick="document.getElementById('file-xlsx-import').click()" style="background:#388E3C">📊 Importar Planilha</button>
         <input type="file" id="file-xlsx-import" accept=".xlsx,.xls" style="display:none" onchange="importarXLSXIndex(this)">
-          <button class="ap-btn green" onclick="salvarEstado()">💾 Salvar</button>
+          <button class="ap-btn green consultor-only" onclick="salvarEstado()">💾 Salvar</button>
           <button class="ap-btn blue" onclick="abrirModalPDF()">🖨️ PDF</button>
-          <button class="ap-btn orange" onclick="baixarPlanilhaModelo()">📋 Planilha Modelo</button>
+          <button class="ap-btn orange consultor-only" onclick="baixarPlanilhaModelo()">📋 Planilha Modelo</button>
           <button class="ap-btn" onclick="goHome()">🏠 Painel</button>
         </div>
       </div>
@@ -2325,4 +2325,7 @@ function escHtml(s){
 }
 
 </script>
+
+<style>body.modo-cliente .consultor-only{display:none!important}</style>
+<script>(function(){try{var p=new URLSearchParams(location.search);if(p.get("cliente")==="1"){document.body.classList.add("modo-cliente");}}catch(e){}})();</script>
 </body></html>

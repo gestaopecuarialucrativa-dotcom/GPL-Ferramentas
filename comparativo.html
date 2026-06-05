@@ -248,7 +248,7 @@ function calcular(){
   rows.forEach(function(r){ recompConsumo(r.lote); });
   bindConsumo();
 }
-var CONSUMO={}; var LASTCALC={dias:0,lotes:{}};
+var CONSUMO={}; var ARROBA=''; var LASTCALC={dias:0,lotes:{}};
 function getC(l){ if(!CONSUMO[l]) CONSUMO[l]={pv:'',kgsaco:'',rsaco:'',pasto:'',obs:''}; return CONSUMO[l]; }
 function setC(l,f,v){ getC(l)[f]=v; recompConsumo(l); }
 function escAttr(s){ return String(s==null?'':s).replace(/"/g,'&quot;'); }
@@ -258,8 +258,10 @@ function opcoesPasto(sel){
 }
 function renderConsumo(rows){
   var dias=LASTCALC.dias||0;
-  var h='<div class="card"><h3>🌱 Cocho / Suplemento — consumo e custo</h3>'
-   +'<div style="overflow-x:auto"><table><thead><tr>'
+  var h='<div class="card"><h3>🌱 Cocho / Suplemento — consumo e custo</h3>';
+  h+='<label class="lbl">Valor da arroba @ (R$) — usado pra ver se o ganho pagou o cocho</label>';
+  h+='<input type="number" step="0.01" id="valorArroba" value="'+escAttr(ARROBA)+'" placeholder="ex: 330" style="max-width:220px">';
+  h+='<div style="overflow-x:auto;margin-top:10px"><table><thead><tr>'
    +'<th>Lote</th><th>% Peso Vivo</th><th>Saco (kg)</th><th>R$/saco</th>'
    +'<th>Consumo (kg/cab/dia)</th><th>Custo ração/dia (R$/cab)</th><th>Custo no período ('+dias+' dias)</th>'
    +'<th>Qualidade do pasto</th><th>Obs</th></tr></thead><tbody>';
@@ -273,7 +275,17 @@ function renderConsumo(rows){
      +'<td><input type="text" data-lote="'+l+'" data-field="obs" value="'+escAttr(c.obs)+'" placeholder="ex: pasto no talo"></td>'
      +'</tr>';
   });
-  h+='</tbody></table></div><div class="hint">Consumo = %PV × peso da <b>primeira</b> pesagem. Custo no período = custo da ração por dia × dias entre as pesagens (muda sozinho se você mudar as datas). Valores por cabeça.</div></div>';
+  h+='</tbody></table></div>';
+  h+='<h3 style="margin-top:18px">💰 Pagou o cocho?</h3>';
+  h+='<div style="overflow-x:auto"><table><thead><tr>'
+   +'<th>Lote</th><th>Ganho (kg/cab)</th><th>Valor do ganho (R$/cab)</th><th>Custo do cocho (R$/cab)</th><th>Saldo</th><th>Precisava ganhar</th></tr></thead><tbody>';
+  rows.forEach(function(r){ var l=r.lote;
+    h+='<tr><td>'+r.nome+'</td><td>'+(r.ganho>=0?'+':'')+r.ganho.toFixed(1)+' kg</td>'
+     +'<td id="vg-'+l+'">—</td><td id="cc-'+l+'">—</td><td id="sal-'+l+'">—</td><td id="pg-'+l+'">—</td></tr>';
+  });
+  h+='</tbody></table></div>';
+  h+='<div class="hint">Consumo = %PV × peso da <b>primeira</b> pesagem. Valor do ganho = ganho × (valor da @ ÷ 30). Saldo = valor do ganho − custo do cocho (verde = pagou, vermelho = não). "Precisava ganhar" = quanto o boi teria que ganhar pra empatar o cocho. Lembre: o ganho vem do pasto + cocho juntos. Valores por cabeça.</div>';
+  h+='</div>';
   return h;
 }
 function bindConsumo(){
@@ -282,6 +294,8 @@ function bindConsumo(){
     var ev=(inp.tagName==='SELECT')?'onchange':'oninput';
     inp[ev]=function(){ setC(parseInt(inp.getAttribute('data-lote')), inp.getAttribute('data-field'), inp.value); };
   })(els[i]); }
+  var va=document.getElementById('valorArroba');
+  if(va) va.oninput=function(){ ARROBA=va.value; for(var k in LASTCALC.lotes){ recompPagou(parseInt(k)); } };
 }
 function recompConsumo(l){
   var st=LASTCALC.lotes[l]; if(!st) return; var c=getC(l), dias=LASTCALC.dias;
@@ -290,10 +304,27 @@ function recompConsumo(l){
   var rkg=(!isNaN(rsaco)&&!isNaN(kgsaco)&&kgsaco>0)?rsaco/kgsaco:NaN;
   var custoDia=(!isNaN(consDia)&&!isNaN(rkg))?consDia*rkg:NaN;
   var custoPer=(!isNaN(custoDia))?custoDia*dias:NaN;
+  st.custoCocho=custoPer;
   function S(id,t,bold){ var e=document.getElementById(id); if(e) e.innerHTML=bold?('<b>'+t+'</b>'):t; }
   S('cons-'+l, isNaN(consDia)?'—':consDia.toFixed(2)+' kg');
   S('cdia-'+l, isNaN(custoDia)?'—':'R$ '+custoDia.toFixed(2));
   S('cper-'+l, isNaN(custoPer)?'—':'R$ '+custoPer.toFixed(2), true);
+  recompPagou(l);
+}
+function recompPagou(l){
+  var st=LASTCALC.lotes[l]; if(!st) return;
+  var arroba=parseFloat(ARROBA);
+  var valorKg=(!isNaN(arroba)&&arroba>0)?arroba/30:NaN;
+  var valorGanho=(!isNaN(valorKg))?st.ganho*valorKg:NaN;
+  var custo=st.custoCocho;
+  var saldo=(!isNaN(valorGanho)&&!isNaN(custo))?valorGanho-custo:NaN;
+  var precisa=(!isNaN(custo)&&!isNaN(valorKg)&&valorKg>0)?custo/valorKg:NaN;
+  function S(id,t){ var e=document.getElementById(id); if(e) e.innerHTML=t; }
+  S('vg-'+l, isNaN(valorGanho)?'—':'R$ '+valorGanho.toFixed(2));
+  S('cc-'+l, isNaN(custo)?'—':'R$ '+custo.toFixed(2));
+  if(isNaN(saldo)) S('sal-'+l,'—');
+  else { var cor=saldo>=0?'#1B5E20':'#C62828'; var txt=(saldo>=0?'+R$ ':'-R$ ')+Math.abs(saldo).toFixed(2)+(saldo>=0?' ✅ pagou':' 🔴 não pagou'); S('sal-'+l,'<span style="color:'+cor+';font-weight:800">'+txt+'</span>'); }
+  S('pg-'+l, isNaN(precisa)?'—':precisa.toFixed(1)+' kg');
 }
 function grafico(items){
   if(!items.length) return '';

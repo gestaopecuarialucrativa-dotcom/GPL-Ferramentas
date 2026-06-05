@@ -257,23 +257,23 @@ function opcoesPasto(sel){
   return ops.map(function(o){ var txt=o||'—'; return '<option value="'+escAttr(o)+'"'+(o===sel?' selected':'')+'>'+txt+'</option>'; }).join('');
 }
 function renderConsumo(rows){
-  var h='<div class="card"><h3>🌱 Cocho / Suplemento — consumo, custo e custo por @ ganha</h3>'
+  var dias=LASTCALC.dias||0;
+  var h='<div class="card"><h3>🌱 Cocho / Suplemento — consumo e custo</h3>'
    +'<div style="overflow-x:auto"><table><thead><tr>'
-   +'<th>Lote</th><th>GMD</th><th>% Peso Vivo</th><th>Saco (kg)</th><th>R$/saco</th>'
-   +'<th>Consumo (kg/cab/dia)</th><th>Custo/cab</th><th>Custo por @ ganha</th><th>Conversão</th>'
+   +'<th>Lote</th><th>% Peso Vivo</th><th>Saco (kg)</th><th>R$/saco</th>'
+   +'<th>Consumo (kg/cab/dia)</th><th>Custo ração/dia (R$/cab)</th><th>Custo no período ('+dias+' dias)</th>'
    +'<th>Qualidade do pasto</th><th>Obs</th></tr></thead><tbody>';
   rows.forEach(function(r){ var l=r.lote, c=getC(l);
     h+='<tr><td>'+r.nome+'</td>'
-     +'<td><span class="gmd-badge" style="background:'+corGMD(r.gmd)+'">'+r.gmd.toFixed(3)+'</span></td>'
      +'<td><input type="number" step="0.01" data-lote="'+l+'" data-field="pv" value="'+escAttr(c.pv)+'" placeholder="0,30"></td>'
      +'<td><input type="number" step="1" data-lote="'+l+'" data-field="kgsaco" value="'+escAttr(c.kgsaco)+'" placeholder="30"></td>'
      +'<td><input type="number" step="0.01" data-lote="'+l+'" data-field="rsaco" value="'+escAttr(c.rsaco)+'" placeholder="120"></td>'
-     +'<td id="cons-'+l+'">—</td><td id="ccab-'+l+'">—</td><td id="carr-'+l+'"><b>—</b></td><td id="conv-'+l+'">—</td>'
+     +'<td id="cons-'+l+'">—</td><td id="cdia-'+l+'">—</td><td id="cper-'+l+'"><b>—</b></td>'
      +'<td><select data-lote="'+l+'" data-field="pasto">'+opcoesPasto(c.pasto)+'</select></td>'
      +'<td><input type="text" data-lote="'+l+'" data-field="obs" value="'+escAttr(c.obs)+'" placeholder="ex: pasto no talo"></td>'
      +'</tr>';
   });
-  h+='</tbody></table></div><div class="hint">Consumo = %PV × peso médio do período. <b>Custo por @ ganha</b> = quanto de suplemento gastou pra cada arroba que o lote ganhou (quanto menor, melhor). Conversão = kg de suplemento por kg de ganho.</div></div>';
+  h+='</tbody></table></div><div class="hint">Consumo = %PV × peso da <b>primeira</b> pesagem. Custo no período = custo da ração por dia × dias entre as pesagens (muda sozinho se você mudar as datas). Valores por cabeça.</div></div>';
   return h;
 }
 function bindConsumo(){
@@ -286,19 +286,14 @@ function bindConsumo(){
 function recompConsumo(l){
   var st=LASTCALC.lotes[l]; if(!st) return; var c=getC(l), dias=LASTCALC.dias;
   var pv=parseFloat(c.pv), kgsaco=parseFloat(c.kgsaco), rsaco=parseFloat(c.rsaco);
-  var pesoMed=(st.m1+st.m2)/2;
-  var consDia=(!isNaN(pv)&&pv>0)?(pv/100)*pesoMed:NaN;
-  var consCab=(!isNaN(consDia))?consDia*dias:NaN;
+  var consDia=(!isNaN(pv)&&pv>0)?(pv/100)*st.m1:NaN;
   var rkg=(!isNaN(rsaco)&&!isNaN(kgsaco)&&kgsaco>0)?rsaco/kgsaco:NaN;
-  var custoCab=(!isNaN(consCab)&&!isNaN(rkg))?consCab*rkg:NaN;
-  var arrCab=st.ganho/30;
-  var custoArr=(!isNaN(custoCab)&&arrCab>0)?custoCab/arrCab:NaN;
-  var conv=(!isNaN(consCab)&&st.ganho>0)?consCab/st.ganho:NaN;
+  var custoDia=(!isNaN(consDia)&&!isNaN(rkg))?consDia*rkg:NaN;
+  var custoPer=(!isNaN(custoDia))?custoDia*dias:NaN;
   function S(id,t,bold){ var e=document.getElementById(id); if(e) e.innerHTML=bold?('<b>'+t+'</b>'):t; }
   S('cons-'+l, isNaN(consDia)?'—':consDia.toFixed(2)+' kg');
-  S('ccab-'+l, isNaN(custoCab)?'—':'R$ '+custoCab.toFixed(2));
-  S('carr-'+l, isNaN(custoArr)?'—':'R$ '+custoArr.toFixed(2)+'/@', true);
-  S('conv-'+l, isNaN(conv)?'—':conv.toFixed(2)+' kg/kg');
+  S('cdia-'+l, isNaN(custoDia)?'—':'R$ '+custoDia.toFixed(2));
+  S('cper-'+l, isNaN(custoPer)?'—':'R$ '+custoPer.toFixed(2), true);
 }
 function grafico(items){
   if(!items.length) return '';

@@ -117,7 +117,6 @@
     <label class="lbl" style="margin-top:12px">Lotes a comparar (só os que existem nas duas)</label>
     <div class="lotesel" id="lotesel"></div>
     <label class="toggle"><input type="checkbox" id="reb1" onchange="calcular()"> Ver também o rebanho como 1 lote só (média geral dos lotes escolhidos)</label>
-    <button class="btn-calc" onclick="calcular()">📊 Comparar</button>
   </div>
 
   <div id="resultado"></div>
@@ -202,11 +201,13 @@ function calcular(){
   if(!lotes.length){ document.getElementById('resultado').innerHTML='<div class="card"><div class="empty">Escolha ao menos um lote.</div></div>'; return; }
   var rows=[], chart=[];
   var sm1=0,sn1=0,sm2=0,sn2=0;
+  LASTCALC={dias:dias, lotes:{}};
   lotes.forEach(function(l){
     var a1=PES[1].lotes[l]||[], a2=PES[2].lotes[l]||[];
     var m1=med(a1), m2=med(a2), ganho=m2-m1, gmd=ganho/dias;
     sm1+=soma(a1); sn1+=a1.length; sm2+=soma(a2); sn2+=a2.length;
-    rows.push({nome:'Lote '+l, n1:a1.length, m1:m1, n2:a2.length, m2:m2, ganho:ganho, gmd:gmd});
+    rows.push({lote:l, nome:'Lote '+l, n1:a1.length, m1:m1, n2:a2.length, m2:m2, ganho:ganho, gmd:gmd});
+    LASTCALC.lotes[l]={m1:m1,m2:m2,ganho:ganho};
     chart.push({nome:'L'+l, gmd:gmd});
   });
   var reb=null;
@@ -240,19 +241,64 @@ function calcular(){
   /* gráfico SVG */
   html+='<div class="card"><h3>📈 GMD por lote (kg/dia)</h3>'+grafico(chart)+'</div>';
 
-  /* consumo + pasto por lote */
-  html+='<div class="card"><h3>🌱 Consumo e pasto (preencha pra cruzar com o ganho)</h3>'
-    +'<table><thead><tr><th>Lote</th><th>GMD (kg/d)</th><th>Consumo suplemento (kg/cab/dia)</th><th>Qualidade do pasto</th><th>Observação</th></tr></thead><tbody>';
-  rows.forEach(function(r,i){
-    html+='<tr><td>'+r.nome+'</td>'
-      +'<td><span class="gmd-badge" style="background:'+corGMD(r.gmd)+'">'+r.gmd.toFixed(3)+'</span></td>'
-      +'<td><input type="number" step="0.01" placeholder="ex: 0,30"></td>'
-      +'<td><select><option value="">—</option><option>Folha boa (sobra de folha)</option><option>Médio</option><option>Talo / passou do ponto</option></select></td>'
-      +'<td><input type="text" placeholder="ex: pasto entrou no talo"></td></tr>';
-  });
-  html+='</tbody></table><div class="hint">Ex.: o lote com folha boa tende a ganhar mais que o que está no talo, mesmo consumindo igual.</div></div>';
+  /* cocho / suplemento (rico) */
+  html+=renderConsumo(rows);
 
   document.getElementById('resultado').innerHTML=html;
+  rows.forEach(function(r){ recompConsumo(r.lote); });
+  bindConsumo();
+}
+var CONSUMO={}; var LASTCALC={dias:0,lotes:{}};
+function getC(l){ if(!CONSUMO[l]) CONSUMO[l]={pv:'',kgsaco:'',rsaco:'',pasto:'',obs:''}; return CONSUMO[l]; }
+function setC(l,f,v){ getC(l)[f]=v; recompConsumo(l); }
+function escAttr(s){ return String(s==null?'':s).replace(/"/g,'&quot;'); }
+function opcoesPasto(sel){
+  var ops=['','Folha boa (sobra de folha)','Médio','Talo / passou do ponto'];
+  return ops.map(function(o){ var txt=o||'—'; return '<option value="'+escAttr(o)+'"'+(o===sel?' selected':'')+'>'+txt+'</option>'; }).join('');
+}
+function renderConsumo(rows){
+  var h='<div class="card"><h3>🌱 Cocho / Suplemento — consumo, custo e custo por @ ganha</h3>'
+   +'<div style="overflow-x:auto"><table><thead><tr>'
+   +'<th>Lote</th><th>GMD</th><th>% Peso Vivo</th><th>Saco (kg)</th><th>R$/saco</th>'
+   +'<th>Consumo (kg/cab/dia)</th><th>Custo/cab</th><th>Custo por @ ganha</th><th>Conversão</th>'
+   +'<th>Qualidade do pasto</th><th>Obs</th></tr></thead><tbody>';
+  rows.forEach(function(r){ var l=r.lote, c=getC(l);
+    h+='<tr><td>'+r.nome+'</td>'
+     +'<td><span class="gmd-badge" style="background:'+corGMD(r.gmd)+'">'+r.gmd.toFixed(3)+'</span></td>'
+     +'<td><input type="number" step="0.01" data-lote="'+l+'" data-field="pv" value="'+escAttr(c.pv)+'" placeholder="0,30"></td>'
+     +'<td><input type="number" step="1" data-lote="'+l+'" data-field="kgsaco" value="'+escAttr(c.kgsaco)+'" placeholder="30"></td>'
+     +'<td><input type="number" step="0.01" data-lote="'+l+'" data-field="rsaco" value="'+escAttr(c.rsaco)+'" placeholder="120"></td>'
+     +'<td id="cons-'+l+'">—</td><td id="ccab-'+l+'">—</td><td id="carr-'+l+'"><b>—</b></td><td id="conv-'+l+'">—</td>'
+     +'<td><select data-lote="'+l+'" data-field="pasto">'+opcoesPasto(c.pasto)+'</select></td>'
+     +'<td><input type="text" data-lote="'+l+'" data-field="obs" value="'+escAttr(c.obs)+'" placeholder="ex: pasto no talo"></td>'
+     +'</tr>';
+  });
+  h+='</tbody></table></div><div class="hint">Consumo = %PV × peso médio do período. <b>Custo por @ ganha</b> = quanto de suplemento gastou pra cada arroba que o lote ganhou (quanto menor, melhor). Conversão = kg de suplemento por kg de ganho.</div></div>';
+  return h;
+}
+function bindConsumo(){
+  var els=document.querySelectorAll('#resultado [data-lote]');
+  for(var i=0;i<els.length;i++){ (function(inp){
+    var ev=(inp.tagName==='SELECT')?'onchange':'oninput';
+    inp[ev]=function(){ setC(parseInt(inp.getAttribute('data-lote')), inp.getAttribute('data-field'), inp.value); };
+  })(els[i]); }
+}
+function recompConsumo(l){
+  var st=LASTCALC.lotes[l]; if(!st) return; var c=getC(l), dias=LASTCALC.dias;
+  var pv=parseFloat(c.pv), kgsaco=parseFloat(c.kgsaco), rsaco=parseFloat(c.rsaco);
+  var pesoMed=(st.m1+st.m2)/2;
+  var consDia=(!isNaN(pv)&&pv>0)?(pv/100)*pesoMed:NaN;
+  var consCab=(!isNaN(consDia))?consDia*dias:NaN;
+  var rkg=(!isNaN(rsaco)&&!isNaN(kgsaco)&&kgsaco>0)?rsaco/kgsaco:NaN;
+  var custoCab=(!isNaN(consCab)&&!isNaN(rkg))?consCab*rkg:NaN;
+  var arrCab=st.ganho/30;
+  var custoArr=(!isNaN(custoCab)&&arrCab>0)?custoCab/arrCab:NaN;
+  var conv=(!isNaN(consCab)&&st.ganho>0)?consCab/st.ganho:NaN;
+  function S(id,t,bold){ var e=document.getElementById(id); if(e) e.innerHTML=bold?('<b>'+t+'</b>'):t; }
+  S('cons-'+l, isNaN(consDia)?'—':consDia.toFixed(2)+' kg');
+  S('ccab-'+l, isNaN(custoCab)?'—':'R$ '+custoCab.toFixed(2));
+  S('carr-'+l, isNaN(custoArr)?'—':'R$ '+custoArr.toFixed(2)+'/@', true);
+  S('conv-'+l, isNaN(conv)?'—':conv.toFixed(2)+' kg/kg');
 }
 function grafico(items){
   if(!items.length) return '';

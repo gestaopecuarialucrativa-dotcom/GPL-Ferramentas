@@ -90,6 +90,33 @@
     <input type="text" id="fazenda" placeholder="Nome da fazenda">
   </div>
 
+  <div class="card no-print" id="cloudbox">
+    <h3>☁️ Carregar da nuvem (planilha)</h3>
+    <label class="lbl">URL do Apps Script (a mesma da Pesagem)</label>
+    <input type="text" id="cmpUrl" placeholder="https://script.google.com/macros/s/.../exec">
+    <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
+      <button style="background:#2E7D32;color:#fff;border:none;padding:9px 16px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit" onclick="salvarUrlCmp()">💾 Salvar URL</button>
+      <button style="background:#2E7D32;color:#fff;border:none;padding:9px 16px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit" onclick="carregarNuvemCmp()">📥 Carregar pesagens</button>
+    </div>
+    <div class="fileinfo" id="cloudinfo"></div>
+    <div id="cloudpick" style="display:none;margin-top:12px">
+      <label class="lbl">Fazenda</label>
+      <select id="cmpFaz" onchange="popDatasCloud()" style="width:100%;padding:9px;border:1px solid #C8E6C9;border-radius:8px;font-size:14px"></select>
+      <div class="grid2" style="margin-top:10px">
+        <div>
+          <label class="lbl">Pesagem 1 (data)</label>
+          <select id="cmpData1" onchange="aplicarDatasCloud()" style="width:100%;padding:9px;border:1px solid #C8E6C9;border-radius:8px;font-size:14px"></select>
+        </div>
+        <div>
+          <label class="lbl">Pesagem 2 (data)</label>
+          <select id="cmpData2" onchange="aplicarDatasCloud()" style="width:100%;padding:9px;border:1px solid #C8E6C9;border-radius:8px;font-size:14px"></select>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="lbl no-print" style="text-align:center;margin:6px 0;color:#90A4AE">— ou importe os arquivos Excel —</div>
+
   <div class="grid2 no-print">
     <div class="card">
       <h3>1️⃣ Pesagem anterior</h3>
@@ -124,6 +151,68 @@
 
 <script>
 var PES={1:null,2:null};
+var CLOUD={pesagens:[],fazendas:[]};
+function cmpDataBR(iso){ if(!iso) return ''; var p=String(iso).split('-'); return p.length===3?(p[2]+'/'+p[1]+'/'+p[0]):iso; }
+function salvarUrlCmp(){ var u=(document.getElementById('cmpUrl').value||'').trim(); if(!u){document.getElementById('cloudinfo').textContent='❌ Cole a URL primeiro.';return;} try{localStorage.setItem('gpl_cmp_url',u);}catch(e){} document.getElementById('cloudinfo').textContent='✅ URL salva.'; }
+function carregarNuvemCmp(){
+  var u=(document.getElementById('cmpUrl').value||'').trim();
+  if(!u){document.getElementById('cloudinfo').textContent='❌ Cole a URL primeiro.';return;}
+  try{localStorage.setItem('gpl_cmp_url',u);}catch(e){}
+  document.getElementById('cloudinfo').textContent='⏳ Carregando da planilha...';
+  fetch(u+'?acao=carregar').then(function(r){return r.json();}).then(function(d){
+    if(!d||!d.ok){document.getElementById('cloudinfo').textContent='❌ Resposta inesperada da planilha.';return;}
+    CLOUD.pesagens=d.pesagens||[]; CLOUD.fazendas=d.fazendas||[];
+    if(!CLOUD.pesagens.length){document.getElementById('cloudinfo').textContent='⚠️ A planilha ainda não tem pesagens.';return;}
+    var fSel=document.getElementById('cmpFaz'); fSel.innerHTML='';
+    var fids={}; CLOUD.pesagens.forEach(function(p){fids[p.fazId]=true;});
+    var nomes={}; CLOUD.fazendas.forEach(function(f){nomes[f.id]=f.nome||f.id;});
+    Object.keys(fids).forEach(function(id){var o=document.createElement('option');o.value=id;o.textContent=nomes[id]||('Fazenda '+id);fSel.appendChild(o);});
+    document.getElementById('cloudpick').style.display='block';
+    document.getElementById('cloudinfo').textContent='✅ '+CLOUD.pesagens.length+' pesagens carregadas. Escolha a fazenda e as 2 datas.';
+    popDatasCloud();
+  }).catch(function(){document.getElementById('cloudinfo').textContent='❌ Não conectou na planilha.';});
+}
+function datasDaFazenda(fazId){ var ds={}; CLOUD.pesagens.forEach(function(p){ if(String(p.fazId)===String(fazId)&&p.data) ds[p.data]=true; }); return Object.keys(ds).sort(); }
+function popDatasCloud(){
+  var faz=document.getElementById('cmpFaz').value;
+  var datas=datasDaFazenda(faz);
+  var s1=document.getElementById('cmpData1'),s2=document.getElementById('cmpData2');
+  s1.innerHTML='';s2.innerHTML='';
+  datas.forEach(function(dt){
+    var o1=document.createElement('option');o1.value=dt;o1.textContent=cmpDataBR(dt);s1.appendChild(o1);
+    var o2=document.createElement('option');o2.value=dt;o2.textContent=cmpDataBR(dt);s2.appendChild(o2);
+  });
+  if(datas.length>=2){ s1.value=datas[0]; s2.value=datas[datas.length-1]; }
+  aplicarDatasCloud();
+}
+function buildPesFromCloud(fazId,date){
+  var lotes={};
+  CLOUD.pesagens.forEach(function(p){
+    if(String(p.fazId)===String(fazId)&&p.data===date){
+      var l=parseInt(p.lote),peso=parseFloat(p.peso);
+      if(!isNaN(l)&&!isNaN(peso)&&peso>0){ (lotes[l]=lotes[l]||[]).push(peso); }
+    }
+  });
+  return {data:date,lotes:lotes};
+}
+function aplicarDatasCloud(){
+  if(!CLOUD.pesagens.length) return;
+  var faz=document.getElementById('cmpFaz').value;
+  var d1=document.getElementById('cmpData1').value,d2=document.getElementById('cmpData2').value;
+  if(!d1||!d2) return;
+  if(d1===d2){ document.getElementById('cloudinfo').textContent='⚠️ Escolha duas datas diferentes.'; return; }
+  PES[1]=buildPesFromCloud(faz,d1); PES[2]=buildPesFromCloud(faz,d2);
+  document.getElementById('data1').value=d1; document.getElementById('data2').value=d2;
+  var n1=0;for(var k in PES[1].lotes)n1+=PES[1].lotes[k].length;
+  var n2=0;for(var k2 in PES[2].lotes)n2+=PES[2].lotes[k2].length;
+  document.getElementById('info1').textContent='☁️ '+cmpDataBR(d1)+' — '+Object.keys(PES[1].lotes).length+' lotes, '+n1+' animais';
+  document.getElementById('info2').textContent='☁️ '+cmpDataBR(d2)+' — '+Object.keys(PES[2].lotes).length+' lotes, '+n2+' animais';
+  var fn={}; CLOUD.fazendas.forEach(function(f){fn[f.id]=f.nome;});
+  if(fn[faz]&&document.getElementById('fazenda')) document.getElementById('fazenda').value=fn[faz];
+  document.getElementById('cloudinfo').textContent='✅ Comparando '+cmpDataBR(d1)+' → '+cmpDataBR(d2)+'.';
+  atualizarOpcoes();
+}
+window.addEventListener('load',function(){ try{ var u=localStorage.getItem('gpl_cmp_url'); if(u&&document.getElementById('cmpUrl')) document.getElementById('cmpUrl').value=u; }catch(e){} });
 function med(a){return a.length?a.reduce(function(x,y){return x+y;},0)/a.length:0;}
 function soma(a){return a.reduce(function(x,y){return x+y;},0);}
 

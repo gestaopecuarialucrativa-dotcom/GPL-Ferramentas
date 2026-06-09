@@ -118,7 +118,7 @@ body{font-family:Arial,Roboto,system-ui,sans-serif;background:var(--bg);color:va
 </head>
 <body>
 <style>.gpl-home-btn{position:fixed;top:10px;left:10px;z-index:99999;background:#1B5E20;color:#fff;text-decoration:none;font:700 13px Arial,'Segoe UI',Roboto,system-ui,sans-serif;padding:7px 13px;border-radius:30px;box-shadow:0 2px 8px rgba(0,0,0,.28)}@media print{.gpl-home-btn{display:none!important}}</style>
-<a href="painel.html" class="gpl-home-btn">‹ Início</a>
+<a href="index.html" class="gpl-home-btn">‹ Início</a>
 
 
 <div class="hero">
@@ -162,7 +162,7 @@ body{font-family:Arial,Roboto,system-ui,sans-serif;background:var(--bg);color:va
   </div>
   <div class="fg">
     <label class="fl">Qual é o grande sonho com essa fazenda? <span class="req">*</span></label>
-    <textarea class="fta" id="sonho" placeholder="Ex: Quero passar a fazenda para os filhos com resultado positivo, sem dívida e com escala..." style="min-height:100px;"></textarea>
+    <textarea class="fta" id="sonho" placeholder="Ex: Dobrar a lotação por hectare e deixar a fazenda estruturada para os meus filhos." style="min-height:100px;"></textarea>
   </div>
   <div class="g2">
     <div class="fg">
@@ -179,8 +179,8 @@ body{font-family:Arial,Roboto,system-ui,sans-serif;background:var(--bg);color:va
     </div>
   </div>
   <div class="fg">
-    <label class="fl">O que quer parar de fazer?</label>
-    <input class="fi" id="parar" placeholder="Ex: Tomar decisão no escuro">
+    <label class="fl">Qual o maior gargalo operacional hoje?</label>
+    <input class="fi" id="parar" placeholder="Ex: Depender de chuva para o gado engordar, falta de mão de obra.">
   </div>
   <div class="fg">
     <label class="fl">O que mais te preocupa hoje?</label>
@@ -236,6 +236,7 @@ body{font-family:Arial,Roboto,system-ui,sans-serif;background:var(--bg);color:va
     <div class="fg">
       <label class="fl">Valor do ha (R$)</label>
       <input class="fi" type="number" id="valorHa" placeholder="Ex: 10.000">
+      <small style="display:block;color:#6a7a6c;font-size:11px;margin-top:4px;line-height:1.4">Necessário para calcular o potencial de retorno de 4% ao ano sobre o patrimônio da terra, padrão das fazendas mais lucrativas do Brasil.</small>
     </div>
     <div class="fg">
       <label class="fl">Nº de Piquetes</label>
@@ -253,6 +254,7 @@ body{font-family:Arial,Roboto,system-ui,sans-serif;background:var(--bg);color:va
   </div>
   <div class="fg">
     <label class="fl">Frequência de Pesagem</label>
+    <small style="display:block;color:#6a7a6c;font-size:11px;margin:-2px 0 6px;line-height:1.4">Fique tranquilo. Se não pesa, marque "Não pesa". Estamos aqui para começar do zero.</small>
     <div class="tags" id="pesagemTags">
       <button class="tag-btn" onclick="selTag(this,'pesagem')">Não pesa</button>
       <button class="tag-btn" onclick="selTag(this,'pesagem')">Só na compra/venda</button>
@@ -318,7 +320,7 @@ body{font-family:Arial,Roboto,system-ui,sans-serif;background:var(--bg);color:va
   <div class="fg">
     <label class="fl">GMD atual estimado (kg/dia)</label>
     <div class="slider-wrap">
-      <input type="range" class="slider" id="gmdSlider" min="0.1" max="0.8" step="0.01" value="0.4" oninput="updSlider(this,'gmdVal',' kg/dia',2)">
+      <input type="range" class="slider" id="gmdSlider" min="0.1" max="1.5" step="0.01" value="0.4" oninput="updSlider(this,'gmdVal',' kg/dia',2)">
       <div class="slider-labels"><span>0,1 kg/dia</span><span>0,8 kg/dia</span></div>
       <div class="slider-val"><span id="gmdVal">0.40</span> kg/dia</div>
     </div>
@@ -399,7 +401,7 @@ body{font-family:Arial,Roboto,system-ui,sans-serif;background:var(--bg);color:va
   </div>
   <div class="nav-btns">
     <button class="btn-back" onclick="prevStep()">← Voltar</button>
-    <button class="btn-next" onclick="nextStep()">Revisar e Enviar <span>→</span></button>
+    <button class="btn-next" onclick="nextStep()">Gerar Meu Diagnóstico Pecuário → <span>→</span></button>
   </div>
 </div>
 

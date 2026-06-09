@@ -77,7 +77,7 @@ body{font-family:Arial,'Segoe UI',Roboto,system-ui,sans-serif;background:var(--b
 .btn{width:100%;padding:16px;border-radius:12px;border:none;font-family:Arial,'Segoe UI',Roboto,system-ui,sans-serif;font-size:15px;font-weight:800;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:10px;margin-top:8px;}
 .btn-next{background:var(--vc);color:#fff;}
 .btn-next:active{background:var(--vm);transform:scale(.98);}
-.btn-wpp{background:#25D366;color:#fff;font-size:16px;}
+.btn-wpp{background:var(--vc);color:#fff;font-size:16px;}
 .btn-wpp:active{background:#20B954;transform:scale(.98);}
 .btn-back{background:transparent;color:var(--sub);font-size:13px;font-weight:600;padding:10px;margin-top:0;}
 
@@ -114,7 +114,7 @@ body{font-family:Arial,'Segoe UI',Roboto,system-ui,sans-serif;background:var(--b
 </head>
 <body>
 <style>.gpl-home-btn{position:fixed;top:10px;left:10px;z-index:99999;background:#1B5E20;color:#fff;text-decoration:none;font:700 13px Arial,'Segoe UI',Roboto,system-ui,sans-serif;padding:7px 13px;border-radius:30px;box-shadow:0 2px 8px rgba(0,0,0,.28)}@media print{.gpl-home-btn{display:none!important}}</style>
-<a href="painel.html" class="gpl-home-btn">‹ Início</a>
+<a href="index.html" class="gpl-home-btn">‹ Início</a>
 
 
 <!-- HERO -->
@@ -237,9 +237,9 @@ body{font-family:Arial,'Segoe UI',Roboto,system-ui,sans-serif;background:var(--b
         <div class="opt-text">Taxa de desmame baixa</div>
         <div class="opt-check"></div>
       </div>
-      <div class="opt" onclick="selOpt(this,'dor','Falta de controle e dados para decidir')">
+      <div class="opt" onclick="selOpt(this,'dor','Sinto que estou trabalhando muito e não vejo a cor do dinheiro no fim do mês')">
         <div class="opt-icon">📊</div>
-        <div class="opt-text">Falta de controle e dados para decidir</div>
+        <div class="opt-text">Sinto que estou trabalhando muito e não vejo a cor do dinheiro no fim do mês</div>
         <div class="opt-check"></div>
       </div>
     </div>
@@ -253,7 +253,7 @@ body{font-family:Arial,'Segoe UI',Roboto,system-ui,sans-serif;background:var(--b
   <div class="card">
     <div class="card-num">Pergunta 5 de 5 — A mais importante!</div>
     <div class="card-q">Qual é o grande sonho com essa fazenda?</div>
-    <div class="card-hint">O que você quer construir com ela? Para os filhos? Aumentar o rebanho? Ter resultado positivo?</div>
+    <div class="card-hint">Escreva resumidamente qual é o seu principal objetivo com a fazenda nos próximos 12 meses.</div>
     <textarea class="fta" id="sonho" placeholder="Ex: Quero passar para os filhos com resultado positivo e sem dívida..."></textarea>
   </div>
   <div class="card">
@@ -262,7 +262,7 @@ body{font-family:Arial,'Segoe UI',Roboto,system-ui,sans-serif;background:var(--b
     <input class="fi" id="wpp" placeholder="(00) 00000-0000" type="tel">
   </div>
   <button class="btn btn-wpp" onclick="enviarWpp()">
-    <span>💬</span> Enviar e receber diagnóstico
+    <span>💬</span> Enviar Dados e Chamar Rogério no WhatsApp
   </button>
   <button class="btn btn-back" onclick="goBack(4)">← Voltar</button>
 </div>

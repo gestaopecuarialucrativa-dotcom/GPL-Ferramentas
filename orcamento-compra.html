@@ -249,6 +249,9 @@ function remLote(id){lotes=lotes.filter(function(l){return l.id!==id;});salvar()
 /* ── SET CAMPO (sem re-render do card) ── */
 function setL(id,campo,val){
   var l=lotes.find(function(x){return x.id===id;});if(!l)return;
+  // normalizar vírgula->ponto para campos numéricos
+  var _numC=["animais","peso","pv","kgSaco","precoSaco"];
+  if(_numC.indexOf(campo)!==-1){val=parseFloat(String(val).replace(",","."))||0;}
   l[campo]=val;
   if(campo==="produto"){
     var p=PRODUTOS.find(function(x){return x.v===val;});
@@ -274,7 +277,14 @@ function atualizarResultadoLote(id){
     box.style.display="grid";
     document.getElementById("res-sacas-"+id).textContent=c.sacas;
     document.getElementById("res-cd-"+id).textContent=c.cd.toFixed(1)+" kg";
-    document.getElementById("res-custo-"+id).textContent=l.precoSaco>0?"R$ "+fmt(c.custo):"—";
+    var temPreco=parseFloat(l.precoSaco)>0;
+    document.getElementById("res-custo-"+id).textContent=temPreco?"R$ "+fmt(c.custo):"—";
+    var diaEl=document.getElementById("res-dia-"+id);
+    var cabEl=document.getElementById("res-cab-"+id);
+    if(diaEl)diaEl.textContent=temPreco?"R$ "+fmt(c.custoDia)+"/dia":"—";
+    if(cabEl)cabEl.textContent=temPreco?"R$ "+fmt(c.custoCab)+"/cabeça":"—";
+    var ext=document.getElementById("res-extra-"+id);
+    if(ext)ext.style.display=temPreco?"grid":"none";
   }else{box.style.display="none";}
 }
 function atualizarResultados(){lotes.forEach(function(l){atualizarResultadoLote(l.id);});}
@@ -288,7 +298,9 @@ function calcLote(l){
   var kgTotal=cd*periodo;
   var sacas=l.kgSaco>0?Math.ceil(kgTotal/l.kgSaco):0;
   var custo=sacas*(parseFloat(l.precoSaco)||0);
-  return{cd:cd,kgTotal:kgTotal,sacas:sacas,custo:custo};
+  var custoDia=periodo>0?custo/periodo:0;
+  var custoCab=(parseFloat(l.animais)||0)>0?custo/(parseFloat(l.animais)):0;
+  return{cd:cd,kgTotal:kgTotal,sacas:sacas,custo:custo,custoDia:custoDia,custoCab:custoCab};
 }
 function classificar(pv){
   var v=parseFloat(pv)||0;
@@ -350,6 +362,13 @@ function cardHTML(l){
     +'<div><div class="rb-lbl">Consumo/dia</div><div class="rb-val2" id="res-cd-'+l.id+'">'+(c.cd.toFixed(1))+'kg</div></div>'
     +'<div><div class="rb-lbl">Custo total</div><div class="rb-val2" id="res-custo-'+l.id+'">'+(l.precoSaco>0?"R$ "+fmt(c.custo):"—")+'</div></div>'
     +'</div>'
+    +(c.sacas>0
+      ?'<div class="res-bar" id="res-extra-'+l.id+'" style="display:'+(parseFloat(l.precoSaco)>0?'grid':'none')+';margin-top:4px;background:#f9fcf8">'
+        +'<div><div class="rb-lbl">Custo/dia lote</div><div class="rb-val2" id="res-dia-'+l.id+'">'+(parseFloat(l.precoSaco)>0?'R$ '+fmt(c.custoDia)+'/dia':'—')+'</div></div>'
+        +'<div><div class="rb-lbl">Custo/cabeça '+periodo+'d</div><div class="rb-val2" id="res-cab-'+l.id+'">'+(parseFloat(l.precoSaco)>0?'R$ '+fmt(c.custoCab)+'/cabeça':'—')+'</div></div>'
+        +'<div></div>'
+        +'</div>':''
+    )
     +'</div>';
 }
 
@@ -375,7 +394,11 @@ function calcularTudo(){
       +'</div>'
       +'<div class="rp-lotes">'+p.lotes.map(function(r){
         return'<div class="rp-lote-row"><span class="nm">'+esc(r.label)+'</span>'
-          +'<span class="vl">'+r.sacas+' sc'+(r.custo>0?' · R$ '+fmt(r.custo):'')+'</span></div>';
+          +'<span class="vl">'+r.sacas+' sc'+(r.custo>0?' · R$ '+fmt(r.custo)+'<br>'
+            +'<span style="font-size:11px;color:var(--mut)">'
+            +(r.custoDia>0?'R$ '+fmt(r.custoDia)+'/dia · ':'')
+            +(r.custoCab>0?'R$ '+fmt(r.custoCab)+'/cabeça '+periodo+'d':'')
+            +'</span>':'')+'</span></div>';
       }).join("")+'</div></div>';
   });
   if(total>0)html+='<div class="total-box"><div class="lbl">💰 Total geral</div><div class="val">R$ '+fmt(total)+'</div></div>';
@@ -405,7 +428,12 @@ function gerarPDF(){
       +'<td style="text-align:center">'+(l.peso||0)+'</td>'
       +'<td style="text-align:center">'+l.pv+'%</td>'
       +'<td style="text-align:center">'+c.cd.toFixed(1)+' kg/dia</td>'
-      +'<td style="text-align:right" class="pdf-td-verde">'+c.sacas+' sc'+(l.precoSaco>0?'<br><span style="font-weight:400;font-size:10px">R$ '+fmt(c.custo)+'</span>':'')+'</td>'
+      +'<td style="text-align:right" class="pdf-td-verde">'+c.sacas+' sc'
+        +(parseFloat(l.precoSaco)>0
+          ?'<br><small>R$ '+fmt(c.custo)+'</small>'
+          +'<br><small style="color:#555">R$ '+fmt(c.custoDia)+'/dia</small>'
+          +'<br><small style="color:#555">R$ '+fmt(c.custoCab)+'/cabeça</small>':'')
+      +'</td>'
       +'</tr>';
   }).join("");
   // montar resumo por produto

@@ -361,7 +361,7 @@ function calcularTudo(){
     var c=calcLote(l);var nome=nomeProd(l);
     if(!prods[nome])prods[nome]={nome:nome,sacas:0,custo:0,lotes:[]};
     prods[nome].sacas+=c.sacas;prods[nome].custo+=c.custo;
-    prods[nome].lotes.push({label:(l.num?l.num+" · ":"")+l.nome,sacas:c.sacas,custo:c.custo});
+    prods[nome].lotes.push({label:(l.num?l.num+" · ":"")+l.nome,sacas:c.sacas,custo:c.custo,custoDia:c.custoDia,custoCab:c.custoCab});
   });
   var html="";var total=0;
   Object.values(prods).forEach(function(p){
@@ -414,7 +414,7 @@ function gerarPDF(){
     var c=calcLote(l);var nome=nomeProd(l);
     if(!prods[nome])prods[nome]={nome:nome,sacas:0,custo:0,lotes:[]};
     prods[nome].sacas+=c.sacas;prods[nome].custo+=c.custo;total+=c.custo;
-    prods[nome].lotes.push({label:(l.num?l.num+" · ":"")+l.nome,sacas:c.sacas,custo:c.custo});
+    prods[nome].lotes.push({label:(l.num?l.num+" · ":"")+l.nome,sacas:c.sacas,custo:c.custo,custoDia:c.custoDia,custoCab:c.custoCab});
   });
   var resumoHtml=Object.values(prods).map(function(p){
     return'<div class="pdf-prod-bloco">'

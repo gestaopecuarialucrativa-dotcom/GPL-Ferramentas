@@ -247,11 +247,9 @@ function addLote(){lotes.push(novoLote());salvar();renderLotes();}
 function remLote(id){lotes=lotes.filter(function(l){return l.id!==id;});salvar();renderLotes();}
 
 /* ── SET CAMPO (sem re-render do card) ── */
+function nv(v){return parseFloat(String(v).replace(',','.'))||0;}
 function setL(id,campo,val){
   var l=lotes.find(function(x){return x.id===id;});if(!l)return;
-  // normalizar vírgula->ponto para campos numéricos
-  var _numC=["animais","peso","pv","kgSaco","precoSaco"];
-  if(_numC.indexOf(campo)!==-1){val=parseFloat(String(val).replace(",","."))||0;}
   l[campo]=val;
   if(campo==="produto"){
     var p=PRODUTOS.find(function(x){return x.v===val;});
@@ -283,6 +281,8 @@ function atualizarResultadoLote(id){
     var cabEl=document.getElementById("res-cab-"+id);
     if(diaEl)diaEl.textContent=temPreco?"R$ "+fmt(c.custoDia)+"/dia":"—";
     if(cabEl)cabEl.textContent=temPreco?"R$ "+fmt(c.custoCab)+"/cabeça":"—";
+    var aniEl=document.getElementById("res-ani-"+id);
+    if(aniEl)aniEl.textContent=temPreco?"R$ "+fmt(c.custoAniDia)+"/animal/dia":"—";
     var ext=document.getElementById("res-extra-"+id);
     if(ext)ext.style.display=temPreco?"grid":"none";
   }else{box.style.display="none";}
@@ -300,7 +300,8 @@ function calcLote(l){
   var custo=sacas*(parseFloat(l.precoSaco)||0);
   var custoDia=periodo>0?custo/periodo:0;
   var custoCab=(parseFloat(l.animais)||0)>0?custo/(parseFloat(l.animais)):0;
-  return{cd:cd,kgTotal:kgTotal,sacas:sacas,custo:custo,custoDia:custoDia,custoCab:custoCab};
+  var custoAniDia=(parseFloat(l.animais)||0)>0&&periodo>0?custo/(parseFloat(l.animais))/periodo:0;
+  return{cd:cd,kgTotal:kgTotal,sacas:sacas,custo:custo,custoDia:custoDia,custoCab:custoCab,custoAniDia:custoAniDia};
 }
 function classificar(pv){
   var v=parseFloat(pv)||0;
@@ -338,11 +339,11 @@ function cardHTML(l){
     +'</div>'
     +'<div class="row3" style="margin-top:8px">'
     +'<div><label class="fl">Animais</label>'
-    +'<input class="fi" inputmode="numeric" pattern="[0-9]*" value="'+(l.animais||"")+'" placeholder="0" oninput="setL('+l.id+',\'animais\',+this.value)"></div>'
+    +'<input class="fi" inputmode="numeric" pattern="[0-9]*" value="'+(l.animais||"")+'" placeholder="0" oninput="setL('+l.id+',\'animais\',nv(this.value))"></div>'
     +'<div><label class="fl">Peso médio (kg)</label>'
-    +'<input class="fi" inputmode="decimal" value="'+(l.peso||"")+'" placeholder="0" oninput="setL('+l.id+',\'peso\',+this.value)"></div>'
+    +'<input class="fi" inputmode="decimal" value="'+(l.peso||"")+'" placeholder="0" oninput="setL('+l.id+',\'peso\',nv(this.value))"></div>'
     +'<div><label class="fl">% PV/dia</label>'
-    +'<input class="fi" inputmode="decimal" id="pv-'+l.id+'" value="'+(l.pv||"")+'" placeholder="0.1" oninput="setL('+l.id+',\'pv\',+this.value)"></div>'
+    +'<input class="fi" inputmode="decimal" id="pv-'+l.id+'" value="'+(l.pv||"")+'" placeholder="0.1" oninput="setL('+l.id+',\'pv\',nv(this.value))"></div>'
     +'</div>'
     +'<label class="fl" style="margin-top:4px">Produto</label>'
     +'<select class="fi" onchange="setL('+l.id+',\'produto\',this.value)">'+prodOpts+'</select>'
@@ -353,9 +354,9 @@ function cardHTML(l){
     +'<div id="classe-'+l.id+'" style="font-size:11px;color:var(--mut);margin:-6px 0 8px">'+(l.produto==="__outro__"?"Classificação: "+classificar(l.pv):"")+'</div>'
     +'<div class="row2">'
     +'<div><label class="fl">Kg por saco</label>'
-    +'<input class="fi" inputmode="decimal" value="'+(l.kgSaco||30)+'" placeholder="30" oninput="setL('+l.id+',\'kgSaco\',+this.value)"></div>'
+    +'<input class="fi" inputmode="decimal" value="'+(l.kgSaco||30)+'" placeholder="30" oninput="setL('+l.id+',\'kgSaco\',nv(this.value))"></div>'
     +'<div><label class="fl">R$ por saco</label>'
-    +'<input class="fi" inputmode="decimal" value="'+(l.precoSaco||"")+'" placeholder="0,00" oninput="setL('+l.id+',\'precoSaco\',+this.value)"></div>'
+    +'<input class="fi" inputmode="decimal" value="'+(l.precoSaco||"")+'" placeholder="0,00" oninput="setL('+l.id+',\'precoSaco\',nv(this.value))"></div>'
     +'</div>'
     +'<div class="res-bar" id="res-'+l.id+'" style="display:'+resDisplay+'">'
     +'<div><div class="rb-lbl">'+periodo+'d · Sacas</div><div class="rb-val" id="res-sacas-'+l.id+'">'+(c.sacas||0)+'</div></div>'
@@ -365,8 +366,8 @@ function cardHTML(l){
     +(c.sacas>0
       ?'<div class="res-bar" id="res-extra-'+l.id+'" style="display:'+(parseFloat(l.precoSaco)>0?'grid':'none')+';margin-top:4px;background:#f9fcf8">'
         +'<div><div class="rb-lbl">Custo/dia lote</div><div class="rb-val2" id="res-dia-'+l.id+'">'+(parseFloat(l.precoSaco)>0?'R$ '+fmt(c.custoDia)+'/dia':'—')+'</div></div>'
-        +'<div><div class="rb-lbl">Custo/cabeça '+periodo+'d</div><div class="rb-val2" id="res-cab-'+l.id+'">'+(parseFloat(l.precoSaco)>0?'R$ '+fmt(c.custoCab)+'/cabeça':'—')+'</div></div>'
-        +'<div></div>'
+        +'<div><div class="rb-lbl">Custo/cabeça/'+periodo+'d</div><div class="rb-val2" id="res-cab-'+l.id+'">'+(parseFloat(l.precoSaco)>0?'R$ '+fmt(c.custoCab)+'/cabeça':'—')+'</div></div>'
+        +'<div><div class="rb-lbl">Custo/animal/dia</div><div class="rb-val2" id="res-ani-'+l.id+'">'+(parseFloat(l.precoSaco)>0?'R$ '+fmt(c.custoAniDia)+'/animal/dia':'—')+'</div></div>'
         +'</div>':''
     )
     +'</div>';
@@ -380,7 +381,7 @@ function calcularTudo(){
     var c=calcLote(l);var nome=nomeProd(l);
     if(!prods[nome])prods[nome]={nome:nome,sacas:0,custo:0,lotes:[]};
     prods[nome].sacas+=c.sacas;prods[nome].custo+=c.custo;
-    prods[nome].lotes.push({label:(l.num?l.num+" · ":"")+l.nome,sacas:c.sacas,custo:c.custo,custoDia:c.custoDia,custoCab:c.custoCab});
+    prods[nome].lotes.push({label:(l.num?l.num+" · ":"")+l.nome,sacas:c.sacas,custo:c.custo,custoDia:c.custoDia,custoCab:c.custoCab,custoAniDia:c.custoAniDia,animais:l.animais});
   });
   var html="";var total=0;
   Object.values(prods).forEach(function(p){
@@ -397,11 +398,33 @@ function calcularTudo(){
           +'<span class="vl">'+r.sacas+' sc'+(r.custo>0?' · R$ '+fmt(r.custo)+'<br>'
             +'<span style="font-size:11px;color:var(--mut)">'
             +(r.custoDia>0?'R$ '+fmt(r.custoDia)+'/dia · ':'')
-            +(r.custoCab>0?'R$ '+fmt(r.custoCab)+'/cabeça '+periodo+'d':'')
+            +(r.custoCab>0?'R$ '+fmt(r.custoCab)+'/cabeça '+periodo+'d · ':'')+(r.custoAniDia>0?'R$ '+fmt(r.custoAniDia)+'/animal/dia':'')
             +'</span>':'')+'</span></div>';
       }).join("")+'</div></div>';
   });
   if(total>0)html+='<div class="total-box"><div class="lbl">💰 Total geral</div><div class="val">R$ '+fmt(total)+'</div></div>';
+  // gráfico de barras por lote (só quando 2+ lotes com preço)
+  var lotesComPreco=lotes.filter(function(l){return parseFloat(l.precoSaco)>0;});
+  if(lotesComPreco.length>=2){
+    var sorted=lotesComPreco.slice().sort(function(a,b){return calcLote(b).custo-calcLote(a).custo;});
+    var maxC=calcLote(sorted[0]).custo;
+    var ghtml='<div class="sec-h" style="margin-top:20px">📊 Custo por lote (maior → menor)</div>';
+    ghtml+='<div class="card" style="padding:12px">';
+    sorted.forEach(function(l){
+      var c=calcLote(l); var pct=maxC>0?Math.round(c.custo/maxC*100):0;
+      var lbl=(l.num?l.num+' · ':'')+l.nome;
+      ghtml+='<div style="margin-bottom:10px">';
+      ghtml+='<div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px">';
+      ghtml+='<span style="font-weight:700">'+esc(lbl)+'</span>';
+      ghtml+='<span style="color:var(--v2);font-weight:800">R$ '+fmt(c.custo)+'</span></div>';
+      ghtml+='<div style="background:var(--line);border-radius:6px;height:14px;overflow:hidden">';
+      ghtml+='<div style="background:var(--v3);width:'+pct+'%;height:100%;border-radius:6px;transition:.4s"></div></div>';
+      ghtml+='<div style="font-size:10px;color:var(--mut);margin-top:2px">'+c.sacas+' sc · R$ '+fmt(c.custoCab)+'/cabeça · R$ '+fmt(c.custoAniDia)+'/animal/dia</div>';
+      ghtml+='</div>';
+    });
+    ghtml+='</div>';
+    html+=ghtml;
+  }
   document.getElementById("resumo-conteudo").innerHTML=html;
   document.getElementById("resumo-box").style.display="block";
   document.getElementById("resumo-box").scrollIntoView({behavior:"smooth"});
@@ -430,9 +453,10 @@ function gerarPDF(){
       +'<td style="text-align:center">'+c.cd.toFixed(1)+' kg/dia</td>'
       +'<td style="text-align:right" class="pdf-td-verde">'+c.sacas+' sc'
         +(parseFloat(l.precoSaco)>0
-          ?'<br><small>R$ '+fmt(c.custo)+'</small>'
-          +'<br><small style="color:#555">R$ '+fmt(c.custoDia)+'/dia</small>'
-          +'<br><small style="color:#555">R$ '+fmt(c.custoCab)+'/cabeça</small>':'')
+          ?'<br><small><b>Custo total:</b> R$ '+fmt(c.custo)+'</small>'
+          +'<br><small style="color:#555"><b>Custo/dia lote:</b> R$ '+fmt(c.custoDia)+'</small>'
+          +'<br><small style="color:#555"><b>Custo/cabeça/'+periodo+'d:</b> R$ '+fmt(c.custoCab)+'</small>'
+          +'<br><small style="color:#555"><b>Custo/animal/dia:</b> R$ '+fmt(c.custoAniDia)+'</small>':'')
       +'</td>'
       +'</tr>';
   }).join("");
@@ -442,7 +466,7 @@ function gerarPDF(){
     var c=calcLote(l);var nome=nomeProd(l);
     if(!prods[nome])prods[nome]={nome:nome,sacas:0,custo:0,lotes:[]};
     prods[nome].sacas+=c.sacas;prods[nome].custo+=c.custo;total+=c.custo;
-    prods[nome].lotes.push({label:(l.num?l.num+" · ":"")+l.nome,sacas:c.sacas,custo:c.custo,custoDia:c.custoDia,custoCab:c.custoCab});
+    prods[nome].lotes.push({label:(l.num?l.num+" · ":"")+l.nome,sacas:c.sacas,custo:c.custo,custoDia:c.custoDia,custoCab:c.custoCab,custoAniDia:c.custoAniDia,animais:l.animais});
   });
   var resumoHtml=Object.values(prods).map(function(p){
     return'<div class="pdf-prod-bloco">'

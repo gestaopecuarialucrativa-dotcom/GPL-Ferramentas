@@ -55,6 +55,10 @@ body{display:flex;flex-direction:column;background:#F0F4F0}
 .tb-right{display:flex;align-items:center;gap:8px}
 .tb-btn{padding:6px 12px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.1);color:white;font-family:'DM Sans',sans-serif;transition:all .15s;text-decoration:none;display:flex;align-items:center;gap:5px}
 .tb-btn:hover{background:rgba(255,255,255,.2)}
+.tb-btn-orc{padding:6px 12px;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer;border:none;background:#4CAF50;color:#fff;font-family:inherit;transition:all .15s;display:flex;align-items:center;gap:5px}
+.tb-btn-orc:hover{background:#2E7D32}
+.lc-orc{display:block;width:100%;margin-top:8px;padding:6px 0;border:none;border-radius:6px;background:rgba(76,175,80,.85);color:#fff;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit}
+.lc-orc:hover{background:#4CAF50}
 .tb-btn.wpp{background:#25D366;border-color:#25D366}
 .tb-menu-toggle{display:none;width:36px;height:36px;border-radius:8px;background:rgba(255,255,255,.1);border:none;color:white;font-size:18px;cursor:pointer;align-items:center;justify-content:center;margin-right:8px}
 .body{flex:1;display:flex;overflow:hidden}
@@ -615,6 +619,7 @@ input[type=file]{display:none}
   <div class="tb-right">
     <a href="tel:+5563991082453" class="tb-btn">📞 (63) 99108-2453</a>
     <a href="https://wa.me/5563991082453" target="_blank" class="tb-btn wpp">WhatsApp</a>
+    <button class="tb-btn-orc" onclick="gerarOrcamentoTodos()">🛒 Orçamento</button>
   </div>
 </div>
 
@@ -995,7 +1000,8 @@ function buildLoteCards(){
       +(s.dias===0
         ?'<div class="lc-badge-ok">PRONTO P/ ABATE</div>'
         :'<div class="lc-dias">'+s.dias+' dias</div>'
-      );
+      )
+      +'<button class="lc-orc" onclick="event.stopPropagation();gerarOrcamentoLote('+l+')">🛒 Orçar este lote</button>';
     g.appendChild(d);
   });
 }
@@ -2338,5 +2344,37 @@ window.addEventListener('load',function(){
     if(typeof goAnalise==='function'){goAnalise();}
   }catch(e){console.error('solo-analise boot:',e);}
 });
+
+
+/* ── ORÇAMENTO DE COMPRA ── */
+function _loteOrcPayload(l){
+  var s=calcStats(l);
+  var pv=suplPct[l]!=null?suplPct[l]:0.1;
+  return{id:l,num:'Lote 0'+l,nome:suplNome[l]||'Lote 0'+l,
+    animais:s.n,peso:Math.round(s.med*10)/10,
+    produto:'Proteinato 0,1%',prodNome:'',pv:pv,
+    kgSaco:pesoSaco||30,precoSaco:0};
+}
+function gerarOrcamentoLote(l){
+  var s=calcStats(l);
+  if(!s.n){alert('Lote sem animais com peso.');return;}
+  var faz=document.getElementById('inp-fazenda');
+  var payload={lotes:[_loteOrcPayload(l)],periodo:30,nxtId:2,
+    fazNome:faz?faz.value:'',fazCliente:'',
+    fazData:new Date().toISOString().split('T')[0]};
+  localStorage.setItem('gpl_orcamento',JSON.stringify(payload));
+  window.open('orcamento-compra.html','_blank');
+}
+function gerarOrcamentoTodos(){
+  var lotes=getLotes().filter(function(l){return calcStats(l).n>0;});
+  if(!lotes.length){alert('Nenhum lote com animais pesados.');return;}
+  var faz=document.getElementById('inp-fazenda');
+  var payload={lotes:lotes.map(_loteOrcPayload),periodo:30,
+    nxtId:lotes.length+1,
+    fazNome:faz?faz.value:'',fazCliente:'',
+    fazData:new Date().toISOString().split('T')[0]};
+  localStorage.setItem('gpl_orcamento',JSON.stringify(payload));
+  window.open('orcamento-compra.html','_blank');
+}
 </script>
 </body></html>

@@ -456,7 +456,8 @@ function gerarPDF(){
           ?'<br><small><b>Custo total:</b> R$ '+fmt(c.custo)+'</small>'
           +'<br><small style="color:#555"><b>Custo/dia lote:</b> R$ '+fmt(c.custoDia)+'</small>'
           +'<br><small style="color:#555"><b>Custo/cabeça/'+periodo+'d:</b> R$ '+fmt(c.custoCab)+'</small>'
-          +'<br><small style="color:#555"><b>Custo/animal/dia:</b> R$ '+fmt(c.custoAniDia)+'</small>':'')
+          +'<br><small style="color:#555"><b>Custo/animal/dia:</b> R$ '+fmt(c.custoAniDia)+'</small>'
+          +'<br><small style="color:#aaa">Saco: R$ '+fmt(parseFloat(l.precoSaco))+' · R$/kg: R$ '+fmt(parseFloat(l.precoSaco)/(parseFloat(l.kgSaco)||1))+'</small>':'')
       +'</td>'
       +'</tr>';
   }).join("");

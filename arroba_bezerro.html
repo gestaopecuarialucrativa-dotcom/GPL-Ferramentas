@@ -2,7 +2,7 @@
 <html lang="pt-BR"><head><meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Arroba do Bezerro — Gestão Pecuária Lucrativa</title>
-<meta name="description" content="Calcule o ágio ou deságio da arroba do bezerro frente ao animal de venda — e em quanto tempo se paga.">
+<meta name="description" content="Calcule o ágio da arroba do bezerro e compare vender como boi magro ou boi gordo.">
 <style>
 :root{--v:#1B5E20;--v2:#2E7D32;--v3:#4CAF50;--bg:#eef2ec;--card:#fff;--tx:#1b2c1b;--mut:#65766a;--line:#e0e7e0;--al:#FF6F00}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -25,11 +25,10 @@ label{display:block;font-size:12.5px;font-weight:700;color:var(--tx);margin:0 0 
 .ig{display:flex;border:1.5px solid var(--line);border-radius:11px;overflow:hidden;background:#fff}
 .ig input{flex:1;border:none;padding:12px 13px;font-size:15px;font-family:inherit;color:var(--tx);outline:none;min-width:0}
 .ig .suf{background:#f1f5f0;color:var(--mut);font-size:12px;font-weight:700;display:flex;align-items:center;padding:0 12px;white-space:nowrap;border-left:1px solid var(--line)}
-.opts3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
-.opt{border:1.5px solid var(--line);border-radius:12px;padding:12px 6px;text-align:center;cursor:pointer;background:#fff;transition:.15s}
-.opt.sel{border-color:var(--v2);background:#f1f9f2}
-.opt svg{width:26px;height:26px;color:var(--v2);display:block;margin:0 auto 5px}
-.opt .tn{font-size:12.5px;font-weight:700}.opt .td{font-size:10px;color:var(--mut);margin-top:1px}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.row2>.f{min-width:0}
+.row2 .ig{min-width:0}
+.row2 .ig .suf{padding:0 8px;font-size:11px}
 .opts2{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:11px}
 .optb{border:1.5px solid var(--line);border-radius:12px;padding:12px 10px;cursor:pointer;background:#fff;display:flex;align-items:center;gap:9px;transition:.15s}
 .optb.sel{border-color:var(--v2);background:#f1f9f2}
@@ -39,23 +38,30 @@ label{display:block;font-size:12.5px;font-weight:700;color:var(--tx);margin:0 0 
 .calc-btn{width:100%;background:var(--v3);color:#fff;border:none;font-weight:800;font-size:16px;border-radius:13px;padding:16px;cursor:pointer;margin-top:18px;display:flex;align-items:center;justify-content:center;gap:9px}
 .calc-btn svg{width:19px;height:19px}
 .res{display:none;margin-top:6px}.res.on{display:block}
-.agio-card{border-radius:16px;padding:20px 18px;color:#fff;text-align:center;margin-bottom:14px}
-.agio-card .l{font-size:12px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;opacity:.9}
-.agio-card .v{font-size:34px;font-weight:800;line-height:1.1;margin:6px 0 2px}
-.agio-card .s{font-size:13px;opacity:.95}
-.semaforo{display:inline-flex;align-items:center;gap:7px;background:rgba(255,255,255,.18);border-radius:20px;padding:5px 13px;font-size:12.5px;font-weight:800;margin-top:10px}
-.semaforo svg{width:15px;height:15px}
+/* dois cenarios lado a lado */
+.cen2{display:grid;grid-template-columns:1fr 1fr;gap:11px;margin-bottom:14px}
+.cen{border-radius:15px;padding:16px 13px;color:#fff;text-align:center}
+.cen .ct{font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;opacity:.95;margin-bottom:8px;display:flex;align-items:center;justify-content:center;gap:6px}
+.cen .ct svg{width:16px;height:16px}
+.cen .cpct{font-size:27px;font-weight:800;line-height:1}
+.cen .crs{font-size:11.5px;opacity:.95;margin-top:2px}
+.cen .csem{font-size:10.5px;font-weight:800;background:rgba(255,255,255,.2);border-radius:12px;padding:3px 9px;margin-top:8px;display:inline-block}
+.cen .cdet{font-size:11.5px;opacity:.95;margin-top:8px;border-top:1px solid rgba(255,255,255,.25);padding-top:8px;text-align:left;line-height:1.5}
 .mgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
 .m{background:var(--card);border:1px solid var(--line);border-radius:13px;padding:13px;text-align:center}
-.m .mv{font-size:19px;font-weight:800;color:var(--v);line-height:1;word-break:break-word}
+.m .mv{font-size:18px;font-weight:800;color:var(--v);line-height:1;word-break:break-word}
 .m .ml{font-size:11px;color:var(--mut);margin-top:5px;font-weight:600}
 .m.full{grid-column:1/3}
-.m.hi{background:var(--v);border-color:var(--v)}.m.hi .mv{color:#fff}.m.hi .ml{color:#cde8cf}
-.linha{background:#fff7ed;border:1px solid #ffe0bd;border-radius:13px;padding:14px 15px;margin-bottom:14px;font-size:13.5px;display:flex;gap:10px;align-items:flex-start}
-.linha svg{width:18px;height:18px;color:var(--al);flex:none;margin-top:2px}
+.rec{background:#fff7ed;border:1px solid #ffe0bd;border-radius:13px;padding:15px 16px;margin-bottom:14px}
+.rec-h{font-size:12px;font-weight:800;color:var(--al);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;display:flex;align-items:center;gap:7px}
+.rec-h svg{width:16px;height:16px}
+.rec-i{display:flex;gap:9px;font-size:13px;line-height:1.4;margin-bottom:8px}
+.rec-i:last-child{margin-bottom:0}
+.rec-i svg{width:15px;height:15px;color:var(--al);flex:none;margin-top:2px}
 .wa-btn{display:flex;align-items:center;justify-content:center;gap:9px;width:100%;background:#25D366;color:#fff;font-weight:800;font-size:15px;border:none;border-radius:13px;padding:15px;cursor:pointer;text-decoration:none;margin-top:4px}
 .wa-btn svg{width:19px;height:19px}
 .foot{text-align:center;font-size:11.5px;color:var(--mut);margin-top:22px;line-height:1.6}
+.note{font-size:11px;color:var(--mut);text-align:center;margin-top:10px;line-height:1.5}
 </style></head><body>
 <a href="painel.html" class="home">‹ Início</a>
 <div class="page">
@@ -67,132 +73,191 @@ label{display:block;font-size:12.5px;font-weight:700;color:var(--tx);margin:0 0 
 
   <div class="intro">
     <h1>Arroba do Bezerro</h1>
-    <p>Descubra o ágio (ou deságio) da arroba que você pagou no bezerro frente ao animal de venda — e em quanto tempo ele se paga.</p>
+    <p>Veja o ágio da arroba que você pagou no bezerro e compare vender como boi magro ou seguir até o boi gordo.</p>
   </div>
 
-  <div class="sec-t"><span class="bar"></span>1. Como vai vender</div>
-  <div class="card">
-    <div class="opts3">
-      <div class="opt" data-venda="Boi magro" data-base="vivo" onclick="pickVenda(this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M5 7c-2 0-3-1.2-3-3 1.8 0 3 1 3.3 2.5"/><path d="M19 7c2 0 3-1.2 3-3-1.8 0-3 1-3.3 2.5"/><path d="M5.5 7h13v5a6.5 6.5 0 0 1-13 0Z"/></svg><div class="tn">Boi magro</div><div class="td">vivo</div></div>
-      <div class="opt" data-venda="Boi gordo" data-base="vivo" onclick="pickVenda(this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M5 7c-2 0-3-1.2-3-3 1.8 0 3 1 3.3 2.5"/><path d="M19 7c2 0 3-1.2 3-3-1.8 0-3 1-3.3 2.5"/><path d="M5.5 7h13v5a6.5 6.5 0 0 1-13 0Z"/><path d="M9.5 12v1.5"/><path d="M14.5 12v1.5"/></svg><div class="tn">Boi gordo</div><div class="td">vivo</div></div>
-      <div class="opt" data-venda="Novilha gorda" data-base="vivo" onclick="pickVenda(this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M5 8c-1.5 0-2.5-1-2.5-2.5C4 6 5 7 6 8"/><path d="M19 8c1.5 0 2.5-1 2.5-2.5C20 6 19 7 18 8"/><path d="M6 8h12v4.5a6 6 0 0 1-12 0Z"/></svg><div class="tn">Novilha</div><div class="td">gorda</div></div>
-    </div>
-    <div class="f" style="margin-top:12px"><label>Valor da arroba de venda (atual ou projeção)</label><div class="ig"><input id="arrVenda" inputmode="decimal" placeholder="ex: 300"><span class="suf">R$/@</span></div><div class="hint">É a referência do ágio — a arroba que você vai receber.</div></div>
-  </div>
-
-  <div class="sec-t"><span class="bar"></span>2. O bezerro que você comprou</div>
+  <div class="sec-t"><span class="bar"></span>Tipo de animal</div>
   <div class="card">
     <div class="opts2">
-      <div class="optb sel" data-modo="pesado" onclick="pickModo(this)"><span class="rdot"></span><div><div class="ot">Pesei (real)</div><div class="os">peso de balança</div></div></div>
-      <div class="optb" data-modo="olho" onclick="pickModo(this)"><span class="rdot"></span><div><div class="ot">No olho</div><div class="os">peso estimado</div></div></div>
+      <div class="optb sel" data-sexo="macho" onclick="pickSexo(this)"><span class="rdot"></span><div><div class="ot">Macho</div><div class="os">boi magro / gordo</div></div></div>
+      <div class="optb" data-sexo="femea" onclick="pickSexo(this)"><span class="rdot"></span><div><div class="ot">Fêmea</div><div class="os">novilha magra / gorda</div></div></div>
     </div>
-    <div class="f"><label>Preço pago por cabeça</label><div class="ig"><input id="precoCab" inputmode="decimal" placeholder="ex: 2.100"><span class="suf">R$/cab</span></div></div>
-    <div class="f"><label id="lblPeso">Peso do bezerro (pesado)</label><div class="ig"><input id="pesoBez" inputmode="decimal" placeholder="ex: 210"><span class="suf">kg vivo</span></div><div class="hint" id="hintPeso">Arroba viva = peso ÷ 30. O sistema calcula a arroba que você pagou.</div></div>
   </div>
 
-  <div class="sec-t"><span class="bar"></span>3. Projeção até a venda</div>
+  <div class="sec-t"><span class="bar"></span>1. O bezerro que você comprou</div>
   <div class="card">
-    <div class="f"><label>Peso esperado na venda</label><div class="ig"><input id="pesoVenda" inputmode="decimal" placeholder="ex: 420"><span class="suf">kg vivo</span></div></div>
-    <div class="f"><label>GMD esperado</label><div class="ig"><input id="gmd" inputmode="decimal" placeholder="ex: 0,500"><span class="suf">kg/dia</span></div><div class="hint">define o tempo do animal na fazenda</div></div>
+    <div class="opts2">
+      <div class="optb sel" data-modo="pesado" onclick="pickModo(this)"><span class="rdot"></span><div><div class="ot">Pesei (real)</div><div class="os">sei a arroba</div></div></div>
+      <div class="optb" data-modo="olho" onclick="pickModo(this)"><span class="rdot"></span><div><div class="ot">No olho</div><div class="os">preço por cabeça</div></div></div>
+    </div>
+    <div class="f" id="fArroba"><label>Valor da arroba que paguei</label><div class="ig"><input id="arrPagaIn" inputmode="decimal" placeholder="ex: 300"><span class="suf">R$/@</span></div></div>
+    <div class="f" id="fPreco" style="display:none"><label>Preço pago por cabeça</label><div class="ig"><input id="precoCab" inputmode="decimal" placeholder="ex: 2.100"><span class="suf">R$/cab</span></div></div>
+    <div class="f"><label id="lblPeso">Peso real (pesado)</label><div class="ig"><input id="pesoBez" inputmode="decimal" placeholder="ex: 210"><span class="suf">kg vivo</span></div><div class="hint" id="hintPeso">Usado para mostrar quantas arrobas o bezerro tem (peso ÷ 30).</div></div>
+  </div>
+
+  <div class="sec-t"><span class="bar"></span>2. Preços de venda (atual ou projeção)</div>
+  <div class="card">
+    <div class="f"><label id="lblMagro">Arroba do BOI MAGRO <span style="color:#65766a;font-weight:600">(opcional)</span></label><div class="ig"><input id="arrMagro" inputmode="decimal" placeholder="ex: 300"><span class="suf">R$/@</span></div></div>
+    <div class="f"><label id="lblGordo">Arroba do BOI GORDO</label><div class="ig"><input id="arrGordo" inputmode="decimal" placeholder="ex: 320"><span class="suf">R$/@</span></div></div>
+  </div>
+
+  <div class="sec-t"><span class="bar"></span>3. Ganho e pesos de venda</div>
+  <div class="card">
+    <div class="f"><label>GMD esperado</label><div class="ig"><input id="gmd" inputmode="decimal" placeholder="ex: 0,500"><span class="suf">kg/dia</span></div><div class="hint">um só GMD para os dois cenários — define o tempo na fazenda</div></div>
+    <div class="row2">
+      <div class="f"><label id="lblPesoMagro">Peso vender MAGRO</label><div class="ig"><input id="pesoMagro" inputmode="decimal" placeholder="ex: 450"><span class="suf">kg</span></div></div>
+      <div class="f"><label id="lblPesoGordo">Peso vender GORDO</label><div class="ig"><input id="pesoGordo" inputmode="decimal" placeholder="ex: 540"><span class="suf">kg</span></div></div>
+    </div>
   </div>
 
   <button class="calc-btn" onclick="calcular()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 7h8"/><path d="M8 11h8"/><path d="M8 15h4"/></svg>Calcular ágio</button>
 
   <div class="res" id="res">
-    <div class="sec-t"><span class="bar"></span>Resultado</div>
-    <div class="agio-card" id="agioCard">
-      <div class="l" id="agioLabel">Ágio da arroba</div>
-      <div class="v" id="agioPct">—</div>
-      <div class="s" id="agioRS">—</div>
-      <div class="semaforo" id="semaforo"></div>
+    <div class="sec-t"><span class="bar"></span>Resultado — magro x gordo</div>
+    <div class="cen2">
+      <div class="cen" id="cenMagro"></div>
+      <div class="cen" id="cenGordo"></div>
     </div>
     <div class="mgrid">
       <div class="m"><div class="mv" id="arrPaga">—</div><div class="ml">Arroba paga no bezerro</div></div>
-      <div class="m"><div class="mv" id="arrVendaM">—</div><div class="ml">Arroba de venda</div></div>
-      <div class="m"><div class="mv" id="arrBez">—</div><div class="ml">@ do bezerro (vivo)</div></div>
-      <div class="m"><div class="mv" id="relTroca">—</div><div class="ml">Relação de troca</div></div>
-      <div class="m"><div class="mv" id="tempo">—</div><div class="ml">Tempo na fazenda</div></div>
-      <div class="m"><div class="mv" id="gramas">—</div><div class="ml">Ágio em peso (g/dia)</div></div>
-      <div class="m hi full"><div class="mv" id="equil">—</div><div class="ml">Preço de equilíbrio (máx. sem ágio)</div></div>
+      <div class="m"><div class="mv" id="arrBezM">—</div><div class="ml">@ do bezerro (vivo)</div></div>
     </div>
-    <div class="linha" id="linhaDiaria">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
-      <span id="diariaTxt">—</span>
+    <div class="rec" id="recBox" style="display:none">
+      <div class="rec-h"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4"/><path d="M12 17h.01"/><path d="M10.3 3.9 2 18a2 2 0 0 0 1.7 3h16.6A2 2 0 0 0 22 18L13.7 3.9a2 2 0 0 0-3.4 0Z"/></svg>Ágio alto — o que fazer</div>
+      <div id="recList"></div>
     </div>
     <a class="wa-btn" id="waBtn" href="#" target="_blank"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20l1.4-4A8 8 0 1 1 9 19Z"/></svg>Enviar resultado no WhatsApp</a>
+    <div class="note">Faixa de referência de mercado: bons produtores operam com ágio até cerca de 30–35% sobre a arroba de venda.</div>
   </div>
 
   <div class="foot">Gestão Pecuária Lucrativa · Rogério Avelino<br>(63) 99108-2453 · @gestaopecuarialucrativa</div>
 </div>
 
 <script>
-var WA="5563991082453", venda="", modo="pesado";
-function pickVenda(el){document.querySelectorAll('[data-venda]').forEach(function(t){t.classList.remove('sel')});el.classList.add('sel');venda=el.getAttribute('data-venda');}
+var WA="5563991082453", modo="pesado", sexo="macho";
+function pickSexo(el){
+  document.querySelectorAll('[data-sexo]').forEach(function(t){t.classList.remove('sel')});el.classList.add('sel');
+  sexo=el.getAttribute('data-sexo');
+  var magro=sexo==='macho'?'BOI MAGRO':'NOVILHA MAGRA';
+  var gordo=sexo==='macho'?'BOI GORDO':'NOVILHA GORDA';
+  document.getElementById('lblMagro').innerHTML='Arroba da '+magro+' <span style="color:#65766a;font-weight:600">(opcional)</span>';
+  document.getElementById('lblGordo').textContent='Arroba da '+gordo;
+  document.getElementById('lblPesoMagro').textContent='Peso vender '+(sexo==='macho'?'MAGRO':'NOV. MAGRA');
+  document.getElementById('lblPesoGordo').textContent='Peso vender '+(sexo==='macho'?'GORDO':'NOV. GORDA');
+}
 function pickModo(el){
   document.querySelectorAll('[data-modo]').forEach(function(t){t.classList.remove('sel')});el.classList.add('sel');
   modo=el.getAttribute('data-modo');
   var pesado=modo==='pesado';
-  document.getElementById('lblPeso').textContent=pesado?'Peso do bezerro (pesado)':'Peso estimado (no olho)';
-  document.getElementById('hintPeso').textContent=pesado?'Peso de balança — arroba real que você pagou.':'Não precisa saber a arroba: informe o peso estimado e o preço por cabeça que o sistema calcula (peso ÷ 30 = arrobas; preço ÷ arrobas = arroba paga).';
+  document.getElementById('fArroba').style.display = pesado?'block':'none';
+  document.getElementById('fPreco').style.display = pesado?'none':'block';
+  document.getElementById('lblPeso').textContent=pesado?'Peso real (pesado)':'Peso estimado (no olho)';
+  document.getElementById('hintPeso').textContent=pesado?'Usado para mostrar quantas arrobas o bezerro tem (peso ÷ 30).':'Não precisa saber a arroba: informe o preço por cabeça e o peso estimado que o sistema calcula (preço ÷ (peso÷30)).';
 }
 function nv(id){var v=(document.getElementById(id).value||'').replace(/\./g,'').replace(',','.');return parseFloat(v)||0;}
 function fmt(n,d){return (n||0).toLocaleString('pt-BR',{minimumFractionDigits:d||0,maximumFractionDigits:d||0});}
+function tempoTxt(dias){
+  if(dias<=0) return '—';
+  var meses=dias/30.4;
+  if(meses<12) return fmt(meses,1)+' meses';
+  var anos=Math.floor(meses/12), m=Math.round(meses-anos*12);
+  if(m===12){anos++;m=0;}
+  return anos+(anos>1?' anos':' ano')+(m>0?(' e '+m+(m>1?' meses':' mês')):'');
+}
+
+function semaforo(pct){
+  // <=30 verde, 30-35 amarelo, >35 vermelho
+  if(pct<=30) return {cor:'linear-gradient(135deg,#1B5E20,#2E7D32)',txt:pct<0?'Deságio':'Ágio bom',alto:false};
+  if(pct<=35) return {cor:'linear-gradient(135deg,#E65100,#FB8C00)',txt:'Atenção (30–35%)',alto:false};
+  return {cor:'linear-gradient(135deg,#B71C1C,#C62828)',txt:'Alto — perigo (+35%)',alto:true};
+}
+
+function cenarioHTML(nome,arrPaga,arrVenda,arrBez,dias,perigoIcon){
+  var agioRS=arrPaga-arrVenda;
+  var agioPct=arrVenda>0?(arrPaga-arrVenda)/arrVenda*100:0;
+  var s=semaforo(agioPct);
+  var agioTotal=agioRS*arrBez;
+  var diaria=dias>0?agioTotal/dias:0;
+  var isAgio=agioRS>=0;
+  var det='Tempo: '+tempoTxt(dias)+'<br>'
+    +'Arroba venda: R$ '+fmt(arrVenda,0)+'<br>'
+    +(isAgio&&dias>0?('Diária p/ pagar: R$ '+fmt(diaria,2)+'/dia'):(isAgio?'':'Comprou com vantagem'));
+  var icon=nome==='Boi magro'
+    ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M5.5 8h13v4a6.5 6.5 0 0 1-13 0Z"/></svg>'
+    : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M5.5 8h13v4.5a6.5 6.5 0 0 1-13 0Z"/><path d="M9.5 12.5v1"/><path d="M14.5 12.5v1"/></svg>';
+  return {
+    html:'<div class="ct">'+icon+nome+'</div>'
+      +'<div class="cpct">'+(isAgio?'+':'')+fmt(agioPct,1)+'%</div>'
+      +'<div class="crs">'+(isAgio?'+':'')+'R$ '+fmt(agioRS,0)+'/@</div>'
+      +'<div class="csem">'+s.txt+'</div>'
+      +'<div class="cdet">'+det+'</div>',
+    cor:s.cor, alto:s.alto, agioPct:agioPct, dias:dias, diaria:diaria
+  };
+}
 
 function calcular(){
-  var av=nv('arrVenda'), pc=nv('precoCab'), pb=nv('pesoBez'), pv=nv('pesoVenda'), gmd=nv('gmd');
-  if(!venda){alert('Escolha como vai vender (boi magro, gordo ou novilha).');return;}
-  if(!av||!pc||!pb){alert('Preencha a arroba de venda, o preço por cabeça e o peso do bezerro.');return;}
+  var pb=nv('pesoBez');
+  var am=nv('arrMagro'), ag=nv('arrGordo'), gmd=nv('gmd');
+  var pm=nv('pesoMagro'), pg=nv('pesoGordo');
+  if(!pb){alert('Preencha o peso do bezerro.');return;}
+  if(!am&&!ag){alert('Preencha ao menos uma arroba de venda (magro ou gordo).');return;}
 
-  var arrBez=pb/30;                       // @ vivas do bezerro
-  var arrPaga=arrBez>0?pc/arrBez:0;       // R$/@ paga
-  var agioRS=arrPaga-av;                  // R$/@ (+ agio / - desagio)
-  var agioPct=av>0?(arrPaga-av)/av*100:0;
-  var rel=av>0?arrPaga/av:0;
-  var ganho=pv-pb;
-  var dias=gmd>0&&ganho>0?Math.round(ganho/gmd):0;
-  var agioTotal=agioRS*arrBez;            // R$ total de ágio nas @ compradas
-  var diaria=dias>0?agioTotal/dias:0;     // R$/dia
-  // ágio em peso: o ágio total (R$) equivale a quantos kg de carcaça/peso ao preço de venda
-  var agioKgTotal=av>0?(agioTotal/av)*30:0; // R$ -> @ -> kg vivo (1@ viva=30kg)
-  var gPorDia=dias>0?(agioKgTotal/dias)*1000:0; // g/dia que precisa ganhar a mais p/ cobrir
-  var equilArr=av;
-  var equilCab=equilArr*arrBez;
-
-  var isAgio=agioRS>=0;
-  document.getElementById('agioLabel').textContent=isAgio?'Ágio da arroba':'Deságio da arroba';
-  document.getElementById('agioPct').textContent=(isAgio?'+':'')+fmt(agioPct,1)+'%';
-  document.getElementById('agioRS').textContent=(isAgio?'+':'')+'R$ '+fmt(agioRS,0)+'/@  ('+(isAgio?'pagou acima':'pagou abaixo')+' da venda)';
-  document.getElementById('arrPaga').textContent='R$ '+fmt(arrPaga,0)+(modo==='olho'?' *':'');
-  document.getElementById('arrVendaM').textContent='R$ '+fmt(av,0);
-  document.getElementById('arrBez').textContent=fmt(arrBez,1)+' @'+(modo==='olho'?' *':'');
-  document.getElementById('relTroca').textContent=fmt(rel,2)+'x';
-  document.getElementById('tempo').textContent=dias>0?(fmt(dias,0)+' dias'):'—';
-  document.getElementById('gramas').textContent=(dias>0&&isAgio)?(fmt(Math.abs(gPorDia),0)+' g/dia'):'—';
-  document.getElementById('equil').textContent='R$ '+fmt(equilArr,0)+'/@  ·  até R$ '+fmt(equilCab,0)+' no bezerro';
-
-  var card=document.getElementById('agioCard'), sem=document.getElementById('semaforo');
-  var cor,txt,icon;
-  if(agioPct<=0){cor='linear-gradient(135deg,#1B5E20,#2E7D32)';txt='Deságio — comprou com vantagem';icon='<circle cx="12" cy="12" r="9"/><path d="M8.5 12.5l2.5 2.5 4.5-5"/>';}
-  else if(agioPct<=30){cor='linear-gradient(135deg,#E65100,#FB8C00)';txt='Ágio dentro do aceitável';icon='<path d="M12 9v4"/><path d="M12 17h.01"/><circle cx="12" cy="12" r="9"/>';}
-  else{cor='linear-gradient(135deg,#B71C1C,#C62828)';txt='Ágio alto (acima de 30%) — alerta';icon='<path d="M12 9v4"/><path d="M12 17h.01"/><path d="M10.3 3.9 2 18a2 2 0 0 0 1.7 3h16.6A2 2 0 0 0 22 18L13.7 3.9a2 2 0 0 0-3.4 0Z"/>';}
-  card.style.background=cor;
-  sem.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'+icon+'</svg>'+txt;
-
-  var lt=document.getElementById('diariaTxt');
-  if(agioRS<=0){
-    lt.innerHTML='<b>Deságio: sem ágio a pagar.</b> Você comprou a arroba do bezerro abaixo da arroba de venda — a diferença de R$ '+fmt(Math.abs(agioRS),0)+'/@ já está a seu favor.';
+  var arrBez=pb/30;
+  var arrPaga;
+  if(modo==='pesado'){
+    arrPaga=nv('arrPagaIn');
+    if(!arrPaga){alert('Informe o valor da arroba que você pagou.');return;}
   } else {
-    lt.innerHTML='<b>Diária para pagar o ágio: R$ '+fmt(diaria,2)+'/dia</b>, ao longo de '+fmt(dias,0)+' dias na fazenda. O ágio total de R$ '+fmt(agioTotal,0)+' se dilui nesse período.';
+    var pc=nv('precoCab');
+    if(!pc){alert('Informe o preço pago por cabeça.');return;}
+    arrPaga=arrBez>0?pc/arrBez:0;
   }
+  var diasMagro=gmd>0&&pm>pb?Math.round((pm-pb)/gmd):0;
+  var diasGordo=gmd>0&&pg>pb?Math.round((pg-pb)/gmd):0;
 
-  var msg='*ARROBA DO BEZERRO — GPL*\nVenda: '+venda+(modo==='olho'?' (peso estimado)':'')+'\n\n'
-    +'Arroba paga: R$ '+fmt(arrPaga,0)+'/@\n'
-    +'Arroba de venda: R$ '+fmt(av,0)+'/@\n'
-    +(isAgio?'Ágio: +':'Deságio: ')+fmt(agioPct,1)+'% ('+(isAgio?'+':'')+'R$ '+fmt(agioRS,0)+'/@)\n'
-    +'Relação de troca: '+fmt(rel,2)+'x\n'
-    +'Tempo na fazenda: '+fmt(dias,0)+' dias\n'
-    +'Equilíbrio: R$ '+fmt(equilArr,0)+'/@ (até R$ '+fmt(equilCab,0)+'/cab)\n'
-    +(isAgio?('Diária p/ pagar ágio: R$ '+fmt(diaria,2)+'/dia\n'):'')
+  var nomeMagro=sexo==='macho'?'Boi magro':'Novilha magra';
+  var nomeGordo=sexo==='macho'?'Boi gordo':'Novilha gorda';
+
+  var cM=null, cG=null;
+  var cenM=document.getElementById('cenMagro'), cenG=document.getElementById('cenGordo');
+
+  if(am>0){
+    cM=cenarioHTML(nomeMagro,arrPaga,am,arrBez,diasMagro);
+    cenM.innerHTML=cM.html; cenM.style.background=cM.cor; cenM.style.display='block';
+  } else { cenM.style.display='none'; }
+
+  if(ag>0){
+    cG=cenarioHTML(nomeGordo,arrPaga,ag,arrBez,diasGordo);
+    cenG.innerHTML=cG.html; cenG.style.background=cG.cor; cenG.style.display='block';
+  } else { cenG.style.display='none'; }
+
+  var so=(am>0)!==(ag>0);
+  document.querySelector('.cen2').style.gridTemplateColumns = so ? '1fr' : '1fr 1fr';
+
+  document.getElementById('arrPaga').textContent='R$ '+fmt(arrPaga,0)+(modo==='olho'?' *':'');
+  document.getElementById('arrBezM').textContent=fmt(arrBez,1)+' @'+(modo==='olho'?' *':'');
+
+  // recomendacoes se algum cenario tiver agio alto
+  var alto = (cM&&cM.alto) || (cG&&cG.alto);
+  var recBox=document.getElementById('recBox');
+  if(alto){
+    var recs=[
+      'Acelere o ganho de peso (aumente o GMD) para diluir o custo da arroba de entrada.',
+      'Venda/abata mais pesado para melhorar a relação de troca.',
+      'Ajuste o manejo para encurtar o tempo do animal na fazenda.',
+      'Controle a média dos lotes: compense uma compra mais cara com lotes mais baratos.'
+    ];
+    var h='';
+    recs.forEach(function(r){h+='<div class="rec-i"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></svg>'+r+'</div>';});
+    document.getElementById('recList').innerHTML=h;
+    recBox.style.display='block';
+  } else { recBox.style.display='none'; }
+
+  // whatsapp
+  var msg='*ARROBA DO BEZERRO — GPL*\n'+(sexo==='macho'?'Macho':'Fêmea')+(modo==='olho'?' · peso estimado':'')+'\n\n'
+    +'Arroba paga: R$ '+fmt(arrPaga,0)+'/@ ('+fmt(arrBez,1)+' @)\n\n'
+    +(cM?('➡ '+nomeMagro+' (R$ '+fmt(am,0)+'/@): ágio '+(cM.agioPct>=0?'+':'')+fmt(cM.agioPct,1)+'% · '+tempoTxt(diasMagro)+'\n'):'')
+    +(cG?('➡ '+nomeGordo+' (R$ '+fmt(ag,0)+'/@): ágio '+(cG.agioPct>=0?'+':'')+fmt(cG.agioPct,1)+'% · '+tempoTxt(diasGordo)+'\n'):'')
     +'\n📞 Rogério Avelino — (63) 99108-2453';
   document.getElementById('waBtn').href='https://wa.me/'+WA+'?text='+encodeURIComponent(msg);
 

@@ -70,6 +70,7 @@ body{font-family:Arial,'Segoe UI',Roboto,system-ui,sans-serif;background:var(--g
 .cr2{display:flex;align-items:center;background:var(--g7);border:1.5px solid var(--g6);border-radius:var(--rs);overflow:hidden;transition:border-color .2s}
 .cr2:focus-within{border-color:var(--v3);background:#fff}
 .cr2 input{flex:1;padding:8px 11px;border:none;outline:none;background:transparent;font-family:Arial,'Segoe UI',Roboto,system-ui,sans-serif;font-size:15px;font-weight:700;color:var(--g1);min-width:0}
+.ref{display:flex;align-items:flex-start;gap:5px;font-size:11px;color:var(--g3,#65766a);margin:5px 2px 0;line-height:1.35}.ref svg{width:12px;height:12px;color:#2E7D32;flex:none;margin-top:1px}.ref b{color:#2E7D32;font-weight:800}
 .cu{padding:0 9px;font-size:11px;font-weight:600;color:var(--g4);white-space:nowrap;background:var(--g6);align-self:stretch;display:flex;align-items:center;border-left:1px solid var(--g5)}
 .cc2{background:var(--g7);border:1.5px solid var(--g6);border-radius:var(--rs);padding:8px 11px;display:flex;align-items:center;justify-content:space-between}
 .cc2 .vl{font-family:Arial,'Segoe UI',Roboto,system-ui,sans-serif;font-size:14px;font-weight:700;color:var(--v2)}
@@ -234,33 +235,32 @@ body{font-family:Arial,'Segoe UI',Roboto,system-ui,sans-serif;background:var(--g
 
       <div class="gi">
         <span class="gl">Meta &amp; Venda</span>
-        <div class="cp"><label>Meta de Resultado</label><div class="cr2"><input type="number" id="r_mt" value="" step="0.1" oninput="cR()"><span class="cu">% a.a.</span></div></div>
+        <div class="cp"><label>Meta de Resultado</label><div class="cr2"><input type="number" id="r_mt" value="" step="0.1" oninput="cR()"><span class="cu">% a.a.</span></div><div class="ref"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8h.01"/><path d="M11 12h1v4h1"/></svg><span><b>Meta recomendada: 4%</b></span></div></div>
         <div class="cp"><label>Resultado Esperado</label><div class="cc2"><span class="vl" id="r_re">R$ 40.000</span><span class="un">fazenda × meta</span></div></div>
-        <div class="cp"><label>Margem sobre a Venda</label><div class="cr2"><input type="number" id="r_mg" value="" oninput="cR()"><span class="cu">%</span></div></div>
+        <div class="cp"><label>Margem sobre a Venda</label><div class="cr2"><input type="number" id="r_mg" value="" oninput="cR()"><span class="cu">%</span></div><div class="ref"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8h.01"/><path d="M11 12h1v4h1"/></svg><span><b>Referência: 20%</b></span></div></div>
         <div class="cp"><label>Valor Médio de Venda</label><div class="cr2"><input type="number" id="r_vv" value="" oninput="cR()"><span class="cu">R$/cab</span></div></div>
         <div class="cp"><label>Preço da Arroba na Região</label><div class="cr2"><input type="number" id="r_pa" value="" oninput="cR()"><span class="cu">R$/@</span></div></div>
       </div>
 
       <div class="gi">
         <span class="gl">Dados Zootécnicos</span>
-        <div class="cp"><label>Desembolso Reposição</label><div class="cr2"><input type="number" id="r_dr" value="" oninput="cR()"><span class="cu">R$/cab</span></div></div>
+        <div class="cp"><label>Desembolso Reposição</label><div class="cr2"><input type="number" id="r_dr" value="" oninput="cR()"><span class="cu">R$/cab</span></div><div class="ref"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8h.01"/><path d="M11 12h1v4h1"/></svg><span>Ref. Inttegra (média clientes): <b>ágio compra machos 24,2%</b></span></div></div>
         <div class="cp"><label>Peso de Entrada</label><div class="cr2"><input type="number" id="r_pe" value="" oninput="cR()"><span class="cu">kg</span></div></div>
-        <div class="cp"><label>Peso ao Abate</label><div class="cr2"><input type="number" id="r_ps" value="" oninput="cR()"><span class="cu">kg</span></div></div>
+        <div class="cp"><label>Peso ao Abate</label><div class="cr2"><input type="number" id="r_ps" value="" oninput="cR()"><span class="cu">kg</span></div><div class="ref"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8h.01"/><path d="M11 12h1v4h1"/></svg><span>Ref. Inttegra (média clientes): <b>macho 20,1 @ · novilha 15,5 @</b></span></div></div>
         <div class="cp"><label>Peso a Ganhar na Fazenda</label><div class="cc2"><span class="vl" id="r_pg">200 kg</span><span class="un">abate − entrada</span></div></div>
 
         <div class="cp">
           <label>GMD — Ganho Médio Diário</label>
           <div class="cr2"><input type="number" id="r_gm" value="" step="0.005" oninput="cR()"><span class="cu">kg/dia</span></div>
           <div class="gmd-bench" id="r_bench">
-    <div class="gb-row"><span class="gb-label">vs Média Inttegra (0,403)</span><span class="gb-val ac">▲ 24% acima da média</span></div>
-    <div class="gb-row"><span class="gb-label">vs Top 30% (0,668)</span><span class="gb-val ab">▼ 25% abaixo do Top 30%</span></div></div>
+    <div class="gb-row"><span class="gb-label">Ref. Inttegra — Média 0,418 · Top 30% 0,668 kg/dia</span></div></div>
         </div>
 
         <div class="cp">
           <label>Giro de Estoque <span style="font-size:10px;color:var(--g4);font-weight:400">(calculado ou edite)</span></label>
           <div style="display:flex;gap:6px;align-items:center"><div class="cr2" style="flex:1"><input type="number" id="r_gi" value="" step="0.01" placeholder="0,92 (auto)" oninput="cR()"><span class="cu">x/ano</span></div><button onclick="document.getElementById(&#39;r_gi&#39;).value=&#39;&#39;;cR()" style="padding:8px 10px;background:#f4f4f4;border:1.5px solid #e8e8e8;border-radius:8px;font-size:11px;font-weight:700;color:#888;cursor:pointer;white-space:nowrap" title="Resetar para calculado">↺ auto</button></div>
         </div>
-        <div class="cp"><label>Rendimento de Carcaça</label><div class="cr2"><input type="number" id="r_rc" value="" oninput="cR()"><span class="cu">%</span></div></div>
+        <div class="cp"><label>Rendimento de Carcaça</label><div class="cr2"><input type="number" id="r_rc" value="" oninput="cR()"><span class="cu">%</span></div><div class="ref"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8h.01"/><path d="M11 12h1v4h1"/></svg><span>Ref. Inttegra (média clientes): <b>macho 54,3% · novilha 51,6%</b></span></div></div>
       </div>
     </div>
     <div class="pr" id="r_res">
@@ -391,17 +391,17 @@ body{font-family:Arial,'Segoe UI',Roboto,system-ui,sans-serif;background:var(--g
       </div>
       <div class="gi">
         <span class="gl">Meta &amp; Venda</span>
-        <div class="cp"><label>Meta de Resultado</label><div class="cr2"><input type="number" id="c_mt" value="" step="0.1" oninput="cC()"><span class="cu">% a.a.</span></div></div>
+        <div class="cp"><label>Meta de Resultado</label><div class="cr2"><input type="number" id="c_mt" value="" step="0.1" oninput="cC()"><span class="cu">% a.a.</span></div><div class="ref"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8h.01"/><path d="M11 12h1v4h1"/></svg><span><b>Meta recomendada: 4%</b></span></div></div>
         <div class="cp"><label>Resultado Esperado</label><div class="cc2"><span class="vl" id="c_re">—</span><span class="un">fazenda × meta</span></div></div>
-        <div class="cp"><label>Margem sobre a Venda</label><div class="cr2"><input type="number" id="c_mg" value="" oninput="cC()"><span class="cu">%</span></div></div>
+        <div class="cp"><label>Margem sobre a Venda</label><div class="cr2"><input type="number" id="c_mg" value="" oninput="cC()"><span class="cu">%</span></div><div class="ref"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8h.01"/><path d="M11 12h1v4h1"/></svg><span><b>Referência: 20%</b></span></div></div>
         <div class="cp"><label>Valor Médio de Venda</label><div class="cr2"><input type="number" id="c_vv" value="" oninput="cC()"><span class="cu">R$/cab</span></div></div>
         <div class="cp"><label>Preço da Arroba na Região</label><div class="cr2"><input type="number" id="c_pa" value="" oninput="cC()"><span class="cu">R$/@</span></div></div>
       </div>
       <div class="gi">
         <span class="gl">Dados Zootécnicos</span>
-        <div class="cp"><label>Taxa de Desmame</label><div class="cr2"><input type="number" id="c_td" value="" oninput="cC()"><span class="cu">%</span></div></div>
+        <div class="cp"><label>Taxa de Desmame</label><div class="cr2"><input type="number" id="c_td" value="" oninput="cC()"><span class="cu">%</span></div><div class="ref"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8h.01"/><path d="M11 12h1v4h1"/></svg><span>Ref. Inttegra (média clientes): <b>desfrute 57,4%</b></span></div></div>
         <div class="cp"><label>Participação das Matrizes</label><div class="cr2"><input type="number" id="c_pm" value="" oninput="cC()"><span class="cu">%</span></div></div>
-        <div class="cp"><label>Peso Médio do Rebanho</label><div class="cr2"><input type="number" id="c_pp" value="" oninput="cC()"><span class="cu">kg</span></div></div>
+        <div class="cp"><label>Peso Médio do Rebanho</label><div class="cr2"><input type="number" id="c_pp" value="" oninput="cC()"><span class="cu">kg</span></div><div class="ref"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8h.01"/><path d="M11 12h1v4h1"/></svg><span>Ref. Inttegra (média clientes): <b>peso médio rebanho ~288 kg (0,64 UA)</b></span></div></div>
       </div>
     </div>
     <div class="pr" id="c_res"></div>
@@ -428,22 +428,22 @@ body{font-family:Arial,'Segoe UI',Roboto,system-ui,sans-serif;background:var(--g
       </div>
       <div class="gi">
         <span class="gl">Meta &amp; Venda</span>
-        <div class="cp"><label>Meta de Resultado</label><div class="cr2"><input type="number" id="cc_mt" value="" step="0.1" oninput="cCC()"><span class="cu">% a.a.</span></div></div>
+        <div class="cp"><label>Meta de Resultado</label><div class="cr2"><input type="number" id="cc_mt" value="" step="0.1" oninput="cCC()"><span class="cu">% a.a.</span></div><div class="ref"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8h.01"/><path d="M11 12h1v4h1"/></svg><span><b>Meta recomendada: 4%</b></span></div></div>
         <div class="cp"><label>Resultado Esperado</label><div class="cc2"><span class="vl" id="cc_re">—</span><span class="un">fazenda × meta</span></div></div>
-        <div class="cp"><label>Margem sobre a Venda</label><div class="cr2"><input type="number" id="cc_mg" value="" oninput="cCC()"><span class="cu">%</span></div></div>
+        <div class="cp"><label>Margem sobre a Venda</label><div class="cr2"><input type="number" id="cc_mg" value="" oninput="cCC()"><span class="cu">%</span></div><div class="ref"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8h.01"/><path d="M11 12h1v4h1"/></svg><span><b>Referência: 20%</b></span></div></div>
         <div class="cp"><label>Valor Médio de Venda</label><div class="cr2"><input type="number" id="cc_vv" value="" oninput="cCC()"><span class="cu">R$/cab</span></div></div>
         <div class="cp"><label>Preço da Arroba na Região</label><div class="cr2"><input type="number" id="cc_pa" value="" oninput="cCC()"><span class="cu">R$/@</span></div></div>
       </div>
       <div class="gi">
         <span class="gl">Rebanho</span>
-        <div class="cp"><label>Taxa de Desmame</label><div class="cr2"><input type="number" id="cc_td" value="" oninput="cCC()"><span class="cu">%</span></div></div>
+        <div class="cp"><label>Taxa de Desmame</label><div class="cr2"><input type="number" id="cc_td" value="" oninput="cCC()"><span class="cu">%</span></div><div class="ref"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8h.01"/><path d="M11 12h1v4h1"/></svg><span>Ref. Inttegra (média clientes): <b>desfrute 57,4%</b></span></div></div>
         <div class="cp"><label>Participação das Matrizes</label><div class="cr2"><input type="number" id="cc_pm" value="" oninput="cCC()"><span class="cu">%</span></div></div>
-        <div class="cp"><label>Peso Médio do Rebanho</label><div class="cr2"><input type="number" id="cc_pp" value="" oninput="cCC()"><span class="cu">kg</span></div></div>
+        <div class="cp"><label>Peso Médio do Rebanho</label><div class="cr2"><input type="number" id="cc_pp" value="" oninput="cCC()"><span class="cu">kg</span></div><div class="ref"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8h.01"/><path d="M11 12h1v4h1"/></svg><span>Ref. Inttegra (média clientes): <b>peso médio rebanho ~288 kg (0,64 UA)</b></span></div></div>
       </div>
       <div class="gi">
         <span class="gl">Dados Zootécnicos</span>
-        <div class="cp"><label>Peso ao Desmame</label><div class="cr2"><input type="number" id="cc_pd" value="" oninput="cCC()"><span class="cu">kg</span></div></div>
-        <div class="cp"><label>Peso ao Abate</label><div class="cr2"><input type="number" id="cc_pa2" value="" oninput="cCC()"><span class="cu">kg</span></div></div>
+        <div class="cp"><label>Peso ao Desmame</label><div class="cr2"><input type="number" id="cc_pd" value="" oninput="cCC()"><span class="cu">kg</span></div><div class="ref"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8h.01"/><path d="M11 12h1v4h1"/></svg><span>Ref. Inttegra (média clientes): <b>peso desmame ~ varia por sistema</b></span></div></div>
+        <div class="cp"><label>Peso ao Abate</label><div class="cr2"><input type="number" id="cc_pa2" value="" oninput="cCC()"><span class="cu">kg</span></div><div class="ref"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8h.01"/><path d="M11 12h1v4h1"/></svg><span>Ref. Inttegra (média clientes): <b>macho 20,1 @ · novilha 15,5 @</b></span></div></div>
         <div class="cp"><label>Idade ao Abate</label><div class="cr2"><input type="number" id="cc_ia" value="" oninput="cCC()"><span class="cu">meses</span></div></div>
         <div class="cp"><label>Idade ao Desmame</label><div class="cr2"><input type="number" id="cc_id" value="" oninput="cCC()"><span class="cu">meses</span></div></div>
         <div class="cp"><label>GMD pós-desmame (calculado)</label><div class="cc2"><span class="vl" id="cc_gc">—</span><span class="un">kg/dia</span></div></div>
@@ -483,7 +483,7 @@ function voltar(){
 
 // ── GMD BENCHMARK ──────────────────────────────────────
 function benchGMD(gmd,prefixo){
-  const med=0.403,top=0.668;
+  const med=0.418,top=0.668;
   const vsMedia = gmd>=med
     ? `<span class="gb-val ac">▲ ${((gmd-med)/med*100).toFixed(0)}% acima da média</span>`
     : `<span class="gb-val ab">▼ ${((med-gmd)/med*100).toFixed(0)}% abaixo da média</span>`;
@@ -491,7 +491,7 @@ function benchGMD(gmd,prefixo){
     ? `<span class="gb-val ac">▲ acima do Top 30%</span>`
     : `<span class="gb-val ab">▼ ${((top-gmd)/top*100).toFixed(0)}% abaixo do Top 30%</span>`;
   document.getElementById(prefixo+'_bench').innerHTML=`
-    <div class="gb-row"><span class="gb-label">vs Média Inttegra (0,403)</span>${vsMedia}</div>
+    <div class="gb-row"><span class="gb-label">vs Média Inttegra (0,418)</span>${vsMedia}</div>
     <div class="gb-row"><span class="gb-label">vs Top 30% (0,668)</span>${vsTop}</div>`;
 }
 

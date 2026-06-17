@@ -105,6 +105,7 @@ body{font-family:Arial,'Segoe UI',Roboto,system-ui,sans-serif;background:var(--g
 .crd{background:#fff;border-radius:var(--r);box-shadow:var(--sh1);overflow:hidden}
 .crh{padding:13px 18px;display:flex;align-items:center;justify-content:space-between}
 .crh h3{font-family:Arial,'Segoe UI',Roboto,system-ui,sans-serif;font-size:12px;font-weight:700;color:#fff;letter-spacing:1px;text-transform:uppercase}
+.h3ic{width:14px;height:14px;vertical-align:-2px;display:inline-block}
 .crh .hb{font-family:Arial,'Segoe UI',Roboto,system-ui,sans-serif;font-size:11px;font-weight:600;background:rgba(255,255,255,.2);color:#fff;padding:3px 10px;border-radius:12px}
 .crh.vd{background:linear-gradient(135deg,var(--v1),var(--v2))}
 .crh.do{background:linear-gradient(135deg,#7a5800,var(--d1))}
@@ -162,6 +163,9 @@ body{font-family:Arial,'Segoe UI',Roboto,system-ui,sans-serif;background:var(--g
   .rd2{flex-direction:column;align-items:flex-start}
   .rv{font-size:22px}
 }
+@media(max-width:760px){
+  .pi{position:static;top:auto}
+}
 .grafico-item{display:flex;flex-direction:column;align-items:center;gap:10px}
 .grafico-titulo{font-family:Arial,'Segoe UI',Roboto,system-ui,sans-serif;font-size:11px;font-weight:700;color:var(--g3);text-transform:uppercase;letter-spacing:.8px;text-align:center}
 .grafico-canvas{position:relative;width:100%;max-width:200px}
@@ -202,9 +206,9 @@ body{font-family:Arial,'Segoe UI',Roboto,system-ui,sans-serif;background:var(--g
     <p>Selecione para calcular metas, rebanho, lotação e análise financeira</p>
   </div>
   <div class="sg">
-    <div class="sc re" onclick="abrir(&#39;r&#39;)"><span class="si">🐂</span><div class="sn">Recria-Engorda</div><div class="sd">Compra bezerro, recria e engorda até o abate</div></div>
-    <div class="sc cr" onclick="abrir(&#39;c&#39;)"><span class="si">🐄</span><div class="sn">Cria</div><div class="sd">Mantém matrizes e vende bezerros desmamados</div></div>
-    <div class="sc cc" onclick="abrir(&#39;cc&#39;)"><span class="si">🌾</span><div class="sn">Ciclo Completo</div><div class="sd">Cria, recria e engorda — do nascimento ao abate</div></div>
+    <div class="sc re" onclick="abrir(&#39;r&#39;)"><span class="si"><svg viewBox="0 0 24 24" fill="none" stroke="#2E7D32" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 7c-2 0-3-1.2-3-3 1.8 0 3 1 3.3 2.5"/><path d="M19 7c2 0 3-1.2 3-3-1.8 0-3 1-3.3 2.5"/><path d="M5.5 7h13v5a6.5 6.5 0 0 1-13 0Z"/><path d="M9.5 12v1.5"/><path d="M14.5 12v1.5"/></svg></span><div class="sn">Recria-Engorda</div><div class="sd">Compra bezerro, recria e engorda até o abate</div></div>
+    <div class="sc cr" onclick="abrir(&#39;c&#39;)"><span class="si"><svg viewBox="0 0 24 24" fill="none" stroke="#2E7D32" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 8c-1.5 0-2.5-1-2.5-2.5C4 6 5 7 6 8"/><path d="M19 8c1.5 0 2.5-1 2.5-2.5C20 6 19 7 18 8"/><path d="M6 8h12v4.5a6 6 0 0 1-12 0Z"/><path d="M9.5 12.5v1"/><path d="M14.5 12.5v1"/></svg></span><div class="sn">Cria</div><div class="sd">Mantém matrizes e vende bezerros desmamados</div></div>
+    <div class="sc cc" onclick="abrir(&#39;cc&#39;)"><span class="si"><svg viewBox="0 0 24 24" fill="none" stroke="#2E7D32" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22V8"/><path d="M12 12c-2.3 0-4-1.5-4-4 2.3 0 4 1.5 4 4Z"/><path d="M12 12c2.3 0 4-1.5 4-4-2.3 0-4 1.5-4 4Z"/><path d="M12 17c-2.3 0-4-1.5-4-4 2.3 0 4 1.5 4 4Z"/><path d="M12 17c2.3 0 4-1.5 4-4-2.3 0-4 1.5-4 4Z"/></svg></span><div class="sn">Ciclo Completo</div><div class="sd">Cria, recria e engorda — do nascimento ao abate</div></div>
   </div>
 </div>
 
@@ -214,7 +218,7 @@ body{font-family:Arial,'Segoe UI',Roboto,system-ui,sans-serif;background:var(--g
 <div id="tr" class="ts2 at">
   <div class="tb">
     <button class="bv" onclick="voltar()">← Voltar</button>
-    <span class="sb sb-r">🐂 Recria-Engorda</span>
+    <span class="sb sb-r"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:13px;height:13px;vertical-align:-2px;margin-right:4px"><path d="M5 7c-2 0-3-1.2-3-3 1.8 0 3 1 3.3 2.5"/><path d="M19 7c2 0 3-1.2 3-3-1.8 0-3 1-3.3 2.5"/><path d="M5.5 7h13v5a6.5 6.5 0 0 1-13 0Z"/><path d="M9.5 12v1.5"/><path d="M14.5 12v1.5"/></svg>Recria-Engorda</span>
   </div>
   <div class="ml">
     <div class="pi">
@@ -260,17 +264,17 @@ body{font-family:Arial,'Segoe UI',Roboto,system-ui,sans-serif;background:var(--g
       </div>
     </div>
     <div class="pr" id="r_res">
-  <div class="am2 lc"><span class="ai">✅</span><div class="ac"><div class="at3">OPERAÇÃO LUCRATIVA</div><div class="ax">41 cabeças/ano a R$ 4.900/cab geram R$ 40.000 de resultado — 20.0% de margem sobre faturamento de R$ 200.000.</div></div></div>
+  <div class="am2 lc"><span class="ai"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="width:24px;height:24px;display:block"><circle cx="12" cy="12" r="9"/><path d="M8.5 12.5l2.5 2.5 4.5-5"/></svg></span><div class="ac"><div class="at3">OPERAÇÃO LUCRATIVA</div><div class="ax">41 cabeças/ano a R$ 4.900/cab geram R$ 40.000 de resultado — 20.0% de margem sobre faturamento de R$ 200.000.</div></div></div>
   <div class="rd2" style="background:linear-gradient(135deg,var(--v1),var(--v2))">
     <div><span class="rl">Resultado Esperado</span><span class="rv">R$ 40.000</span></div>
     <div class="ri"><span>4.0% sobre R$ 1.000.000</span><span>R$ 500/ha/ano</span></div>
   </div>
 
   <div class="cadeia">
-    <div class="cadeia-header"><h3>🔗 Como chegamos nesses números</h3></div>
+    <div class="cadeia-header"><h3><svg class="h3ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 15l6-6"/><path d="M11 6l1-1a4 4 0 0 1 6 6l-1 1"/><path d="M13 18l-1 1a4 4 0 0 1-6-6l1-1"/></svg> Como chegamos nesses números</h3></div>
     <div class="cadeia-body">
       <div class="cadeia-step">
-        <span class="cs-icone">⚖️</span>
+        <span class="cs-icone"><svg viewBox="0 0 24 24" fill="none" stroke="#2E7D32" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px;display:inline-block;vertical-align:middle"><path d="M12 3v3"/><path d="M5 6h14l2 7a4.5 4.5 0 0 1-8 0"/><path d="M12 6 7 6 5 13a4.5 4.5 0 0 0 8 0"/><path d="M9 21h6"/><path d="M12 18v3"/></svg></span>
         <div class="cs-corpo">
           <div class="cs-label">Peso a Ganhar na Fazenda</div>
           <div class="cs-valor">510 kg <span>abate</span> − 310 kg <span>entrada</span> = <strong>200 kg</strong></div>
@@ -278,7 +282,7 @@ body{font-family:Arial,'Segoe UI',Roboto,system-ui,sans-serif;background:var(--g
       </div>
       <div class="cadeia-arrow">↓</div>
       <div class="cadeia-step calc">
-        <span class="cs-icone">📅</span>
+        <span class="cs-icone"><svg viewBox="0 0 24 24" fill="none" stroke="#2E7D32" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px;display:inline-block;vertical-align:middle"><rect x="4" y="5" width="16" height="16" rx="2"/><path d="M4 9h16"/><path d="M8 3v4"/><path d="M16 3v4"/></svg></span>
         <div class="cs-corpo">
           <div class="cs-label">Tempo de Permanência</div>
           <div class="cs-valor">200 kg <span>÷</span> 0,500 GMD = <strong>400 dias (13 meses)</strong></div>
@@ -286,7 +290,7 @@ body{font-family:Arial,'Segoe UI',Roboto,system-ui,sans-serif;background:var(--g
       </div>
       <div class="cadeia-arrow">↓</div>
       <div class="cadeia-step calc">
-        <span class="cs-icone">🔄</span>
+        <span class="cs-icone"><svg viewBox="0 0 24 24" fill="none" stroke="#2E7D32" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px;display:inline-block;vertical-align:middle"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 4v4h-4"/></svg></span>
         <div class="cs-corpo">
           <div class="cs-label">Giro de Estoque</div>
           <div class="cs-valor">12 meses <span>÷</span> 13 meses permanência = <strong>0,92 giros/ano</strong></div>
@@ -294,7 +298,7 @@ body{font-family:Arial,'Segoe UI',Roboto,system-ui,sans-serif;background:var(--g
       </div>
       <div class="cadeia-arrow">↓</div>
       <div class="cadeia-step dest">
-        <span class="cs-icone">🐂</span>
+        <span class="cs-icone"><svg viewBox="0 0 24 24" fill="none" stroke="#2E7D32" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px;display:inline-block;vertical-align:middle"><path d="M5 7c-2 0-3-1.2-3-3 1.8 0 3 1 3.3 2.5"/><path d="M19 7c2 0 3-1.2 3-3-1.8 0-3 1-3.3 2.5"/><path d="M5.5 7h13v5a6.5 6.5 0 0 1-13 0Z"/><path d="M9.5 12v1.5"/><path d="M14.5 12v1.5"/></svg></span>
         <div class="cs-corpo">
           <div class="cs-label">Rebanho Necessário em Campo</div>
           <div class="cs-valor">41 vendas <span>÷</span> 0,92 giro = <strong>45 cabeças</strong></div>
@@ -304,7 +308,7 @@ body{font-family:Arial,'Segoe UI',Roboto,system-ui,sans-serif;background:var(--g
   </div>
 
   <div class="crd">
-    <div class="crh vd"><h3>🎯 Metas de Venda</h3><span class="hb">41 cab/ano</span></div>
+    <div class="crh vd"><h3><svg class="h3ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="4"/><circle cx="12" cy="12" r="0.8" fill="currentColor" stroke="none"/></svg> Metas de Venda</h3><span class="hb">41 cab/ano</span></div>
     <div class="mg mg3">
       <div class="mt"><div class="ml2">Vendas / Ano</div><div class="mv vd">41</div><div class="ms">cabeças</div></div>
       <div class="mt"><div class="ml2">Vendas / Mês</div><div class="mv">4</div><div class="ms">cabeças</div></div>
@@ -316,7 +320,7 @@ body{font-family:Arial,'Segoe UI',Roboto,system-ui,sans-serif;background:var(--g
   </div>
 
   <div class="crd">
-    <div class="crh az"><h3>⏱ Dados Zootécnicos</h3><span class="hb">GMD 0,500 kg/dia</span></div>
+    <div class="crh az"><h3><svg class="h3ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13" r="8"/><path d="M12 13V9"/><path d="M9 2h6"/><path d="M12 5V2"/></svg> Dados Zootécnicos</h3><span class="hb">GMD 0,500 kg/dia</span></div>
     <div class="mg mg3">
       <div class="mt"><div class="ml2">Peso a Ganhar</div><div class="mv">200 kg</div><div class="ms">310 → 510 kg</div></div>
       <div class="mt"><div class="ml2">Permanência</div><div class="mv">400 dias</div><div class="ms">13 meses</div></div>
@@ -327,7 +331,7 @@ body{font-family:Arial,'Segoe UI',Roboto,system-ui,sans-serif;background:var(--g
     </div>
   </div>
 
-  <div class="sf"><div class="sfh"><h3>💰 Detalhamento Financeiro</h3></div>
+  <div class="sf"><div class="sfh"><h3><svg class="h3ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"/><path d="M12 7v10"/><path d="M14.5 9.5c-.5-1-1.5-1.3-2.5-1.3-1.3 0-2.3.7-2.3 1.8 0 2.6 5 1.2 5 3.8 0 1.2-1 1.9-2.4 1.9-1.1 0-2.1-.4-2.6-1.4"/></svg> Detalhamento Financeiro</h3></div>
     <div class="fd">Receitas</div>
     <div class="fr"><span class="frl">Faturamento Anual</span><span class="frv vd">R$ 200.000</span></div>
     <div class="fr"><span class="frl">Resultado Esperado</span><span class="frv vd">R$ 40.000</span></div>
@@ -343,7 +347,7 @@ body{font-family:Arial,'Segoe UI',Roboto,system-ui,sans-serif;background:var(--g
   </div>
 
   <div class="graficos-wrap">
-    <div class="graficos-header"><h3>📊 Composição Financeira</h3></div>
+    <div class="graficos-header"><h3><svg class="h3ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V4"/><path d="M4 20h16"/><rect x="7" y="12" width="3" height="5"/><rect x="12" y="8" width="3" height="9"/><rect x="17" y="5" width="3" height="12"/></svg> Composição Financeira</h3></div>
     <div class="graficos-grid">
       <div class="grafico-item">
         <div class="grafico-titulo">Para onde vai o desembolso</div>
@@ -373,7 +377,7 @@ body{font-family:Arial,'Segoe UI',Roboto,system-ui,sans-serif;background:var(--g
 <div id="tc" class="ts2">
   <div class="tb">
     <button class="bv" onclick="voltar()">← Voltar</button>
-    <span class="sb sb-c">🐄 Cria</span>
+    <span class="sb sb-c"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:13px;height:13px;vertical-align:-2px;margin-right:4px"><path d="M5 8c-1.5 0-2.5-1-2.5-2.5C4 6 5 7 6 8"/><path d="M19 8c1.5 0 2.5-1 2.5-2.5C20 6 19 7 18 8"/><path d="M6 8h12v4.5a6 6 0 0 1-12 0Z"/><path d="M9.5 12.5v1"/><path d="M14.5 12.5v1"/></svg>Cria</span>
   </div>
   <div class="ml">
     <div class="pi">
@@ -410,7 +414,7 @@ body{font-family:Arial,'Segoe UI',Roboto,system-ui,sans-serif;background:var(--g
 <div id="tcc" class="ts2">
   <div class="tb">
     <button class="bv" onclick="voltar()">← Voltar</button>
-    <span class="sb sb-cc">🌾 Ciclo Completo</span>
+    <span class="sb sb-cc"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:13px;height:13px;vertical-align:-2px;margin-right:4px"><path d="M12 22V8"/><path d="M12 12c-2.3 0-4-1.5-4-4 2.3 0 4 1.5 4 4Z"/><path d="M12 12c2.3 0 4-1.5 4-4-2.3 0-4 1.5-4 4Z"/><path d="M12 17c-2.3 0-4-1.5-4-4 2.3 0 4 1.5 4 4Z"/><path d="M12 17c2.3 0 4-1.5 4-4-2.3 0-4 1.5-4 4Z"/></svg>Ciclo Completo</span>
   </div>
   <div class="ml">
     <div class="pi">
@@ -495,20 +499,20 @@ function benchGMD(gmd,prefixo){
 function alerta(re,mg,fat,va,vv){
   const mef=fat>0?(re/fat*100):0;
   let tp,ic,tt,tx;
-  if(re<=0||fat<=0){tp='at2';ic='⚠️';tt='VERIFIQUE OS DADOS';tx='Preencha todos os campos para ver o diagnóstico.';}
-  else if(mef>=mg*.9){tp='lc';ic='✅';tt='OPERAÇÃO LUCRATIVA';tx=`${N(va)} cabeças/ano a ${M(vv)}/cab geram ${M(re)} de resultado — ${P(mef)} de margem sobre faturamento de ${M(fat)}.`;}
-  else if(mef>=mg*.6){tp='at2';ic='⚠️';tt='ATENÇÃO — MARGEM ABAIXO DA META';tx=`Margem efetiva de ${P(mef)} está abaixo da meta de ${P(mg)}. Revise custos ou preço de venda para atingir ${M(re)}.`;}
-  else{tp='pj';ic='🚨';tt='PREJUÍZO — NÃO COBRE O CUSTO DA TERRA';tx=`O resultado não cobre o custo de oportunidade da propriedade. A fazenda precisaria gerar ${M(re)} para justificar o investimento. Reavalie margem, escala e preço de venda.`;}
-  return`<div class="am2 ${tp}"><span class="ai">${ic}</span><div class="ac"><div class="at3">${tt}</div><div class="ax">${tx}</div></div></div>`;
+  if(re<=0||fat<=0){tp='at2';ic=`<span class="ai"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="width:24px;height:24px;display:block"><path d="M12 9v4"/><path d="M12 17h.01"/><path d="M10.3 3.9 2 18a2 2 0 0 0 1.7 3h16.6A2 2 0 0 0 22 18L13.7 3.9a2 2 0 0 0-3.4 0Z"/></svg></span>`;tt='VERIFIQUE OS DADOS';tx='Preencha todos os campos para ver o diagnóstico.';}
+  else if(mef>=mg*.9){tp='lc';ic=`<span class="ai"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="width:24px;height:24px;display:block"><circle cx="12" cy="12" r="9"/><path d="M8.5 12.5l2.5 2.5 4.5-5"/></svg></span>`;tt='OPERAÇÃO LUCRATIVA';tx=`${N(va)} cabeças/ano a ${M(vv)}/cab geram ${M(re)} de resultado — ${P(mef)} de margem sobre faturamento de ${M(fat)}.`;}
+  else if(mef>=mg*.6){tp='at2';ic=`<span class="ai"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="width:24px;height:24px;display:block"><path d="M12 9v4"/><path d="M12 17h.01"/><path d="M10.3 3.9 2 18a2 2 0 0 0 1.7 3h16.6A2 2 0 0 0 22 18L13.7 3.9a2 2 0 0 0-3.4 0Z"/></svg></span>`;tt='ATENÇÃO — MARGEM ABAIXO DA META';tx=`Margem efetiva de ${P(mef)} está abaixo da meta de ${P(mg)}. Revise custos ou preço de venda para atingir ${M(re)}.`;}
+  else{tp='pj';ic=`<span class="ai"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="width:24px;height:24px;display:block"><path d="M12 3a6 6 0 0 0-6 6v4l-2 3h16l-2-3V9a6 6 0 0 0-6-6Z"/><path d="M10 20a2 2 0 0 0 4 0"/></svg></span>`;tt='PREJUÍZO — NÃO COBRE O CUSTO DA TERRA';tx=`O resultado não cobre o custo de oportunidade da propriedade. A fazenda precisaria gerar ${M(re)} para justificar o investimento. Reavalie margem, escala e preço de venda.`;}
+  return`<div class="am2 ${tp}">${ic}<div class="ac"><div class="at3">${tt}</div><div class="ax">${tx}</div></div></div>`;
 }
 
 // ── CADEIA DE CÁLCULO (Recria-Engorda) ─────────────────
 function cadeia(pe,ps,pg,gmd,dias,mes,giro,va,rb){
   return`<div class="cadeia">
-    <div class="cadeia-header"><h3>🔗 Como chegamos nesses números</h3></div>
+    <div class="cadeia-header"><h3><svg class="h3ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 15l6-6"/><path d="M11 6l1-1a4 4 0 0 1 6 6l-1 1"/><path d="M13 18l-1 1a4 4 0 0 1-6-6l1-1"/></svg> Como chegamos nesses números</h3></div>
     <div class="cadeia-body">
       <div class="cadeia-step">
-        <span class="cs-icone">⚖️</span>
+        <span class="cs-icone"><svg viewBox="0 0 24 24" fill="none" stroke="#2E7D32" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px;display:inline-block;vertical-align:middle"><path d="M12 3v3"/><path d="M5 6h14l2 7a4.5 4.5 0 0 1-8 0"/><path d="M12 6 7 6 5 13a4.5 4.5 0 0 0 8 0"/><path d="M9 21h6"/><path d="M12 18v3"/></svg></span>
         <div class="cs-corpo">
           <div class="cs-label">Peso a Ganhar na Fazenda</div>
           <div class="cs-valor">${N(ps)} kg <span>abate</span> − ${N(pe)} kg <span>entrada</span> = <strong>${N(pg)} kg</strong></div>
@@ -516,7 +520,7 @@ function cadeia(pe,ps,pg,gmd,dias,mes,giro,va,rb){
       </div>
       <div class="cadeia-arrow">↓</div>
       <div class="cadeia-step calc">
-        <span class="cs-icone">📅</span>
+        <span class="cs-icone"><svg viewBox="0 0 24 24" fill="none" stroke="#2E7D32" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px;display:inline-block;vertical-align:middle"><rect x="4" y="5" width="16" height="16" rx="2"/><path d="M4 9h16"/><path d="M8 3v4"/><path d="M16 3v4"/></svg></span>
         <div class="cs-corpo">
           <div class="cs-label">Tempo de Permanência</div>
           <div class="cs-valor">${N(pg)} kg <span>÷</span> ${N(gmd,3)} GMD = <strong>${N(dias)} dias (${N(mes)} meses)</strong></div>
@@ -524,7 +528,7 @@ function cadeia(pe,ps,pg,gmd,dias,mes,giro,va,rb){
       </div>
       <div class="cadeia-arrow">↓</div>
       <div class="cadeia-step calc">
-        <span class="cs-icone">🔄</span>
+        <span class="cs-icone"><svg viewBox="0 0 24 24" fill="none" stroke="#2E7D32" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px;display:inline-block;vertical-align:middle"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 4v4h-4"/></svg></span>
         <div class="cs-corpo">
           <div class="cs-label">Giro de Estoque</div>
           <div class="cs-valor">12 meses <span>÷</span> ${N(mes)} meses permanência = <strong>${N(giro,2)} giros/ano</strong></div>
@@ -532,7 +536,7 @@ function cadeia(pe,ps,pg,gmd,dias,mes,giro,va,rb){
       </div>
       <div class="cadeia-arrow">↓</div>
       <div class="cadeia-step dest">
-        <span class="cs-icone">🐂</span>
+        <span class="cs-icone"><svg viewBox="0 0 24 24" fill="none" stroke="#2E7D32" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px;display:inline-block;vertical-align:middle"><path d="M5 7c-2 0-3-1.2-3-3 1.8 0 3 1 3.3 2.5"/><path d="M19 7c2 0 3-1.2 3-3-1.8 0-3 1-3.3 2.5"/><path d="M5.5 7h13v5a6.5 6.5 0 0 1-13 0Z"/><path d="M9.5 12v1.5"/><path d="M14.5 12v1.5"/></svg></span>
         <div class="cs-corpo">
           <div class="cs-label">Rebanho Necessário em Campo</div>
           <div class="cs-valor">${N(va)} vendas <span>÷</span> ${N(giro,2)} giro = <strong>${N(rb)} cabeças</strong></div>
@@ -579,7 +583,7 @@ function graficos(fat,re,dRepAn,dOpAn,prefixo){
   const pct2D=fat>0?(((fat-re)/fat)*100).toFixed(0):0;
 
   return`<div class="graficos-wrap">
-    <div class="graficos-header"><h3>📊 Composição Financeira</h3></div>
+    <div class="graficos-header"><h3><svg class="h3ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V4"/><path d="M4 20h16"/><rect x="7" y="12" width="3" height="5"/><rect x="12" y="8" width="3" height="9"/><rect x="17" y="5" width="3" height="12"/></svg> Composição Financeira</h3></div>
     <div class="graficos-grid">
       <div class="grafico-item">
         <div class="grafico-titulo">Para onde vai o desembolso</div>
@@ -621,7 +625,7 @@ function graficosCria(fat,re,prefixo){
   const pct2L=fat>0?((re/fat)*100).toFixed(0):0;
   const pct2D=fat>0?(((fat-re)/fat)*100).toFixed(0):0;
   return`<div class="graficos-wrap">
-    <div class="graficos-header"><h3>📊 Composição do Faturamento</h3></div>
+    <div class="graficos-header"><h3><svg class="h3ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V4"/><path d="M4 20h16"/><rect x="7" y="12" width="3" height="5"/><rect x="12" y="8" width="3" height="9"/><rect x="17" y="5" width="3" height="12"/></svg> Composição do Faturamento</h3></div>
     <div class="graficos-grid" style="grid-template-columns:1fr">
       <div class="grafico-item">
         <div class="grafico-titulo">Como fica o faturamento</div>
@@ -714,7 +718,7 @@ function cR(){
   ${cadeia(pe,ps,pg,gm,dias,mes,giro,va,rb)}
 
   <div class="crd">
-    <div class="crh vd"><h3>🎯 Metas de Venda</h3><span class="hb">${N(va)} cab/ano</span></div>
+    <div class="crh vd"><h3><svg class="h3ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="4"/><circle cx="12" cy="12" r="0.8" fill="currentColor" stroke="none"/></svg> Metas de Venda</h3><span class="hb">${N(va)} cab/ano</span></div>
     <div class="mg mg3">
       <div class="mt"><div class="ml2">Vendas / Ano</div><div class="mv vd">${N(va)}</div><div class="ms">cabeças</div></div>
       <div class="mt"><div class="ml2">Vendas / Mês</div><div class="mv">${N(Math.ceil(va/12))}</div><div class="ms">cabeças</div></div>
@@ -726,7 +730,7 @@ function cR(){
   </div>
 
   <div class="crd">
-    <div class="crh az"><h3>⏱ Dados Zootécnicos</h3><span class="hb">GMD ${N(gm,3)} kg/dia</span></div>
+    <div class="crh az"><h3><svg class="h3ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13" r="8"/><path d="M12 13V9"/><path d="M9 2h6"/><path d="M12 5V2"/></svg> Dados Zootécnicos</h3><span class="hb">GMD ${N(gm,3)} kg/dia</span></div>
     <div class="mg mg3">
       <div class="mt"><div class="ml2">Peso a Ganhar</div><div class="mv">${N(pg)} kg</div><div class="ms">${N(pe)} → ${N(ps)} kg</div></div>
       <div class="mt"><div class="ml2">Permanência</div><div class="mv">${N(dias)} dias</div><div class="ms">${N(mes)} meses</div></div>
@@ -737,7 +741,7 @@ function cR(){
     </div>
   </div>
 
-  <div class="sf"><div class="sfh"><h3>💰 Detalhamento Financeiro</h3></div>
+  <div class="sf"><div class="sfh"><h3><svg class="h3ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"/><path d="M12 7v10"/><path d="M14.5 9.5c-.5-1-1.5-1.3-2.5-1.3-1.3 0-2.3.7-2.3 1.8 0 2.6 5 1.2 5 3.8 0 1.2-1 1.9-2.4 1.9-1.1 0-2.1-.4-2.6-1.4"/></svg> Detalhamento Financeiro</h3></div>
     ${FD('Receitas')}
     ${FR('Faturamento Anual',M(fat),'vd')}
     ${FR('Resultado Esperado',M(re),'vd')}
@@ -785,7 +789,7 @@ function cC(){
     <div class="ri"><span>${P(mt)} sobre ${M(vf)}</span><span>${M(rHA)}/ha/ano</span></div>
   </div>
   <div class="crd">
-    <div class="crh do"><h3>🐄 Rebanho Necessário</h3><span class="hb">${N(rb)} cab</span></div>
+    <div class="crh do"><h3><svg class="h3ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 8c-1.5 0-2.5-1-2.5-2.5C4 6 5 7 6 8"/><path d="M19 8c1.5 0 2.5-1 2.5-2.5C20 6 19 7 18 8"/><path d="M6 8h12v4a6 6 0 0 1-12 0Z"/><path d="M9.5 12v1"/><path d="M14.5 12v1"/></svg> Rebanho Necessário</h3><span class="hb">${N(rb)} cab</span></div>
     <div class="mg mg3">
       <div class="mt"><div class="ml2">Vendas / Ano</div><div class="mv vd">${N(va)}</div><div class="ms">bezerros desmamados</div></div>
       <div class="mt"><div class="ml2">Vendas / Mês</div><div class="mv">${N(Math.ceil(va/12))}</div><div class="ms">cabeças</div></div>
@@ -796,7 +800,7 @@ function cC(){
     </div>
   </div>
   <div class="crd">
-    <div class="crh az"><h3>🌿 Lotação e Área</h3></div>
+    <div class="crh az"><h3><svg class="h3ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21V10"/><path d="M12 14c0-3 2-5 6-5 0 4-2 6-6 5Z"/><path d="M12 16c0-2.5-1.7-4-5-4 0 3.5 1.7 5 5 4Z"/></svg> Lotação e Área</h3></div>
     <div class="mg">
       <div class="mt"><div class="ml2">Lotação Cab/ha</div><div class="mv">${N(lCab,2)}</div><div class="ms">cab/ha produtivo</div></div>
       <div class="mt"><div class="ml2">Lotação UA/ha</div><div class="mv">${N(lUA,2)}</div><div class="ms">UA/ha produtivo</div></div>
@@ -804,7 +808,7 @@ function cC(){
       <div class="mt"><div class="ml2">Resultado / ha</div><div class="mv vd">${M(rHA)}</div><div class="ms">por ha/ano</div></div>
     </div>
   </div>
-  <div class="sf"><div class="sfh"><h3>💰 Detalhamento Financeiro</h3></div>
+  <div class="sf"><div class="sfh"><h3><svg class="h3ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"/><path d="M12 7v10"/><path d="M14.5 9.5c-.5-1-1.5-1.3-2.5-1.3-1.3 0-2.3.7-2.3 1.8 0 2.6 5 1.2 5 3.8 0 1.2-1 1.9-2.4 1.9-1.1 0-2.1-.4-2.6-1.4"/></svg> Detalhamento Financeiro</h3></div>
     ${FD('Receitas')}${FR('Faturamento Anual',M(fat),'vd')}${FR('Resultado Esperado',M(re),'vd')}${FR('Resultado / ha / ano',M(rHA)+'/ha','vd')}
     ${FD('Desembolsos')}${FR('Desembolso Anual',M(dAnual))}${FR('Desembolso / Cab / Mês',M(dCM)+'/cab/mês')}
     ${FD('Patrimônio')}${FR('Valor do Rebanho em Campo',M(vReb))}${FR('Resultado / Rebanho',P(rReb),rReb>=8?'vd':'rd')}
@@ -845,7 +849,7 @@ function cCC(){
     <div class="ri"><span>${P(mt)} sobre ${M(vf)}</span><span>${M(rHA)}/ha/ano</span></div>
   </div>
   <div class="crd">
-    <div class="crh az"><h3>🌾 Rebanho e Metas</h3><span class="hb">${N(rb)} cab</span></div>
+    <div class="crh az"><h3><svg class="h3ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21V7"/><path d="M12 11c-2 0-3.5-1.3-3.5-3.5C10.5 7.5 12 8.8 12 11Z"/><path d="M12 11c2 0 3.5-1.3 3.5-3.5C13.5 7.5 12 8.8 12 11Z"/><path d="M12 16c-2 0-3.5-1.3-3.5-3.5C10.5 12.5 12 13.8 12 16Z"/><path d="M12 16c2 0 3.5-1.3 3.5-3.5C13.5 12.5 12 13.8 12 16Z"/></svg> Rebanho e Metas</h3><span class="hb">${N(rb)} cab</span></div>
     <div class="mg mg3">
       <div class="mt"><div class="ml2">Vendas / Ano</div><div class="mv vd">${N(va)}</div><div class="ms">cabeças ao abate</div></div>
       <div class="mt"><div class="ml2">Vendas / Mês</div><div class="mv">${N(Math.ceil(va/12))}</div><div class="ms">cabeças</div></div>
@@ -856,7 +860,7 @@ function cCC(){
     </div>
   </div>
   <div class="crd">
-    <div class="crh vd"><h3>⏱ Dados Zootécnicos</h3><span class="hb">GMD ${N(gmd,3)} kg/dia</span></div>
+    <div class="crh vd"><h3><svg class="h3ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13" r="8"/><path d="M12 13V9"/><path d="M9 2h6"/><path d="M12 5V2"/></svg> Dados Zootécnicos</h3><span class="hb">GMD ${N(gmd,3)} kg/dia</span></div>
     <div class="mg mg3">
       <div class="mt"><div class="ml2">Desmame → Abate</div><div class="mv">${N(pd)}→${N(pa2)}</div><div class="ms">kg</div></div>
       <div class="mt"><div class="ml2">GMD pós-desmame</div><div class="mv vd">${N(gmd,3)}</div><div class="ms">kg/dia</div></div>
@@ -866,7 +870,7 @@ function cCC(){
       <div class="mt"><div class="ml2">Resultado / ha</div><div class="mv vd">${M(rHA)}</div><div class="ms">por ha/ano</div></div>
     </div>
   </div>
-  <div class="sf"><div class="sfh"><h3>💰 Detalhamento Financeiro</h3></div>
+  <div class="sf"><div class="sfh"><h3><svg class="h3ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"/><path d="M12 7v10"/><path d="M14.5 9.5c-.5-1-1.5-1.3-2.5-1.3-1.3 0-2.3.7-2.3 1.8 0 2.6 5 1.2 5 3.8 0 1.2-1 1.9-2.4 1.9-1.1 0-2.1-.4-2.6-1.4"/></svg> Detalhamento Financeiro</h3></div>
     ${FD('Receitas')}${FR('Faturamento Anual',M(fat),'vd')}${FR('Resultado Esperado',M(re),'vd')}${FR('Resultado / ha / ano',M(rHA)+'/ha','vd')}
     ${FD('Desembolsos')}${FR('Desembolso Anual',M(dAnual))}${FR('Desembolso / Cab / Mês',M(dCM)+'/cab/mês')}
     ${FD('Patrimônio')}${FR('Valor do Rebanho em Campo',M(vReb))}${FR('Resultado / Rebanho',P(rReb),rReb>=10?'vd':'rd')}

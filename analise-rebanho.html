@@ -1688,24 +1688,24 @@ function gerarPDF(lotesSelec){
   }
 
   /* ── CARDS ── */
-  var cardsHTML='<div style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:14px">';
+  var cardsHTML='<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:6px;margin-bottom:10px;-webkit-print-color-adjust:exact;print-color-adjust:exact">';
   lts.forEach(function(l){
     var s=calcStats(l);
     var dias=loteDiasAbate(s.med);
     var badgeCor=dias===0?'#1B5E20':'#E65100';
     var badgeTxt=dias===0?'PRONTO P/ ABATE':durTxt(dias);
-    cardsHTML+='<div style="border:none;border-top:4px solid #1B5E20;border-radius:10px;padding:10px 12px;background:white;box-shadow:0 2px 8px rgba(27,94,32,.15);position:relative">';
-    cardsHTML+='<div style="position:absolute;top:7px;right:8px;font-size:8px;color:#aaa">'+s.n+' animais</div>';
-    cardsHTML+='<div style="font-size:8px;font-weight:800;color:#1B5E20;text-transform:uppercase;letter-spacing:.6px;margin-bottom:3px">LOTE 0'+l+'</div>';
-    cardsHTML+='<div style="font-size:20px;font-weight:900;color:#111;line-height:1;margin-bottom:3px">'+s.med.toFixed(1)+'<span style="font-size:10px;color:#888;font-weight:400"> kg</span></div>';
-    cardsHTML+='<div style="font-size:9px;color:#555;margin-bottom:6px">'+(suplNome[l]||'—')+'</div>';
+    cardsHTML+='<div style="border:none;border-top:3px solid #1B5E20;border-radius:8px;padding:7px 9px;background:white;box-shadow:0 1px 5px rgba(27,94,32,.12);position:relative">';
+    cardsHTML+='<div style="position:absolute;top:5px;right:6px;font-size:7px;color:#aaa">'+s.n+' animais</div>';
+    cardsHTML+='<div style="font-size:7px;font-weight:800;color:#1B5E20;text-transform:uppercase;letter-spacing:.5px;margin-bottom:2px">LOTE 0'+l+'</div>';
+    cardsHTML+='<div style="font-size:14px;font-weight:900;color:#111;line-height:1;margin-bottom:2px">'+s.med.toFixed(1)+'<span style="font-size:9px;color:#888;font-weight:400"> kg</span></div>';
+    cardsHTML+='<div style="font-size:8px;color:#555;margin-bottom:4px">'+(suplNome[l]||'—')+'</div>';
     var pctMeta=M>0?Math.round(s.med/M*100):0;
     var pctW=Math.min(pctMeta,100);
     var barColor=dias===0?'#E65100':'#4CAF50';
-    cardsHTML+='<div style="background:#E8F5E9;border-radius:4px;height:6px;margin-bottom:5px;overflow:hidden">'
-              +'<div style="background:'+barColor+';height:6px;border-radius:4px;width:'+pctW+'%;-webkit-print-color-adjust:exact;print-color-adjust:exact"></div></div>';
-    cardsHTML+='<div style="font-size:8px;color:#2E7D32;font-weight:700;margin-bottom:4px">'+pctMeta+'% da meta</div>';
-    cardsHTML+='<div style="background:'+badgeCor+';color:white;border-radius:4px;padding:2px 7px;font-size:8px;font-weight:700;display:inline-block;-webkit-print-color-adjust:exact;print-color-adjust:exact">'+badgeTxt+'</div>';
+    cardsHTML+='<div style="background:#E8F5E9;border-radius:3px;height:5px;margin-bottom:4px;overflow:hidden">'
+              +'<div style="background:'+barColor+';height:5px;border-radius:3px;width:'+pctW+'%;-webkit-print-color-adjust:exact;print-color-adjust:exact"></div></div>';
+    cardsHTML+='<div style="font-size:7.5px;color:#2E7D32;font-weight:700;margin-bottom:3px">'+pctMeta+'% da meta</div>';
+    cardsHTML+='<div style="background:'+badgeCor+';color:white;border-radius:3px;padding:1px 5px;font-size:7.5px;font-weight:700;display:inline-block;-webkit-print-color-adjust:exact;print-color-adjust:exact">'+badgeTxt+'</div>';
     cardsHTML+='</div>';
   });
   cardsHTML+='</div>';
@@ -1743,6 +1743,87 @@ function gerarPDF(lotesSelec){
     tblHTML+='</tr>';
   });
   tblHTML+='</tbody></table>';
+
+  /* ── PROJEÇÃO DE INSUMO ── */
+  /* Lógica:
+     - %PV fabricante = sp (digitado)
+     - Sacos/dia = Math.ceil(peso_medio * sp/100 * n / pesoSaco)
+     - %PV cocho  = (sacosUp * pesoSaco) / (peso_medio * n) * 100
+     - Compra 30d: peso meio = media + G*15  → sacosUp/dia × 30
+     - Compra 60d: peso meio = media + G*30  → sacosUp/dia × 60
+     - Compra 90d: peso meio = media + G*45  → sacosUp/dia × 90
+  */
+  var projHTML='';
+  lts.forEach(function(l,idx){
+    var s=calcStats(l),sp=suplPct[l];
+    if(sp==null){return;} /* lote sem suplemento: pula */
+    var bg=idx%2===0?'white':'#F9FFF9';
+    var thP='padding:5px 8px;color:white;font-weight:800;font-size:8px;-webkit-print-color-adjust:exact;print-color-adjust:exact';
+    var tdP='padding:4px 8px;border-bottom:1px solid #E8F5E9;text-align:center';
+    var tipo='—';
+    if(sp>=1.0)tipo='Ração';
+    else if(sp>=0.10)tipo='Proteinado';
+    else if(sp>=0.05)tipo='Sal Adensado';
+    else tipo='Sal Mineral';
+
+    /* --- sacos/dia e %PV cocho (peso atual) --- */
+    var sacosRawDia = s.med*sp/100*s.n/pesoSaco;
+    var sacosUpDia  = Math.ceil(sacosRawDia);
+    var cochoKgDia  = sacosUpDia*pesoSaco;
+    var pvCocho     = (cochoKgDia/(s.med*s.n)*100).toFixed(3);
+
+    /* --- compra por período (peso no meio de cada período) --- */
+    function compra(dias){
+      var pesoFinal=s.med+G*dias;
+      var sacDia=Math.ceil(pesoFinal*sp/100*s.n/pesoSaco);
+      return {sacos:sacDia*dias, kg:sacDia*dias*pesoSaco, sacDia:sacDia};
+    }
+    var c30=compra(30), c60=compra(60), c90=compra(90);
+
+    projHTML+='<table style="width:100%;border-collapse:collapse;font-size:9px;margin-bottom:10px;border-radius:8px;overflow:hidden">';
+    /* cabeçalho verde com nome do lote */
+    projHTML+='<thead>';
+    projHTML+='<tr style="background:linear-gradient(135deg,#1B5E20,#2E7D32)">';
+    projHTML+='<th colspan="9" style="'+thP+';text-align:left">LOTE 0'+l+' — '+(suplNome[l]||'—')+' &nbsp;·&nbsp; '+s.n+' animais &nbsp;·&nbsp; Média '+s.med.toFixed(1)+' kg &nbsp;·&nbsp; Saco '+pesoSaco+' kg</th>';
+    projHTML+='</tr>';
+    projHTML+='<tr style="background:#2E7D32">';
+    projHTML+='<th style="'+thP+';text-align:left">Parâmetro</th>';
+    projHTML+='<th style="'+thP+'">% PV Fabricante</th>';
+    projHTML+='<th style="'+thP+'">Tipo</th>';
+    projHTML+='<th style="'+thP+'">Sacos/dia</th>';
+    projHTML+='<th style="'+thP+'">Cocho kg/dia</th>';
+    projHTML+='<th style="'+thP+'">% PV Cocho</th>';
+    projHTML+='<th style="'+thP+'">Compra 30 dias</th>';
+    projHTML+='<th style="'+thP+'">Compra 60 dias</th>';
+    projHTML+='<th style="'+thP+'">Compra 90 dias</th>';
+    projHTML+='</tr></thead><tbody>';
+    projHTML+='<tr style="background:'+bg+'">';
+    projHTML+='<td style="'+tdP+';text-align:left;font-weight:700;color:#1B5E20">'+(suplNome[l]||'—')+'</td>';
+    projHTML+='<td style="'+tdP+'">'+sp.toFixed(3)+'%</td>';
+    projHTML+='<td style="'+tdP+'">'+tipo+'</td>';
+    projHTML+='<td style="'+tdP+';font-weight:700">'+sacosUpDia+' sc</td>';
+    projHTML+='<td style="'+tdP+'">'+cochoKgDia.toFixed(0)+' kg</td>';
+    projHTML+='<td style="'+tdP+';color:#E65100;font-weight:700">'+pvCocho+'%</td>';
+    /* compra 30 */
+    projHTML+='<td style="'+tdP+'">';
+    projHTML+='<span style="font-weight:700">'+c30.sacos+' sc</span><br>';
+    projHTML+='<span style="font-size:7.5px;color:#555">'+c30.kg.toFixed(0)+' kg &nbsp;('+c30.sacDia+' sc/dia)</span>';
+    projHTML+='</td>';
+    /* compra 60 */
+    projHTML+='<td style="'+tdP+'">';
+    projHTML+='<span style="font-weight:700">'+c60.sacos+' sc</span><br>';
+    projHTML+='<span style="font-size:7.5px;color:#555">'+c60.kg.toFixed(0)+' kg &nbsp;('+c60.sacDia+' sc/dia)</span>';
+    projHTML+='</td>';
+    /* compra 90 */
+    projHTML+='<td style="'+tdP+'">';
+    projHTML+='<span style="font-weight:700">'+c90.sacos+' sc</span><br>';
+    projHTML+='<span style="font-size:7.5px;color:#555">'+c90.kg.toFixed(0)+' kg &nbsp;('+c90.sacDia+' sc/dia)</span>';
+    projHTML+='</td>';
+    projHTML+='</tr>';
+    projHTML+='</tbody></table>';
+  });
+  /* fallback se nenhum lote tem suplemento */
+  if(!projHTML)projHTML='<p style="font-size:9px;color:#888;margin-bottom:10px">Nenhum lote com suplemento configurado.</p>';
 
   /* ── DETALHAMENTO (quadro de venda + distribuição + tabela por animal) ── */
   var detHTML='';
@@ -1852,7 +1933,12 @@ function gerarPDF(lotesSelec){
     +'</div>'
     +tblHTML
 
-    +'<div style="font-size:11px;font-weight:800;color:#1B5E20;display:flex;align-items:center;gap:6px;margin-bottom:8px;margin-top:4px">'
+    +'<div class="proj-insumo-break" style="font-size:11px;font-weight:800;color:#1B5E20;display:flex;align-items:center;gap:6px;margin-bottom:8px;margin-top:10px">'
+      +'<span style="display:inline-block;width:4px;height:14px;background:#4CAF50;border-radius:2px"></span>Projeção de Insumo'
+    +'</div>'
+    +projHTML
+
+    +'<div style="font-size:11px;font-weight:800;color:#1B5E20;display:flex;align-items:center;gap:6px;margin-bottom:8px;margin-top:10px">'
       +'<span style="display:inline-block;width:4px;height:14px;background:#4CAF50;border-radius:2px"></span>Detalhamento por Animal'
     +'</div>'
     +detHTML
@@ -1870,13 +1956,27 @@ function gerarPDF(lotesSelec){
     +'</div>'
     +'</body></html>';
 
-  /* Abre em nova aba via Blob */
-  var blob=new Blob([html],{type:'text/html;charset=utf-8'});
-  var url=URL.createObjectURL(blob);
-  var a=document.createElement('a');
-  a.href=url;a.target='_blank';a.rel='noopener';
-  document.body.appendChild(a);a.click();document.body.removeChild(a);
-  setTimeout(function(){URL.revokeObjectURL(url);},15000);
+  /* Abre PDF em modal inline (iframe srcDoc) */
+  var modalPrev=document.getElementById('modal-pdf-preview');
+  if(!modalPrev){
+    modalPrev=document.createElement('div');
+    modalPrev.id='modal-pdf-preview';
+    modalPrev.style.cssText='position:fixed;inset:0;z-index:900;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;padding:12px';
+    modalPrev.innerHTML='<div style="background:white;border-radius:12px;width:100%;max-width:1140px;height:94vh;display:flex;flex-direction:column;overflow:hidden">'
+      +'<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 16px;background:#1B5E20;border-radius:12px 12px 0 0">'
+      +'<span style="color:white;font-weight:800;font-size:14px">📄 Relatório de Análise de Rebanho</span>'
+      +'<div style="display:flex;gap:8px">'
+      +'<button onclick="document.querySelector(\'#modal-pdf-preview iframe\').contentWindow.print()" style="padding:6px 14px;background:#4CAF50;color:white;border:none;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer">🖨️ Imprimir</button>'
+      +'<button onclick="document.getElementById(\'modal-pdf-preview\').style.display=\'none\'" style="padding:6px 12px;background:#888;color:white;border:none;border-radius:6px;font-size:12px;cursor:pointer">✕ Fechar</button>'
+      +'</div>'
+      +'</div>'
+      +'<iframe style="flex:1;border:none;width:100%"></iframe>'
+      +'</div>';
+    document.body.appendChild(modalPrev);
+  }
+  var iframe=modalPrev.querySelector('iframe');
+  iframe.srcdoc=html;
+  modalPrev.style.display='flex';
   fecharModalPDF();
 }
 function ftbl(inp,tid){

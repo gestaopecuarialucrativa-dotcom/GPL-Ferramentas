@@ -114,7 +114,7 @@ body{font-family:Arial,'Segoe UI',Roboto,system-ui,sans-serif;background:var(--b
 </style>
 </head>
 <body>
-<style>.gpl-home-btn{position:fixed;top:10px;left:10px;z-index:99999;background:#1B5E20;color:#fff;text-decoration:none;font:700 13px Arial,'Segoe UI',Roboto,system-ui,sans-serif;padding:7px 13px;border-radius:30px;box-shadow:0 2px 8px rgba(0,0,0,.28)}@media print{.gpl-home-btn{display:none!important}}</style>
+<style>.gpl-home-btn{position:fixed;top:10px;left:10px;z-index:99999;background:#1B5E20;color:#fff;text-decoration:none;font:700 13px Arial,'Segoe UI',Roboto,system-ui,sans-serif;padding:7px 13px;border-radius:30px;box-shadow:0 2px 8px rgba(0,0,0,.28)}@media print{.gpl-home-btn{display:none!important}}.vtbtn{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:11px 8px;border:1.5px solid var(--bge);border-radius:10px;background:#FAFAFA;cursor:pointer;font:800 12.5px Arial,'Segoe UI',Roboto,system-ui;color:var(--sub);transition:all .15s}.vtbtn small{font-size:9px;font-weight:700;opacity:.85}.vtbtn.active{border-color:var(--vc);background:#fff;color:var(--v);box-shadow:0 0 0 3px rgba(76,175,80,.12)}.vtbtn svg{width:20px;height:20px;stroke-width:1.8}.sec-title span svg{width:16px;height:16px;stroke-width:1.8;vertical-align:middle}.btn-calc svg,.btn-wpp svg,.btn-novo svg,.btn-print svg{width:18px;height:18px;stroke-width:1.8;vertical-align:-3px}.hero-badge svg{width:13px;height:13px;stroke-width:1.9;vertical-align:-2px;margin-right:3px}.adv-toggle{width:100%;padding:11px;border-radius:10px;border:1.5px dashed var(--vc);background:#F1F8E9;color:var(--v);font:800 12.5px Arial,'Segoe UI',Roboto,system-ui;cursor:pointer}.adv-toggle:active{transform:scale(.99)}</style>
 <a href="painel.html" class="gpl-home-btn">‹ Início</a>
 
 <div class="print-header">
@@ -134,7 +134,7 @@ body{font-family:Arial,'Segoe UI',Roboto,system-ui,sans-serif;background:var(--b
       <div class="logo-sub">Gestão Pecuária Lucrativa</div>
     </div>
   </div>
-  <div class="hero-badge">🧮 Calculadora Gratuita</div>
+  <div class="hero-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M8 7h8M8 11h2M12 11h.01M16 11h.01M8 15h.01M12 15h.01M16 15h.01M8 19h.01M12 19h.01M16 19h.01"/></svg> Calculadora Gratuita</div>
   <h1>Esse lote <em>vai dar resultado?</em></h1>
   <p>Calcule antes de comprar — GMD necessário, margem real, retorno esperado e tempo de permanência.</p>
 </div>
@@ -143,7 +143,7 @@ body{font-family:Arial,'Segoe UI',Roboto,system-ui,sans-serif;background:var(--b
 
   <!-- DADOS DO LOTE -->
   <div class="section">
-    <div class="sec-title"><span>🐄</span> Dados do Lote</div>
+    <div class="sec-title"><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="4" width="12" height="17" rx="2"/><path d="M9 4V3h6v1M9 9h6M9 13h6M9 17h4"/></svg></span> Dados do Lote</div>
     <div class="g2" style="gap:10px;margin-bottom:10px;">
       <div class="fg">
         <label class="fl">Nº de Animais</label>
@@ -179,14 +179,15 @@ body{font-family:Arial,'Segoe UI',Roboto,system-ui,sans-serif;background:var(--b
 
   <!-- MANEJO -->
   <div class="section">
-    <div class="sec-title"><span>📊</span> GMD e Manejo</div>
+    <div class="sec-title"><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 14l3-3 3 2 4-5"/></svg></span> GMD e Manejo</div>
     <div class="g2" style="gap:10px;margin-bottom:10px;">
       <div class="fg">
         <label class="fl">GMD Esperado (kg/dia)</label>
         <div class="fi-wrap">
-          <input class="fi" type="number" step="0.01" id="gmd" placeholder="Ex: 0.500" oninput="calcLive()">
+          <input class="fi" type="text" inputmode="decimal" id="gmd" placeholder="Ex: 0,500 ou 0.500" oninput="validaGmd(this)">
           <span class="fi-suffix">kg/d</span>
         </div>
+        <div id="gmdHint" style="font-size:9.5px;color:var(--red);margin-top:4px;display:none"></div>
       </div>
       <div class="fg">
         <label class="fl">Mortalidade (%)</label>
@@ -200,7 +201,10 @@ body{font-family:Arial,'Segoe UI',Roboto,system-ui,sans-serif;background:var(--b
 
   <!-- CUSTOS -->
   <div class="section">
-    <div class="sec-title"><span>💰</span> Custos Operacionais (por cabeça/dia)</div>
+    <div class="sec-title"><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="6" rx="8" ry="3"/><path d="M4 6v6c0 1.7 3.6 3 8 3s8-1.3 8-3V6M4 12v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6"/></svg></span> Custos Operacionais</div>
+    <div style="font-size:9.5px;color:var(--sub);background:#F1F8E9;border-left:3px solid var(--vc);border-radius:6px;padding:7px 10px;margin-bottom:12px;line-height:1.6">
+      Suplemento e pasto são <strong>por cabeça/dia</strong>. Sanidade e outros: informe o custo <strong>total por cabeça no período</strong> — a ferramenta distribui pelos dias automaticamente.
+    </div>
     <div class="g2" style="gap:10px;margin-bottom:10px;">
       <div class="fg">
         <label class="fl">Suplemento (R$/cab/dia)</label>
@@ -210,7 +214,7 @@ body{font-family:Arial,'Segoe UI',Roboto,system-ui,sans-serif;background:var(--b
         </div>
       </div>
       <div class="fg">
-        <label class="fl">Pasto/Arrendamento (R$/cab/dia)</label>
+        <label class="fl">Pasto / Arrendamento (R$/cab/dia)</label>
         <div class="fi-wrap">
           <span class="fi-prefix">R$</span>
           <input class="fi has-prefix" type="number" step="0.01" id="pasto" placeholder="Ex: 0.80" oninput="calcLive()">
@@ -219,34 +223,51 @@ body{font-family:Arial,'Segoe UI',Roboto,system-ui,sans-serif;background:var(--b
     </div>
     <div class="g2" style="gap:10px;margin-bottom:10px;">
       <div class="fg">
-        <label class="fl">Sanidade (R$/cab/dia)</label>
+        <label class="fl">Sanidade (R$/cab — total no período)</label>
         <div class="fi-wrap">
           <span class="fi-prefix">R$</span>
-          <input class="fi has-prefix" type="number" step="0.01" id="sanidade" placeholder="Ex: 0.30" oninput="calcLive()">
+          <input class="fi has-prefix" type="number" step="0.01" id="sanidade" placeholder="Ex: 30.00" oninput="calcLive()">
         </div>
+        <div style="font-size:9px;color:var(--sub);margin-top:4px">Vacinas + vermífugos + carrapaticida no lote inteiro ÷ cabeças</div>
       </div>
       <div class="fg">
-        <label class="fl">Outros (mão de obra etc.)</label>
+        <label class="fl">Outros (R$/cab/mês)</label>
         <div class="fi-wrap">
           <span class="fi-prefix">R$</span>
-          <input class="fi has-prefix" type="number" step="0.01" id="outros" placeholder="Ex: 0.50" oninput="calcLive()">
+          <input class="fi has-prefix" type="number" step="0.01" id="outros" placeholder="Ex: 15.00" oninput="calcLive()">
         </div>
+        <div style="font-size:9px;color:var(--sub);margin-top:4px">Mão de obra, combustível, energia — por mês por cabeça</div>
       </div>
     </div>
   </div>
 
   <!-- VENDA -->
   <div class="section">
-    <div class="sec-title"><span>🤝</span> Venda</div>
+    <div class="sec-title"><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M20.6 13.4 13 21l-9-9V4h8z"/><circle cx="8" cy="8" r="1.4"/></svg></span> Venda</div>
+
+    <div class="fg" style="margin-bottom:12px">
+      <label class="fl">Tipo de Venda</label>
+      <div style="display:flex;gap:8px">
+        <button type="button" id="vt-pe" class="vtbtn" onclick="setVenda('pe')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l2 5 4-12 2 7h6"/></svg>
+          Em pé <small>@ = 30 kg vivo</small>
+        </button>
+        <button type="button" id="vt-abate" class="vtbtn active" onclick="setVenda('abate')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M6 7v13h12V7M9 11v5M15 11v5"/></svg>
+          Para abate <small>@ = 15 kg carcaça</small>
+        </button>
+      </div>
+    </div>
+
     <div class="g2" style="gap:10px;">
       <div class="fg">
-        <label class="fl">Valor da Arroba (R$/@)</label>
+        <label class="fl" id="lblArr">Valor da Arroba (R$/@)</label>
         <div class="fi-wrap">
           <span class="fi-prefix">R$</span>
           <input class="fi has-prefix" type="number" id="vlrArr" placeholder="Ex: 310" oninput="calcLive()">
         </div>
       </div>
-      <div class="fg">
+      <div class="fg" id="fgRend">
         <label class="fl">Rendimento de Carcaça (%)</label>
         <div class="fi-wrap">
           <input class="fi" type="number" id="rend" placeholder="Ex: 52" value="52" oninput="calcLive()">
@@ -254,10 +275,27 @@ body{font-family:Arial,'Segoe UI',Roboto,system-ui,sans-serif;background:var(--b
         </div>
       </div>
     </div>
+    <div id="rendHint" style="font-size:9.5px;color:var(--sub);margin-top:6px;display:none">Na venda em pé o rendimento de carcaça não entra no cálculo — a @ é o peso vivo dividido por 30.</div>
+
+  </div>
+
+  <!-- ANÁLISE AVANÇADA (opcional) -->
+  <div style="margin-bottom:12px">
+    <button type="button" id="advToggle" class="adv-toggle" onclick="toggleAdv()">+ Ver análise avançada (custo do capital)</button>
+    <div id="advInputs" style="display:none;margin-top:10px;background:#fff;border-radius:14px;padding:16px;box-shadow:0 2px 10px rgba(0,0,0,.05)">
+      <div class="fg">
+        <label class="fl">Taxa de oportunidade do capital (% a.a.)</label>
+        <div class="fi-wrap">
+          <input class="fi" type="number" step="0.1" id="taxaOp" placeholder="Ex: 10" value="10" oninput="calcLive()">
+          <span class="fi-suffix">% a.a.</span>
+        </div>
+        <div style="font-size:9.5px;color:var(--sub);margin-top:6px">Quanto o dinheiro renderia se aplicado (poupança, CDI, etc.). Base do cálculo: valor de compra do animal. Use isto numa conversa de consultoria — para o produtor avaliar só o lucro do lote, pode ignorar.</div>
+      </div>
+    </div>
   </div>
 
   <button class="btn-calc" onclick="calcular()">
-    <span>🧮</span> Calcular Viabilidade
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M8 7h8M8 11h2M12 11h.01M16 11h.01M8 15h.01M12 15h.01M16 15h.01M8 19h4"/></svg> Calcular Viabilidade
   </button>
 
   <!-- RESULTADO -->
@@ -270,6 +308,34 @@ body{font-family:Arial,'Segoe UI',Roboto,system-ui,sans-serif;background:var(--b
     </div>
 
     <div class="res-grid">
+      <div class="res-card" style="grid-column:1/-1;border-left:4px solid var(--vm)">
+        <div class="rc-label">Ponto de equilíbrio — custo da @ produzida</div>
+        <div style="display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-top:2px">
+          <div class="rc-val" id="rEquilibrio">—</div>
+          <span id="rEquilibrioTag" style="font-size:10px;font-weight:800;padding:3px 9px;border-radius:20px;background:#E8F5E9;color:var(--v)">—</span>
+        </div>
+        <div class="rc-sub">abaixo desse preço de @ o lote dá prejuízo</div>
+      </div>
+      <div class="res-card">
+        <div class="rc-label">Relação de Troca</div>
+        <div class="rc-val" id="rRelTroca">—</div>
+        <div class="rc-sub">@ de boi gordo p/ pagar o magro</div>
+      </div>
+      <div class="res-card">
+        <div class="rc-label">Lucro por @ produzida</div>
+        <div class="rc-val" id="rLucroArr">—</div>
+        <div class="rc-sub" id="rLucroDia">—</div>
+      </div>
+      <div class="res-card alerta" id="cardCustoOport" style="display:none">
+        <div class="rc-label">Custo de Oportunidade</div>
+        <div class="rc-val" id="rCustoOport">—</div>
+        <div class="rc-sub" id="rCustoOportSub">capital parado</div>
+      </div>
+      <div class="res-card" id="cardResCapital" style="display:none">
+        <div class="rc-label">Resultado após o capital</div>
+        <div class="rc-val" id="rResCapital">—</div>
+        <div class="rc-sub">vs deixar o dinheiro aplicado</div>
+      </div>
       <div class="res-card destaque">
         <div class="rc-label">Lucro por Cabeça</div>
         <div class="rc-val" id="rLucroCab">—</div>
@@ -308,31 +374,31 @@ body{font-family:Arial,'Segoe UI',Roboto,system-ui,sans-serif;background:var(--b
       <div class="res-card">
         <div class="rc-label">ROI do Lote</div>
         <div class="rc-val" id="rRoi">—</div>
-        <div class="rc-sub">retorno sobre investimento</div>
+        <div class="rc-sub">sobre o valor de compra</div>
       </div>
     </div>
 
     <!-- GMD ANÁLISE -->
     <div class="gmd-chart">
-      <div class="gmd-title">📊 Análise de GMD — Benchmarks Inttegra</div>
+      <div class="gmd-title">Análise de GMD — Benchmarks Inttegra</div>
       <div class="gmd-bar-wrap">
         <div class="gmd-bar-label"><span>Seu GMD</span><span id="bGmdSeu">—</span></div>
         <div class="gmd-bar-bg"><div class="gmd-bar-fill" id="bGmdSeuBar" style="background:var(--az);width:0%"></div></div>
       </div>
       <div class="gmd-bar-wrap">
         <div class="gmd-bar-label"><span>Média Inttegra</span><span>0,403 kg/dia</span></div>
-        <div class="gmd-bar-bg"><div class="gmd-bar-fill" style="background:var(--ol);width:50%"></div></div>
+        <div class="gmd-bar-bg"><div class="gmd-bar-fill" id="bGmdMediaBar" style="background:var(--ol);width:50%"></div></div>
       </div>
       <div class="gmd-bar-wrap">
         <div class="gmd-bar-label"><span>Top 30% Inttegra</span><span>0,668 kg/dia</span></div>
-        <div class="gmd-bar-bg"><div class="gmd-bar-fill" style="background:var(--lm);width:83%"></div></div>
+        <div class="gmd-bar-bg"><div class="gmd-bar-fill" id="bGmdTopBar" style="background:var(--lm);width:83%"></div></div>
       </div>
       <div id="gmdAnalise" style="margin-top:10px;font-size:11.5px;color:var(--sub);line-height:1.6;"></div>
     </div>
 
     <!-- BREAKDOWN -->
     <div class="breakdown">
-      <div class="bk-title">📋 Detalhamento por Cabeça</div>
+      <div class="bk-title">Detalhamento por Cabeça</div>
       <div class="bk-row"><span class="bk-label">Valor de compra</span><span class="bk-val neg" id="bCompra">—</span></div>
       <div class="bk-row"><span class="bk-label">Custo suplemento</span><span class="bk-val neg" id="bSuplem">—</span></div>
       <div class="bk-row"><span class="bk-label">Custo pasto/arrend.</span><span class="bk-val neg" id="bPasto">—</span></div>
@@ -347,10 +413,10 @@ body{font-family:Arial,'Segoe UI',Roboto,system-ui,sans-serif;background:var(--b
 
     <!-- WHATSAPP -->
     <button class="btn-wpp" onclick="enviarWpp()">
-      <span>💬</span> Enviar resultado para Rogério
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.5 8.5 0 0 1-12.6 7.4L3 21l2.1-5.4A8.5 8.5 0 1 1 21 11.5z"/></svg> Enviar resultado para Rogério
     </button>
-    <button class="btn-novo" onclick="novoCalculo()">🔄 Novo cálculo</button>
-    <button class="btn-print" onclick="window.print()" style="width:100%;padding:13px;border-radius:12px;border:1.5px solid var(--bge);background:#fff;color:var(--v);font-weight:800;cursor:pointer;margin-top:8px">🖨 Imprimir / PDF</button>
+    <button class="btn-novo" onclick="novoCalculo()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 0 1 15-6.7L21 8M21 3v5h-5M21 12a9 9 0 0 1-15 6.7L3 16M3 21v-5h5"/></svg> Novo cálculo</button>
+    <button class="btn-print" onclick="window.print()" style="width:100%;padding:13px;border-radius:12px;border:1.5px solid var(--bge);background:#fff;color:var(--v);font-weight:800;cursor:pointer;margin-top:8px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V3h12v6M6 18H4v-7h16v7h-2M8 14h8v7H8z"/></svg> Imprimir / PDF</button>
   </div>
 
 </div><!-- /main -->
@@ -362,6 +428,33 @@ body{font-family:Arial,'Segoe UI',Roboto,system-ui,sans-serif;background:var(--b
 
 <script>
 var resultado = {};
+window._tipoVenda = 'abate';
+window._adv = false;
+function toggleAdv(){
+  window._adv = !window._adv;
+  var ai=document.getElementById('advInputs');
+  var bt=document.getElementById('advToggle');
+  if(ai){ ai.style.display = window._adv ? 'block' : 'none'; }
+  if(bt){ bt.textContent = window._adv ? '\u2212 Ocultar an\u00e1lise avan\u00e7ada' : '+ Ver an\u00e1lise avan\u00e7ada (custo do capital)'; }
+  var c1=document.getElementById('cardCustoOport'), c2=document.getElementById('cardResCapital');
+  if(c1){ c1.style.display = window._adv ? '' : 'none'; }
+  if(c2){ c2.style.display = window._adv ? '' : 'none'; }
+}
+function setVenda(tv){
+  window._tipoVenda = tv;
+  var bpe=document.getElementById('vt-pe'), bab=document.getElementById('vt-abate');
+  if(bpe&&bab){ bpe.classList.toggle('active', tv==='pe'); bab.classList.toggle('active', tv==='abate'); }
+  var rendEl=document.getElementById('rend'), fg=document.getElementById('fgRend'), hint=document.getElementById('rendHint'), lbl=document.getElementById('lblArr');
+  if(tv==='pe'){
+    if(rendEl){ rendEl.disabled=true; } if(fg){ fg.style.opacity='.45'; }
+    if(hint){ hint.style.display='block'; }
+    if(lbl){ lbl.textContent='Valor da Arroba — em pé (R$/@)'; }
+  } else {
+    if(rendEl){ rendEl.disabled=false; } if(fg){ fg.style.opacity='1'; }
+    if(hint){ hint.style.display='none'; }
+    if(lbl){ lbl.textContent='Valor da Arroba — carcaça (R$/@)'; }
+  }
+}
 
 function fmtR(v){ return 'R$'+(Math.round(v)).toLocaleString('pt-BR'); }
 function fmtP(v){ return v.toFixed(1)+'%'; }
@@ -372,7 +465,8 @@ function calcular(){
   var pesoEnt = gv('pesoEnt');
   var pesoSai = gv('pesoSai');
   var vlrComp = gv('vlrCompra');
-  var gmd     = gv('gmd');
+  var _gmdRaw = (document.getElementById('gmd').value||'').replace(',','.');
+  var gmd = parseFloat(_gmdRaw) || 0;
   var mort    = gv('mort')/100;
   var suplem  = gv('suplem');
   var pasto   = gv('pasto');
@@ -381,10 +475,24 @@ function calcular(){
   var vlrArr  = gv('vlrArr');
   var rend    = gv('rend')/100 || 0.52;
 
-  if(!pesoEnt||!pesoSai||!vlrComp||!gmd||!vlrArr){
-    alert('Preencha pelo menos: animais, pesos, valor de compra, GMD e valor da arroba.');
+  if(!pesoEnt||!pesoSai||!vlrComp||!vlrArr){
+    var _campos=['pesoEnt','pesoSai','vlrCompra','vlrArr'];
+    _campos.forEach(function(id){var e=document.getElementById(id);if(e&&!(parseFloat(e.value)||0)){e.style.borderColor='var(--red)';}});
+    alert('Preencha: animais, pesos, valor de compra e valor da arroba.');
     return;
   }
+  if(!gmd||gmd<0.05){
+    var hh=document.getElementById('gmdHint');
+    var gmdEl=document.getElementById('gmd');
+    if(hh){hh.textContent='GMD inválido — use vírgula ou ponto. Ex: 0,500 = 500g/dia';hh.style.color='var(--red)';hh.style.display='block';}
+    if(gmdEl){gmdEl.style.borderColor='var(--red)';gmdEl.focus();}
+    return;
+  }
+  // GMD válido: limpar erro
+  var _gmdEl=document.getElementById('gmd');
+  if(_gmdEl){_gmdEl.style.borderColor='';}
+  var _gmdHH=document.getElementById('gmdHint');
+  if(_gmdHH){_gmdHH.style.display='none';}
 
   // Tempo
   var ganho = pesoSai - pesoEnt;
@@ -392,12 +500,19 @@ function calcular(){
   var meses = (dias/30).toFixed(1);
 
   // Custo operacional total por cab
-  var custoDia = suplem + pasto + sanid + outros;
-  var custoOp  = custoDia * dias;
+  /* suplem e pasto = R$/cab/dia; sanid = total no período; outros = R$/cab/mês */
+  var custoOp = (suplem + pasto) * dias + sanid + outros * (dias / 30);
 
-  // Receita (arroba @ = 15kg)
-  var pesoCarc = pesoSai * rend;
-  var arrobas  = pesoCarc / 15;
+  // Tipo de venda: em pé (@=30kg vivo) ou abate (@=15kg carcaça)
+  var tipoVenda = window._tipoVenda || 'abate';
+  var arrobas, arrobasGanhas;
+  if(tipoVenda === 'pe'){
+    arrobas       = pesoSai / 30;
+    arrobasGanhas = (pesoSai - pesoEnt) / 30;
+  } else {
+    arrobas       = (pesoSai * rend) / 15;
+    arrobasGanhas = ((pesoSai - pesoEnt) * rend) / 15;
+  }
   var receita  = arrobas * vlrArr;
 
   // Mortalidade — desconta % das cabeças na receita
@@ -416,8 +531,17 @@ function calcular(){
   // ROI
   var roi = vlrComp > 0 ? (lucro / vlrComp) * 100 : 0;
 
+  // Indicadores de consultoria
+  var taxaOp = gv('taxaOp'); if(!taxaOp && taxaOp !== 0) taxaOp = 12;
+  var equilibrio = arrobas > 0 ? custoTotal / arrobas : 0;   // custo da @ produzida = ponto de equilíbrio
+  var relTroca   = vlrArr   > 0 ? vlrComp / vlrArr   : 0;    // @ de boi gordo p/ pagar o magro
+  var lucroArr   = arrobas  > 0 ? lucro / arrobas    : 0;
+  var lucroDia   = dias     > 0 ? lucro / dias       : 0;
+  var custoOport = vlrComp * (taxaOp/100) * (dias/365);
+  var resCapital = lucro - custoOport;
+
   // Salvar
-  resultado = {nCab,pesoEnt,pesoSai,vlrComp,gmd,mort,custoOp,receita:receitaLiq,custoTotal,lucro,lucroTotal,margem,roi,dias,meses,suplem,pasto,sanid,outros,custoDia,vlrArr,arrobas};
+  resultado = {nCab,pesoEnt,pesoSai,vlrComp,gmd,mort,custoOp,receita:receitaLiq,custoTotal,lucro,lucroTotal,margem,roi,dias,meses,suplem,pasto,sanid,outros,vlrArr,arrobas,tipoVenda,equilibrio,relTroca,lucroArr,lucroDia,custoOport,resCapital,taxaOp};
 
   // Renderizar
   document.getElementById('rLucroCab').textContent   = fmtR(lucro);
@@ -430,46 +554,71 @@ function calcular(){
   document.getElementById('rCustoOp').textContent     = fmtR(custoOp);
   document.getElementById('rRoi').textContent         = fmtP(roi);
 
+  // --- novos indicadores ---
+  document.getElementById('rEquilibrio').textContent = fmtR(equilibrio);
+  var eqTag = document.getElementById('rEquilibrioTag');
+  var diffEq = vlrArr - equilibrio;
+  eqTag.textContent = 'vende a '+fmtR(vlrArr)+'  '+(diffEq>=0?'+ ':'')+fmtR(diffEq)+'/@';
+  eqTag.style.background = diffEq>=0 ? '#E8F5E9' : '#FDECEA';
+  eqTag.style.color      = diffEq>=0 ? 'var(--v)' : 'var(--red)';
+  document.getElementById('rRelTroca').textContent = relTroca.toFixed(1)+' @';
+  document.getElementById('rLucroArr').textContent = fmtR(lucroArr);
+  document.getElementById('rLucroDia').textContent = fmtR(lucroDia)+'/cab/dia';
+  document.getElementById('rCustoOport').textContent = '- '+fmtR(custoOport);
+  document.getElementById('rCustoOportSub').textContent = 'capital '+taxaOp.toFixed(0)+'% a.a. \u00b7 '+meses+' meses';
+  var resEl = document.getElementById('rResCapital');
+  resEl.textContent = fmtR(resCapital);
+  resEl.style.color = resCapital >= 0 ? 'var(--v)' : 'var(--red)';
+  // exibir cards avançados só quando o modo avançado está ligado
+  var _adv = !!window._adv;
+  var _c1=document.getElementById('cardCustoOport'), _c2=document.getElementById('cardResCapital');
+  if(_c1){ _c1.style.display = _adv ? '' : 'none'; }
+  if(_c2){ _c2.style.display = _adv ? '' : 'none'; }
+
   // Breakdown
   document.getElementById('bCompra').textContent    = '- '+fmtR(vlrComp);
   document.getElementById('bSuplem').textContent    = '- '+fmtR(suplem*dias);
   document.getElementById('bPasto').textContent     = '- '+fmtR(pasto*dias);
-  document.getElementById('bSanidade').textContent  = '- '+fmtR(sanid*dias);
-  document.getElementById('bOutros').textContent    = '- '+fmtR(outros*dias);
+  document.getElementById('bSanidade').textContent  = '- '+fmtR(sanid);
+  document.getElementById('bOutros').textContent    = '- '+fmtR(outros*(dias/30));
   document.getElementById('bReceita2').textContent  = '+ '+fmtR(receitaLiq);
   var bLucroEl = document.getElementById('bLucro');
   bLucroEl.textContent = (lucro>=0?'+ ':'')+fmtR(lucro);
   bLucroEl.className = 'bk-val big '+(lucro>=0?'pos':'neg');
 
-  // GMD chart
-  var maxGmd = 0.8;
+  // GMD chart — escala adaptativa (não trava em 0,8 quando o GMD é de confinamento)
+  var maxGmd = Math.max(0.8, gmd * 1.05);
   var pct = Math.min((gmd/maxGmd)*100, 100);
   document.getElementById('bGmdSeu').textContent = gmd.toFixed(3)+' kg/dia';
   document.getElementById('bGmdSeuBar').style.width = pct+'%';
   document.getElementById('bGmdSeuBar').style.background = gmd>=0.668?'var(--lm)':gmd>=0.403?'var(--ol)':'var(--red)';
+  // barras de referência proporcionais à mesma escala
+  var _mb=document.getElementById('bGmdMediaBar'), _tb=document.getElementById('bGmdTopBar');
+  if(_mb){ _mb.style.width = Math.min((0.403/maxGmd)*100,100)+'%'; }
+  if(_tb){ _tb.style.width = Math.min((0.668/maxGmd)*100,100)+'%'; }
 
   var gmdMsg = '';
-  if(gmd >= 0.668) gmdMsg = '🟢 GMD acima do Top 30% Inttegra! Performance excelente.';
-  else if(gmd >= 0.403) gmdMsg = '🟡 GMD na média Inttegra. Há espaço para melhorar até o Top 30% (0,668 kg/dia).';
-  else gmdMsg = '🔴 GMD abaixo da média Inttegra (0,403 kg/dia). Revisar suplementação e manejo de pastagem.';
+  if(gmd >= 0.668) gmdMsg = 'GMD acima do Top 30% Inttegra \u2014 performance excelente.';
+  else if(gmd >= 0.403) gmdMsg = 'GMD na média Inttegra \u2014 há espaço para melhorar at\u00e9 o Top 30% (0,668 kg/dia).';
+  else gmdMsg = 'GMD abaixo da média Inttegra (0,403 kg/dia) \u2014 revisar suplementa\u00e7\u00e3o e manejo de pastagem.';
   document.getElementById('gmdAnalise').textContent = gmdMsg;
 
   // Veredito
   var veredito, vsub, vbadge, vbadgeClass;
   if(lucro > 0 && margem >= 20){
-    veredito = '✅ Lote Viável!';
+    veredito = 'Lote Viável!';
     vsub = margem >= 30 ? 'Margem acima de 30% — excelente resultado.' : 'Margem positiva — vale a pena, mas há espaço para melhorar.';
-    vbadge = '💰 COMPRA RECOMENDADA';
+    vbadge = 'COMPRA RECOMENDADA';
     vbadgeClass = 'badge-sim';
   } else if(lucro > 0 && margem < 20){
-    veredito = '⚠️ Margem Apertada';
+    veredito = 'Margem Apertada';
     vsub = 'Lucro positivo mas margem abaixo de 20%. Negocie melhor o preço de compra ou melhore o GMD.';
-    vbadge = '⚠️ ATENÇÃO — MARGEM BAIXA';
+    vbadge = 'ATENÇÃO — MARGEM BAIXA';
     vbadgeClass = 'badge-cuidado';
   } else {
-    veredito = '❌ Lote Inviável';
+    veredito = 'Lote Inviável';
     vsub = 'Com esses números o lote gera prejuízo. Renegocie o preço, reveja custos ou aguarde melhor oportunidade.';
-    vbadge = '🚫 NÃO RECOMENDADO';
+    vbadge = 'NÃO RECOMENDADO';
     vbadgeClass = 'badge-nao';
   }
   document.getElementById('resVeredito').textContent = veredito;
@@ -483,25 +632,47 @@ function calcular(){
   var _r=document.getElementById('resultado'); if(_r.scrollIntoView){ setTimeout(function(){ _r.scrollIntoView({behavior:'smooth',block:'start'}); }, 100); }
 }
 
-function calcLive(){ /* placeholder for future live calc */ }
+function validaGmd(el){
+  var v=(el.value||'').replace(',','.');
+  var n=parseFloat(v);
+  var hint=document.getElementById('gmdHint');
+  if(!hint) return;
+  if(el.value===''){ hint.style.display='none'; return; }
+  if(isNaN(n)||n<=0){
+    hint.textContent='Use ponto ou vírgula. Ex: 0,500'; hint.style.color='var(--red)'; hint.style.display='block';
+  } else if(n<0.05){
+    hint.textContent='GMD muito baixo ('+n.toFixed(3)+' kg/dia) — verifique se usou vírgula. Ex correto: 0,500'; hint.style.color='var(--red)'; hint.style.display='block';
+  } else if(n>2){
+    hint.textContent='GMD acima de 2 kg/dia é incomum — confira o valor.'; hint.style.color='var(--ol)'; hint.style.display='block';
+  } else {
+    hint.textContent=''; hint.style.display='none';
+  }
+}
+function calcLive(){ /* placeholder */ }
 
 function enviarWpp(){
   var r = resultado;
   if(!r.lucro && r.lucro !== 0){ alert('Calcule primeiro!'); return; }
-  var msg = '🐄 *VIABILIDADE DE LOTE — ROGÉRIO AVELINO*\n\n';
-  msg += '📋 *Resumo do Cálculo:*\n';
-  msg += '• Animais: ' + r.nCab + ' cabeças\n';
-  msg += '• Entrada: ' + r.pesoEnt + 'kg → Saída: ' + r.pesoSai + 'kg\n';
-  msg += '• GMD: ' + r.gmd.toFixed(3) + ' kg/dia\n';
-  msg += '• Permanência: ' + r.dias + ' dias (' + r.meses + ' meses)\n\n';
-  msg += '💰 *Resultado por Cabeça:*\n';
-  msg += '• Custo total: ' + fmtR(r.custoTotal) + '\n';
-  msg += '• Receita: ' + fmtR(r.receita) + '\n';
-  msg += '• Lucro/cab: ' + fmtR(r.lucro) + '\n';
-  msg += '• Lucro total: ' + fmtR(r.lucroTotal) + '\n';
-  msg += '• Margem: ' + fmtP(r.margem) + '\n';
-  msg += '• ROI: ' + fmtP(r.roi) + '\n\n';
-  msg += r.lucro >= 0 ? '✅ *Lote viável!*' : '❌ *Lote inviável com esses números.*';
+  var tv = r.tipoVenda === 'pe' ? 'em pé (@ 30kg)' : 'abate (@ 15kg carcaça)';
+  var msg = '*VIABILIDADE DE LOTE — ROGÉRIO AVELINO*\n\n';
+  msg += '*Resumo do Cálculo:*\n';
+  msg += '- Animais: ' + r.nCab + ' cabeças\n';
+  msg += '- Entrada: ' + r.pesoEnt + 'kg -> Saída: ' + r.pesoSai + 'kg\n';
+  msg += '- Venda: ' + tv + '\n';
+  msg += '- GMD: ' + r.gmd.toFixed(3) + ' kg/dia\n';
+  msg += '- Permanência: ' + r.dias + ' dias (' + r.meses + ' meses)\n\n';
+  msg += '*Resultado por Cabeça:*\n';
+  msg += '- Custo total: ' + fmtR(r.custoTotal) + '\n';
+  msg += '- Receita: ' + fmtR(r.receita) + '\n';
+  msg += '- Lucro/cab: ' + fmtR(r.lucro) + '\n';
+  msg += '- Lucro total: ' + fmtR(r.lucroTotal) + '\n';
+  msg += '- Margem: ' + fmtP(r.margem) + '  |  ROI: ' + fmtP(r.roi) + '\n\n';
+  msg += '*Indicadores:*\n';
+  msg += '- Ponto de equilíbrio: ' + fmtR(r.equilibrio) + '/@ (vende a ' + fmtR(r.vlrArr) + ')\n';
+  msg += '- Relação de troca: ' + r.relTroca.toFixed(1) + ' @ p/ pagar o magro\n';
+  msg += '- Custo de oportunidade: ' + fmtR(r.custoOport) + ' (' + r.taxaOp.toFixed(0) + '% a.a.)\n';
+  msg += '- Resultado após o capital: ' + fmtR(r.resCapital) + '\n\n';
+  msg += r.lucro >= 0 ? '*Lote viável!*' : '*Lote inviável com esses números.*';
   msg += '\n\n_Calculado pelo sistema Rogério Avelino_';
   window.open('https://wa.me/5563991082453?text='+encodeURIComponent(msg), '_blank');
 }

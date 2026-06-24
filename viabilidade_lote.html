@@ -309,22 +309,29 @@ body{font-family:Arial,'Segoe UI',Roboto,system-ui,sans-serif;background:var(--b
 
     <div class="res-grid">
       <div class="res-card" style="grid-column:1/-1;border-left:4px solid var(--vm)">
-        <div class="rc-label">Ponto de equilíbrio — custo da @ produzida</div>
+        <div class="rc-label">Ponto de equilíbrio — preço de @ pra empatar</div>
         <div style="display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-top:2px">
           <div class="rc-val" id="rEquilibrio">—</div>
           <span id="rEquilibrioTag" style="font-size:10px;font-weight:800;padding:3px 9px;border-radius:20px;background:#E8F5E9;color:var(--v)">—</span>
         </div>
-        <div class="rc-sub">abaixo desse preço de @ o lote dá prejuízo</div>
+        <div class="rc-sub">vendendo a @ abaixo desse valor, o lote dá prejuízo</div>
+      </div>
+      <div class="res-card" id="cardCustoProd" style="grid-column:1/-1;border-left:4px solid var(--vc)">
+        <div class="rc-label">Custo de produção — regra Inttegra (meta 0,6@)</div>
+        <div style="display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-top:2px">
+          <div class="rc-val" id="rCustoProd">—</div>
+          <span id="rCustoProdTag" style="font-size:10px;font-weight:800;padding:3px 9px;border-radius:20px;background:#E8F5E9;color:var(--v)">—</span>
+        </div>
+        <div class="rc-sub">arrobas de custo para produzir cada @ (sem a reposição) — meta do Chaker: até 0,6@</div>
       </div>
       <div class="res-card">
         <div class="rc-label">Relação de Troca</div>
         <div class="rc-val" id="rRelTroca">—</div>
         <div class="rc-sub">@ de boi gordo p/ pagar o magro</div>
       </div>
-      <div class="res-card">
-        <div class="rc-label">Lucro por @ produzida</div>
-        <div class="rc-val" id="rLucroArr">—</div>
-        <div class="rc-sub" id="rLucroDia">—</div>
+      <div class="res-card" id="cardHistoria" style="grid-column:1/-1;border-left:4px solid var(--vc)">
+        <div class="rc-label" style="margin-bottom:6px">A história do lote</div>
+        <div id="rHistoria" style="font-size:12px;line-height:1.7;color:var(--sub)">—</div>
       </div>
       <div class="res-card alerta" id="cardCustoOport" style="display:none">
         <div class="rc-label">Custo de Oportunidade</div>
@@ -411,6 +418,89 @@ body{font-family:Arial,'Segoe UI',Roboto,system-ui,sans-serif;background:var(--b
       </div>
     </div>
 
+
+    <!-- SIMULADOR DE CENÁRIOS -->
+    <div id="simBloco" style="margin:16px 0;background:#fff;border-radius:14px;border:0.5px solid #d4ddd0;overflow:hidden">
+      <div style="background:#1B5E20;padding:12px 16px;display:flex;align-items:center;gap:8px">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20V10M18 20V4M6 20v-4"/></svg>
+        <span style="color:#fff;font-size:13px;font-weight:800">E se... simulador de cenários</span>
+      </div>
+
+      <div style="padding:14px 16px">
+
+        <!-- Slider GMD -->
+        <div style="margin-bottom:14px">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+            <span style="font-size:12px;color:var(--sub)">GMD simulado (kg/dia)</span>
+            <span id="simGmdVal" style="font-size:14px;font-weight:800;color:var(--v)">0,500</span>
+          </div>
+          <input type="range" id="simGmd" min="0.2" max="1.5" step="0.05" value="0.5"
+            style="width:100%;accent-color:#2E7D32"
+            oninput="simRecalc()">
+          <div style="display:flex;justify-content:space-between;font-size:9.5px;color:var(--sub);margin-top:3px">
+            <span>0,200</span>
+            <span id="simGmdRef"></span>
+            <span>1,500</span>
+          </div>
+        </div>
+
+        <!-- Toggle tipo de venda simulado -->
+        <div style="margin-bottom:14px">
+          <div style="font-size:12px;color:var(--sub);margin-bottom:6px">Tipo de venda simulado</div>
+          <div style="display:flex;gap:8px">
+            <button type="button" id="simVtPe" onclick="simSetVenda('pe')"
+              style="flex:1;padding:9px 6px;border-radius:10px;border:1.5px solid #2E7D32;background:#fff;color:#1B5E20;font:800 12px Arial,sans-serif;cursor:pointer;line-height:1.4">
+              Em pé<br><span style="font-size:9px;font-weight:400">@ = 30kg vivo</span>
+            </button>
+            <button type="button" id="simVtAbate" onclick="simSetVenda('abate')"
+              style="flex:1;padding:9px 6px;border-radius:10px;border:0.5px solid #d4ddd0;background:#f5f7f5;color:#666;font:800 12px Arial,sans-serif;cursor:pointer;line-height:1.4">
+              Para abate<br><span style="font-size:9px;font-weight:400">@ = 15kg carcaça</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Cards de resultado simulado -->
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px">
+          <div style="background:#eef2ec;border-radius:10px;padding:8px;text-align:center">
+            <div style="font-size:9px;color:#555">Dias</div>
+            <div id="simDias" style="font-size:15px;font-weight:800;color:#1B5E20">—</div>
+            <div id="simDiasDiff" style="font-size:9.5px;font-weight:700">—</div>
+          </div>
+          <div style="background:#eef2ec;border-radius:10px;padding:8px;text-align:center">
+            <div style="font-size:9px;color:#555">Lucro/cab</div>
+            <div id="simLucro" style="font-size:15px;font-weight:800;color:#1B5E20">—</div>
+            <div id="simLucroDiff" style="font-size:9.5px;font-weight:700">—</div>
+          </div>
+          <div style="background:#eef2ec;border-radius:10px;padding:8px;text-align:center">
+            <div style="font-size:9px;color:#555">Equilíbrio</div>
+            <div id="simEquil" style="font-size:15px;font-weight:800;color:#1B5E20">—</div>
+            <div id="simEquilDiff" style="font-size:9.5px;font-weight:700">—</div>
+          </div>
+        </div>
+
+        <!-- Frase explicativa automática -->
+        <div id="simFrase" style="background:#E8F5E9;border-left:3px solid #2E7D32;border-radius:0 8px 8px 0;padding:9px 12px;font-size:11px;color:#1B5E20;line-height:1.6;display:none"></div>
+
+      </div>
+
+      <!-- Botão explicação arroba e equilíbrio -->
+      <div style="border-top:0.5px solid #e0e7e0;padding:10px 16px">
+        <button type="button" onclick="toggleExplica()"
+          style="width:100%;padding:9px;border-radius:8px;border:0.5px solid #d4ddd0;background:transparent;font:700 11.5px Arial,sans-serif;color:#2E7D32;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+          <span id="explicaBtnTxt">O que é arroba e ponto de equilíbrio? (para mostrar ao cliente)</span>
+        </button>
+        <div id="explicaBox" style="display:none;margin-top:10px;font-size:11.5px;line-height:1.7;color:#333">
+          <div style="font-weight:800;color:#1B5E20;margin-bottom:4px">O que é arroba?</div>
+          <p style="margin:0 0 8px">A arroba (@) é a unidade de peso usada na pecuária. Na <strong>venda em pé</strong>, 1@ = 30 kg de peso vivo. Na <strong>venda para abate</strong>, 1@ = 15 kg de carcaça (o que sobra após o abate, aplicando o rendimento).</p>
+          <div style="font-weight:800;color:#1B5E20;margin-bottom:4px">O que é o ponto de equilíbrio?</div>
+          <p style="margin:0 0 8px">É o preço mínimo por arroba para o lote não dar prejuízo. Calculamos assim: somamos todo o custo do lote (compra + suplemento + pasto + sanidade + outros) e dividimos pelo total de arrobas que serão vendidas. Se a @ for vendida acima desse valor, há lucro. Abaixo, há prejuízo.</p>
+          <div style="font-weight:800;color:#1B5E20;margin-bottom:4px">Exemplo simples para o cliente:</div>
+          <p style="margin:0;background:#F1F8E9;border-radius:6px;padding:8px 10px">"Esse animal vai nos custar R$ 4.340 no total. Ele vai nos render 14 arrobas. Então cada arroba precisa custar pelo menos R$ 310 na venda para a gente não perder dinheiro. Como estamos vendendo a R$ 355, temos R$ 45 de lucro por arroba."</p>
+        </div>
+      </div>
+    </div>
+    <!-- /SIMULADOR -->
     <!-- WHATSAPP -->
     <button class="btn-wpp" onclick="enviarWpp()">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.5 8.5 0 0 1-12.6 7.4L3 21l2.1-5.4A8.5 8.5 0 1 1 21 11.5z"/></svg> Enviar resultado para Rogério
@@ -539,9 +629,11 @@ function calcular(){
   var lucroDia   = dias     > 0 ? lucro / dias       : 0;
   var custoOport = vlrComp * (taxaOp/100) * (dias/365);
   var resCapital = lucro - custoOport;
+  // Custo de produção (regra Inttegra 0,6@): desembolso operacional, SEM a reposição, em arrobas, por @ produzida
+  var custoProdArr = (arrobasGanhas > 0 && vlrArr > 0) ? (custoOp / vlrArr) / arrobasGanhas : 0;
 
   // Salvar
-  resultado = {nCab,pesoEnt,pesoSai,vlrComp,gmd,mort,custoOp,receita:receitaLiq,custoTotal,lucro,lucroTotal,margem,roi,dias,meses,suplem,pasto,sanid,outros,vlrArr,arrobas,tipoVenda,equilibrio,relTroca,lucroArr,lucroDia,custoOport,resCapital,taxaOp};
+  resultado = {nCab,pesoEnt,pesoSai,vlrComp,gmd,mort,custoOp,receita:receitaLiq,custoTotal,lucro,lucroTotal,margem,roi,dias,meses,suplem,pasto,sanid,outros,vlrArr,arrobas,tipoVenda,equilibrio,relTroca,lucroArr,lucroDia,custoOport,resCapital,taxaOp,arrobasGanhas,custoProdArr};
 
   // Renderizar
   document.getElementById('rLucroCab').textContent   = fmtR(lucro);
@@ -562,8 +654,23 @@ function calcular(){
   eqTag.style.background = diffEq>=0 ? '#E8F5E9' : '#FDECEA';
   eqTag.style.color      = diffEq>=0 ? 'var(--v)' : 'var(--red)';
   document.getElementById('rRelTroca').textContent = relTroca.toFixed(1)+' @';
-  document.getElementById('rLucroArr').textContent = fmtR(lucroArr);
-  document.getElementById('rLucroDia').textContent = fmtR(lucroDia)+'/cab/dia';
+  // Card "A história do lote"
+  var _tipoLabel = tipoVenda==='pe' ? 'em pé (@ = 30kg vivo)' : 'para abate (@ = 15kg carcaça)';
+  var _arrGLabel = arrobasGanhas.toFixed(1);
+  var _arrVLabel = arrobas.toFixed(1);
+  var _diasAbrev = dias < 60 ? dias+' dias' : Math.round(dias/30)+' meses';
+  var _custoOp100 = (custoOp/custoTotal*100).toFixed(0);
+  var _lucroFrase = lucro >= 0
+    ? 'sobrando <strong>R$'+Math.round(lucro).toLocaleString('pt-BR')+'</strong> de lucro por cabeça'
+    : 'dando <strong>R$'+Math.round(Math.abs(lucro)).toLocaleString('pt-BR')+'</strong> de prejuízo por cabeça';
+  var _historia =
+    'Animal comprado por <strong>'+fmtR(vlrComp)+'</strong> ('+relTroca.toFixed(1)+'@ de boi gordo). '
+    +'Vai ficar <strong>'+_diasAbrev+'</strong> na fazenda ganhando <strong>'+gmd.toFixed(3).replace('.',',')+'&nbsp;kg/dia</strong>, '
+    +'saindo de '+pesoEnt+'&nbsp;kg para '+pesoSai+'&nbsp;kg &mdash; produzindo <strong>'+_arrGLabel+'@</strong> de carne. '
+    +'Venda '+_tipoLabel+': <strong>'+_arrVLabel+'@</strong> a <strong>'+fmtR(vlrArr)+'/@</strong>, '
+    +'com ponto de equilíbrio em <strong>'+fmtR(equilibrio)+'/@</strong>. '
+    +'Resultado: '+_lucroFrase+'.';
+  document.getElementById('rHistoria').innerHTML = _historia;
   document.getElementById('rCustoOport').textContent = '- '+fmtR(custoOport);
   document.getElementById('rCustoOportSub').textContent = 'capital '+taxaOp.toFixed(0)+'% a.a. \u00b7 '+meses+' meses';
   var resEl = document.getElementById('rResCapital');
@@ -574,6 +681,12 @@ function calcular(){
   var _c1=document.getElementById('cardCustoOport'), _c2=document.getElementById('cardResCapital');
   if(_c1){ _c1.style.display = _adv ? '' : 'none'; }
   if(_c2){ _c2.style.display = _adv ? '' : 'none'; }
+  // Custo de produção (regra 0,6@)
+  document.getElementById('rCustoProd').textContent = custoProdArr.toFixed(2)+' @ por @';
+  var cpTag = document.getElementById('rCustoProdTag');
+  if(custoProdArr > 0 && custoProdArr <= 0.6){ cpTag.textContent='dentro da meta'; cpTag.style.background='#E8F5E9'; cpTag.style.color='var(--v)'; }
+  else if(custoProdArr <= 0.8){ cpTag.textContent='aten\u00e7\u00e3o'; cpTag.style.background='#FFF3E0'; cpTag.style.color='#E65100'; }
+  else { cpTag.textContent='custo alto'; cpTag.style.background='#FDECEA'; cpTag.style.color='var(--red)'; }
 
   // Breakdown
   document.getElementById('bCompra').textContent    = '- '+fmtR(vlrComp);
@@ -630,6 +743,7 @@ function calcular(){
   // Mostrar
   document.getElementById('resultado').style.display = 'block';
   var _r=document.getElementById('resultado'); if(_r.scrollIntoView){ setTimeout(function(){ _r.scrollIntoView({behavior:'smooth',block:'start'}); }, 100); }
+  if(typeof simInit==="function"){ setTimeout(simInit, 50); }
 }
 
 function validaGmd(el){
@@ -669,6 +783,7 @@ function enviarWpp(){
   msg += '- Margem: ' + fmtP(r.margem) + '  |  ROI: ' + fmtP(r.roi) + '\n\n';
   msg += '*Indicadores:*\n';
   msg += '- Ponto de equilíbrio: ' + fmtR(r.equilibrio) + '/@ (vende a ' + fmtR(r.vlrArr) + ')\n';
+  msg += '- Custo de produção: ' + r.custoProdArr.toFixed(2) + '@ por @ produzida (meta 0,6@)\n';
   msg += '- Relação de troca: ' + r.relTroca.toFixed(1) + ' @ p/ pagar o magro\n';
   msg += '- Custo de oportunidade: ' + fmtR(r.custoOport) + ' (' + r.taxaOp.toFixed(0) + '% a.a.)\n';
   msg += '- Resultado após o capital: ' + fmtR(r.resCapital) + '\n\n';
@@ -680,6 +795,80 @@ function enviarWpp(){
 function novoCalculo(){
   document.getElementById('resultado').style.display = 'none';
   window.scrollTo({top:0,behavior:'smooth'});
+}
+
+window._simVenda='abate';
+function simInit(){
+  if(!resultado||!resultado.dias)return;
+  window._simVenda=resultado.tipoVenda||'abate';
+  var sl=document.getElementById('simGmd');
+  if(sl){sl.value=resultado.gmd;}
+  simSetVenda(window._simVenda,true);
+  simRecalc();
+}
+function simSetVenda(tv,silent){
+  window._simVenda=tv;
+  var bpe=document.getElementById('simVtPe'),bab=document.getElementById('simVtAbate');
+  if(bpe){bpe.style.border=tv==='pe'?'1.5px solid #2E7D32':'0.5px solid #d4ddd0';bpe.style.background=tv==='pe'?'#fff':'#f5f7f5';bpe.style.color=tv==='pe'?'#1B5E20':'#666';}
+  if(bab){bab.style.border=tv==='abate'?'1.5px solid #2E7D32':'0.5px solid #d4ddd0';bab.style.background=tv==='abate'?'#fff':'#f5f7f5';bab.style.color=tv==='abate'?'#1B5E20':'#666';}
+  if(!silent)simRecalc();
+}
+function simRecalc(){
+  if(!resultado||!resultado.pesoEnt)return;
+  var r=resultado;
+  var sl=document.getElementById('simGmd');
+  if(!sl)return;
+  var gmdSim=parseFloat(sl.value)||r.gmd;
+  var gmdVal=document.getElementById('simGmdVal');
+  if(gmdVal){gmdVal.textContent=gmdSim.toFixed(3).replace('.',',');}
+  var refEl=document.getElementById('simGmdRef');
+  if(refEl){refEl.textContent=gmdSim>=0.668?'top 30% Inttegra':gmdSim>=0.403?'m\u00e9dia Inttegra':'abaixo da m\u00e9dia';}
+  var ganho=r.pesoSai-r.pesoEnt;
+  var diasSim=Math.round(ganho/gmdSim);
+  var mesesSim=diasSim/30;
+  var custoOpSim=(r.suplem+r.pasto)*diasSim+r.sanid+r.outros*mesesSim;
+  var custoTotalSim=r.vlrComp+custoOpSim;
+  var tv=window._simVenda;
+  var rendSim=0.52;
+  try{var rendEl=document.getElementById('rend');if(rendEl&&rendEl.value)rendSim=(parseFloat(rendEl.value)||52)/100;}catch(e){}
+  var arrobasSim=tv==='pe'?r.pesoSai/30:r.pesoSai*rendSim/15;
+  var lucroSim=arrobasSim*r.vlrArr*(1-r.mort)-custoTotalSim;
+  var equilibrioSim=custoTotalSim/arrobasSim;
+  var diffDias=diasSim-r.dias,diffLucro=lucroSim-r.lucro,diffEquil=equilibrioSim-r.equilibrio;
+  function fDs(v,inv){
+    var pos=inv?v<=0:v>=0;
+    var col=pos?'#2E7D32':'#C62828';
+    return '<span style="color:'+col+'">'+(v>=0?'+':'')+Math.round(v).toLocaleString('pt-BR')+'</span>';
+  }
+  var dD=document.getElementById('simDias'),dDD=document.getElementById('simDiasDiff');
+  var dL=document.getElementById('simLucro'),dLD=document.getElementById('simLucroDiff');
+  var dE=document.getElementById('simEquil'),dED=document.getElementById('simEquilDiff');
+  if(dD)dD.textContent=diasSim+' dias';
+  if(dDD)dDD.innerHTML=fDs(diffDias,true);
+  if(dL)dL.textContent='R$'+Math.round(lucroSim).toLocaleString('pt-BR');
+  if(dLD)dLD.innerHTML=fDs(diffLucro,false);
+  if(dE)dE.textContent='R$'+Math.round(equilibrioSim);
+  if(dED)dED.innerHTML=fDs(diffEquil,true);
+  var fraseEl=document.getElementById('simFrase');
+  if(fraseEl){
+    fraseEl.style.display='block';
+    var tipoLabel=tv==='pe'?'em p\u00e9':'para abate';
+    var gLabel=gmdSim.toFixed(3).replace('.',',');
+    var ps=[];
+    if(Math.abs(diffDias)>=5)ps.push(diffDias<0?'termina <strong>'+Math.abs(Math.round(diffDias))+' dias mais r\u00e1pido</strong>':'demora <strong>'+Math.round(diffDias)+' dias a mais</strong>');
+    if(Math.abs(diffLucro)>=10)ps.push(diffLucro>0?'lucro <strong>sobe R$'+Math.round(diffLucro).toLocaleString('pt-BR')+'</strong>':'lucro <strong>cai R$'+Math.round(Math.abs(diffLucro)).toLocaleString('pt-BR')+'</strong>');
+    if(Math.abs(diffEquil)>=2)ps.push(diffEquil<0?'equil\u00edbrio <strong>baixa R$'+Math.round(Math.abs(diffEquil))+'/@</strong>':'equil\u00edbrio <strong>sobe R$'+Math.round(diffEquil)+'/@</strong>');
+    var dCusto=custoOpSim-r.custoOp;
+    var frase=ps.length?'GMD '+gLabel+' ('+tipoLabel+'): '+ps.join(', ')+'. Custo operacional '+(dCusto<0?'cai':'sobe')+' de R$'+Math.round(r.custoOp)+' para R$'+Math.round(custoOpSim)+'/cab.':'Resultado similar ao cen\u00e1rio atual com GMD '+gLabel+' ('+tipoLabel+').';
+    fraseEl.innerHTML=frase;
+  }
+}
+function toggleExplica(){
+  var box=document.getElementById('explicaBox'),btn=document.getElementById('explicaBtnTxt');
+  if(!box)return;
+  var open=box.style.display==='none'||box.style.display==='';
+  box.style.display=open?'block':'none';
+  if(btn)btn.textContent=open?'Ocultar explica\u00e7\u00e3o':'O que \u00e9 arroba e ponto de equil\u00edbrio? (para mostrar ao cliente)';
 }
 window.onbeforeprint=function(){var e=document.getElementById("print-emit");if(e){var d=new Date();e.textContent="Emitido em "+d.toLocaleDateString("pt-BR")+" às "+d.toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"});}};
 </script>

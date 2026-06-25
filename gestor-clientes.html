@@ -71,7 +71,7 @@ body{font-family:Arial,'Segoe UI',Roboto,system-ui,sans-serif;background:var(--b
 .mnf-tool-item{display:flex;align-items:center;gap:8px;border:1.5px solid var(--line);border-radius:11px;padding:11px;cursor:pointer;font-size:13px;font-weight:600;transition:.12s;background:#fff}
 .mnf-tool-item.sel{border-color:var(--v3);background:var(--v7)}
 .mnf-tool-item.sel::after{content:"✓";margin-left:auto;color:var(--v2);font-weight:800}
-.mti-icon{font-size:18px}
+.mti-icon{font-size:18px;display:inline-flex;align-items:center;justify-content:center}.mti-icon svg{width:20px;height:20px;stroke:#2E7D32}
 .mnf-foot{display:flex;gap:10px;padding:14px 18px;border-top:1px solid var(--line);position:sticky;bottom:0;background:#fff}
 .mnf-cancel{flex:1;border:1px solid var(--line);background:#fff;border-radius:11px;padding:13px;font-weight:700;cursor:pointer;font-family:inherit;color:var(--mut)}
 .mnf-save{flex:2;border:none;background:var(--v3);color:#fff;border-radius:11px;padding:13px;font-weight:800;cursor:pointer;font-family:inherit}
@@ -84,6 +84,12 @@ body{font-family:Arial,'Segoe UI',Roboto,system-ui,sans-serif;background:var(--b
 #mlc-pin-big{font-size:30px;font-weight:800;color:var(--v);letter-spacing:6px}
 #mlc-ferramentas{margin-bottom:12px}
 .mlc-link-box{background:#f4f7f3;border:1px dashed var(--line);border-radius:10px;padding:11px;font-size:12px;word-break:break-all;color:var(--tx);margin-bottom:10px}
+.mlc-link-row{display:flex;align-items:center;gap:10px;background:#fff;border:1px solid var(--v6);border-radius:10px;padding:10px 12px;margin-bottom:10px}
+.mlc-link-ic svg{width:20px;height:20px;stroke:var(--v2)}
+.mlc-link-txt{flex:1;min-width:0;font-size:13px;color:var(--v);line-height:1.35}
+.mlc-link-dom{font-size:10px;color:var(--mut);font-weight:600}
+.mlc-link-ver{border:1px solid var(--line);background:transparent;color:var(--mut);font-size:11px;font-weight:700;padding:5px 11px;border-radius:7px;cursor:pointer}
+.mlc-link-ver:hover{background:#f0f4ef;color:var(--v)}
 .mlc-btns{display:flex;gap:8px}
 .mlc-btn{flex:1;border:none;border-radius:11px;padding:13px;font-weight:800;cursor:pointer;font-family:inherit;font-size:14px}
 .mlc-btn.copy{background:var(--v);color:#fff}
@@ -106,10 +112,10 @@ body{font-family:Arial,'Segoe UI',Roboto,system-ui,sans-serif;background:var(--b
 <div class="wrap">
   <div class="gestor-header">
     <div>
-      <div class="gestor-title">🔑 Gestor de Clientes</div>
+      <div class="gestor-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px;vertical-align:-3px"><circle cx="8" cy="15" r="4"/><path d="M10.85 12.15 19 4M18 5l2 2M15 8l2 2"/></svg> Gestor de Clientes</div>
       <div class="gestor-sub">Crie links de acesso com PIN para cada fazenda cliente</div>
     </div>
-    <button class="btn-nova-fazenda" onclick="abrirModalNF()">➕ Nova Fazenda</button>
+    <button class="btn-nova-fazenda" onclick="abrirModalNF()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;vertical-align:-3px"><path d="M12 5v14M5 12h14"/></svg> Nova Fazenda</button>
   </div>
   <div id="gestor-lista"></div>
 </div>
@@ -118,7 +124,7 @@ body{font-family:Arial,'Segoe UI',Roboto,system-ui,sans-serif;background:var(--b
 <div id="modal-nova-fazenda" onclick="if(event.target===this)fecharModalNF()">
   <div class="mnf-card">
     <div class="mnf-head">
-      <div class="mnf-title" id="mnf-modal-title">➕ Nova Fazenda</div>
+      <div class="mnf-title" id="mnf-modal-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;vertical-align:-3px"><path d="M12 5v14M5 12h14"/></svg> Nova Fazenda</div>
       <button class="mnf-close" onclick="fecharModalNF()">✕</button>
     </div>
     <div class="mnf-body">
@@ -142,7 +148,7 @@ body{font-family:Arial,'Segoe UI',Roboto,system-ui,sans-serif;background:var(--b
       </div>
       <div class="mnf-section">Ferramentas liberadas para o cliente</div>
       <div class="mnf-sel-btns">
-        <button class="mnf-sel-btn" onclick="selecionarTodasFerramentas(true)">✅ Todas</button>
+        <button class="mnf-sel-btn" onclick="selecionarTodasFerramentas(true)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px;vertical-align:-2px"><path d="M20 6 9 17l-5-5"/></svg> Todas</button>
         <button class="mnf-sel-btn" onclick="selecionarTodasFerramentas(false)">☐ Nenhuma</button>
       </div>
       <div class="mnf-tools-grid" id="mnf-tools-grid"></div>
@@ -168,11 +174,16 @@ body{font-family:Arial,'Segoe UI',Roboto,system-ui,sans-serif;background:var(--b
         <div id="mlc-pin-big"></div>
       </div>
       <div id="mlc-ferramentas"></div>
-      <div class="mnf-label">Link para enviar ao cliente</div>
-      <div class="mlc-link-box" id="mlc-link-box"></div>
+      <div class="mnf-label">Link de acesso</div>
+      <div class="mlc-link-row">
+        <span class="mlc-link-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 15l6-6"/><path d="M11 6l1-1a4 4 0 0 1 6 6l-1 1"/><path d="M13 18l-1 1a4 4 0 0 1-6-6l1-1"/></svg></span>
+        <span class="mlc-link-txt"><strong>Link pronto para enviar</strong><br><span class="mlc-link-dom">gestaopecuarialucrativa.com.br</span></span>
+        <button type="button" class="mlc-link-ver" onclick="verLinkCompleto()">ver</button>
+      </div>
+      <div class="mlc-link-box" id="mlc-link-box" style="display:none"></div>
       <div class="mlc-btns">
-        <button class="mlc-btn copy" onclick="copiarLink()">📋 Copiar link</button>
-        <button class="mlc-btn wpp" onclick="enviarLinkWpp()">💬 WhatsApp</button>
+        <button class="mlc-btn copy" onclick="copiarLink()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px;vertical-align:-2px"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h8"/></svg> Copiar link</button>
+        <button class="mlc-btn wpp" onclick="enviarLinkWpp()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px;vertical-align:-2px"><path d="M21 11.5a8.5 8.5 0 0 1-12.6 7.4L3 21l2.1-5.4A8.5 8.5 0 1 1 21 11.5z"/></svg> WhatsApp</button>
       </div>
       <div class="mlc-notif" id="mlc-notif">✅ Link copiado!</div>
     </div>
@@ -183,17 +194,24 @@ body{font-family:Arial,'Segoe UI',Roboto,system-ui,sans-serif;background:var(--b
 
 <script>
 var FERRAMENTAS_DISPONIVEIS = [
-  {id:'pesagem',     icon:'🐄', nome:'Sistema de Pesagem',       url:'pesagem_v2.html'},
-  {id:'analise',     icon:'📊', nome:'Análise de Rebanho',       url:'analise-rebanho.html'},
-  {id:'ceci',        icon:'📋', nome:'Planejamento Ágil CECI',   url:'plano-agil-ceci.html'},
-  {id:'plano',       icon:'📈', nome:'Plano Ágil Pecuário',      url:'plano_agil_v3.html'},
-  {id:'bezerro',     icon:'🐂', nome:'Calculadora do Bezerro',   url:'arroba_bezerro.html'},
-  {id:'viabilidade', icon:'💰', nome:'Viabilidade de Lote',      url:'viabilidade_lote.html'},
-  {id:'checklist',   icon:'✅', nome:'Checklist Auditoria',      url:'checklist-auditoria.html'},
-  {id:'relatorio',   icon:'📄', nome:'Relatório de Performance', url:'relatorio-performance.html'},
-  {id:'portfolio',   icon:'🏆', nome:'Portfólio Comercial',      url:'portfolio.html'},
-  {id:'levantamento',icon:'📝', nome:'Formulário Levantamento',  url:'levantamento_form.html'},
-  {id:'instagram',   icon:'📱', nome:'Levantamento Instagram',   url:'levantamento_instagram.html'},
+  {id:'visita', nome:"Visita Técnica", url:'visita_tecnica.html', svg:'<svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" fill="none"><path d="M12 21V11"/><path d="M12 13c0-3 2-5 6-5 0 4-2 6-6 5Z"/><path d="M12 16c0-2.5-1.7-4-5-4 0 3.5 1.7 5 5 4Z"/></svg>'},
+  {id:'agenda', nome:"Agenda & Tarefas", url:'agenda_tarefas.html', svg:'<svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" fill="none"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 3v3"/><path d="M15 3v3"/><path d="M9 11h6"/><path d="M9 15h4"/></svg>'},
+  {id:'pesagem', nome:"Pesagem", url:'pesagem_v2.html', svg:'<svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" fill="none"><path d="M12 3v3"/><path d="M5 6h14l2 9a5 5 0 0 1-9 0"/><path d="M12 6 7.5 6 5.5 15a5 5 0 0 0 9 0"/><path d="M9 21h6"/><path d="M12 18v3"/></svg>'},
+  {id:'maquinas', nome:"App de Máquinas", url:'https://gestaopecuarialucrativa-dotcom.github.io/gestao-maquinas-fazenda/', svg:'<svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" fill="none"><circle cx="7" cy="17" r="3"/><circle cx="18" cy="18" r="2"/><path d="M10 17h6"/><path d="M7 14V8h4l2 6"/><path d="M11 8V5h4v3"/></svg>'},
+  {id:'comparativo', nome:"Comparativo", url:'comparativo.html', svg:'<svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" fill="none"><path d="M4 19V5"/><path d="M4 19h16"/><path d="M7 15l4-4 3 2 5-6"/><path d="M19 7h-3"/><path d="M19 7v3"/></svg>'},
+  {id:'analise', nome:"Análise de Rebanho", url:'analise-rebanho.html', svg:'<svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" fill="none"><path d="M5 8c-1.5 0-2.5-1-2.5-2.5C4 6 5 7 6 8"/><path d="M19 8c1.5 0 2.5-1 2.5-2.5C20 6 19 7 18 8"/><path d="M6 8h12v5a6 6 0 0 1-12 0Z"/><path d="M9.5 13v1"/><path d="M14.5 13v1"/></svg>'},
+  {id:'relatorio', nome:"Relatório de Performance", url:'relatorio-performance.html', svg:'<svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" fill="none"><path d="M7 3h7l4 4v14H7Z"/><path d="M14 3v4h4"/><path d="M10 13h6"/><path d="M10 17h6"/></svg>'},
+  {id:'checklist', nome:"Teste de Perfil de Gestão", url:'checklist-auditoria.html', svg:'<svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" fill="none"><path d="M4 14a8 8 0 0 1 16 0"/><path d="M4 14h16"/><path d="M12 14l4-4"/><circle cx="12" cy="14" r="1.3" fill="currentColor" stroke="none"/></svg>'},
+  {id:'ceci', nome:"Planejamento Ágil CECI", url:'plano-agil-ceci.html', svg:'<svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" fill="none"><rect x="4" y="5" width="16" height="16" rx="2"/><path d="M4 9h16"/><path d="M8 3v4"/><path d="M16 3v4"/><path d="M9 14h2v2H9Z"/></svg>'},
+  {id:'plano', nome:"Plano Ágil Pecuário", url:'plano_agil_v3.html', svg:'<svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" fill="none"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="4"/><circle cx="12" cy="12" r="0.7" fill="currentColor" stroke="none"/></svg>'},
+  {id:'viabilidade', nome:"Viabilidade de Lote", url:'viabilidade_lote.html', svg:'<svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" fill="none"><circle cx="12" cy="12" r="8"/><path d="M12 7v10"/><path d="M14.5 9.5c-.5-1-1.5-1.3-2.5-1.3-1.3 0-2.3.7-2.3 1.8 0 2.6 5 1.2 5 3.8 0 1.2-1 1.9-2.4 1.9-1.1 0-2.1-.4-2.6-1.4"/></svg>'},
+  {id:'bezerro', nome:"Arroba do Bezerro", url:'arroba_bezerro.html', svg:'<svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" fill="none"><path d="M6 7c-2 0-3-1.2-3-3 1.8 0 3 1 3.3 2.5"/><path d="M18 7c2 0 3-1.2 3-3-1.8 0-3 1-3.3 2.5"/><path d="M6.5 7h11v5a5.5 5.5 0 0 1-11 0Z"/><path d="M10 13v1"/><path d="M14 13v1"/></svg>'},
+  {id:'orcamento', nome:"Orçamento de Compra", url:'orcamento-compra.html', svg:'<svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" fill="none"><circle cx="9" cy="20" r="1.4"/><circle cx="17" cy="20" r="1.4"/><path d="M3 4h2l2.4 11.4a1 1 0 0 0 1 .8h8.2a1 1 0 0 0 1-.8L20 7H6"/></svg>'},
+  {id:'contrato', nome:"Gerador de Contrato", url:'contrato-gerador.html', svg:'<svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" fill="none"><path d="M7 3h7l4 4v10a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2Z"/><path d="M14 3v4h4"/><path d="M8.5 17c1-1.5 2.5-1.5 3.5-3 .6-.9-.2-2-1.2-1.6-1 .4-1 2.3.2 2.6 1 .3 2-.3 2.8-1"/></svg>'},
+  {id:'portfolio', nome:"Portfólio", url:'portfolio.html', svg:'<svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" fill="none"><path d="M4 10v4h3l8 4V6l-8 4Z"/><path d="M18 9a4 4 0 0 1 0 6"/></svg>'},
+  {id:'levantamento', nome:"Formulário de Levantamento", url:'levantamento_form.html', svg:'<svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" fill="none"><path d="M6 3h8l4 4v8"/><path d="M14 3v4h4"/><path d="M6 3v18h6"/><path d="M16 18l4-4 2 2-4 4h-2Z"/></svg>'},
+  {id:'instagram', nome:"Diagnóstico Instagram", url:'levantamento_instagram.html', svg:'<svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" fill="none"><rect x="3" y="7" width="18" height="13" rx="3"/><circle cx="12" cy="13.5" r="3.5"/><path d="M8 7l1.5-2h5L16 7"/></svg>'},
+  {id:'mapa', nome:'Mapa de Oportunidades', url:'mapa-oportunidades.html', svg:'<svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" fill="none"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2Z"/><path d="M9 4v14M15 6v14"/><circle cx="16.5" cy="9.5" r="2"/></svg>'},
 ];
 
 var _editandoIdx = -1;
@@ -255,7 +273,7 @@ function abrirModalNF(idx){
   _editandoIdx = (idx !== undefined) ? idx : -1;
   var fazendas = getClientesFazendas();
   var faz = _editandoIdx >= 0 ? fazendas[_editandoIdx] : null;
-  document.getElementById('mnf-modal-title').textContent = faz ? '✏️ Editar Fazenda' : '➕ Nova Fazenda';
+  document.getElementById('mnf-modal-title').textContent = faz ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;vertical-align:-2px"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg> Editar Fazenda' : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;vertical-align:-3px"><path d="M12 5v14M5 12h14"/></svg> Nova Fazenda';
   document.getElementById('mnf-nome').value = faz ? faz.nome : '';
   document.getElementById('mnf-prop').value = faz ? (faz.prop||'') : '';
   document.getElementById('mnf-pin').value  = '';
@@ -267,7 +285,7 @@ function abrirModalNF(idx){
     var div = document.createElement('div');
     div.className = 'mnf-tool-item' + (selecionada?' sel':'');
     div.dataset.id = f.id;
-    div.innerHTML = '<span class="mti-icon">'+f.icon+'</span><span class="mti-nome">'+f.nome+'</span>';
+    div.innerHTML = '<span class="mti-icon">'+(f.svg||'')+'</span><span class="mti-nome">'+f.nome+'</span>';
     div.addEventListener('click', function(){ div.classList.toggle('sel'); });
     grid.appendChild(div);
   });
@@ -308,14 +326,14 @@ function renderGestorLista(){
   var c = document.getElementById('gestor-lista');
   if(!c) return;
   if(!fazendas.length){
-    c.innerHTML = '<div class="gestor-empty"><div class="ge-icon">🏡</div><p>Nenhuma fazenda cadastrada ainda.<br>Clique em <strong>➕ Nova Fazenda</strong> para começar.</p></div>';
+    c.innerHTML = '<div class="gestor-empty"><div class="ge-icon">🏡</div><p>Nenhuma fazenda cadastrada ainda.<br>Clique em <strong><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;vertical-align:-3px"><path d="M12 5v14M5 12h14"/></svg> Nova Fazenda</strong> para começar.</p></div>';
     return;
   }
   var html = '<div class="fazendas-lista">';
   fazendas.forEach(function(faz, i){
     var ferrNomes = (faz.ferramentas||[]).map(function(id){
       var f = FERRAMENTAS_DISPONIVEIS.find(function(x){ return x.id===id; });
-      return f ? f.icon+' '+f.nome : id;
+      return f ? f.nome : id;
     });
     html += '<div class="fazenda-card-g"><div class="fazenda-card-g-head">';
     html += '<div class="fcg-info"><div class="fcg-nome">🏡 '+escHtml(faz.nome)+'</div>';
@@ -323,8 +341,8 @@ function renderGestorLista(){
     html += '<span class="fcg-status '+(faz.ativo?'ativo':'inativo')+'">'+(faz.ativo?'Ativo':'Bloqueado')+'</span>';
     html += '<div class="fcg-btns">';
     html += '<button class="fcg-btn link" onclick="abrirModalLink('+i+')">🔗 Link</button>';
-    html += '<button class="fcg-btn" onclick="abrirModalNF('+i+')">✏️ Editar</button>';
-    html += '<button class="fcg-btn del" onclick="excluirFazendaGestor('+i+')">🗑</button>';
+    html += '<button class="fcg-btn" onclick="abrirModalNF('+i+')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;vertical-align:-2px"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg> Editar</button>';
+    html += '<button class="fcg-btn del" onclick="excluirFazendaGestor('+i+')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;vertical-align:-2px"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14"/></svg></button>';
     html += '</div></div>';
     if(ferrNomes.length){
       html += '<div class="fcg-ferramentas">';
@@ -358,13 +376,18 @@ function abrirModalLink(i){
   ferrDiv.innerHTML='';
   (faz.ferramentas||[]).forEach(function(id){
     var f=FERRAMENTAS_DISPONIVEIS.find(function(x){return x.id===id;});
-    if(f){var sp=document.createElement('span');sp.className='fcg-ferr-tag';sp.style.marginRight='4px';sp.textContent=f.icon+' '+f.nome;ferrDiv.appendChild(sp);}
+    if(f){var sp=document.createElement('span');sp.className='fcg-ferr-tag';sp.style.marginRight='4px';sp.textContent=f.nome;ferrDiv.appendChild(sp);}
   });
   document.getElementById('mlc-link-box').textContent = _linkAtual;
   document.getElementById('mlc-notif').style.display='none';
   document.getElementById('modal-link-cliente').classList.add('open');
 }
 function fecharModalLink(){ document.getElementById('modal-link-cliente').classList.remove('open'); }
+function verLinkCompleto(){
+  var box=document.getElementById('mlc-link-box');
+  var open=box.style.display==='none'||box.style.display==='';
+  box.style.display=open?'block':'none';
+}
 function copiarLink(){
   if(!_linkAtual) return;
   function ok(){ var n=document.getElementById('mlc-notif'); n.style.display='block'; setTimeout(function(){n.style.display='none';},2500); }
@@ -381,19 +404,18 @@ function enviarLinkWpp(){
   var faz=_fazAtual;
   var ferrNomes=(faz.ferramentas||[]).map(function(id){
     var f=FERRAMENTAS_DISPONIVEIS.find(function(x){return x.id===id;});
-    return f?f.icon+' '+f.nome:'';
+    return f?f.nome:'';
   }).filter(Boolean).join(', ');
-  var msg='🌿 *Gestão Pecuária Lucrativa*\n'
-    +'━━━━━━━━━━━━━━━━━━━━\n'
-    +'🏡 *Fazenda:* '+faz.nome+'\n'
-    +(faz.prop?'👤 *Produtor:* '+faz.prop+'\n':'')
-    +'\n🔑 *Seu PIN de acesso:* *'+faz.pin+'*\n'
-    +'\n📱 *Ferramentas disponíveis:*\n'+ferrNomes+'\n'
-    +'\n🔗 *Clique para acessar:*\n'+_linkAtual+'\n'
-    +'\n━━━━━━━━━━━━━━━━━━━━\n'
-    +'_Rogério Avelino — Consultor GPL_\n'
-    +'_📞 (63) 99108-2453_\n'
-    +'_@gestaopecuarialucrativa_';
+  var msg='*Gestão Pecuária Lucrativa*\n'
+    +'Acesso ao seu painel\n\n'
+    +'*Fazenda:* '+faz.nome+'\n'
+    +(faz.prop?'*Produtor:* '+faz.prop+'\n':'')
+    +'*PIN de acesso:* '+faz.pin+'\n\n'
+    +'*Suas ferramentas:* '+ferrNomes+'\n\n'
+    +'Toque no link abaixo para entrar (guarde o PIN):\n'
+    +_linkAtual+'\n\n'
+    +'Rogério Avelino — Consultor GPL\n'
+    +'(63) 99108-2453 · @gestaopecuarialucrativa';
   var wurl='https://wa.me/?text='+encodeURIComponent(msg);
   var w=window.open(wurl,'_blank');
   if(!w||w.closed||typeof w.closed=='undefined'){ window.location.href=wurl; }

@@ -38,7 +38,7 @@ html,body{height:100%;font-family:'DM Sans',sans-serif;background:#F0F4F0;overfl
 .sb-item{display:flex;align-items:center;gap:10px;padding:10px 14px;cursor:pointer;border-radius:8px;margin:1px 6px;transition:all .15s;text-decoration:none;color:var(--g1)}
 .sb-item:hover{background:var(--v7)}
 .sb-item.on{background:var(--v7);border-left:3px solid var(--v1)}
-.sb-icon{font-size:16px;width:24px;text-align:center;flex-shrink:0}
+.sb-icon{width:24px;display:flex;align-items:center;justify-content:center;flex-shrink:0}.sb-icon svg{width:18px;height:18px;stroke:var(--v2)}
 .sb-txt{flex:1;min-width:0}
 .sb-label{font-size:12px;font-weight:600;color:var(--g1);display:block}
 .sb-sub{font-size:10px;color:var(--g4);display:block;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -65,7 +65,7 @@ iframe{width:100%;height:100%;border:none;background:white}
 .tool-card{background:white;border-radius:12px;border:1px solid var(--v6);padding:16px;cursor:pointer;transition:all .2s;box-shadow:var(--sh);text-decoration:none;display:block;position:relative;overflow:hidden}
 .tool-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--v2)}
 .tool-card:hover{transform:translateY(-2px);box-shadow:var(--sh2);border-color:var(--v4)}
-.tool-icon{font-size:28px;margin-bottom:10px}
+.tool-icon{margin-bottom:10px;height:28px}.tool-icon svg{width:28px;height:28px;stroke:var(--v2)}
 .tool-name{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:var(--g1);margin-bottom:4px}
 .tool-desc{font-size:11px;color:var(--g4);line-height:1.5}
 .tool-tags{display:flex;gap:4px;flex-wrap:wrap;margin-top:8px}
@@ -88,7 +88,7 @@ iframe{width:100%;height:100%;border:none;background:white}
 <!-- TOPBAR -->
 <div class="topbar">
   <div class="tb-left">
-    <button class="sb-toggle" onclick="toggleSb()">☰</button>
+    <button class="sb-toggle" onclick="toggleSb()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px"><path d="M3 6h18M3 12h18M3 18h18"/></svg></button>
     <img src="logo.png" class="tb-logo" alt="GPL" onerror="this.style.display='none'">
     <div class="tb-title">
       <span id="tb-fazenda">Portal do Cliente</span>
@@ -96,8 +96,8 @@ iframe{width:100%;height:100%;border:none;background:white}
     </div>
   </div>
   <div class="tb-right">
-    <a href="https://wa.me/5563991082453" target="_blank" class="tb-btn wpp">💬 Consultor</a>
-    <button class="tb-btn" onclick="sair()">🚪 Sair</button>
+    <a href="https://wa.me/5563991082453" target="_blank" class="tb-btn wpp"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px;vertical-align:-2px"><path d="M21 11.5a8.5 8.5 0 0 1-12.6 7.4L3 21l2.1-5.4A8.5 8.5 0 1 1 21 11.5z"/></svg> Consultor</a>
+    <button class="tb-btn" onclick="sair()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px;vertical-align:-2px"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg> Sair</button>
   </div>
 </div>
 
@@ -109,7 +109,7 @@ iframe{width:100%;height:100%;border:none;background:white}
     <div id="sb-tools"></div>
     <div style="padding:12px 14px;margin-top:8px;border-top:1px solid #eee">
       <a href="https://wa.me/5563991082453" target="_blank" class="sb-item" style="margin:0">
-        <div class="sb-icon">💬</div>
+        <div class="sb-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#2E7D32" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px"><path d="M21 11.5a8.5 8.5 0 0 1-12.6 7.4L3 21l2.1-5.4A8.5 8.5 0 1 1 21 11.5z"/></svg></div>
         <div class="sb-txt"><span class="sb-label">WhatsApp</span><span class="sb-sub">Falar com consultor</span></div>
       </a>
     </div>
@@ -148,17 +148,24 @@ iframe{width:100%;height:100%;border:none;background:white}
 // FERRAMENTAS DISPONÍVEIS
 // ══════════════════════════════════════════════════════
 var TODAS_FERRAMENTAS = [
-  {id:'pesagem',       icon:'🐄', nome:'Sistema de Pesagem',      desc:'Pesagem com Bluetooth, lotes e histórico',        tags:['Campo','Offline'],       url:'pesagem_v2.html'},
-  {id:'analise',       icon:'📊', nome:'Análise de Rebanho',      desc:'Lotes, projeção de abate e relatório PDF',        tags:['Consultoria','PDF'],      url:'analise-rebanho.html'},
-  {id:'ceci',          icon:'📋', nome:'Planejamento Ágil CECI',  desc:'Cria · Recria · Engorda — visão de safra',        tags:['Planejamento'],          url:'plano-agil-ceci.html'},
-  {id:'plano',         icon:'📈', nome:'Plano Ágil Pecuário',     desc:'Meta, rebanho e lotação por pasto',               tags:['Meta','Lotação'],        url:'plano_agil_v3.html'},
-  {id:'bezerro',       icon:'🐂', nome:'Calculadora do Bezerro',  desc:'GMD, ROI e simulação de compra',                  tags:['Compra','GMD'],          url:'arroba_bezerro.html'},
-  {id:'viabilidade',   icon:'💰', nome:'Viabilidade de Lote',     desc:'Lucro, margem e benchmarks GPL',                  tags:['Financeiro'],            url:'viabilidade_lote.html'},
-  {id:'checklist',     icon:'✅', nome:'Checklist Auditoria',     desc:'32 itens de diagnóstico — 1ª visita',             tags:['Diagnóstico'],           url:'checklist-auditoria.html'},
-  {id:'relatorio',     icon:'📄', nome:'Relatório de Performance',desc:'Papel timbrado GPL, KPIs e PDF',                  tags:['Relatório','PDF'],       url:'relatorio-performance.html'},
-  {id:'portfolio',     icon:'🏆', nome:'Portfólio Comercial',     desc:'Apresentação GPL, planos e proposta',             tags:['Comercial'],             url:'portfolio.html'},
-  {id:'levantamento',  icon:'📝', nome:'Formulário Levantamento', desc:'Diagnóstico inicial para novos clientes',         tags:['Captação'],              url:'levantamento_form.html'},
-  {id:'instagram',     icon:'📱', nome:'Levantamento Instagram',  desc:'Stories · Bio · Link direto',                     tags:['Captação','Instagram'],  url:'levantamento_instagram.html'},
+  {id:'visita', nome:"Visita Técnica", desc:"Registra a visita técnica direto no campo, mesmo sem internet — tudo organizado pra não perder nenhuma observação importante.", tag:'Campo', url:'visita_tecnica.html', svg:'<svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" fill="none"><path d="M12 21V11"/><path d="M12 13c0-3 2-5 6-5 0 4-2 6-6 5Z"/><path d="M12 16c0-2.5-1.7-4-5-4 0 3.5 1.7 5 5 4Z"/></svg>'},
+  {id:'agenda', nome:"Agenda & Tarefas", desc:"Suas tarefas e compromissos da fazenda num só lugar, pra nada ficar esquecido e o manejo andar no prazo.", tag:'Organização', url:'agenda_tarefas.html', svg:'<svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" fill="none"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 3v3"/><path d="M15 3v3"/><path d="M9 11h6"/><path d="M9 15h4"/></svg>'},
+  {id:'pesagem', nome:"Pesagem", desc:"Pesa o gado e organiza por lote na hora, com histórico — você acompanha o ganho de peso sem caderno nem planilha solta.", tag:'Campo', url:'pesagem_v2.html', svg:'<svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" fill="none"><path d="M12 3v3"/><path d="M5 6h14l2 9a5 5 0 0 1-9 0"/><path d="M12 6 7.5 6 5.5 15a5 5 0 0 0 9 0"/><path d="M9 21h6"/><path d="M12 18v3"/></svg>'},
+  {id:'maquinas', nome:"App de Máquinas", desc:"Controla máquinas e frota: serviços, horas de trator e pagamentos — pra saber quanto cada máquina custa e rende.", tag:'Frota', url:'https://gestaopecuarialucrativa-dotcom.github.io/gestao-maquinas-fazenda/', svg:'<svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" fill="none"><circle cx="7" cy="17" r="3"/><circle cx="18" cy="18" r="2"/><path d="M10 17h6"/><path d="M7 14V8h4l2 6"/><path d="M11 8V5h4v3"/></svg>'},
+  {id:'comparativo', nome:"Comparativo", desc:"Compara a evolução do rebanho entre pesagens — mostra se o GMD está melhorando ou caindo, pra agir antes de perder dinheiro.", tag:'Evolução', url:'comparativo.html', svg:'<svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" fill="none"><path d="M4 19V5"/><path d="M4 19h16"/><path d="M7 15l4-4 3 2 5-6"/><path d="M19 7h-3"/><path d="M19 7v3"/></svg>'},
+  {id:'analise', nome:"Análise de Rebanho", desc:"Mostra quanto cada lote vai consumir de suplemento até o abate e quando vende — pra comprar insumo na medida certa, sem sobra nem falta.", tag:'Planejamento', url:'analise-rebanho.html', svg:'<svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" fill="none"><path d="M5 8c-1.5 0-2.5-1-2.5-2.5C4 6 5 7 6 8"/><path d="M19 8c1.5 0 2.5-1 2.5-2.5C20 6 19 7 18 8"/><path d="M6 8h12v5a6 6 0 0 1-12 0Z"/><path d="M9.5 13v1"/><path d="M14.5 13v1"/></svg>'},
+  {id:'relatorio', nome:"Relatório de Performance", desc:"Relatório de performance com papel timbrado e os números do seu rebanho — pra enxergar resultado e tomar decisão com base em dado.", tag:'Relatório', url:'relatorio-performance.html', svg:'<svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" fill="none"><path d="M7 3h7l4 4v14H7Z"/><path d="M14 3v4h4"/><path d="M10 13h6"/><path d="M10 17h6"/></svg>'},
+  {id:'checklist', nome:"Teste de Perfil de Gestão", desc:"Diagnóstico da gestão da fazenda em poucos minutos — aponta onde estão as maiores oportunidades de melhorar o resultado.", tag:'Diagnóstico', url:'checklist-auditoria.html', svg:'<svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" fill="none"><path d="M4 14a8 8 0 0 1 16 0"/><path d="M4 14h16"/><path d="M12 14l4-4"/><circle cx="12" cy="14" r="1.3" fill="currentColor" stroke="none"/></svg>'},
+  {id:'ceci', nome:"Planejamento Ágil CECI", desc:"Planeja cria, recria e engorda numa visão de safra — pra você enxergar o ano todo e organizar o giro do rebanho.", tag:'Planejamento', url:'plano-agil-ceci.html', svg:'<svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" fill="none"><rect x="4" y="5" width="16" height="16" rx="2"/><path d="M4 9h16"/><path d="M8 3v4"/><path d="M16 3v4"/><path d="M9 14h2v2H9Z"/></svg>'},
+  {id:'plano', nome:"Plano Ágil Pecuário", desc:"Define a meta de resultado e calcula o rebanho e a lotação que a fazenda precisa pra chegar lá.", tag:'Meta', url:'plano_agil_v3.html', svg:'<svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" fill="none"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="4"/><circle cx="12" cy="12" r="0.7" fill="currentColor" stroke="none"/></svg>'},
+  {id:'viabilidade', nome:"Viabilidade de Lote", desc:"Antes de comprar um lote, mostra se vai dar lucro: ponto de equilíbrio, relação de troca e custo da arroba. Decisão com número, não no chute.", tag:'Decisão', url:'viabilidade_lote.html', svg:'<svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" fill="none"><circle cx="12" cy="12" r="8"/><path d="M12 7v10"/><path d="M14.5 9.5c-.5-1-1.5-1.3-2.5-1.3-1.3 0-2.3.7-2.3 1.8 0 2.6 5 1.2 5 3.8 0 1.2-1 1.9-2.4 1.9-1.1 0-2.1-.4-2.6-1.4"/></svg>'},
+  {id:'bezerro', nome:"Arroba do Bezerro", desc:"Calcula se o bezerro que você quer comprar vale a pena: GMD, retorno e simulação — pra não pagar caro na reposição.", tag:'Compra', url:'arroba_bezerro.html', svg:'<svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" fill="none"><path d="M6 7c-2 0-3-1.2-3-3 1.8 0 3 1 3.3 2.5"/><path d="M18 7c2 0 3-1.2 3-3-1.8 0-3 1-3.3 2.5"/><path d="M6.5 7h11v5a5.5 5.5 0 0 1-11 0Z"/><path d="M10 13v1"/><path d="M14 13v1"/></svg>'},
+  {id:'orcamento', nome:"Orçamento de Compra", desc:"Monta o orçamento de compra do suplemento por período — você sabe quanto vai gastar antes de comprar.", tag:'Compra', url:'orcamento-compra.html', svg:'<svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" fill="none"><circle cx="9" cy="20" r="1.4"/><circle cx="17" cy="20" r="1.4"/><path d="M3 4h2l2.4 11.4a1 1 0 0 0 1 .8h8.2a1 1 0 0 0 1-.8L20 7H6"/></svg>'},
+  {id:'contrato', nome:"Gerador de Contrato", desc:"Gera o contrato de consultoria pronto em PDF — formaliza o acordo de um jeito rápido e profissional.", tag:'Contrato', url:'contrato-gerador.html', svg:'<svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" fill="none"><path d="M7 3h7l4 4v10a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2Z"/><path d="M14 3v4h4"/><path d="M8.5 17c1-1.5 2.5-1.5 3.5-3 .6-.9-.2-2-1.2-1.6-1 .4-1 2.3.2 2.6 1 .3 2-.3 2.8-1"/></svg>'},
+  {id:'portfolio', nome:"Portfólio", desc:"Apresentação da consultoria com os planos e a proposta — pra mostrar o trabalho de forma profissional.", tag:'Comercial', url:'portfolio.html', svg:'<svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" fill="none"><path d="M4 10v4h3l8 4V6l-8 4Z"/><path d="M18 9a4 4 0 0 1 0 6"/></svg>'},
+  {id:'levantamento', nome:"Formulário de Levantamento", desc:"Levantamento inicial da fazenda — reúne os dados do produtor pra montar o diagnóstico certo desde o começo.", tag:'Captação', url:'levantamento_form.html', svg:'<svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" fill="none"><path d="M6 3h8l4 4v8"/><path d="M14 3v4h4"/><path d="M6 3v18h6"/><path d="M16 18l4-4 2 2-4 4h-2Z"/></svg>'},
+  {id:'instagram', nome:"Diagnóstico Instagram", desc:"Diagnóstico rápido a partir do Instagram — uma porta de entrada pra novos clientes conhecerem o trabalho.", tag:'Captação', url:'levantamento_instagram.html', svg:'<svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" fill="none"><rect x="3" y="7" width="18" height="13" rx="3"/><circle cx="12" cy="13.5" r="3.5"/><path d="M8 7l1.5-2h5L16 7"/></svg>'},
+  {id:'mapa', nome:"Mapa de Oportunidades", desc:"Mapa de oportunidades da fazenda — aponta onde dá pra ganhar mais resultado sem precisar de planilha financeira detalhada.", tag:'Diagnóstico', url:'mapa-oportunidades.html', svg:'<svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" fill="none"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2Z"/><path d="M9 4v14M15 6v14"/><circle cx="16.5" cy="9.5" r="2"/></svg>'},
 ];
 
 // ══════════════════════════════════════════════════════
@@ -204,10 +211,10 @@ function renderFerramentas(){
   ferramentas.forEach(function(f){
     var div = document.createElement('div');
     div.className = 'tool-card';
-    div.innerHTML = '<div class="tool-icon">'+f.icon+'</div>'
+    div.innerHTML = '<div class="tool-icon">'+(f.svg||'')+'</div>'
       +'<div class="tool-name">'+f.nome+'</div>'
       +'<div class="tool-desc">'+f.desc+'</div>'
-      +'<div class="tool-tags">'+f.tags.map(function(t){return '<span class="tool-tag">'+t+'</span>';}).join('')+'</div>';
+      +'<div class="tool-tags"><span class="tool-tag">'+f.tag+'</span></div>';
     div.addEventListener('click', function(){ abrirFerramenta(f); });
     grid.appendChild(div);
   });
@@ -220,8 +227,8 @@ function renderFerramentas(){
     a.href = '#';
     a.className = 'sb-item';
     a.id = 'sb-'+f.id;
-    a.innerHTML = '<div class="sb-icon">'+f.icon+'</div>'
-      +'<div class="sb-txt"><span class="sb-label">'+f.nome+'</span><span class="sb-sub">'+f.tags.join(' · ')+'</span></div>';
+    a.innerHTML = '<div class="sb-icon">'+(f.svg||'')+'</div>'
+      +'<div class="sb-txt"><span class="sb-label">'+f.nome+'</span><span class="sb-sub">'+f.tag+'</span></div>';
     a.addEventListener('click', function(e){
       e.preventDefault();
       abrirFerramenta(f);
@@ -236,12 +243,12 @@ var _urlAtual = '';
 function abrirFerramenta(f){
   _urlAtual = f.url;
   // Ferramentas que podem ter restrição de iframe — abre em nova aba
-  var abreNova = ['analise','checklist','relatorio','portfolio','ceci','plano','bezerro','viabilidade','levantamento','instagram'];
+  var abreNova = ['analise','checklist','relatorio','portfolio','ceci','plano','bezerro','viabilidade','levantamento','instagram','visita','agenda','comparativo','orcamento','contrato','mapa','maquinas'];
   if(abreNova.indexOf(f.id) >= 0){
     window.open(f.url, '_blank');
     return;
   }
-  document.getElementById('iframe-title').textContent = f.icon+' '+f.nome;
+  document.getElementById('iframe-title').textContent = f.nome;
   document.getElementById('loading').style.display='flex';
   document.getElementById('main-frame').src = f.url;
   document.getElementById('home-panel').style.display='none';

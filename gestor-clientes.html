@@ -88,6 +88,7 @@ body{font-family:Arial,'Segoe UI',Roboto,system-ui,sans-serif;background:var(--b
 .mlc-link-ic svg{width:20px;height:20px;stroke:var(--v2)}
 .mlc-link-txt{flex:1;min-width:0;font-size:13px;color:var(--v);line-height:1.35}
 .mlc-link-dom{font-size:10px;color:var(--mut);font-weight:600}
+.mlc-link-curto{background:var(--v7);border:1px solid var(--v6);border-radius:10px;padding:10px 12px;margin-bottom:10px;font-size:13px;font-weight:700;color:var(--v);text-align:center;word-break:break-all}
 .mlc-link-ver{border:1px solid var(--line);background:transparent;color:var(--mut);font-size:11px;font-weight:700;padding:5px 11px;border-radius:7px;cursor:pointer}
 .mlc-link-ver:hover{background:#f0f4ef;color:var(--v)}
 .mlc-btns{display:flex;gap:8px}
@@ -178,8 +179,10 @@ body{font-family:Arial,'Segoe UI',Roboto,system-ui,sans-serif;background:var(--b
       <div class="mlc-link-row">
         <span class="mlc-link-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 15l6-6"/><path d="M11 6l1-1a4 4 0 0 1 6 6l-1 1"/><path d="M13 18l-1 1a4 4 0 0 1-6-6l1-1"/></svg></span>
         <span class="mlc-link-txt"><strong>Link pronto para enviar</strong><br><span class="mlc-link-dom">gestaopecuarialucrativa.com.br</span></span>
+        <button type="button" class="mlc-link-ver" onclick="encurtarLink()" id="mlc-btn-curto">Encurtar</button>
         <button type="button" class="mlc-link-ver" onclick="verLinkCompleto()">ver</button>
       </div>
+      <div class="mlc-link-curto" id="mlc-link-curto" style="display:none"></div>
       <div class="mlc-link-box" id="mlc-link-box" style="display:none"></div>
       <div class="mlc-btns">
         <button class="mlc-btn copy" onclick="copiarLink()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px;vertical-align:-2px"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h8"/></svg> Copiar link</button>
@@ -364,7 +367,7 @@ function excluirFazendaGestor(i){
 }
 
 /* Modal Link */
-var _linkAtual = ''; var _fazAtual = null;
+var _linkAtual = ''; var _linkCurto = ''; var _fazAtual = null;
 function abrirModalLink(i){
   var fazendas = getClientesFazendas();
   var faz = fazendas[i];
@@ -379,6 +382,9 @@ function abrirModalLink(i){
     if(f){var sp=document.createElement('span');sp.className='fcg-ferr-tag';sp.style.marginRight='4px';sp.textContent=f.nome;ferrDiv.appendChild(sp);}
   });
   document.getElementById('mlc-link-box').textContent = _linkAtual;
+  _linkCurto='';
+  var lc=document.getElementById('mlc-link-curto'); if(lc){lc.style.display='none';lc.textContent='';}
+  var bc=document.getElementById('mlc-btn-curto'); if(bc){bc.textContent='Encurtar';bc.disabled=false;}
   document.getElementById('mlc-notif').style.display='none';
   document.getElementById('modal-link-cliente').classList.add('open');
 }
@@ -388,14 +394,38 @@ function verLinkCompleto(){
   var open=box.style.display==='none'||box.style.display==='';
   box.style.display=open?'block':'none';
 }
+function encurtarLink(){
+  if(!_linkAtual) return;
+  var btn=document.getElementById('mlc-btn-curto');
+  var cx=document.getElementById('mlc-link-curto');
+  if(_linkCurto){ cx.style.display='block'; cx.textContent=_linkCurto; return; }
+  if(btn){ btn.textContent='...'; btn.disabled=true; }
+  var api='https://is.gd/create.php?format=simple&url='+encodeURIComponent(_linkAtual);
+  fetch(api).then(function(r){
+    if(!r.ok) throw new Error('http '+r.status);
+    return r.text();
+  }).then(function(t){
+    t=(t||'').trim();
+    if(t.indexOf('https://')!==0) throw new Error('resposta inesperada');
+    _linkCurto=t;
+    cx.style.display='block'; cx.textContent=t;
+    if(btn){ btn.textContent='Encurtado'; btn.disabled=true; }
+  }).catch(function(e){
+    if(btn){ btn.textContent='Encurtar'; btn.disabled=false; }
+    cx.style.display='block';
+    cx.style.color='var(--mut)'; cx.style.fontWeight='600';
+    cx.textContent='Não consegui encurtar agora (sem internet ou bloqueado). O link normal continua funcionando.';
+  });
+}
 function copiarLink(){
   if(!_linkAtual) return;
+  var alvo=_linkCurto||_linkAtual;
   function ok(){ var n=document.getElementById('mlc-notif'); n.style.display='block'; setTimeout(function(){n.style.display='none';},2500); }
   if(navigator.clipboard && navigator.clipboard.writeText){
-    navigator.clipboard.writeText(_linkAtual).then(ok).catch(fallback);
+    navigator.clipboard.writeText(alvo).then(ok).catch(fallback);
   } else { fallback(); }
   function fallback(){
-    var ta=document.createElement('textarea'); ta.value=_linkAtual; document.body.appendChild(ta); ta.select();
+    var ta=document.createElement('textarea'); ta.value=alvo; document.body.appendChild(ta); ta.select();
     try{document.execCommand('copy');}catch(e){} document.body.removeChild(ta); ok();
   }
 }
@@ -413,7 +443,7 @@ function enviarLinkWpp(){
     +'*PIN de acesso:* '+faz.pin+'\n\n'
     +'*Suas ferramentas:* '+ferrNomes+'\n\n'
     +'Toque no link abaixo para entrar (guarde o PIN):\n'
-    +_linkAtual+'\n\n'
+    +(_linkCurto||_linkAtual)+'\n\n'
     +'Rogério Avelino — Consultor GPL\n'
     +'(63) 99108-2453 · @gestaopecuarialucrativa';
   var wurl='https://wa.me/?text='+encodeURIComponent(msg);

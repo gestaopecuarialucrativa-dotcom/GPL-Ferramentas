@@ -958,13 +958,31 @@ function calcStats(l){
   var base=med<meta?Math.round((meta-med)/gmd):0;
   var dec=diasAteHoje(dataPesagemISO);
   var dias=Math.max(0,base-dec);
-  return{n:n,tot:tot,med:med,mn:mn,mx:mx,amp:mx-mn,cons:cons,dias:dias,meses:(dias/30).toFixed(1)};
+  // ── Consumo TOTAL até o abate (reage ao GMD via dias) ──
+  // O animal cresce de 'med' até 'meta'; usa o peso médio do período (ganho linear).
+  var pesoMedPeriodo = med < meta ? (med + meta) / 2 : med;
+  var consTotalKg = (pct != null) ? (pesoMedPeriodo * pct / 100) * n * dias : null;          // kg de produto no lote até o abate
+  var sacosTotal  = (consTotalKg != null && pesoSaco > 0) ? consTotalKg / pesoSaco : null;     // sacos no lote até o abate
+  return{n:n,tot:tot,med:med,mn:mn,mx:mx,amp:mx-mn,cons:cons,dias:dias,meses:(dias/30).toFixed(1),
+         pesoMedPeriodo:pesoMedPeriodo,consTotalKg:consTotalKg,sacosTotal:sacosTotal};
 }
 
 function calcSacos(l){
   var pct=suplPct[l];if(pct==null)return 'Livre';
   var s=calcStats(l);
   return((s.med*pct/100*s.n)/pesoSaco).toFixed(2)+' sc/dia';
+}
+function calcSacosTotal(l){
+  var s=calcStats(l);
+  if(s.sacosTotal==null) return 'Livre';
+  if(s.dias===0) return '<span class="tag-ok">PRONTO</span>';
+  return Math.ceil(s.sacosTotal)+' sc';
+}
+function calcKgTotal(l){
+  var s=calcStats(l);
+  if(s.consTotalKg==null) return 'Livre';
+  if(s.dias===0) return '0 kg';
+  return Math.round(s.consTotalKg).toLocaleString('pt-BR')+' kg';
 }
 
 function getLotes(){return Object.keys(RAW).map(Number).filter(function(l){return RAW[String(l)]&&RAW[String(l)].length>0;}).sort(function(a,b){return a-b;});}
@@ -1060,6 +1078,8 @@ function buildResumo(){
       +'<td id="cons'+l+'">'+cons+'</td>'
       +'<td id="saco'+l+'">'+calcSacos(l)+'</td>'
       +'<td>'+dt+'</td>'
+      +'<td id="sacoTot'+l+'"><strong>'+calcSacosTotal(l)+'</strong></td>'
+      +'<td id="kgTot'+l+'">'+calcKgTotal(l)+'</td>'
       +'</tr>';
   });
   return '<div class="stitle">Resumo por Lote</div>'
@@ -1071,9 +1091,11 @@ function buildResumo(){
     +'<th>Lote</th><th>Animais</th><th>Peso Total(kg)</th><th>Min</th><th>Max</th>'
     +'<th>Média(kg)</th><th>Amplitude</th><th>Nome Suplemento</th><th>% PV</th>'
     +'<th>Cons./dia/animal</th><th>Sacos/dia(lote)</th><th>Dias p/Abate</th>'
+    +'<th>Sacos até abate</th><th>Kg até abate</th>'
     +'</tr></thead><tbody>'+rows+'</tbody></table></div>'
     +'<p style="margin-top:8px;font-size:10px;color:#888">Edite suplemento direto na tabela · '
-    +'<span class="ah">Amplitude crítica &gt;200kg</span> &nbsp;<span class="am">Atenção &gt;100kg</span> &nbsp;<span class="ao">Uniforme</span></p>';
+    +'<span class="ah">Amplitude crítica &gt;200kg</span> &nbsp;<span class="am">Atenção &gt;100kg</span> &nbsp;<span class="ao">Uniforme</span><br>'
+    +'<strong>Sacos/Kg até abate</strong> = consumo do lote do dia atual até o peso de abate, pelo peso médio do período. Muda quando você altera o GMD ou a meta.</p>';
 }
 
 // ── ANALISE TECNICA ──
@@ -1315,11 +1337,19 @@ function atualizaCons(l,val){
   if(cell)cell.textContent=pct!=null?(s.med*pct/100).toFixed(3)+' kg':'Livre';
   var scell=document.getElementById('saco'+l);
   if(scell)scell.textContent=calcSacos(l);
+  var stc=document.getElementById('sacoTot'+l);
+  if(stc)stc.innerHTML='<strong>'+calcSacosTotal(l)+'</strong>';
+  var ktc=document.getElementById('kgTot'+l);
+  if(ktc)ktc.textContent=calcKgTotal(l);
   buildLoteCards();
 }
 
 function atualizaTodosSacos(){
-  getLotes().forEach(function(l){var sc=document.getElementById('saco'+l);if(sc)sc.textContent=calcSacos(l);});
+  getLotes().forEach(function(l){
+    var sc=document.getElementById('saco'+l);if(sc)sc.textContent=calcSacos(l);
+    var stc=document.getElementById('sacoTot'+l);if(stc)stc.innerHTML='<strong>'+calcSacosTotal(l)+'</strong>';
+    var ktc=document.getElementById('kgTot'+l);if(ktc)ktc.textContent=calcKgTotal(l);
+  });
 }
 
 // ══════════════════════════════════════════════════

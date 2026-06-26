@@ -105,6 +105,23 @@ body{margin:0;font-family:Arial,'Segoe UI',Roboto,system-ui,sans-serif;backgroun
 </style>
 </head>
 <body>
+<script>
+/* PROTEÇÃO: se for um cliente logado por PIN, não pode ver o painel completo — volta pro portal dele */
+(function(){
+  try{
+    var s = sessionStorage.getItem('gpl_auth');
+    if(s){
+      var o = JSON.parse(s);
+      // sessão de cliente válida (8h) -> manda pro portal do cliente
+      if(o && o.fazenda){
+        if(!o.ts || (Date.now() - o.ts <= 8*60*60*1000)){
+          window.location.replace('cliente.html');
+        }
+      }
+    }
+  }catch(e){}
+})();
+</script>
 
 <aside class="side" id="side">
   <div class="brand">

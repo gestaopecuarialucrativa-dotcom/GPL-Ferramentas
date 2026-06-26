@@ -52,10 +52,10 @@ body{font-family:Arial,'Segoe UI',Roboto,system-ui,sans-serif;background:var(--b
 .fcg-ferr-tag{font-size:11px;font-weight:600;color:var(--v2);background:var(--v7);border:1px solid var(--v6);border-radius:20px;padding:2px 9px}
 
 /* modais */
-#modal-nova-fazenda,#modal-link-cliente{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:60;align-items:flex-end;justify-content:center;padding:0}
-#modal-nova-fazenda.open,#modal-link-cliente.open{display:flex}
+#modal-nova-fazenda,#modal-link-cliente,#modal-acessos{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:60;align-items:flex-end;justify-content:center;padding:0}
+#modal-nova-fazenda.open,#modal-link-cliente.open,#modal-acessos.open{display:flex}
 .mnf-card,.mlc-card{background:#fff;width:100%;max-width:560px;max-height:92vh;overflow-y:auto;border-radius:20px 20px 0 0;display:flex;flex-direction:column}
-@media(min-width:620px){.mnf-card,.mlc-card{border-radius:18px;margin:auto}#modal-nova-fazenda,#modal-link-cliente{align-items:center;padding:20px}}
+@media(min-width:620px){.mnf-card,.mlc-card,.mac-card{border-radius:18px;margin:auto}#modal-nova-fazenda,#modal-link-cliente,#modal-acessos{align-items:center;padding:20px}}.mac-card{background:#fff;width:100%;max-width:520px;max-height:88vh;overflow-y:auto;border-radius:18px 18px 0 0;padding:0}.mac-head{display:flex;align-items:center;justify-content:space-between;padding:16px 18px;border-bottom:1px solid var(--line);position:sticky;top:0;background:#fff;z-index:2}.mac-title{font-weight:800;color:var(--v);font-size:16px}.mac-close{border:none;background:none;font-size:20px;color:var(--mut);cursor:pointer}.mac-body{padding:16px 18px}.mac-resumo{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px}.mac-kpi{background:var(--v7);border:1px solid var(--v6);border-radius:10px;padding:10px 12px}.mac-kpi-num{font-size:20px;font-weight:800;color:var(--v)}.mac-kpi-lab{font-size:10px;color:var(--mut);font-weight:600}.mac-sec{font-size:11px;font-weight:700;color:var(--mut);text-transform:uppercase;letter-spacing:.5px;margin:14px 0 6px}.mac-ferr{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--line);font-size:13px}.mac-ferr b{color:var(--v)}.mac-log{font-size:12px;color:var(--tx);padding:6px 0;border-bottom:1px solid #f0f0f0;display:flex;justify-content:space-between;gap:10px}.mac-log .ev{color:var(--mut);font-size:10px;white-space:nowrap}.mac-vazio{text-align:center;color:var(--mut);padding:30px 10px;font-size:13px}
 .mnf-head,.mlc-head{display:flex;align-items:center;justify-content:space-between;padding:18px 18px 12px;border-bottom:1px solid var(--line)}
 .mnf-title,.mlc-title{font-weight:800;font-size:17px;color:var(--v)}
 .mnf-close,.mlc-close{border:none;background:#f0f4ef;width:32px;height:32px;border-radius:50%;font-size:15px;cursor:pointer;color:var(--mut)}
@@ -344,6 +344,7 @@ function renderGestorLista(){
     html += '<span class="fcg-status '+(faz.ativo?'ativo':'inativo')+'">'+(faz.ativo?'Ativo':'Bloqueado')+'</span>';
     html += '<div class="fcg-btns">';
     html += '<button class="fcg-btn link" onclick="abrirModalLink('+i+')">🔗 Link</button>';
+    html += '<button class="fcg-btn" onclick="abrirModalAcessos('+i+')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;vertical-align:-2px"><path d="M3 3v18h18"/><path d="M7 14l3-3 3 2 4-5"/></svg> Acessos</button>';
     html += '<button class="fcg-btn" onclick="abrirModalNF('+i+')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;vertical-align:-2px"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg> Editar</button>';
     html += '<button class="fcg-btn del" onclick="excluirFazendaGestor('+i+')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;vertical-align:-2px"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14"/></svg></button>';
     html += '</div></div>';
@@ -454,6 +455,75 @@ function enviarLinkWpp(){
 function escHtml(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
 renderGestorLista();
+
+// ── RELATÓRIO DE ACESSOS ──
+var GPL_TRACK_URL = "https://script.google.com/macros/s/AKfycbyjWp9UnWpnKYhzV2o2y48MwkJhu_ynr5baIHXAm4QpUVmk2BKu5LoBvOUOCmHPrw/exec";
+function abrirModalAcessos(i){
+  var faz = getClientesFazendas()[i];
+  if(!faz) return;
+  document.getElementById('modal-acessos').classList.add('open');
+  var body = document.getElementById('mac-body');
+  body.innerHTML = '<div class="mac-vazio">Carregando acessos de <b>'+escHtml(faz.nome)+'</b>...</div>';
+  var url = GPL_TRACK_URL + '?acao=listar&fazenda=' + encodeURIComponent(faz.nome) + '&_=' + Date.now();
+  fetch(url).then(function(r){ return r.json(); }).then(function(res){
+    renderAcessos(faz, (res && res.acessos) ? res.acessos : []);
+  }).catch(function(e){
+    body.innerHTML = '<div class="mac-vazio">Não consegui carregar os acessos agora.<br>Verifique a conexão e tente de novo.</div>';
+  });
+}
+function fecharModalAcessos(){ document.getElementById('modal-acessos').classList.remove('open'); }
+
+function renderAcessos(faz, lista){
+  var body = document.getElementById('mac-body');
+  if(!lista.length){
+    body.innerHTML = '<div class="mac-vazio"><b>'+escHtml(faz.nome)+'</b> ainda não registrou nenhum acesso.</div>';
+    return;
+  }
+  var logins = lista.filter(function(a){ return a.evento==='login'; });
+  var ferrs  = lista.filter(function(a){ return a.evento==='ferramenta'; });
+  // contagem por ferramenta
+  var cont = {};
+  ferrs.forEach(function(a){ var n=a.ferramenta||'(sem nome)'; cont[n]=(cont[n]||0)+1; });
+  var ferrOrden = Object.keys(cont).sort(function(a,b){ return cont[b]-cont[a]; });
+  // último acesso = primeira linha mais recente (a planilha grava em ordem; pega a última do array)
+  var ultimo = lista[lista.length-1];
+
+  var html = '';
+  html += '<div class="mac-resumo">';
+  html += '<div class="mac-kpi"><div class="mac-kpi-num">'+logins.length+'</div><div class="mac-kpi-lab">Vezes que entrou</div></div>';
+  html += '<div class="mac-kpi"><div class="mac-kpi-num">'+ferrs.length+'</div><div class="mac-kpi-lab">Ferramentas abertas</div></div>';
+  html += '</div>';
+  html += '<div style="font-size:12px;color:var(--mut);margin-bottom:6px">Último acesso: <b style="color:var(--v)">'+escHtml(ultimo.dataHora)+'</b></div>';
+
+  if(ferrOrden.length){
+    html += '<div class="mac-sec">Ferramentas mais usadas</div>';
+    ferrOrden.forEach(function(n){
+      html += '<div class="mac-ferr"><span>'+escHtml(n)+'</span><b>'+cont[n]+'x</b></div>';
+    });
+  }
+
+  html += '<div class="mac-sec">Últimos registros</div>';
+  var recentes = lista.slice(-12).reverse();
+  recentes.forEach(function(a){
+    var txt = a.evento==='login' ? 'Entrou no portal' : ('Abriu: '+escHtml(a.ferramenta||''));
+    html += '<div class="mac-log"><span>'+txt+'</span><span class="ev">'+escHtml(a.dataHora)+'</span></div>';
+  });
+
+  body.innerHTML = html;
+}
+
 </script>
+
+<div id="modal-acessos" onclick="if(event.target===this)fecharModalAcessos()">
+  <div class="mac-card">
+    <div class="mac-head">
+      <div class="mac-title">Acessos da fazenda</div>
+      <button class="mac-close" onclick="fecharModalAcessos()">✕</button>
+    </div>
+    <div class="mac-body" id="mac-body">
+      <div class="mac-vazio">Carregando...</div>
+    </div>
+  </div>
+</div>
 </body>
 </html>

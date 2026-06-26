@@ -59,7 +59,7 @@ iframe{width:100%;height:100%;border:none;background:white}
 
 /* HOME PANEL */
 .home-panel{flex:1;overflow-y:auto;padding:20px}
-.home-hello{font-size:12px;color:var(--g4);font-weight:500;margin-bottom:2px}.home-fazenda{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:var(--v1);margin-bottom:3px;line-height:1.1}
+.home-fazenda{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:var(--v1);margin-bottom:4px}
 .home-sub{font-size:12px;color:var(--g4);margin-bottom:20px}
 .tools-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px}
 .tool-card{background:white;border-radius:12px;border:1px solid var(--v6);padding:16px;cursor:pointer;transition:all .2s;box-shadow:var(--sh);text-decoration:none;display:block;position:relative;overflow:hidden}
@@ -119,9 +119,8 @@ iframe{width:100%;height:100%;border:none;background:white}
   <div class="main" id="main-area">
     <!-- HOME -->
     <div class="home-panel" id="home-panel">
-      <div class="home-hello">Bem-vindo,</div>
       <div class="home-fazenda" id="home-fazenda">Carregando...</div>
-      <div class="home-sub">Escolha uma ferramenta para começar</div>
+      <div class="home-sub">Selecione uma ferramenta abaixo</div>
       <div class="tools-grid" id="tools-grid"></div>
     </div>
     <!-- IFRAME -->
@@ -172,20 +171,6 @@ var TODAS_FERRAMENTAS = [
 // ══════════════════════════════════════════════════════
 // AUTENTICAÇÃO
 // ══════════════════════════════════════════════════════
-// ── Registro de acesso (GPL) ──
-var GPL_TRACK_URL = "https://script.google.com/macros/s/AKfycbyjWp9UnWpnKYhzV2o2y48MwkJhu_ynr5baIHXAm4QpUVmk2BKu5LoBvOUOCmHPrw/exec";
-function gplPing(evento, ferramenta, detalhe){
-  try{
-    var faz = (typeof SESSAO!=='undefined' && SESSAO && SESSAO.fazenda) ? SESSAO.fazenda : '';
-    var q = '?fazenda='+encodeURIComponent(faz)
-          + '&evento='+encodeURIComponent(evento||'')
-          + '&ferramenta='+encodeURIComponent(ferramenta||'')
-          + '&detalhe='+encodeURIComponent(detalhe||'');
-    var img = new Image();
-    img.src = GPL_TRACK_URL + q + '&_=' + Date.now();
-  }catch(e){}
-}
-
 var SESSAO = null;
 
 (function init(){
@@ -257,7 +242,6 @@ function renderFerramentas(){
 var _urlAtual = '';
 function abrirFerramenta(f){
   _urlAtual = f.url;
-  gplPing('ferramenta', f.nome, '');
   // Ferramentas que podem ter restrição de iframe — abre em nova aba
   var abreNova = ['analise','checklist','relatorio','portfolio','ceci','plano','bezerro','viabilidade','levantamento','instagram','visita','agenda','comparativo','orcamento','contrato','mapa','maquinas'];
   if(abreNova.indexOf(f.id) >= 0){

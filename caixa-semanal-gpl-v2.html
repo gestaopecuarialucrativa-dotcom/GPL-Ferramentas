@@ -49,10 +49,19 @@ body{font-family:Arial,'Segoe UI',Roboto,system-ui,sans-serif;background:var(--b
 .semana-card{background:var(--card);border-radius:var(--radius);border-left:4px solid var(--v2);box-shadow:0 1px 6px rgba(0,0,0,.08);overflow:hidden;display:flex;flex-direction:column}
 .semana-card.negativa{border-left-color:var(--red)}
 .semana-card.zerada{border-left-color:var(--warn)}
-.semana-header{background:var(--v);padding:11px 13px;display:flex;justify-content:space-between;align-items:center}
-.semana-data{color:#fff;font-size:15px;font-weight:700;outline:none;border-bottom:1px dashed transparent;cursor:text}
-.semana-data:focus{border-bottom-color:rgba(255,255,255,.5)}
-.semana-menu{display:flex;gap:5px}
+.semana-header{background:var(--v);padding:10px 13px;display:flex;justify-content:space-between;align-items:center;gap:8px}
+.semana-menu{display:flex;gap:5px;flex-shrink:0}
+/* Input de data no header do card */
+.input-data-semana{
+  background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.35);
+  border-radius:7px;color:#fff;font-size:13px;font-weight:700;
+  padding:4px 8px;cursor:pointer;flex:1;min-width:0;
+  color-scheme:dark;
+}
+.input-data-semana:focus{outline:none;border-color:rgba(255,255,255,.7);background:rgba(255,255,255,.25)}
+/* Autocomplete datalist */
+.input-desc{flex:1;padding:7px 9px;border:1px solid var(--line);border-radius:8px;font-size:12px;background:#fff;min-width:0}
+.input-desc:focus{border-color:var(--v2);outline:none}
 .btn-icon{background:rgba(255,255,255,.15);border:none;border-radius:6px;color:#fff;width:28px;height:28px;cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center;transition:background .15s}
 .btn-icon:hover{background:rgba(255,255,255,.3)}
 
@@ -67,8 +76,6 @@ body{font-family:Arial,'Segoe UI',Roboto,system-ui,sans-serif;background:var(--b
 
 /* FORM ITEM */
 .novo-item-form{padding:7px 13px;display:flex;gap:6px;border-top:1px solid var(--line);background:#fafafa}
-.input-desc{flex:1;padding:7px 9px;border:1px solid var(--line);border-radius:8px;font-size:12px;background:#fff;min-width:0}
-.input-desc:focus{border-color:var(--v2);outline:none}
 .input-val{width:78px;padding:7px 7px;border:1px solid var(--line);border-radius:8px;font-size:12px;background:#fff;text-align:right}
 .input-val:focus{border-color:var(--v2);outline:none}
 .btn-add{background:var(--v2);color:#fff;border:none;border-radius:8px;width:30px;height:30px;font-size:19px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:background .15s}
@@ -225,6 +232,9 @@ body{font-family:Arial,'Segoe UI',Roboto,system-ui,sans-serif;background:var(--b
 
 </div>
 
+<!-- DATALIST autocomplete de descrições -->
+<datalist id="desc-autocomplete"></datalist>
+
 <!-- MODAL PDF -->
 <div class="modal-overlay" id="modalOverlay">
   <div class="modal">
@@ -283,8 +293,29 @@ function fmtBRL(v) {
   var n = Math.abs(parseFloat(v)||0);
   return 'R$ ' + n.toFixed(2).replace('.',',').replace(/\B(?=(\d{3})+(?!\d))/g,'.');
 }
-function dataHoje() { var d=new Date(); return d.getDate()+'/'+(d.getMonth()+1); }
-function dataHojeISO() { var d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+// Data sempre em formato ISO yyyy-MM-dd internamente; exibição dd/MM/yyyy
+function dataHojeISO() {
+  var d = new Date();
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
+function isoParaExibicao(iso) {
+  // "2026-07-01" → "01/07/2026"
+  if (!iso) return '';
+  var p = iso.split('-');
+  if (p.length === 3) return p[2]+'/'+p[1]+'/'+p[0];
+  return iso;
+}
+function exibicaoParaISO(str) {
+  // "01/07/2026" ou "01/07" → "2026-07-01"
+  if (!str) return dataHojeISO();
+  var p = str.split('/');
+  if (p.length === 3) return p[2]+'-'+p[1].padStart(2,'0')+'-'+p[0].padStart(2,'0');
+  if (p.length === 2) {
+    var ano = new Date().getFullYear();
+    return ano+'-'+p[1].padStart(2,'0')+'-'+p[0].padStart(2,'0');
+  }
+  return str;
+}
 function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 function toast(msg, erro) {
   var el = document.getElementById('toast');
@@ -326,8 +357,10 @@ function carregarDoSheets() {
     .then(function(data){
       if (data.ok && Array.isArray(data.semanas)) {
         estado.semanas = data.semanas;
+        normalizarDatas();
         salvarLocal();
         setSyncStatus('ok');
+        atualizarAutocomplete();
         renderTudo();
         toast('✅ Dados carregados do Google Sheets');
       } else {
@@ -337,6 +370,8 @@ function carregarDoSheets() {
     .catch(function(err){
       setSyncStatus('erro');
       carregarLocal();
+      normalizarDatas();
+      atualizarAutocomplete();
       renderTudo();
       toast('⚠️ Offline — usando dados locais', true);
       console.warn('Sheets indisponível:', err.message);
@@ -430,10 +465,13 @@ function criarCard(sem, idx) {
   div.className = 'semana-card ' + cls;
   div.id = 'card-' + sem.id;
 
-  // HEADER
+  // Data em ISO para o input type=date; se vier no formato antigo, converter
+  var dataISO = sem.dataISO || exibicaoParaISO(sem.data || '');
+
+  // HEADER com input type=date (calendário nativo)
   div.innerHTML =
     '<div class="semana-header">'+
-    '<span class="semana-data" contenteditable="true" spellcheck="false" onblur="editarData(\''+sem.id+'\',this)">'+esc(sem.data)+'</span>'+
+    '<input type="date" class="input-data-semana" value="'+dataISO+'" onchange="editarData(\''+sem.id+'\',this)">'+
     '<div class="semana-menu">'+
     '<button class="btn-icon" title="PDF desta semana" onclick="abrirModalPDFSemana(\''+sem.id+'\')">📄</button>'+
     '<button class="btn-icon" title="Excluir semana" onclick="excluirSemana(\''+sem.id+'\')">🗑</button>'+
@@ -446,11 +484,11 @@ function criarCard(sem, idx) {
   renderItens(lista, sem);
   div.appendChild(lista);
 
-  // FORM
+  // FORM com autocomplete
   var form = document.createElement('div');
   form.className = 'novo-item-form';
   form.innerHTML =
-    '<input class="input-desc" type="text" placeholder="Descrição..." id="desc-'+sem.id+'" onkeydown="enterItem(event,\''+sem.id+'\')">'+
+    '<input class="input-desc" type="text" placeholder="Descrição..." id="desc-'+sem.id+'" list="desc-autocomplete" autocomplete="off" onkeydown="enterItem(event,\''+sem.id+'\')">'+
     '<input class="input-val" type="number" placeholder="0,00" step="0.01" min="0" id="val-'+sem.id+'" onkeydown="enterItem(event,\''+sem.id+'\')">'+
     '<button class="btn-add" onclick="adicionarItem(\''+sem.id+'\')">+</button>';
   div.appendChild(form);
@@ -520,7 +558,8 @@ function montarFooter(sem) {
 //  AÇÕES
 // ══════════════════════════════════════════════════
 function novaSemana() {
-  var sem = { id: gerarId(), data: dataHoje(), itens: [], transferencia: 0 };
+  var iso = dataHojeISO();
+  var sem = { id: gerarId(), dataISO: iso, data: isoParaExibicao(iso), itens: [], transferencia: 0 };
   estado.semanas.push(sem);
   salvarEstado();
   renderTudo();
@@ -535,11 +574,14 @@ function excluirSemana(id) {
   toast('Semana excluída');
 }
 
-function editarData(id, el) {
+function editarData(id, inputEl) {
   var sem = getSem(id);
   if (!sem) return;
-  var novo = el.textContent.trim();
-  if (novo) { sem.data = novo; salvarEstado(); }
+  var iso = inputEl.value; // "2026-07-10"
+  if (!iso) return;
+  sem.dataISO = iso;
+  sem.data    = isoParaExibicao(iso); // "10/07/2026"
+  salvarEstado();
 }
 
 function adicionarItem(semId) {
@@ -555,6 +597,7 @@ function adicionarItem(semId) {
   sem.itens.push({ id: gerarId(), desc: desc, valor: valor });
   dEl.value = ''; vEl.value = ''; dEl.focus();
   salvarEstado();
+  atualizarAutocomplete();
   renderTudo();
 }
 
@@ -621,20 +664,11 @@ function limparFiltro() {
 function filtrarSemanasPorData(de, ate) {
   if (!de && !ate) return estado.semanas;
   return estado.semanas.filter(function(sem) {
-    // Tenta interpretar a data da semana (formato dd/MM ou dd/M)
-    var parts = sem.data.split('/');
-    var dia = parseInt(parts[0],10)||1;
-    var mes = parseInt(parts[1],10)||1;
-    var ano = new Date().getFullYear();
-    var dSem = new Date(ano, mes-1, dia);
-    if (de) {
-      var dDe = new Date(de + 'T00:00:00');
-      if (dSem < dDe) return false;
-    }
-    if (ate) {
-      var dAte = new Date(ate + 'T23:59:59');
-      if (dSem > dAte) return false;
-    }
+    // Usa dataISO se disponível, senão tenta converter data
+    var iso = sem.dataISO || exibicaoParaISO(sem.data || '');
+    if (!iso) return true;
+    if (de  && iso < de)  return false;
+    if (ate && iso > ate) return false;
     return true;
   });
 }
@@ -759,14 +793,71 @@ function gerarPDF() {
 }
 
 // ══════════════════════════════════════════════════
+//  AUTOCOMPLETE DE DESCRIÇÕES
+// ══════════════════════════════════════════════════
+function atualizarAutocomplete() {
+  var set = {};
+  // Pega todas as descrições já usadas em todos os itens
+  estado.semanas.forEach(function(sem) {
+    (sem.itens||[]).forEach(function(it) {
+      if (it.desc) set[it.desc] = true;
+    });
+  });
+  // Adiciona também as categorias do Sheets (carregadas no init)
+  (window._categoriasSheets||[]).forEach(function(c){ set[c]=true; });
+
+  var dl = document.getElementById('desc-autocomplete');
+  if (!dl) return;
+  dl.innerHTML = '';
+  Object.keys(set).sort().forEach(function(desc) {
+    var opt = document.createElement('option');
+    opt.value = desc;
+    dl.appendChild(opt);
+  });
+}
+
+function carregarCategoriasSheets() {
+  fetch(SCRIPT_URL + '?acao=categorias')
+    .then(function(r){ return r.json(); })
+    .then(function(data){
+      if (data.ok && Array.isArray(data.categorias)) {
+        window._categoriasSheets = data.categorias;
+        atualizarAutocomplete();
+      }
+    })
+    .catch(function(){});
+}
+
+// ══════════════════════════════════════════════════
 //  INIT
 // ══════════════════════════════════════════════════
 document.getElementById('modalOverlay').addEventListener('click', function(e){
   if (e.target===this) fecharModal();
 });
 
+// Normalizar semanas antigas que podem ter data no formato errado
+function normalizarDatas() {
+  estado.semanas.forEach(function(sem) {
+    if (!sem.dataISO) {
+      // Tenta converter data existente
+      var iso = exibicaoParaISO(sem.data || '');
+      // Valida se é uma data real (não começa com "Wed" etc)
+      if (/^\d{4}-\d{2}-\d{2}$/.test(iso)) {
+        sem.dataISO = iso;
+        sem.data    = isoParaExibicao(iso);
+      } else {
+        // Fallback: data de hoje
+        var hoje = dataHojeISO();
+        sem.dataISO = hoje;
+        sem.data    = isoParaExibicao(hoje);
+      }
+    }
+  });
+}
+
 // Carregar dados: tenta Sheets primeiro, fallback local
 carregarDoSheets();
+carregarCategoriasSheets();
 </script>
 </body>
 </html>

@@ -5,33 +5,34 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Caixa Semanal — GPL</title>
 <style>
-:root {
+:root{
   --v:#1B5E20; --v2:#2E7D32; --v3:#4CAF50;
   --bg:#eef2ec; --card:#fff; --line:#e0e7e0;
+  --text:#1b2c1b; --fraco:#65766a;
   --red:#e53935; --red-bg:#fce4ec;
   --warn:#FF6F00; --warn-bg:#fff8e1;
-  --text:#1d1d1f; --muted:#666; --radius:14px;
+  --radius:14px;
 }
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:Arial,'Segoe UI',Roboto,system-ui,sans-serif;background:var(--bg);color:var(--text);font-size:14px;min-height:100vh;padding-bottom:120px}
+body{font-family:Arial,'Segoe UI',Roboto,system-ui,sans-serif;background:var(--bg);color:var(--text);font-size:14px;min-height:100vh;padding-bottom:100px}
 
 /* TOPBAR */
 .topbar{background:var(--v);padding:11px 18px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(0,0,0,.25)}
 .topbar-brand{display:flex;align-items:center;gap:10px}
 .topbar-logo{width:34px;height:34px;background:rgba(255,255,255,.15);border-radius:8px;display:flex;align-items:center;justify-content:center}
-.topbar-logo svg{width:20px;height:20px;stroke:#fff;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.topbar-logo svg{width:20px;height:20px;stroke:#fff;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
 .topbar-title{color:#fff;font-size:15px;font-weight:700;line-height:1.2}
 .topbar-sub{color:#a5d6a7;font-size:10px}
 .topbar-actions{display:flex;gap:8px;align-items:center}
-.btn-top{padding:7px 13px;border-radius:8px;border:none;font-size:12px;font-weight:700;cursor:pointer;transition:all .15s;display:flex;align-items:center;gap:5px;white-space:nowrap}
+.btn-top{padding:7px 13px;border-radius:12px;border:none;font-size:12px;font-weight:700;cursor:pointer;transition:all .15s;display:flex;align-items:center;gap:5px;white-space:nowrap}
+.btn-top svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
 .btn-nova{background:var(--v3);color:#fff}.btn-nova:hover{background:var(--v2)}
 .btn-pdf{background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.3)}.btn-pdf:hover{background:rgba(255,255,255,.25)}
-.sync-dot{width:8px;height:8px;border-radius:50%;background:#4CAF50;display:inline-block;margin-right:4px;transition:background .3s}
+.sync-dot{width:8px;height:8px;border-radius:50%;background:var(--v3);display:inline-block;margin-right:4px;transition:background .3s}
 .sync-dot.sincronizando{background:#FFD54F;animation:pulse .8s infinite alternate}
 .sync-dot.erro{background:#ef9a9a}
 @keyframes pulse{from{opacity:.4}to{opacity:1}}
 
-/* CONTAINER */
 .container{max-width:1100px;margin:0 auto;padding:20px 16px}
 
 /* SALDO GERAL */
@@ -43,59 +44,85 @@ body{font-family:Arial,'Segoe UI',Roboto,system-ui,sans-serif;background:var(--b
 .sg-div{width:1px;background:rgba(255,255,255,.2);align-self:stretch;min-height:36px}
 
 /* GRID */
-.semanas-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px}
+.semanas-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:14px}
 
 /* CARD */
 .semana-card{background:var(--card);border-radius:var(--radius);border-left:4px solid var(--v2);box-shadow:0 1px 6px rgba(0,0,0,.08);overflow:hidden;display:flex;flex-direction:column}
 .semana-card.negativa{border-left-color:var(--red)}
 .semana-card.zerada{border-left-color:var(--warn)}
 .semana-header{background:var(--v);padding:10px 13px;display:flex;justify-content:space-between;align-items:center;gap:8px}
-.semana-menu{display:flex;gap:5px;flex-shrink:0}
-/* Input de data no header do card */
-.input-data-semana{
-  background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.35);
-  border-radius:7px;color:#fff;font-size:13px;font-weight:700;
-  padding:4px 8px;cursor:pointer;flex:1;min-width:0;
-  color-scheme:dark;
-}
+.input-data-semana{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.35);border-radius:7px;color:#fff;font-size:13px;font-weight:700;padding:4px 8px;cursor:pointer;flex:1;min-width:0;color-scheme:dark}
 .input-data-semana:focus{outline:none;border-color:rgba(255,255,255,.7);background:rgba(255,255,255,.25)}
-/* Autocomplete datalist */
-.input-desc{flex:1;padding:7px 9px;border:1px solid var(--line);border-radius:8px;font-size:12px;background:#fff;min-width:0}
-.input-desc:focus{border-color:var(--v2);outline:none}
-.btn-icon{background:rgba(255,255,255,.15);border:none;border-radius:6px;color:#fff;width:28px;height:28px;cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center;transition:background .15s}
+.semana-menu{display:flex;gap:5px;flex-shrink:0}
+.btn-icon{background:rgba(255,255,255,.15);border:none;border-radius:7px;color:#fff;width:28px;height:28px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .15s}
+.btn-icon svg{width:15px;height:15px;stroke:#fff;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
 .btn-icon:hover{background:rgba(255,255,255,.3)}
+.btn-icon.perigo:hover{background:rgba(229,57,53,.45)}
 
 /* ITENS */
 .itens-lista{padding:6px 0;flex:1}
 .item-row{display:flex;align-items:center;gap:6px;padding:5px 13px;border-bottom:1px solid #f5f5f5}
 .item-row:last-child{border-bottom:none}
-.item-desc{flex:1;font-size:12px;color:var(--text)}
+.item-row.repor{background:#fff8e1}
+.item-ico{width:16px;height:16px;flex-shrink:0}
+.item-ico svg{width:16px;height:16px;stroke:var(--v2);fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.item-row.repor .item-ico svg{stroke:var(--warn)}
+.item-corpo{flex:1;min-width:0}
+.item-desc{font-size:12px;color:var(--text);line-height:1.3}
+.item-data-tag{font-size:10px;color:var(--fraco);margin-top:1px}
 .item-val{font-size:12px;font-weight:700;color:var(--red);white-space:nowrap}
-.item-del{width:20px;height:20px;border-radius:4px;border:none;background:transparent;color:#ccc;cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center;transition:all .15s;flex-shrink:0}
+.item-row.repor .item-val{color:var(--warn)}
+.item-del{width:20px;height:20px;border-radius:4px;border:none;background:transparent;color:#ccc;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .15s}
+.item-del svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round}
 .item-del:hover{background:var(--red-bg);color:var(--red)}
 
 /* FORM ITEM */
-.novo-item-form{padding:7px 13px;display:flex;gap:6px;border-top:1px solid var(--line);background:#fafafa}
-.input-val{width:78px;padding:7px 7px;border:1px solid var(--line);border-radius:8px;font-size:12px;background:#fff;text-align:right}
+.novo-item-form{padding:7px 13px;border-top:1px solid var(--line);background:#fafafa;display:flex;flex-direction:column;gap:6px}
+.form-linha1{display:flex;gap:6px}
+.input-desc{flex:1;padding:7px 9px;border:1px solid var(--line);border-radius:8px;font-size:12px;background:#fff;min-width:0}
+.input-desc:focus{border-color:var(--v2);outline:none}
+.input-val{width:82px;padding:7px 7px;border:1px solid var(--line);border-radius:8px;font-size:12px;background:#fff;text-align:right}
 .input-val:focus{border-color:var(--v2);outline:none}
-.btn-add{background:var(--v2);color:#fff;border:none;border-radius:8px;width:30px;height:30px;font-size:19px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:background .15s}
+.btn-add{background:var(--v2);color:#fff;border:none;border-radius:8px;width:30px;height:30px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:background .15s}
+.btn-add svg{width:16px;height:16px;stroke:#fff;fill:none;stroke-width:2.2;stroke-linecap:round}
 .btn-add:hover{background:var(--v)}
+.form-linha2{display:flex;gap:6px;align-items:center}
+.input-data-item{flex:1;padding:6px 8px;border:1px solid var(--line);border-radius:8px;font-size:11px;background:#fff;color:var(--fraco);color-scheme:light}
+.input-data-item:focus{border-color:var(--v2);outline:none}
+.data-item-label{font-size:10px;color:var(--fraco);white-space:nowrap}
 
-/* FOOTER CARD */
+/* FOOTER */
 .semana-footer{border-top:2px solid var(--line);padding:9px 13px;display:flex;flex-direction:column;gap:3px;background:#fafdf9}
 .footer-row{display:flex;justify-content:space-between;align-items:center;font-size:12px}
-.footer-label{color:var(--muted)}
+.footer-label{color:var(--fraco)}
 .footer-val{font-weight:700}
-.c-verde{color:var(--v2)}.c-red{color:var(--red)}.c-warn{color:var(--warn)}.c-black{color:var(--text)}
-.input-transf{border:1px solid var(--line);border-radius:7px;padding:4px 8px;font-size:12px;font-weight:700;color:var(--v2);width:95px;text-align:right;background:#fff}
-.input-transf:focus{border-color:var(--v2);outline:none}
-.pill{display:inline-block;padding:2px 10px;border-radius:20px;font-size:10px;font-weight:700;margin-top:5px;align-self:flex-start}
+.c-verde{color:var(--v2)}.c-red{color:var(--red)}.c-warn{color:var(--warn)}.c-preto{color:var(--text)}
+
+/* DEPÓSITOS RAFAEL */
+.depositos-bloco{margin-top:4px;padding-top:4px;border-top:1px dashed var(--line)}
+.dep-titulo{display:flex;justify-content:space-between;align-items:center;font-size:12px;margin-bottom:3px}
+.dep-titulo .footer-label{color:var(--v2);font-weight:700}
+.btn-add-dep{background:#e8f5e9;color:var(--v2);border:none;border-radius:6px;width:22px;height:22px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .15s}
+.btn-add-dep svg{width:13px;height:13px;stroke:var(--v2);fill:none;stroke-width:2.2;stroke-linecap:round}
+.btn-add-dep:hover{background:#c8e6c9}
+.dep-row{display:flex;align-items:center;gap:5px;font-size:11px;padding:2px 0}
+.dep-data{border:1px solid var(--line);border-radius:6px;padding:3px 5px;font-size:10px;color:var(--fraco);color-scheme:light;width:120px}
+.dep-data:focus{border-color:var(--v2);outline:none}
+.dep-valor{flex:1;border:1px solid var(--line);border-radius:6px;padding:3px 6px;font-size:11px;font-weight:700;color:var(--v2);text-align:right}
+.dep-valor:focus{border-color:var(--v2);outline:none}
+.dep-del{width:18px;height:18px;border:none;background:transparent;color:#ccc;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.dep-del svg{width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round}
+.dep-del:hover{color:var(--red)}
+.dep-vazio{font-size:10px;color:#bbb;font-style:italic;padding:2px 0}
+
+.pill{display:inline-block;padding:2px 10px;border-radius:20px;font-size:10px;font-weight:700;margin-top:5px;align-self:flex-start;display:flex;align-items:center;gap:4px;width:fit-content}
+.pill svg{width:11px;height:11px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .pill-ok{background:#e8f5e9;color:var(--v2)}
 .pill-neg{background:var(--red-bg);color:var(--red)}
 .pill-warn{background:var(--warn-bg);color:var(--warn)}
 
 /* EMPTY */
-.empty-state{text-align:center;padding:60px 20px;color:var(--muted);grid-column:1/-1}
+.empty-state{text-align:center;padding:60px 20px;color:var(--fraco);grid-column:1/-1}
 .empty-state svg{width:52px;height:52px;stroke:#b0bfb0;margin-bottom:12px;fill:none;stroke-width:1.3;stroke-linecap:round;stroke-linejoin:round}
 .empty-state h3{font-size:15px;color:#888;margin-bottom:6px}
 
@@ -104,27 +131,30 @@ body{font-family:Arial,'Segoe UI',Roboto,system-ui,sans-serif;background:var(--b
 .modal-overlay.open{display:flex}
 .modal{background:#fff;border-radius:var(--radius);width:100%;max-width:680px;max-height:92vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.3);display:flex;flex-direction:column}
 .modal-header{background:var(--v);padding:14px 18px;display:flex;justify-content:space-between;align-items:center;border-radius:var(--radius) var(--radius) 0 0;flex-shrink:0}
-.modal-title{color:#fff;font-size:14px;font-weight:700}
-.btn-fechar{background:rgba(255,255,255,.2);border:none;color:#fff;border-radius:6px;width:28px;height:28px;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.modal-title{color:#fff;font-size:14px;font-weight:700;display:flex;align-items:center;gap:7px}
+.modal-title svg{width:17px;height:17px;stroke:#fff;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.btn-fechar{background:rgba(255,255,255,.2);border:none;color:#fff;border-radius:6px;width:28px;height:28px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.btn-fechar svg{width:15px;height:15px;stroke:#fff;fill:none;stroke-width:2;stroke-linecap:round}
 
-/* FILTRO PDF */
 .filtro-pdf{padding:14px 18px;border-bottom:1px solid var(--line);background:#f9f9f9;display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end;flex-shrink:0}
 .filtro-group{display:flex;flex-direction:column;gap:4px}
-.filtro-label{font-size:10px;font-weight:700;color:#666;text-transform:uppercase;letter-spacing:.05em}
-.filtro-input{padding:7px 10px;border:1px solid var(--line);border-radius:8px;font-size:12px;background:#fff;cursor:pointer}
+.filtro-label{font-size:10px;font-weight:700;color:var(--fraco);text-transform:uppercase;letter-spacing:.05em}
+.filtro-input{padding:7px 10px;border:1px solid var(--line);border-radius:8px;font-size:12px;background:#fff;cursor:pointer;color-scheme:light}
 .filtro-input:focus{border-color:var(--v2);outline:none}
-.btn-filtrar{background:var(--v2);color:#fff;border:none;border-radius:8px;padding:8px 16px;font-size:12px;font-weight:700;cursor:pointer;align-self:flex-end}
+.btn-filtrar{background:var(--v2);color:#fff;border:none;border-radius:8px;padding:8px 16px;font-size:12px;font-weight:700;cursor:pointer}
 .btn-filtrar:hover{background:var(--v)}
-.filtro-info{font-size:11px;color:#888;align-self:flex-end;padding-bottom:2px}
+.btn-filtrar.cinza{background:#888}.btn-filtrar.cinza:hover{background:#666}
+.filtro-info{font-size:11px;color:var(--fraco);align-self:flex-end;padding-bottom:2px}
 
 .modal-body{padding:18px;flex:1;overflow-y:auto}
 .modal-footer{padding:12px 18px;border-top:1px solid var(--line);display:flex;gap:10px;justify-content:flex-end;flex-shrink:0}
-.btn-gerar-pdf{background:var(--v);color:#fff;border:none;border-radius:10px;padding:10px 22px;font-size:13px;font-weight:700;cursor:pointer}
+.btn-gerar-pdf{background:var(--v);color:#fff;border:none;border-radius:12px;padding:10px 22px;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:6px}
+.btn-gerar-pdf svg{width:15px;height:15px;stroke:#fff;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 .btn-gerar-pdf:hover{background:var(--v2)}
-.btn-cancel{background:#f1f1f1;color:#555;border:none;border-radius:10px;padding:10px 16px;font-size:13px;font-weight:700;cursor:pointer}
+.btn-cancel{background:#f1f1f1;color:#555;border:none;border-radius:12px;padding:10px 16px;font-size:13px;font-weight:700;cursor:pointer}
 
 /* PREVIEW PDF */
-#pdf-preview{font-family:Arial,sans-serif;font-size:13px;color:#1d1d1f}
+#pdf-preview{font-family:Arial,sans-serif;font-size:13px;color:var(--text)}
 .ph-box{background:#1B5E20;color:#fff;padding:16px 20px;border-radius:10px 10px 0 0;display:flex;justify-content:space-between;align-items:flex-start}
 .ph-nome{font-size:16px;font-weight:700}
 .ph-sub{font-size:10px;color:#a5d6a7;margin-top:2px}
@@ -135,12 +165,16 @@ body{font-family:Arial,'Segoe UI',Roboto,system-ui,sans-serif;background:var(--b
 .pdf-sem-title{font-size:13px;font-weight:700;color:#1B5E20;border-bottom:2px solid #e0e7e0;padding-bottom:5px;margin-bottom:8px}
 .pdf-item{display:flex;justify-content:space-between;padding:3px 0;font-size:12px;border-bottom:1px dashed #f0f0f0}
 .pdf-item:last-child{border-bottom:none}
-.pdf-item-val{font-weight:600;color:#e53935}
+.pdf-item-desc{display:flex;flex-direction:column}
+.pdf-item-data{font-size:10px;color:#999}
+.pdf-item-val{font-weight:600;color:#e53935;white-space:nowrap}
+.pdf-item.repor .pdf-item-val{color:#FF6F00}
 .pdf-totais{background:#f5f5f5;padding:9px 13px;border-radius:8px;margin-top:8px}
 .pdf-tot-row{display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px}
 .pdf-tot-row:last-child{margin-bottom:0}
 .pdf-tot-sep{border-top:1px solid #ddd;margin:5px 0}
-.pv{font-weight:700}.verde{color:#1B5E20}.vermelho{color:#e53935}
+.pv{font-weight:700}.verde{color:#1B5E20}.vermelho{color:#e53935}.laranja{color:#FF6F00}
+.pdf-dep-sub{font-size:10px;color:#888;padding-left:10px}
 .pdf-resumo-geral{background:#1B5E20;color:#fff;padding:13px 16px;border-radius:8px;margin-top:13px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px}
 .prg-label{font-size:10px;color:#a5d6a7;margin-bottom:2px}
 .prg-val{font-size:17px;font-weight:700}
@@ -151,9 +185,9 @@ body{font-family:Arial,'Segoe UI',Roboto,system-ui,sans-serif;background:var(--b
 .sem-itens-msg{font-size:11px;color:#bbb;font-style:italic;padding:4px 0}
 
 /* TOAST */
-.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#1B5E20;color:#fff;padding:10px 22px;border-radius:24px;font-size:13px;font-weight:700;box-shadow:0 4px 16px rgba(0,0,0,.25);z-index:9999;opacity:0;transition:opacity .3s;pointer-events:none;white-space:nowrap}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--v);color:#fff;padding:10px 22px;border-radius:24px;font-size:13px;font-weight:700;box-shadow:0 4px 16px rgba(0,0,0,.25);z-index:9999;opacity:0;transition:opacity .3s;pointer-events:none;white-space:nowrap}
 .toast.show{opacity:1}
-.toast.erro-toast{background:#e53935}
+.toast.erro-toast{background:var(--red)}
 
 @media print{
   body>*:not(#print-area){display:none!important}
@@ -163,7 +197,7 @@ body{font-family:Arial,'Segoe UI',Roboto,system-ui,sans-serif;background:var(--b
   .saldo-geral{padding:12px 14px;gap:10px}
   .sg-val{font-size:16px}
   .semanas-grid{grid-template-columns:1fr}
-  .filtro-pdf{flex-direction:column}
+  .filtro-pdf{flex-direction:column;align-items:stretch}
 }
 </style>
 </head>
@@ -186,11 +220,11 @@ body{font-family:Arial,'Segoe UI',Roboto,system-ui,sans-serif;background:var(--b
       <span id="sync-txt" style="color:#a5d6a7;font-size:11px;display:none"></span>
     </span>
     <button class="btn-top btn-pdf" onclick="abrirModalPDF()">
-      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+      <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
       PDF
     </button>
     <button class="btn-top btn-nova" onclick="novaSemana()">
-      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      <svg viewBox="0 0 24 24" stroke-width="2.2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
       Nova Semana
     </button>
   </div>
@@ -232,17 +266,19 @@ body{font-family:Arial,'Segoe UI',Roboto,system-ui,sans-serif;background:var(--b
 
 </div>
 
-<!-- DATALIST autocomplete de descrições -->
+<!-- DATALIST autocomplete -->
 <datalist id="desc-autocomplete"></datalist>
 
 <!-- MODAL PDF -->
 <div class="modal-overlay" id="modalOverlay">
   <div class="modal">
     <div class="modal-header">
-      <span class="modal-title">📄 Relatório para Rafael</span>
-      <button class="btn-fechar" onclick="fecharModal()">✕</button>
+      <span class="modal-title">
+        <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        Relatório para Rafael
+      </span>
+      <button class="btn-fechar" onclick="fecharModal()"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
     </div>
-    <!-- FILTRO -->
     <div class="filtro-pdf">
       <div class="filtro-group">
         <span class="filtro-label">De</span>
@@ -253,7 +289,7 @@ body{font-family:Arial,'Segoe UI',Roboto,system-ui,sans-serif;background:var(--b
         <input type="date" id="filtro-ate" class="filtro-input">
       </div>
       <button class="btn-filtrar" onclick="aplicarFiltro()">Filtrar</button>
-      <button class="btn-filtrar" style="background:#888" onclick="limparFiltro()">Todas</button>
+      <button class="btn-filtrar cinza" onclick="limparFiltro()">Todas</button>
       <span class="filtro-info" id="filtro-info"></span>
     </div>
     <div class="modal-body">
@@ -261,524 +297,574 @@ body{font-family:Arial,'Segoe UI',Roboto,system-ui,sans-serif;background:var(--b
     </div>
     <div class="modal-footer">
       <button class="btn-cancel" onclick="fecharModal()">Fechar</button>
-      <button class="btn-gerar-pdf" onclick="gerarPDF()">⬇️ Gerar PDF</button>
+      <button class="btn-gerar-pdf" onclick="gerarPDF()">
+        <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Gerar PDF
+      </button>
     </div>
   </div>
 </div>
 
-<!-- PRINT AREA -->
 <div id="print-area" style="display:none"></div>
-
-<!-- TOAST -->
 <div class="toast" id="toast"></div>
 
 <script>
 // ══════════════════════════════════════════════════
-//  CONFIG — coloque a URL do seu Apps Script aqui
+//  CONFIG
 // ══════════════════════════════════════════════════
 var SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwYPazwf4Rfa8zttShf4ymfPOixOcUAPQaau1WQoewUPWC7BgrTuheLdUI5MzXZIMpw7A/exec';
 
 // ══════════════════════════════════════════════════
 //  ESTADO
+//  Modelo: semana = { id, dataISO, data, itens:[{id,desc,valor,dataISO}], depositos:[{id,dataISO,valor}] }
 // ══════════════════════════════════════════════════
 var estado = { semanas: [] };
-var semanasFiltradas = null; // null = todas
-var sincronizando = false;
 
-// ══════════════════════════════════════════════════
-//  HELPERS
-// ══════════════════════════════════════════════════
-function gerarId() { return Date.now().toString(36) + Math.random().toString(36).slice(2,6); }
-function fmtBRL(v) {
-  var n = Math.abs(parseFloat(v)||0);
-  return 'R$ ' + n.toFixed(2).replace('.',',').replace(/\B(?=(\d{3})+(?!\d))/g,'.');
+// ── HELPERS ───────────────────────────────────────
+function gerarId(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,6); }
+function fmtBRL(v){
+  var n=Math.abs(parseFloat(v)||0);
+  return 'R$ '+n.toFixed(2).replace('.',',').replace(/\B(?=(\d{3})+(?!\d))/g,'.');
 }
-// Data sempre em formato ISO yyyy-MM-dd internamente; exibição dd/MM/yyyy
-function dataHojeISO() {
-  var d = new Date();
-  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
-}
-function isoParaExibicao(iso) {
-  // "2026-07-01" → "01/07/2026"
-  if (!iso) return '';
-  var p = iso.split('-');
-  if (p.length === 3) return p[2]+'/'+p[1]+'/'+p[0];
-  return iso;
-}
-function exibicaoParaISO(str) {
-  // "01/07/2026" ou "01/07" → "2026-07-01"
-  if (!str) return dataHojeISO();
-  var p = str.split('/');
-  if (p.length === 3) return p[2]+'-'+p[1].padStart(2,'0')+'-'+p[0].padStart(2,'0');
-  if (p.length === 2) {
-    var ano = new Date().getFullYear();
-    return ano+'-'+p[1].padStart(2,'0')+'-'+p[0].padStart(2,'0');
-  }
+function dataHojeISO(){ var d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+function isoParaExibicao(iso){ if(!iso)return''; var p=String(iso).split('-'); return p.length===3?p[2]+'/'+p[1]+'/'+p[0]:iso; }
+function isoParaCurto(iso){ if(!iso)return''; var p=String(iso).split('-'); return p.length===3?p[2]+'/'+p[1]:iso; }
+function exibicaoParaISO(str){
+  if(!str)return dataHojeISO();
+  var p=String(str).split('/');
+  if(p.length===3)return p[2]+'-'+p[1].padStart(2,'0')+'-'+p[0].padStart(2,'0');
+  if(p.length===2){var ano=new Date().getFullYear();return ano+'-'+p[1].padStart(2,'0')+'-'+p[0].padStart(2,'0');}
   return str;
 }
-function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-function toast(msg, erro) {
-  var el = document.getElementById('toast');
-  el.textContent = msg;
-  el.className = 'toast show' + (erro?' erro-toast':'');
+function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function toast(msg,erro){
+  var el=document.getElementById('toast');
+  el.textContent=msg;el.className='toast show'+(erro?' erro-toast':'');
   clearTimeout(window._toastTimer);
-  window._toastTimer = setTimeout(function(){ el.className='toast'; }, 2800);
+  window._toastTimer=setTimeout(function(){el.className='toast';},2800);
 }
-function setSyncStatus(status) {
-  var dot = document.getElementById('sync-dot');
-  var txt = document.getElementById('sync-txt');
-  dot.className = 'sync-dot' + (status==='sync'?' sincronizando':(status==='erro'?' erro':''));
-  if(status==='sync'){ txt.textContent='Salvando...'; txt.style.display='inline'; }
-  else if(status==='ok'){ txt.textContent='Salvo ✓'; txt.style.display='inline'; setTimeout(function(){ txt.style.display='none'; },2000); }
-  else if(status==='erro'){ txt.textContent='Erro sync'; txt.style.display='inline'; }
-  else { txt.style.display='none'; }
+function setSyncStatus(s){
+  var dot=document.getElementById('sync-dot'),txt=document.getElementById('sync-txt');
+  dot.className='sync-dot'+(s==='sync'?' sincronizando':(s==='erro'?' erro':''));
+  if(s==='sync'){txt.textContent='Salvando...';txt.style.display='inline';}
+  else if(s==='ok'){txt.textContent='Salvo';txt.style.display='inline';setTimeout(function(){txt.style.display='none';},2000);}
+  else if(s==='erro'){txt.textContent='Erro sync';txt.style.display='inline';}
+  else txt.style.display='none';
+}
+
+// ── PERSISTÊNCIA LOCAL ────────────────────────────
+function salvarLocal(){ try{localStorage.setItem('gpl_caixa_v3',JSON.stringify(estado.semanas));}catch(e){} }
+function carregarLocal(){ try{var s=localStorage.getItem('gpl_caixa_v3')||localStorage.getItem('gpl_caixa_v2');if(s)estado.semanas=JSON.parse(s);}catch(e){} }
+
+// ── MIGRAÇÃO: normaliza formato antigo → novo ─────
+function normalizarSemanas(){
+  estado.semanas.forEach(function(sem){
+    // Data
+    if(!sem.dataISO){
+      var iso=exibicaoParaISO(sem.data||'');
+      if(/^\d{4}-\d{2}-\d{2}$/.test(iso)){ sem.dataISO=iso; }
+      else { sem.dataISO=dataHojeISO(); }
+    }
+    sem.data=isoParaExibicao(sem.dataISO);
+
+    // Depósitos: se veio "transferencia" (número) do formato antigo, converte
+    if(!Array.isArray(sem.depositos)){
+      sem.depositos=[];
+      var t=parseFloat(sem.transferencia)||0;
+      if(t>0){ sem.depositos.push({id:gerarId(),dataISO:sem.dataISO,valor:t}); }
+    }
+    delete sem.transferencia;
+
+    // Itens: garantir array e campos
+    if(!Array.isArray(sem.itens)) sem.itens=[];
+    sem.itens.forEach(function(it){
+      if(!it.id) it.id=gerarId();
+      if(it.valor==null) it.valor=0;
+      // dataISO do item é opcional
+    });
+  });
 }
 
 // ══════════════════════════════════════════════════
-//  PERSISTÊNCIA LOCAL (fallback quando offline)
+//  SINCRONIZAÇÃO GOOGLE SHEETS
 // ══════════════════════════════════════════════════
-function salvarLocal() {
-  try { localStorage.setItem('gpl_caixa_v2', JSON.stringify(estado.semanas)); } catch(e){}
-}
-function carregarLocal() {
-  try {
-    var s = localStorage.getItem('gpl_caixa_v2');
-    if (s) estado.semanas = JSON.parse(s);
-  } catch(e){}
-}
-
-// ══════════════════════════════════════════════════
-//  SINCRONIZAÇÃO COM GOOGLE SHEETS
-// ══════════════════════════════════════════════════
-function carregarDoSheets() {
+function carregarDoSheets(){
   setSyncStatus('sync');
-  fetch(SCRIPT_URL + '?acao=listar')
-    .then(function(r){ return r.json(); })
+  fetch(SCRIPT_URL+'?acao=listar')
+    .then(function(r){return r.json();})
     .then(function(data){
-      if (data.ok && Array.isArray(data.semanas)) {
-        estado.semanas = data.semanas;
-        normalizarDatas();
+      if(data.ok&&Array.isArray(data.semanas)){
+        estado.semanas=data.semanas;
+        normalizarSemanas();
         salvarLocal();
         setSyncStatus('ok');
         atualizarAutocomplete();
         renderTudo();
-        toast('✅ Dados carregados do Google Sheets');
-      } else {
-        throw new Error(data.msg || 'Resposta inválida');
-      }
+        toast('Dados carregados do Google Sheets');
+      } else throw new Error(data.msg||'Resposta inválida');
     })
     .catch(function(err){
       setSyncStatus('erro');
       carregarLocal();
-      normalizarDatas();
+      normalizarSemanas();
       atualizarAutocomplete();
       renderTudo();
-      toast('⚠️ Offline — usando dados locais', true);
-      console.warn('Sheets indisponível:', err.message);
+      toast('Offline — usando dados locais',true);
+      console.warn('Sheets indisponível:',err.message);
     });
 }
-
-function salvarNoSheets() {
+function salvarNoSheets(){
   setSyncStatus('sync');
-  fetch(SCRIPT_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'text/plain' },
-    body: JSON.stringify({ acao: 'salvar_todas', semanas: estado.semanas })
-  })
-    .then(function(r){ return r.json(); })
-    .then(function(data){
-      if (data.ok) {
-        setSyncStatus('ok');
-      } else {
-        throw new Error(data.msg || 'Erro ao salvar');
-      }
-    })
-    .catch(function(err){
-      setSyncStatus('erro');
-      toast('⚠️ Erro ao salvar no Sheets — salvo localmente', true);
-      console.warn('Erro Sheets:', err.message);
-    });
+  fetch(SCRIPT_URL,{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify({acao:'salvar_todas',semanas:estado.semanas})})
+    .then(function(r){return r.json();})
+    .then(function(data){ if(data.ok)setSyncStatus('ok'); else throw new Error(data.msg||'Erro'); })
+    .catch(function(err){ setSyncStatus('erro'); toast('Erro ao salvar no Sheets — salvo localmente',true); console.warn(err.message); });
 }
-
-function salvarEstado() {
+function salvarEstado(){
   salvarLocal();
-  // Debounce: espera 800ms sem alteração antes de mandar pro Sheets
   clearTimeout(window._saveTimer);
-  window._saveTimer = setTimeout(salvarNoSheets, 800);
+  window._saveTimer=setTimeout(salvarNoSheets,800);
 }
 
 // ══════════════════════════════════════════════════
-//  LÓGICA DE SALDO ENCADEADO
+//  CÁLCULO — saldo encadeado + "falta repor" visível
 // ══════════════════════════════════════════════════
-function calcularSemanas() {
-  var saldoAcum = 0;
-  estado.semanas.forEach(function(sem) {
-    var totalDesp = (sem.itens||[]).reduce(function(a,it){ return a+(parseFloat(it.valor)||0); }, 0);
-    var transf    = parseFloat(sem.transferencia)||0;
-    var saldo     = saldoAcum + transf - totalDesp;
-    sem._totalDesp  = totalDesp;
-    sem._saldoAntes = saldoAcum;
-    sem._saldo      = saldo;
-    sem._rogerio    = saldo < 0 ? Math.abs(saldo) : 0;
-    sem._falta      = saldo < 0 ? Math.abs(saldo) : 0;
-    saldoAcum = Math.max(saldo, 0);
-  });
-}
-
-function calcularGeral() {
-  var totE=0, totS=0, totR=0;
+function calcularSemanas(){
+  var saldoAcum=0; // saldo positivo que sobra pra próxima
+  var reporAcum=0; // valor negativo (falta repor) que passa pra próxima
   estado.semanas.forEach(function(sem){
-    totE += parseFloat(sem.transferencia)||0;
-    totS += sem._totalDesp||0;
-    totR += sem._rogerio||0;
+    var totalItens = (sem.itens||[]).reduce(function(a,it){return a+(parseFloat(it.valor)||0);},0);
+    var totalDep   = (sem.depositos||[]).reduce(function(a,d){return a+(parseFloat(d.valor)||0);},0);
+
+    // "Falta repor" da semana anterior entra como despesa visível desta
+    sem._reporAnterior = reporAcum;
+    var totalDespComRepor = totalItens + reporAcum;
+
+    // saldo = saldo positivo anterior + depósitos - (despesas + repor anterior)
+    var saldo = saldoAcum + totalDep - totalDespComRepor;
+
+    sem._totalItens   = totalItens;
+    sem._totalDep     = totalDep;
+    sem._totalDesp    = totalDespComRepor; // inclui repor anterior
+    sem._saldoAntes   = saldoAcum;
+    sem._saldo        = saldo;
+    sem._rogerio      = saldo<0 ? Math.abs(saldo) : 0;
+    sem._falta        = saldo<0 ? Math.abs(saldo) : 0;
+
+    // Preparar acumuladores pra próxima
+    if(saldo<0){ reporAcum=Math.abs(saldo); saldoAcum=0; }
+    else { reporAcum=0; saldoAcum=saldo; }
   });
-  var saldoFinal = estado.semanas.length > 0 ? estado.semanas[estado.semanas.length-1]._saldo : 0;
-  document.getElementById('sg-entradas').textContent = fmtBRL(totE);
-  document.getElementById('sg-saidas').textContent   = fmtBRL(totS);
-  document.getElementById('sg-rogerio').textContent  = fmtBRL(totR);
-  var elS = document.getElementById('sg-saldo');
-  elS.textContent = (saldoFinal<0?'− ':'+') + ' ' + fmtBRL(saldoFinal);
-  elS.className   = 'sg-val ' + (saldoFinal<0?'neg':'pos');
+}
+
+function calcularGeral(){
+  var totE=0,totS=0,totR=0;
+  estado.semanas.forEach(function(sem){
+    totE+=sem._totalDep||0;
+    totS+=sem._totalItens||0; // despesas reais (sem contar repor, que é interno)
+    totR+=sem._rogerio||0;
+  });
+  var saldoFinal=estado.semanas.length>0?estado.semanas[estado.semanas.length-1]._saldo:0;
+  document.getElementById('sg-entradas').textContent=fmtBRL(totE);
+  document.getElementById('sg-saidas').textContent=fmtBRL(totS);
+  document.getElementById('sg-rogerio').textContent=fmtBRL(totR);
+  var elS=document.getElementById('sg-saldo');
+  elS.textContent=(saldoFinal<0?'− ':'+ ')+fmtBRL(saldoFinal);
+  elS.className='sg-val '+(saldoFinal<0?'neg':'pos');
 }
 
 // ══════════════════════════════════════════════════
 //  RENDER
 // ══════════════════════════════════════════════════
-function renderTudo() {
-  calcularSemanas();
-  calcularGeral();
-  renderSemanas();
+function renderTudo(){ calcularSemanas(); calcularGeral(); renderSemanas(); }
+
+function renderSemanas(){
+  var grid=document.getElementById('semanasGrid'),empty=document.getElementById('emptyState');
+  grid.querySelectorAll('.semana-card').forEach(function(c){c.remove();});
+  if(!estado.semanas.length){ empty.style.display='block'; return; }
+  empty.style.display='none';
+  estado.semanas.forEach(function(sem,idx){ grid.appendChild(criarCard(sem,idx)); });
 }
 
-function renderSemanas() {
-  var grid  = document.getElementById('semanasGrid');
-  var empty = document.getElementById('emptyState');
-  grid.querySelectorAll('.semana-card').forEach(function(c){ c.remove(); });
-  if (!estado.semanas.length) { empty.style.display='block'; return; }
-  empty.style.display = 'none';
-  estado.semanas.forEach(function(sem, idx){ grid.appendChild(criarCard(sem, idx)); });
-}
+var ICO_PDF   = '<svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>';
+var ICO_LIXO  = '<svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6M10 11v6M14 11v6M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>';
+var ICO_MAIS  = '<svg viewBox="0 0 24 24" stroke-width="2.2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>';
+var ICO_X     = '<svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>';
+var ICO_SACO  = '<svg viewBox="0 0 24 24"><path d="M6 2l1.5 3h9L18 2M4 8h16l-1.5 12a2 2 0 01-2 1.8H7.5a2 2 0 01-2-1.8L4 8z"/></svg>';
+var ICO_REPOR = '<svg viewBox="0 0 24 24"><path d="M21 12a9 9 0 11-3-6.7L21 8"/><polyline points="21 3 21 8 16 8"/></svg>';
+var ICO_CHECK = '<svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>';
+var ICO_ALERTA= '<svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>';
+var ICO_MENOS = '<svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/></svg>';
 
-function criarCard(sem, idx) {
-  var div = document.createElement('div');
-  var cls = sem._saldo < 0 ? 'negativa' : (sem._saldo === 0 && (sem._totalDesp > 0 || sem.transferencia > 0) ? 'zerada' : '');
-  div.className = 'semana-card ' + cls;
-  div.id = 'card-' + sem.id;
+function criarCard(sem,idx){
+  var div=document.createElement('div');
+  var temMov=(sem._totalItens>0||sem._totalDep>0||sem._reporAnterior>0);
+  var cls=sem._saldo<0?'negativa':(sem._saldo===0&&temMov?'zerada':'');
+  div.className='semana-card '+cls;
+  div.id='card-'+sem.id;
 
-  // Data em ISO para o input type=date; se vier no formato antigo, converter
-  var dataISO = sem.dataISO || exibicaoParaISO(sem.data || '');
-
-  // HEADER com input type=date (calendário nativo)
-  div.innerHTML =
+  // HEADER
+  div.innerHTML=
     '<div class="semana-header">'+
-    '<input type="date" class="input-data-semana" value="'+dataISO+'" onchange="editarData(\''+sem.id+'\',this)">'+
+    '<input type="date" class="input-data-semana" value="'+sem.dataISO+'" onchange="editarData(\''+sem.id+'\',this)">'+
     '<div class="semana-menu">'+
-    '<button class="btn-icon" title="PDF desta semana" onclick="abrirModalPDFSemana(\''+sem.id+'\')">📄</button>'+
-    '<button class="btn-icon" title="Excluir semana" onclick="excluirSemana(\''+sem.id+'\')">🗑</button>'+
+    '<button class="btn-icon" title="PDF desta semana" onclick="abrirModalPDFSemana(\''+sem.id+'\')">'+ICO_PDF+'</button>'+
+    '<button class="btn-icon perigo" title="Excluir semana" onclick="excluirSemana(\''+sem.id+'\')">'+ICO_LIXO+'</button>'+
     '</div></div>';
 
   // ITENS
-  var lista = document.createElement('div');
-  lista.className = 'itens-lista';
-  lista.id = 'itens-' + sem.id;
-  renderItens(lista, sem);
+  var lista=document.createElement('div');
+  lista.className='itens-lista';
+  lista.id='itens-'+sem.id;
+  renderItens(lista,sem);
   div.appendChild(lista);
 
-  // FORM com autocomplete
-  var form = document.createElement('div');
-  form.className = 'novo-item-form';
-  form.innerHTML =
+  // FORM ITEM (com data opcional)
+  var form=document.createElement('div');
+  form.className='novo-item-form';
+  form.innerHTML=
+    '<div class="form-linha1">'+
     '<input class="input-desc" type="text" placeholder="Descrição..." id="desc-'+sem.id+'" list="desc-autocomplete" autocomplete="off" onkeydown="enterItem(event,\''+sem.id+'\')">'+
     '<input class="input-val" type="number" placeholder="0,00" step="0.01" min="0" id="val-'+sem.id+'" onkeydown="enterItem(event,\''+sem.id+'\')">'+
-    '<button class="btn-add" onclick="adicionarItem(\''+sem.id+'\')">+</button>';
+    '<button class="btn-add" title="Adicionar despesa" onclick="adicionarItem(\''+sem.id+'\')">'+ICO_MAIS+'</button>'+
+    '</div>'+
+    '<div class="form-linha2">'+
+    '<span class="data-item-label">Data (opcional):</span>'+
+    '<input class="input-data-item" type="date" id="datai-'+sem.id+'">'+
+    '</div>';
   div.appendChild(form);
 
   // FOOTER
-  var footer = document.createElement('div');
-  footer.className = 'semana-footer';
-  footer.innerHTML = montarFooter(sem);
+  var footer=document.createElement('div');
+  footer.className='semana-footer';
+  footer.innerHTML=montarFooter(sem);
   div.appendChild(footer);
 
   return div;
 }
 
-function renderItens(lista, sem) {
-  lista.innerHTML = '';
-  if (!sem.itens || !sem.itens.length) {
-    lista.innerHTML = '<div style="padding:9px 13px;font-size:11px;color:#bbb;font-style:italic">Nenhum item — adicione abaixo</div>';
-    return;
+function renderItens(lista,sem){
+  lista.innerHTML='';
+  var temAlgo=false;
+
+  // Linha "repor semana anterior" (automática, no topo)
+  if(sem._reporAnterior>0){
+    temAlgo=true;
+    var rep=document.createElement('div');
+    rep.className='item-row repor';
+    rep.innerHTML=
+      '<span class="item-ico">'+ICO_REPOR+'</span>'+
+      '<div class="item-corpo"><div class="item-desc">Repor semana anterior</div><div class="item-data-tag">saldo que ficou pendente</div></div>'+
+      '<span class="item-val">'+fmtBRL(sem._reporAnterior)+'</span>'+
+      '<span style="width:20px;flex-shrink:0"></span>';
+    lista.appendChild(rep);
   }
-  sem.itens.forEach(function(it) {
-    var row = document.createElement('div');
-    row.className = 'item-row';
-    row.innerHTML =
-      '<span class="item-desc">'+esc(it.desc)+'</span>'+
+
+  (sem.itens||[]).forEach(function(it){
+    temAlgo=true;
+    var row=document.createElement('div');
+    row.className='item-row';
+    var dataTag=it.dataISO?'<div class="item-data-tag">'+isoParaCurto(it.dataISO)+'</div>':'';
+    row.innerHTML=
+      '<span class="item-ico">'+ICO_SACO+'</span>'+
+      '<div class="item-corpo"><div class="item-desc">'+esc(it.desc)+'</div>'+dataTag+'</div>'+
       '<span class="item-val">'+fmtBRL(it.valor)+'</span>'+
-      '<button class="item-del" onclick="removerItem(\''+sem.id+'\',\''+it.id+'\')">×</button>';
+      '<button class="item-del" title="Remover" onclick="removerItem(\''+sem.id+'\',\''+it.id+'\')">'+ICO_X+'</button>';
     lista.appendChild(row);
   });
+
+  if(!temAlgo){
+    lista.innerHTML='<div style="padding:9px 13px;font-size:11px;color:#bbb;font-style:italic">Nenhum item — adicione abaixo</div>';
+  }
 }
 
-function montarFooter(sem) {
-  var saldoCor  = sem._saldo >= 0 ? 'c-verde' : 'c-red';
-  var pillCls   = sem._saldo > 0 ? 'pill-ok' : (sem._saldo < 0 ? 'pill-neg' : 'pill-warn');
-  var pillTxt   = sem._saldo > 0 ? '✅ Positivo' : (sem._saldo < 0 ? '⚠️ Você cobriu' : '➖ Zerado');
+function montarFooter(sem){
+  var saldoCor=sem._saldo>=0?'c-verde':'c-red';
+  var pillCls=sem._saldo>0?'pill-ok':(sem._saldo<0?'pill-neg':'pill-warn');
+  var pillIco=sem._saldo>0?ICO_CHECK:(sem._saldo<0?ICO_ALERTA:ICO_MENOS);
+  var pillTxt=sem._saldo>0?'Positivo':(sem._saldo<0?'Você cobriu':'Zerado');
 
-  var h =
+  var h=
     '<div class="footer-row">'+
-    '<span class="footer-label c-black" style="font-weight:700">Total despesas</span>'+
-    '<span class="footer-val c-black">'+fmtBRL(sem._totalDesp)+'</span>'+
-    '</div>'+
-    '<div class="footer-row" style="margin-top:4px">'+
-    '<span class="footer-label c-verde">Depósito Rafael</span>'+
-    '<input class="input-transf" type="number" value="'+(sem.transferencia||0)+'" step="0.01" min="0" onchange="atualizarTransf(\''+sem.id+'\',this.value)">'+
+    '<span class="footer-label c-preto" style="font-weight:700">Total despesas</span>'+
+    '<span class="footer-val c-preto">'+fmtBRL(sem._totalDesp)+'</span>'+
     '</div>';
 
-  if (sem._saldoAntes > 0) {
-    h += '<div class="footer-row" style="font-size:11px;color:#888"><span>Saldo anterior</span><span>'+fmtBRL(sem._saldoAntes)+'</span></div>';
+  // Bloco de depósitos Rafael
+  h+='<div class="depositos-bloco">';
+  h+='<div class="dep-titulo"><span class="footer-label">Depósitos Rafael</span>'+
+     '<button class="btn-add-dep" title="Adicionar depósito" onclick="adicionarDeposito(\''+sem.id+'\')">'+ICO_MAIS+'</button></div>';
+  if(!sem.depositos||!sem.depositos.length){
+    h+='<div class="dep-vazio">Nenhum depósito ainda</div>';
+  } else {
+    sem.depositos.forEach(function(dep){
+      h+='<div class="dep-row">'+
+         '<input type="date" class="dep-data" value="'+(dep.dataISO||'')+'" onchange="editarDeposito(\''+sem.id+'\',\''+dep.id+'\',\'data\',this.value)">'+
+         '<input type="number" class="dep-valor" step="0.01" min="0" value="'+(dep.valor||0)+'" onchange="editarDeposito(\''+sem.id+'\',\''+dep.id+'\',\'valor\',this.value)">'+
+         '<button class="dep-del" title="Remover depósito" onclick="removerDeposito(\''+sem.id+'\',\''+dep.id+'\')">'+ICO_X+'</button>'+
+         '</div>';
+    });
   }
-  if (sem._rogerio > 0) {
-    h += '<div class="footer-row"><span class="footer-label c-warn">Rogério cobriu</span><span class="footer-val c-warn">'+fmtBRL(sem._rogerio)+'</span></div>';
+  h+='<div class="footer-row" style="margin-top:3px"><span class="footer-label c-verde">Total depositado</span><span class="footer-val c-verde">'+fmtBRL(sem._totalDep)+'</span></div>';
+  h+='</div>';
+
+  if(sem._saldoAntes>0){
+    h+='<div class="footer-row" style="font-size:11px;color:#888"><span>Saldo anterior</span><span>'+fmtBRL(sem._saldoAntes)+'</span></div>';
+  }
+  if(sem._rogerio>0){
+    h+='<div class="footer-row"><span class="footer-label c-warn">Rogério cobriu</span><span class="footer-val c-warn">'+fmtBRL(sem._rogerio)+'</span></div>';
   }
 
-  h +=
-    '<div class="footer-row" style="margin-top:4px;padding-top:4px;border-top:1px solid var(--line)">'+
-    '<span class="footer-label">Saldo</span>'+
-    '<span class="footer-val '+saldoCor+'">'+(sem._saldo<0?'− ':'')+fmtBRL(Math.abs(sem._saldo))+'</span>'+
-    '</div>';
+  h+='<div class="footer-row" style="margin-top:4px;padding-top:4px;border-top:1px solid var(--line)">'+
+     '<span class="footer-label">Saldo</span>'+
+     '<span class="footer-val '+saldoCor+'">'+(sem._saldo<0?'− ':'')+fmtBRL(Math.abs(sem._saldo))+'</span>'+
+     '</div>';
 
-  if (sem._falta > 0) {
-    h += '<div class="footer-row"><span class="footer-label c-red">Falta repor</span><span class="footer-val c-red">'+fmtBRL(sem._falta)+'</span></div>';
+  if(sem._falta>0){
+    h+='<div class="footer-row"><span class="footer-label c-red">Falta repor</span><span class="footer-val c-red">'+fmtBRL(sem._falta)+'</span></div>';
   }
-  h += '<span class="pill '+pillCls+'">'+pillTxt+'</span>';
+
+  h+='<span class="pill '+pillCls+'">'+pillIco+pillTxt+'</span>';
   return h;
 }
 
 // ══════════════════════════════════════════════════
-//  AÇÕES
+//  AÇÕES — SEMANA
 // ══════════════════════════════════════════════════
-function novaSemana() {
-  var iso = dataHojeISO();
-  var sem = { id: gerarId(), dataISO: iso, data: isoParaExibicao(iso), itens: [], transferencia: 0 };
-  estado.semanas.push(sem);
+function novaSemana(){
+  var iso=dataHojeISO();
+  estado.semanas.push({id:gerarId(),dataISO:iso,data:isoParaExibicao(iso),itens:[],depositos:[]});
   salvarEstado();
   renderTudo();
-  setTimeout(function(){ var el=document.getElementById('desc-'+sem.id); if(el)el.focus(); }, 120);
+  var novaId=estado.semanas[estado.semanas.length-1].id;
+  setTimeout(function(){var el=document.getElementById('desc-'+novaId);if(el)el.focus();},120);
 }
-
-function excluirSemana(id) {
-  if (!confirm('Excluir esta semana?')) return;
-  estado.semanas = estado.semanas.filter(function(s){ return s.id !== id; });
-  salvarEstado();
-  renderTudo();
-  toast('Semana excluída');
+function excluirSemana(id){
+  if(!confirm('Excluir esta semana?'))return;
+  estado.semanas=estado.semanas.filter(function(s){return s.id!==id;});
+  salvarEstado(); renderTudo(); toast('Semana excluída');
 }
-
-function editarData(id, inputEl) {
-  var sem = getSem(id);
-  if (!sem) return;
-  var iso = inputEl.value; // "2026-07-10"
-  if (!iso) return;
-  sem.dataISO = iso;
-  sem.data    = isoParaExibicao(iso); // "10/07/2026"
+function editarData(id,inputEl){
+  var sem=getSem(id); if(!sem)return;
+  var iso=inputEl.value; if(!iso)return;
+  sem.dataISO=iso; sem.data=isoParaExibicao(iso);
   salvarEstado();
 }
 
-function adicionarItem(semId) {
-  var dEl = document.getElementById('desc-'+semId);
-  var vEl = document.getElementById('val-'+semId);
-  var desc  = dEl.value.trim();
-  var valor = parseFloat(vEl.value) || 0;
-  if (!desc)  { dEl.focus(); return; }
-  if (valor <= 0) { vEl.focus(); return; }
-  var sem = getSem(semId);
-  if (!sem) return;
-  if (!sem.itens) sem.itens = [];
-  sem.itens.push({ id: gerarId(), desc: desc, valor: valor });
-  dEl.value = ''; vEl.value = ''; dEl.focus();
-  salvarEstado();
-  atualizarAutocomplete();
-  renderTudo();
+// ── ITENS ──
+function adicionarItem(semId){
+  var dEl=document.getElementById('desc-'+semId);
+  var vEl=document.getElementById('val-'+semId);
+  var dataEl=document.getElementById('datai-'+semId);
+  var desc=dEl.value.trim(), valor=parseFloat(vEl.value)||0;
+  if(!desc){dEl.focus();return;}
+  if(valor<=0){vEl.focus();return;}
+  var sem=getSem(semId); if(!sem)return;
+  if(!sem.itens)sem.itens=[];
+  var item={id:gerarId(),desc:desc,valor:valor};
+  if(dataEl&&dataEl.value)item.dataISO=dataEl.value;
+  sem.itens.push(item);
+  dEl.value='';vEl.value='';if(dataEl)dataEl.value='';dEl.focus();
+  salvarEstado(); atualizarAutocomplete(); renderTudo();
+}
+function enterItem(e,semId){ if(e.key==='Enter')adicionarItem(semId); }
+function removerItem(semId,itemId){
+  var sem=getSem(semId); if(!sem)return;
+  sem.itens=(sem.itens||[]).filter(function(it){return it.id!==itemId;});
+  salvarEstado(); renderTudo();
 }
 
-function enterItem(e, semId) { if (e.key==='Enter') adicionarItem(semId); }
-
-function removerItem(semId, itemId) {
-  var sem = getSem(semId);
-  if (!sem) return;
-  sem.itens = (sem.itens||[]).filter(function(it){ return it.id !== itemId; });
-  salvarEstado();
-  renderTudo();
+// ── DEPÓSITOS ──
+function adicionarDeposito(semId){
+  var sem=getSem(semId); if(!sem)return;
+  if(!sem.depositos)sem.depositos=[];
+  sem.depositos.push({id:gerarId(),dataISO:sem.dataISO,valor:0});
+  salvarEstado(); renderTudo();
+}
+function editarDeposito(semId,depId,campo,valor){
+  var sem=getSem(semId); if(!sem)return;
+  var dep=(sem.depositos||[]).find(function(d){return d.id===depId;}); if(!dep)return;
+  if(campo==='valor')dep.valor=parseFloat(valor)||0;
+  else if(campo==='data')dep.dataISO=valor;
+  salvarEstado(); renderTudo();
+}
+function removerDeposito(semId,depId){
+  var sem=getSem(semId); if(!sem)return;
+  sem.depositos=(sem.depositos||[]).filter(function(d){return d.id!==depId;});
+  salvarEstado(); renderTudo();
 }
 
-function atualizarTransf(semId, val) {
-  var sem = getSem(semId);
-  if (!sem) return;
-  sem.transferencia = parseFloat(val) || 0;
-  salvarEstado();
-  renderTudo();
-}
-
-function getSem(id) { return estado.semanas.find(function(s){ return s.id===id; })||null; }
+function getSem(id){ return estado.semanas.find(function(s){return s.id===id;})||null; }
 
 // ══════════════════════════════════════════════════
-//  PDF — filtro por data
+//  AUTOCOMPLETE
 // ══════════════════════════════════════════════════
-var _semFocoPDF = null; // null = modo filtro livre
+function atualizarAutocomplete(){
+  var set={};
+  estado.semanas.forEach(function(sem){ (sem.itens||[]).forEach(function(it){ if(it.desc)set[it.desc]=true; }); });
+  (window._categoriasSheets||[]).forEach(function(c){ set[c]=true; });
+  var dl=document.getElementById('desc-autocomplete'); if(!dl)return;
+  dl.innerHTML='';
+  Object.keys(set).sort().forEach(function(d){ var o=document.createElement('option');o.value=d;dl.appendChild(o); });
+}
+function carregarCategoriasSheets(){
+  fetch(SCRIPT_URL+'?acao=categorias')
+    .then(function(r){return r.json();})
+    .then(function(data){ if(data.ok&&Array.isArray(data.categorias)){window._categoriasSheets=data.categorias;atualizarAutocomplete();} })
+    .catch(function(){});
+}
 
-function abrirModalPDF() {
-  _semFocoPDF = null;
-  // Preencher filtro com intervalo completo por padrão
-  document.getElementById('filtro-de').value = '';
-  document.getElementById('filtro-ate').value = dataHojeISO();
+// ══════════════════════════════════════════════════
+//  PDF
+// ══════════════════════════════════════════════════
+function abrirModalPDF(){
+  document.getElementById('filtro-de').value='';
+  document.getElementById('filtro-ate').value='';
+  document.getElementById('filtro-info').textContent=estado.semanas.length+' semana(s)';
   gerarPreview(estado.semanas);
   document.getElementById('modalOverlay').classList.add('open');
 }
-
-function abrirModalPDFSemana(id) {
-  _semFocoPDF = id;
-  var sem = getSem(id);
-  if (!sem) return;
-  document.getElementById('filtro-de').value = '';
-  document.getElementById('filtro-ate').value = '';
-  document.getElementById('filtro-info').textContent = 'Semana ' + sem.data;
+function abrirModalPDFSemana(id){
+  var sem=getSem(id); if(!sem)return;
+  document.getElementById('filtro-de').value='';
+  document.getElementById('filtro-ate').value='';
+  document.getElementById('filtro-info').textContent='Semana '+sem.data;
   gerarPreview([sem]);
   document.getElementById('modalOverlay').classList.add('open');
 }
-
-function aplicarFiltro() {
-  var de  = document.getElementById('filtro-de').value;
-  var ate = document.getElementById('filtro-ate').value;
-  var sems = filtrarSemanasPorData(de, ate);
-  document.getElementById('filtro-info').textContent = sems.length + ' semana(s) no período';
+function aplicarFiltro(){
+  var de=document.getElementById('filtro-de').value, ate=document.getElementById('filtro-ate').value;
+  var sems=filtrarSemanasPorData(de,ate);
+  document.getElementById('filtro-info').textContent=sems.length+' semana(s) no período';
   gerarPreview(sems);
 }
-
-function limparFiltro() {
-  document.getElementById('filtro-de').value = '';
-  document.getElementById('filtro-ate').value = '';
-  document.getElementById('filtro-info').textContent = estado.semanas.length + ' semana(s)';
+function limparFiltro(){
+  document.getElementById('filtro-de').value='';
+  document.getElementById('filtro-ate').value='';
+  document.getElementById('filtro-info').textContent=estado.semanas.length+' semana(s)';
   gerarPreview(estado.semanas);
 }
-
-function filtrarSemanasPorData(de, ate) {
-  if (!de && !ate) return estado.semanas;
-  return estado.semanas.filter(function(sem) {
-    // Usa dataISO se disponível, senão tenta converter data
-    var iso = sem.dataISO || exibicaoParaISO(sem.data || '');
-    if (!iso) return true;
-    if (de  && iso < de)  return false;
-    if (ate && iso > ate) return false;
+function filtrarSemanasPorData(de,ate){
+  if(!de&&!ate)return estado.semanas;
+  return estado.semanas.filter(function(sem){
+    var iso=sem.dataISO||exibicaoParaISO(sem.data||''); if(!iso)return true;
+    if(de&&iso<de)return false;
+    if(ate&&iso>ate)return false;
     return true;
   });
 }
+function fecharModal(){ document.getElementById('modalOverlay').classList.remove('open'); }
 
-function fecharModal() { document.getElementById('modalOverlay').classList.remove('open'); }
-
-// ══════════════════════════════════════════════════
-//  MONTAR HTML DO PDF
-// ══════════════════════════════════════════════════
-function gerarPreview(sems) {
-  // Recalcular saldos encadeados para o subconjunto filtrado
-  var saldoAcum = 0;
-  var semsCalc = sems.map(function(sem) {
-    var totalDesp = (sem.itens||[]).reduce(function(a,it){ return a+(parseFloat(it.valor)||0); }, 0);
-    var transf    = parseFloat(sem.transferencia)||0;
-    var saldo     = saldoAcum + transf - totalDesp;
-    var rogerio   = saldo < 0 ? Math.abs(saldo) : 0;
-    saldoAcum     = Math.max(saldo, 0);
-    return Object.assign({}, sem, { _td: totalDesp, _sa: saldo < 0 ? 0 : saldoAcum - (saldo > 0 ? saldo : 0), _saldo: saldo, _rogerio: rogerio });
+function gerarPreview(sems){
+  // Recalcular saldo encadeado para o subconjunto
+  var saldoAcum=0, reporAcum=0;
+  var semsCalc=sems.map(function(sem){
+    var totalItens=(sem.itens||[]).reduce(function(a,it){return a+(parseFloat(it.valor)||0);},0);
+    var totalDep=(sem.depositos||[]).reduce(function(a,d){return a+(parseFloat(d.valor)||0);},0);
+    var reporAnterior=reporAcum;
+    var totalDesp=totalItens+reporAnterior;
+    var saldo=saldoAcum+totalDep-totalDesp;
+    var rogerio=saldo<0?Math.abs(saldo):0;
+    if(saldo<0){reporAcum=Math.abs(saldo);saldoAcum=0;}else{reporAcum=0;saldoAcum=saldo;}
+    return Object.assign({},sem,{_ti:totalItens,_td:totalDesp,_dep:totalDep,_rep:reporAnterior,_sa:sem._saldoAntes,_saldo:saldo,_rogerio:rogerio});
   });
 
-  if (!semsCalc.length) {
-    document.getElementById('pdf-preview').innerHTML = '<p style="color:#888;font-size:12px;padding:20px 0">Nenhuma semana no período selecionado.</p>';
+  if(!semsCalc.length){
+    document.getElementById('pdf-preview').innerHTML='<p style="color:#888;font-size:12px;padding:20px 0">Nenhuma semana no período selecionado.</p>';
     return;
   }
 
-  var hoje = new Date().toLocaleDateString('pt-BR');
-  var totEntradas = semsCalc.reduce(function(a,s){ return a+(parseFloat(s.transferencia)||0); }, 0);
-  var totSaidas   = semsCalc.reduce(function(a,s){ return a+(s._td||0); }, 0);
-  var saldoFinal  = semsCalc[semsCalc.length-1]._saldo;
+  var hoje=new Date().toLocaleDateString('pt-BR');
+  var totEntradas=semsCalc.reduce(function(a,s){return a+(s._dep||0);},0);
+  var totSaidas=semsCalc.reduce(function(a,s){return a+(s._ti||0);},0);
+  var saldoFinal=semsCalc[semsCalc.length-1]._saldo;
 
-  var h =
-    '<div id="pdf-content">'+
+  var h='<div id="pdf-content">'+
     '<div class="ph-box">'+
     '<div><div class="ph-nome">Gestão Pecuária Lucrativa</div><div class="ph-sub">Rogério Avelino · (63) 99108-2453</div></div>'+
     '<div class="ph-right"><strong>Prestação de Contas</strong><div>Para: Rafael</div><div>'+hoje+'</div></div>'+
     '</div>';
 
-  semsCalc.forEach(function(sem) {
-    h += '<div class="pdf-sec"><div class="pdf-sem-title">Semana '+esc(sem.data)+'</div>';
-    if (!sem.itens || !sem.itens.length) {
-      h += '<div class="sem-itens-msg">Sem itens lançados</div>';
+  semsCalc.forEach(function(sem){
+    h+='<div class="pdf-sec"><div class="pdf-sem-title">Semana '+esc(sem.data)+'</div>';
+
+    if(sem._rep>0){
+      h+='<div class="pdf-item repor"><div class="pdf-item-desc"><span>Repor semana anterior</span><span class="pdf-item-data">saldo pendente</span></div><span class="pdf-item-val">'+fmtBRL(sem._rep)+'</span></div>';
+    }
+    if(!sem.itens||!sem.itens.length){
+      if(sem._rep<=0)h+='<div class="sem-itens-msg">Sem itens lançados</div>';
     } else {
-      sem.itens.forEach(function(it) {
-        h += '<div class="pdf-item"><span>'+esc(it.desc)+'</span><span class="pdf-item-val">'+fmtBRL(it.valor)+'</span></div>';
+      sem.itens.forEach(function(it){
+        var dataTag=it.dataISO?'<span class="pdf-item-data">'+isoParaCurto(it.dataISO)+'</span>':'';
+        h+='<div class="pdf-item"><div class="pdf-item-desc"><span>'+esc(it.desc)+'</span>'+dataTag+'</div><span class="pdf-item-val">'+fmtBRL(it.valor)+'</span></div>';
       });
     }
-    h += '<div class="pdf-totais">';
-    h += '<div class="pdf-tot-row"><span style="color:#555">Total despesas</span><span class="pv vermelho">'+fmtBRL(sem._td)+'</span></div>';
-    h += '<div class="pdf-tot-row"><span style="color:#555">Depósito Rafael</span><span class="pv verde">'+fmtBRL(sem.transferencia||0)+'</span></div>';
-    if (sem._sa > 0) {
-      h += '<div class="pdf-tot-row"><span style="color:#555">Saldo anterior</span><span class="pv verde">'+fmtBRL(sem._sa)+'</span></div>';
+
+    h+='<div class="pdf-totais">';
+    h+='<div class="pdf-tot-row"><span style="color:#555">Total despesas</span><span class="pv vermelho">'+fmtBRL(sem._td)+'</span></div>';
+
+    // Depósitos detalhados
+    if(sem.depositos&&sem.depositos.length){
+      h+='<div class="pdf-tot-row"><span style="color:#555">Depósitos Rafael</span><span class="pv verde">'+fmtBRL(sem._dep)+'</span></div>';
+      sem.depositos.forEach(function(dep){
+        if((parseFloat(dep.valor)||0)>0){
+          h+='<div class="pdf-tot-row"><span class="pdf-dep-sub">• '+isoParaCurto(dep.dataISO)+'</span><span class="pdf-dep-sub">'+fmtBRL(dep.valor)+'</span></div>';
+        }
+      });
+    } else {
+      h+='<div class="pdf-tot-row"><span style="color:#555">Depósitos Rafael</span><span class="pv verde">R$ 0,00</span></div>';
     }
-    if (sem._rogerio > 0) {
-      h += '<div class="pdf-tot-row"><span style="color:#555">Rogério cobriu</span><span class="pv vermelho">'+fmtBRL(sem._rogerio)+'</span></div>';
-    }
-    h += '<div class="pdf-tot-sep"></div>';
-    var sLabel = sem._saldo >= 0 ? 'Saldo' : 'Falta repor';
-    var sCor   = sem._saldo >= 0 ? 'verde' : 'vermelho';
-    h += '<div class="pdf-tot-row"><span style="font-weight:700">'+sLabel+'</span><span class="pv '+sCor+'">'+(sem._saldo<0?'− ':'')+fmtBRL(Math.abs(sem._saldo))+'</span></div>';
-    h += '</div></div>';
+
+    if(sem._sa>0)h+='<div class="pdf-tot-row"><span style="color:#555">Saldo anterior</span><span class="pv verde">'+fmtBRL(sem._sa)+'</span></div>';
+    if(sem._rogerio>0)h+='<div class="pdf-tot-row"><span style="color:#555">Rogério cobriu</span><span class="pv vermelho">'+fmtBRL(sem._rogerio)+'</span></div>';
+
+    h+='<div class="pdf-tot-sep"></div>';
+    var sLabel=sem._saldo>=0?'Saldo':'Falta repor';
+    var sCor=sem._saldo>=0?'verde':'vermelho';
+    h+='<div class="pdf-tot-row"><span style="font-weight:700">'+sLabel+'</span><span class="pv '+sCor+'">'+(sem._saldo<0?'− ':'')+fmtBRL(Math.abs(sem._saldo))+'</span></div>';
+    h+='</div></div>';
   });
 
-  // Resumo geral (só se mais de 1 semana)
-  if (semsCalc.length > 1) {
-    h +=
-      '<div class="pdf-resumo-geral">'+
+  if(semsCalc.length>1){
+    h+='<div class="pdf-resumo-geral">'+
       '<div><div class="prg-label">Total depositado</div><div class="prg-val">'+fmtBRL(totEntradas)+'</div></div>'+
       '<div><div class="prg-label">Total despesas</div><div class="prg-val">'+fmtBRL(totSaidas)+'</div></div>'+
-      '<div><div class="prg-label">Saldo final</div><div class="prg-val" style="color:'+(saldoFinal<0?'#ef9a9a':'#a5d6a7')+'">'+
-      (saldoFinal<0?'− ':'')+fmtBRL(Math.abs(saldoFinal))+'</div></div>'+
+      '<div><div class="prg-label">Saldo final</div><div class="prg-val" style="color:'+(saldoFinal<0?'#ef9a9a':'#a5d6a7')+'">'+(saldoFinal<0?'− ':'')+fmtBRL(Math.abs(saldoFinal))+'</div></div>'+
       '</div>';
   }
 
-  // Aviso próximo depósito
-  if (saldoFinal < 0) {
-    h += '<div class="pdf-aviso neg"><strong>Próximo depósito sugerido</strong><br>Rafael, favor depositar no mínimo <strong>'+fmtBRL(Math.abs(saldoFinal))+'</strong> para quitar o saldo pendente.</div>';
-  } else if (saldoFinal > 0) {
-    h += '<div class="pdf-aviso pos"><strong>Saldo disponível</strong><br>Sobrou <strong>'+fmtBRL(saldoFinal)+'</strong> — será abatido no próximo período.</div>';
+  if(saldoFinal<0){
+    h+='<div class="pdf-aviso neg"><strong>Próximo depósito sugerido</strong><br>Rafael, favor depositar no mínimo <strong>'+fmtBRL(Math.abs(saldoFinal))+'</strong> para quitar o saldo pendente.</div>';
+  } else if(saldoFinal>0){
+    h+='<div class="pdf-aviso pos"><strong>Saldo disponível</strong><br>Sobrou <strong>'+fmtBRL(saldoFinal)+'</strong> — será abatido no próximo período.</div>';
   }
 
-  h += '</div>'; // #pdf-content
-  document.getElementById('pdf-preview').innerHTML = h;
-  semanasFiltradas = semsCalc;
+  h+='</div>';
+  document.getElementById('pdf-preview').innerHTML=h;
 }
 
-// ══════════════════════════════════════════════════
-//  GERAR PDF (print)
-// ══════════════════════════════════════════════════
-function gerarPDF() {
-  var conteudo = document.getElementById('pdf-content');
-  if (!conteudo) { toast('Nenhum conteúdo para gerar PDF', true); return; }
-  var css =
-    '<style>'+
+function gerarPDF(){
+  var conteudo=document.getElementById('pdf-content');
+  if(!conteudo){toast('Nenhum conteúdo para gerar PDF',true);return;}
+  var css='<style>'+
     '*{box-sizing:border-box;margin:0;padding:0}'+
-    'body{font-family:Arial,sans-serif;font-size:12px;color:#1d1d1f;padding:16px}'+
+    'body{font-family:Arial,sans-serif;font-size:12px;color:#1b2c1b;padding:16px}'+
     '.ph-box{background:#1B5E20;color:#fff;padding:16px 20px;border-radius:8px 8px 0 0;display:flex;justify-content:space-between;align-items:flex-start}'+
     '.ph-nome{font-size:15px;font-weight:700}.ph-sub{font-size:10px;color:#a5d6a7;margin-top:2px}'+
-    '.ph-right{text-align:right;font-size:11px;color:#c8e6c9}'+
-    '.ph-right strong{font-size:13px;color:#fff;display:block;margin-bottom:2px}'+
+    '.ph-right{text-align:right;font-size:11px;color:#c8e6c9}.ph-right strong{font-size:13px;color:#fff;display:block;margin-bottom:2px}'+
     '.pdf-sec{border:1px solid #e0e7e0;border-top:none;padding:11px 15px}'+
     '.pdf-sec:last-of-type{border-radius:0 0 8px 8px}'+
     '.pdf-sem-title{font-size:13px;font-weight:700;color:#1B5E20;border-bottom:2px solid #e0e7e0;padding-bottom:5px;margin-bottom:7px}'+
     '.pdf-item{display:flex;justify-content:space-between;padding:3px 0;font-size:11px;border-bottom:1px dashed #f0f0f0}'+
     '.pdf-item:last-child{border-bottom:none}'+
-    '.pdf-item-val{font-weight:600;color:#e53935}'+
+    '.pdf-item-desc{display:flex;flex-direction:column}.pdf-item-data{font-size:9px;color:#999}'+
+    '.pdf-item-val{font-weight:600;color:#e53935;white-space:nowrap}'+
+    '.pdf-item.repor .pdf-item-val{color:#FF6F00}'+
     '.pdf-totais{background:#f5f5f5;padding:8px 12px;border-radius:6px;margin-top:7px}'+
     '.pdf-tot-row{display:flex;justify-content:space-between;font-size:11px;margin-bottom:3px}'+
     '.pdf-tot-sep{border-top:1px solid #ddd;margin:4px 0}'+
-    '.pv{font-weight:700}.verde{color:#1B5E20}.vermelho{color:#e53935}'+
+    '.pdf-dep-sub{font-size:10px;color:#888;padding-left:10px}'+
+    '.pv{font-weight:700}.verde{color:#1B5E20}.vermelho{color:#e53935}.laranja{color:#FF6F00}'+
     '.pdf-resumo-geral{background:#1B5E20;color:#fff;padding:12px 15px;border-radius:8px;margin-top:12px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px}'+
     '.prg-label{font-size:10px;color:#a5d6a7;margin-bottom:2px}.prg-val{font-size:15px;font-weight:700}'+
     '.pdf-aviso{margin-top:10px;padding:10px 13px;border-radius:7px;font-size:11px}'+
@@ -787,75 +873,14 @@ function gerarPDF() {
     '.sem-itens-msg{font-size:11px;color:#bbb;font-style:italic;padding:3px 0}'+
     '@media print{@page{margin:12mm;size:A4}}'+
     '</style>';
-
-  document.getElementById('print-area').innerHTML = css + conteudo.outerHTML;
+  document.getElementById('print-area').innerHTML=css+conteudo.outerHTML;
   window.print();
-}
-
-// ══════════════════════════════════════════════════
-//  AUTOCOMPLETE DE DESCRIÇÕES
-// ══════════════════════════════════════════════════
-function atualizarAutocomplete() {
-  var set = {};
-  // Pega todas as descrições já usadas em todos os itens
-  estado.semanas.forEach(function(sem) {
-    (sem.itens||[]).forEach(function(it) {
-      if (it.desc) set[it.desc] = true;
-    });
-  });
-  // Adiciona também as categorias do Sheets (carregadas no init)
-  (window._categoriasSheets||[]).forEach(function(c){ set[c]=true; });
-
-  var dl = document.getElementById('desc-autocomplete');
-  if (!dl) return;
-  dl.innerHTML = '';
-  Object.keys(set).sort().forEach(function(desc) {
-    var opt = document.createElement('option');
-    opt.value = desc;
-    dl.appendChild(opt);
-  });
-}
-
-function carregarCategoriasSheets() {
-  fetch(SCRIPT_URL + '?acao=categorias')
-    .then(function(r){ return r.json(); })
-    .then(function(data){
-      if (data.ok && Array.isArray(data.categorias)) {
-        window._categoriasSheets = data.categorias;
-        atualizarAutocomplete();
-      }
-    })
-    .catch(function(){});
 }
 
 // ══════════════════════════════════════════════════
 //  INIT
 // ══════════════════════════════════════════════════
-document.getElementById('modalOverlay').addEventListener('click', function(e){
-  if (e.target===this) fecharModal();
-});
-
-// Normalizar semanas antigas que podem ter data no formato errado
-function normalizarDatas() {
-  estado.semanas.forEach(function(sem) {
-    if (!sem.dataISO) {
-      // Tenta converter data existente
-      var iso = exibicaoParaISO(sem.data || '');
-      // Valida se é uma data real (não começa com "Wed" etc)
-      if (/^\d{4}-\d{2}-\d{2}$/.test(iso)) {
-        sem.dataISO = iso;
-        sem.data    = isoParaExibicao(iso);
-      } else {
-        // Fallback: data de hoje
-        var hoje = dataHojeISO();
-        sem.dataISO = hoje;
-        sem.data    = isoParaExibicao(hoje);
-      }
-    }
-  });
-}
-
-// Carregar dados: tenta Sheets primeiro, fallback local
+document.getElementById('modalOverlay').addEventListener('click',function(e){ if(e.target===this)fecharModal(); });
 carregarDoSheets();
 carregarCategoriasSheets();
 </script>

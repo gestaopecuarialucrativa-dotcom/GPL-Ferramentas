@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Caixa Semanal — GPL</title>
+<style>
+:root {
+  --v:#1B5E20; --v2:#2E7D32; --v3:#4CAF50;
+  --bg:#eef2ec; --card:#fff; --line:#e0e7e0;
+  --red:#e53935; --red-bg:#fce4ec;
+  --warn:#FF6F00; --warn-bg:#fff8e1;
+  --text:#1d1d1f; --muted:#666; --radius:14px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Arial,'Segoe UI',Roboto,system-ui,sans-serif;background:var(--bg);color:var(--text);font-size:14px;min-height:100vh;padding-bottom:120px}
+
+/* TOPBAR */
+.topbar{background:var(--v);padding:11px 18px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(0,0,0,.25)}
+.topbar-brand{display:flex;align-items:center;gap:10px}
+.topbar-logo{width:34px;height:34px;background:rgba(255,255,255,.15);border-radius:8px;display:flex;align-items:center;justify-content:center}
+.topbar-logo svg{width:20px;height:20px;stroke:#fff;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.topbar-title{color:#fff;font-size:15px;font-weight:700;line-height:1.2}
+.topbar-sub{color:#a5d6a7;font-size:10px}
+.topbar-actions{display:flex;gap:8px;align-items:center}
+.btn-top{padding:7px 13px;border-radius:8px;border:none;font-size:12px;font-weight:700;cursor:pointer;transition:all .15s;display:flex;align-items:center;gap:5px;white-space:nowrap}
+.btn-nova{background:var(--v3);color:#fff}.btn-nova:hover{background:var(--v2)}
+.btn-pdf{background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.3)}.btn-pdf:hover{background:rgba(255,255,255,.25)}
+.sync-dot{width:8px;height:8px;border-radius:50%;background:#4CAF50;display:inline-block;margin-right:4px;transition:background .3s}
+.sync-dot.sincronizando{background:#FFD54F;animation:pulse .8s infinite alternate}
+.sync-dot.erro{background:#ef9a9a}
+@keyframes pulse{from{opacity:.4}to{opacity:1}}
+
+/* CONTAINER */
+.container{max-width:1100px;margin:0 auto;padding:20px 16px}
+
+/* SALDO GERAL */
+.saldo-geral{background:var(--v);border-radius:var(--radius);padding:16px 20px;margin-bottom:20px;display:flex;gap:16px;flex-wrap:wrap;align-items:center}
+.sg-item{flex:1;min-width:110px}
+.sg-label{font-size:10px;color:#a5d6a7;text-transform:uppercase;letter-spacing:.06em;margin-bottom:3px}
+.sg-val{font-size:20px;font-weight:700;color:#fff}
+.sg-val.neg{color:#ef9a9a}.sg-val.pos{color:#a5d6a7}
+.sg-div{width:1px;background:rgba(255,255,255,.2);align-self:stretch;min-height:36px}
+
+/* GRID */
+.semanas-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px}
+
+/* CARD */
+.semana-card{background:var(--card);border-radius:var(--radius);border-left:4px solid var(--v2);box-shadow:0 1px 6px rgba(0,0,0,.08);overflow:hidden;display:flex;flex-direction:column}
+.semana-card.negativa{border-left-color:var(--red)}
+.semana-card.zerada{border-left-color:var(--warn)}
+.semana-header{background:var(--v);padding:11px 13px;display:flex;justify-content:space-between;align-items:center}
+.semana-data{color:#fff;font-size:15px;font-weight:700;outline:none;border-bottom:1px dashed transparent;cursor:text}
+.semana-data:focus{border-bottom-color:rgba(255,255,255,.5)}
+.semana-menu{display:flex;gap:5px}
+.btn-icon{background:rgba(255,255,255,.15);border:none;border-radius:6px;color:#fff;width:28px;height:28px;cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center;transition:background .15s}
+.btn-icon:hover{background:rgba(255,255,255,.3)}
+
+/* ITENS */
+.itens-lista{padding:6px 0;flex:1}
+.item-row{display:flex;align-items:center;gap:6px;padding:5px 13px;border-bottom:1px solid #f5f5f5}
+.item-row:last-child{border-bottom:none}
+.item-desc{flex:1;font-size:12px;color:var(--text)}
+.item-val{font-size:12px;font-weight:700;color:var(--red);white-space:nowrap}
+.item-del{width:20px;height:20px;border-radius:4px;border:none;background:transparent;color:#ccc;cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center;transition:all .15s;flex-shrink:0}
+.item-del:hover{background:var(--red-bg);color:var(--red)}
+
+/* FORM ITEM */
+.novo-item-form{padding:7px 13px;display:flex;gap:6px;border-top:1px solid var(--line);background:#fafafa}
+.input-desc{flex:1;padding:7px 9px;border:1px solid var(--line);border-radius:8px;font-size:12px;background:#fff;min-width:0}
+.input-desc:focus{border-color:var(--v2);outline:none}
+.input-val{width:78px;padding:7px 7px;border:1px solid var(--line);border-radius:8px;font-size:12px;background:#fff;text-align:right}
+.input-val:focus{border-color:var(--v2);outline:none}
+.btn-add{background:var(--v2);color:#fff;border:none;border-radius:8px;width:30px;height:30px;font-size:19px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:background .15s}
+.btn-add:hover{background:var(--v)}
+
+/* FOOTER CARD */
+.semana-footer{border-top:2px solid var(--line);padding:9px 13px;display:flex;flex-direction:column;gap:3px;background:#fafdf9}
+.footer-row{display:flex;justify-content:space-between;align-items:center;font-size:12px}
+.footer-label{color:var(--muted)}
+.footer-val{font-weight:700}
+.c-verde{color:var(--v2)}.c-red{color:var(--red)}.c-warn{color:var(--warn)}.c-black{color:var(--text)}
+.input-transf{border:1px solid var(--line);border-radius:7px;padding:4px 8px;font-size:12px;font-weight:700;color:var(--v2);width:95px;text-align:right;background:#fff}
+.input-transf:focus{border-color:var(--v2);outline:none}
+.pill{display:inline-block;padding:2px 10px;border-radius:20px;font-size:10px;font-weight:700;margin-top:5px;align-self:flex-start}
+.pill-ok{background:#e8f5e9;color:var(--v2)}
+.pill-neg{background:var(--red-bg);color:var(--red)}
+.pill-warn{background:var(--warn-bg);color:var(--warn)}
+
+/* EMPTY */
+.empty-state{text-align:center;padding:60px 20px;color:var(--muted);grid-column:1/-1}
+.empty-state svg{width:52px;height:52px;stroke:#b0bfb0;margin-bottom:12px;fill:none;stroke-width:1.3;stroke-linecap:round;stroke-linejoin:round}
+.empty-state h3{font-size:15px;color:#888;margin-bottom:6px}
+
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;align-items:center;justify-content:center;z-index:999;padding:16px}
+.modal-overlay.open{display:flex}
+.modal{background:#fff;border-radius:var(--radius);width:100%;max-width:680px;max-height:92vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.3);display:flex;flex-direction:column}
+.modal-header{background:var(--v);padding:14px 18px;display:flex;justify-content:space-between;align-items:center;border-radius:var(--radius) var(--radius) 0 0;flex-shrink:0}
+.modal-title{color:#fff;font-size:14px;font-weight:700}
+.btn-fechar{background:rgba(255,255,255,.2);border:none;color:#fff;border-radius:6px;width:28px;height:28px;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+
+/* FILTRO PDF */
+.filtro-pdf{padding:14px 18px;border-bottom:1px solid var(--line);background:#f9f9f9;display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end;flex-shrink:0}
+.filtro-group{display:flex;flex-direction:column;gap:4px}
+.filtro-label{font-size:10px;font-weight:700;color:#666;text-transform:uppercase;letter-spacing:.05em}
+.filtro-input{padding:7px 10px;border:1px solid var(--line);border-radius:8px;font-size:12px;background:#fff;cursor:pointer}
+.filtro-input:focus{border-color:var(--v2);outline:none}
+.btn-filtrar{background:var(--v2);color:#fff;border:none;border-radius:8px;padding:8px 16px;font-size:12px;font-weight:700;cursor:pointer;align-self:flex-end}
+.btn-filtrar:hover{background:var(--v)}
+.filtro-info{font-size:11px;color:#888;align-self:flex-end;padding-bottom:2px}
+
+.modal-body{padding:18px;flex:1;overflow-y:auto}
+.modal-footer{padding:12px 18px;border-top:1px solid var(--line);display:flex;gap:10px;justify-content:flex-end;flex-shrink:0}
+.btn-gerar-pdf{background:var(--v);color:#fff;border:none;border-radius:10px;padding:10px 22px;font-size:13px;font-weight:700;cursor:pointer}
+.btn-gerar-pdf:hover{background:var(--v2)}
+.btn-cancel{background:#f1f1f1;color:#555;border:none;border-radius:10px;padding:10px 16px;font-size:13px;font-weight:700;cursor:pointer}
+
+/* PREVIEW PDF */
+#pdf-preview{font-family:Arial,sans-serif;font-size:13px;color:#1d1d1f}
+.ph-box{background:#1B5E20;color:#fff;padding:16px 20px;border-radius:10px 10px 0 0;display:flex;justify-content:space-between;align-items:flex-start}
+.ph-nome{font-size:16px;font-weight:700}
+.ph-sub{font-size:10px;color:#a5d6a7;margin-top:2px}
+.ph-right{text-align:right;font-size:11px;color:#c8e6c9}
+.ph-right strong{font-size:14px;color:#fff;display:block;margin-bottom:2px}
+.pdf-sec{border:1px solid #e0e7e0;border-top:none;padding:12px 16px}
+.pdf-sec:last-of-type{border-radius:0 0 10px 10px}
+.pdf-sem-title{font-size:13px;font-weight:700;color:#1B5E20;border-bottom:2px solid #e0e7e0;padding-bottom:5px;margin-bottom:8px}
+.pdf-item{display:flex;justify-content:space-between;padding:3px 0;font-size:12px;border-bottom:1px dashed #f0f0f0}
+.pdf-item:last-child{border-bottom:none}
+.pdf-item-val{font-weight:600;color:#e53935}
+.pdf-totais{background:#f5f5f5;padding:9px 13px;border-radius:8px;margin-top:8px}
+.pdf-tot-row{display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px}
+.pdf-tot-row:last-child{margin-bottom:0}
+.pdf-tot-sep{border-top:1px solid #ddd;margin:5px 0}
+.pv{font-weight:700}.verde{color:#1B5E20}.vermelho{color:#e53935}
+.pdf-resumo-geral{background:#1B5E20;color:#fff;padding:13px 16px;border-radius:8px;margin-top:13px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px}
+.prg-label{font-size:10px;color:#a5d6a7;margin-bottom:2px}
+.prg-val{font-size:17px;font-weight:700}
+.pdf-aviso{margin-top:11px;padding:11px 14px;border-radius:8px;font-size:12px}
+.pdf-aviso.neg{background:#fce4ec;border-left:4px solid #e53935;color:#c62828}
+.pdf-aviso.pos{background:#e8f5e9;border-left:4px solid #2E7D32;color:#1B5E20}
+.pdf-aviso strong{font-weight:700}
+.sem-itens-msg{font-size:11px;color:#bbb;font-style:italic;padding:4px 0}
+
+/* TOAST */
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#1B5E20;color:#fff;padding:10px 22px;border-radius:24px;font-size:13px;font-weight:700;box-shadow:0 4px 16px rgba(0,0,0,.25);z-index:9999;opacity:0;transition:opacity .3s;pointer-events:none;white-space:nowrap}
+.toast.show{opacity:1}
+.toast.erro-toast{background:#e53935}
+
+@media print{
+  body>*:not(#print-area){display:none!important}
+  #print-area{display:block!important}
+}
+@media(max-width:480px){
+  .saldo-geral{padding:12px 14px;gap:10px}
+  .sg-val{font-size:16px}
+  .semanas-grid{grid-template-columns:1fr}
+  .filtro-pdf{flex-direction:column}
+}
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <div class="topbar-brand">
+    <div class="topbar-logo">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.22 4.22l2.12 2.12M17.66 17.66l2.12 2.12M2 12h3M19 12h3M4.22 19.78l2.12-2.12M17.66 6.34l2.12-2.12"/></svg>
+    </div>
+    <div>
+      <div class="topbar-title">Caixa Semanal</div>
+      <div class="topbar-sub">Gestão Pecuária Lucrativa · Rogério Avelino</div>
+    </div>
+  </div>
+  <div class="topbar-actions">
+    <span id="sync-status" title="Status da sincronização">
+      <span class="sync-dot" id="sync-dot"></span>
+      <span id="sync-txt" style="color:#a5d6a7;font-size:11px;display:none"></span>
+    </span>
+    <button class="btn-top btn-pdf" onclick="abrirModalPDF()">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+      PDF
+    </button>
+    <button class="btn-top btn-nova" onclick="novaSemana()">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      Nova Semana
+    </button>
+  </div>
+</div>
+
+<div class="container">
+
+  <!-- SALDO GERAL -->
+  <div class="saldo-geral">
+    <div class="sg-item">
+      <div class="sg-label">Total depositado (Rafael)</div>
+      <div class="sg-val pos" id="sg-entradas">R$ 0,00</div>
+    </div>
+    <div class="sg-div"></div>
+    <div class="sg-item">
+      <div class="sg-label">Total despesas</div>
+      <div class="sg-val neg" id="sg-saidas">R$ 0,00</div>
+    </div>
+    <div class="sg-div"></div>
+    <div class="sg-item">
+      <div class="sg-label">Você desembolsou</div>
+      <div class="sg-val" id="sg-rogerio" style="color:#FFD54F">R$ 0,00</div>
+    </div>
+    <div class="sg-div"></div>
+    <div class="sg-item">
+      <div class="sg-label">Saldo atual</div>
+      <div class="sg-val" id="sg-saldo">R$ 0,00</div>
+    </div>
+  </div>
+
+  <!-- GRID -->
+  <div class="semanas-grid" id="semanasGrid">
+    <div class="empty-state" id="emptyState">
+      <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      <h3>Nenhuma semana ainda</h3>
+      <p>Clique em <strong>Nova Semana</strong> para começar</p>
+    </div>
+  </div>
+
+</div>
+
+<!-- MODAL PDF -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">📄 Relatório para Rafael</span>
+      <button class="btn-fechar" onclick="fecharModal()">✕</button>
+    </div>
+    <!-- FILTRO -->
+    <div class="filtro-pdf">
+      <div class="filtro-group">
+        <span class="filtro-label">De</span>
+        <input type="date" id="filtro-de" class="filtro-input">
+      </div>
+      <div class="filtro-group">
+        <span class="filtro-label">Até</span>
+        <input type="date" id="filtro-ate" class="filtro-input">
+      </div>
+      <button class="btn-filtrar" onclick="aplicarFiltro()">Filtrar</button>
+      <button class="btn-filtrar" style="background:#888" onclick="limparFiltro()">Todas</button>
+      <span class="filtro-info" id="filtro-info"></span>
+    </div>
+    <div class="modal-body">
+      <div id="pdf-preview"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="fecharModal()">Fechar</button>
+      <button class="btn-gerar-pdf" onclick="gerarPDF()">⬇️ Gerar PDF</button>
+    </div>
+  </div>
+</div>
+
+<!-- PRINT AREA -->
+<div id="print-area" style="display:none"></div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ══════════════════════════════════════════════════
+//  CONFIG — coloque a URL do seu Apps Script aqui
+// ══════════════════════════════════════════════════
+var SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwYPazwf4Rfa8zttShf4ymfPOixOcUAPQaau1WQoewUPWC7BgrTuheLdUI5MzXZIMpw7A/exec';
+
+// ══════════════════════════════════════════════════
+//  ESTADO
+// ══════════════════════════════════════════════════
+var estado = { semanas: [] };
+var semanasFiltradas = null; // null = todas
+var sincronizando = false;
+
+// ══════════════════════════════════════════════════
+//  HELPERS
+// ══════════════════════════════════════════════════
+function gerarId() { return Date.now().toString(36) + Math.random().toString(36).slice(2,6); }
+function fmtBRL(v) {
+  var n = Math.abs(parseFloat(v)||0);
+  return 'R$ ' + n.toFixed(2).replace('.',',').replace(/\B(?=(\d{3})+(?!\d))/g,'.');
+}
+function dataHoje() { var d=new Date(); return d.getDate()+'/'+(d.getMonth()+1); }
+function dataHojeISO() { var d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function toast(msg, erro) {
+  var el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = 'toast show' + (erro?' erro-toast':'');
+  clearTimeout(window._toastTimer);
+  window._toastTimer = setTimeout(function(){ el.className='toast'; }, 2800);
+}
+function setSyncStatus(status) {
+  var dot = document.getElementById('sync-dot');
+  var txt = document.getElementById('sync-txt');
+  dot.className = 'sync-dot' + (status==='sync'?' sincronizando':(status==='erro'?' erro':''));
+  if(status==='sync'){ txt.textContent='Salvando...'; txt.style.display='inline'; }
+  else if(status==='ok'){ txt.textContent='Salvo ✓'; txt.style.display='inline'; setTimeout(function(){ txt.style.display='none'; },2000); }
+  else if(status==='erro'){ txt.textContent='Erro sync'; txt.style.display='inline'; }
+  else { txt.style.display='none'; }
+}
+
+// ══════════════════════════════════════════════════
+//  PERSISTÊNCIA LOCAL (fallback quando offline)
+// ══════════════════════════════════════════════════
+function salvarLocal() {
+  try { localStorage.setItem('gpl_caixa_v2', JSON.stringify(estado.semanas)); } catch(e){}
+}
+function carregarLocal() {
+  try {
+    var s = localStorage.getItem('gpl_caixa_v2');
+    if (s) estado.semanas = JSON.parse(s);
+  } catch(e){}
+}
+
+// ══════════════════════════════════════════════════
+//  SINCRONIZAÇÃO COM GOOGLE SHEETS
+// ══════════════════════════════════════════════════
+function carregarDoSheets() {
+  setSyncStatus('sync');
+  fetch(SCRIPT_URL + '?acao=listar')
+    .then(function(r){ return r.json(); })
+    .then(function(data){
+      if (data.ok && Array.isArray(data.semanas)) {
+        estado.semanas = data.semanas;
+        salvarLocal();
+        setSyncStatus('ok');
+        renderTudo();
+        toast('✅ Dados carregados do Google Sheets');
+      } else {
+        throw new Error(data.msg || 'Resposta inválida');
+      }
+    })
+    .catch(function(err){
+      setSyncStatus('erro');
+      carregarLocal();
+      renderTudo();
+      toast('⚠️ Offline — usando dados locais', true);
+      console.warn('Sheets indisponível:', err.message);
+    });
+}
+
+function salvarNoSheets() {
+  setSyncStatus('sync');
+  fetch(SCRIPT_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain' },
+    body: JSON.stringify({ acao: 'salvar_todas', semanas: estado.semanas })
+  })
+    .then(function(r){ return r.json(); })
+    .then(function(data){
+      if (data.ok) {
+        setSyncStatus('ok');
+      } else {
+        throw new Error(data.msg || 'Erro ao salvar');
+      }
+    })
+    .catch(function(err){
+      setSyncStatus('erro');
+      toast('⚠️ Erro ao salvar no Sheets — salvo localmente', true);
+      console.warn('Erro Sheets:', err.message);
+    });
+}
+
+function salvarEstado() {
+  salvarLocal();
+  // Debounce: espera 800ms sem alteração antes de mandar pro Sheets
+  clearTimeout(window._saveTimer);
+  window._saveTimer = setTimeout(salvarNoSheets, 800);
+}
+
+// ══════════════════════════════════════════════════
+//  LÓGICA DE SALDO ENCADEADO
+// ══════════════════════════════════════════════════
+function calcularSemanas() {
+  var saldoAcum = 0;
+  estado.semanas.forEach(function(sem) {
+    var totalDesp = (sem.itens||[]).reduce(function(a,it){ return a+(parseFloat(it.valor)||0); }, 0);
+    var transf    = parseFloat(sem.transferencia)||0;
+    var saldo     = saldoAcum + transf - totalDesp;
+    sem._totalDesp  = totalDesp;
+    sem._saldoAntes = saldoAcum;
+    sem._saldo      = saldo;
+    sem._rogerio    = saldo < 0 ? Math.abs(saldo) : 0;
+    sem._falta      = saldo < 0 ? Math.abs(saldo) : 0;
+    saldoAcum = Math.max(saldo, 0);
+  });
+}
+
+function calcularGeral() {
+  var totE=0, totS=0, totR=0;
+  estado.semanas.forEach(function(sem){
+    totE += parseFloat(sem.transferencia)||0;
+    totS += sem._totalDesp||0;
+    totR += sem._rogerio||0;
+  });
+  var saldoFinal = estado.semanas.length > 0 ? estado.semanas[estado.semanas.length-1]._saldo : 0;
+  document.getElementById('sg-entradas').textContent = fmtBRL(totE);
+  document.getElementById('sg-saidas').textContent   = fmtBRL(totS);
+  document.getElementById('sg-rogerio').textContent  = fmtBRL(totR);
+  var elS = document.getElementById('sg-saldo');
+  elS.textContent = (saldoFinal<0?'− ':'+') + ' ' + fmtBRL(saldoFinal);
+  elS.className   = 'sg-val ' + (saldoFinal<0?'neg':'pos');
+}
+
+// ══════════════════════════════════════════════════
+//  RENDER
+// ══════════════════════════════════════════════════
+function renderTudo() {
+  calcularSemanas();
+  calcularGeral();
+  renderSemanas();
+}
+
+function renderSemanas() {
+  var grid  = document.getElementById('semanasGrid');
+  var empty = document.getElementById('emptyState');
+  grid.querySelectorAll('.semana-card').forEach(function(c){ c.remove(); });
+  if (!estado.semanas.length) { empty.style.display='block'; return; }
+  empty.style.display = 'none';
+  estado.semanas.forEach(function(sem, idx){ grid.appendChild(criarCard(sem, idx)); });
+}
+
+function criarCard(sem, idx) {
+  var div = document.createElement('div');
+  var cls = sem._saldo < 0 ? 'negativa' : (sem._saldo === 0 && (sem._totalDesp > 0 || sem.transferencia > 0) ? 'zerada' : '');
+  div.className = 'semana-card ' + cls;
+  div.id = 'card-' + sem.id;
+
+  // HEADER
+  div.innerHTML =
+    '<div class="semana-header">'+
+    '<span class="semana-data" contenteditable="true" spellcheck="false" onblur="editarData(\''+sem.id+'\',this)">'+esc(sem.data)+'</span>'+
+    '<div class="semana-menu">'+
+    '<button class="btn-icon" title="PDF desta semana" onclick="abrirModalPDFSemana(\''+sem.id+'\')">📄</button>'+
+    '<button class="btn-icon" title="Excluir semana" onclick="excluirSemana(\''+sem.id+'\')">🗑</button>'+
+    '</div></div>';
+
+  // ITENS
+  var lista = document.createElement('div');
+  lista.className = 'itens-lista';
+  lista.id = 'itens-' + sem.id;
+  renderItens(lista, sem);
+  div.appendChild(lista);
+
+  // FORM
+  var form = document.createElement('div');
+  form.className = 'novo-item-form';
+  form.innerHTML =
+    '<input class="input-desc" type="text" placeholder="Descrição..." id="desc-'+sem.id+'" onkeydown="enterItem(event,\''+sem.id+'\')">'+
+    '<input class="input-val" type="number" placeholder="0,00" step="0.01" min="0" id="val-'+sem.id+'" onkeydown="enterItem(event,\''+sem.id+'\')">'+
+    '<button class="btn-add" onclick="adicionarItem(\''+sem.id+'\')">+</button>';
+  div.appendChild(form);
+
+  // FOOTER
+  var footer = document.createElement('div');
+  footer.className = 'semana-footer';
+  footer.innerHTML = montarFooter(sem);
+  div.appendChild(footer);
+
+  return div;
+}
+
+function renderItens(lista, sem) {
+  lista.innerHTML = '';
+  if (!sem.itens || !sem.itens.length) {
+    lista.innerHTML = '<div style="padding:9px 13px;font-size:11px;color:#bbb;font-style:italic">Nenhum item — adicione abaixo</div>';
+    return;
+  }
+  sem.itens.forEach(function(it) {
+    var row = document.createElement('div');
+    row.className = 'item-row';
+    row.innerHTML =
+      '<span class="item-desc">'+esc(it.desc)+'</span>'+
+      '<span class="item-val">'+fmtBRL(it.valor)+'</span>'+
+      '<button class="item-del" onclick="removerItem(\''+sem.id+'\',\''+it.id+'\')">×</button>';
+    lista.appendChild(row);
+  });
+}
+
+function montarFooter(sem) {
+  var saldoCor  = sem._saldo >= 0 ? 'c-verde' : 'c-red';
+  var pillCls   = sem._saldo > 0 ? 'pill-ok' : (sem._saldo < 0 ? 'pill-neg' : 'pill-warn');
+  var pillTxt   = sem._saldo > 0 ? '✅ Positivo' : (sem._saldo < 0 ? '⚠️ Você cobriu' : '➖ Zerado');
+
+  var h =
+    '<div class="footer-row">'+
+    '<span class="footer-label c-black" style="font-weight:700">Total despesas</span>'+
+    '<span class="footer-val c-black">'+fmtBRL(sem._totalDesp)+'</span>'+
+    '</div>'+
+    '<div class="footer-row" style="margin-top:4px">'+
+    '<span class="footer-label c-verde">Depósito Rafael</span>'+
+    '<input class="input-transf" type="number" value="'+(sem.transferencia||0)+'" step="0.01" min="0" onchange="atualizarTransf(\''+sem.id+'\',this.value)">'+
+    '</div>';
+
+  if (sem._saldoAntes > 0) {
+    h += '<div class="footer-row" style="font-size:11px;color:#888"><span>Saldo anterior</span><span>'+fmtBRL(sem._saldoAntes)+'</span></div>';
+  }
+  if (sem._rogerio > 0) {
+    h += '<div class="footer-row"><span class="footer-label c-warn">Rogério cobriu</span><span class="footer-val c-warn">'+fmtBRL(sem._rogerio)+'</span></div>';
+  }
+
+  h +=
+    '<div class="footer-row" style="margin-top:4px;padding-top:4px;border-top:1px solid var(--line)">'+
+    '<span class="footer-label">Saldo</span>'+
+    '<span class="footer-val '+saldoCor+'">'+(sem._saldo<0?'− ':'')+fmtBRL(Math.abs(sem._saldo))+'</span>'+
+    '</div>';
+
+  if (sem._falta > 0) {
+    h += '<div class="footer-row"><span class="footer-label c-red">Falta repor</span><span class="footer-val c-red">'+fmtBRL(sem._falta)+'</span></div>';
+  }
+  h += '<span class="pill '+pillCls+'">'+pillTxt+'</span>';
+  return h;
+}
+
+// ══════════════════════════════════════════════════
+//  AÇÕES
+// ══════════════════════════════════════════════════
+function novaSemana() {
+  var sem = { id: gerarId(), data: dataHoje(), itens: [], transferencia: 0 };
+  estado.semanas.push(sem);
+  salvarEstado();
+  renderTudo();
+  setTimeout(function(){ var el=document.getElementById('desc-'+sem.id); if(el)el.focus(); }, 120);
+}
+
+function excluirSemana(id) {
+  if (!confirm('Excluir esta semana?')) return;
+  estado.semanas = estado.semanas.filter(function(s){ return s.id !== id; });
+  salvarEstado();
+  renderTudo();
+  toast('Semana excluída');
+}
+
+function editarData(id, el) {
+  var sem = getSem(id);
+  if (!sem) return;
+  var novo = el.textContent.trim();
+  if (novo) { sem.data = novo; salvarEstado(); }
+}
+
+function adicionarItem(semId) {
+  var dEl = document.getElementById('desc-'+semId);
+  var vEl = document.getElementById('val-'+semId);
+  var desc  = dEl.value.trim();
+  var valor = parseFloat(vEl.value) || 0;
+  if (!desc)  { dEl.focus(); return; }
+  if (valor <= 0) { vEl.focus(); return; }
+  var sem = getSem(semId);
+  if (!sem) return;
+  if (!sem.itens) sem.itens = [];
+  sem.itens.push({ id: gerarId(), desc: desc, valor: valor });
+  dEl.value = ''; vEl.value = ''; dEl.focus();
+  salvarEstado();
+  renderTudo();
+}
+
+function enterItem(e, semId) { if (e.key==='Enter') adicionarItem(semId); }
+
+function removerItem(semId, itemId) {
+  var sem = getSem(semId);
+  if (!sem) return;
+  sem.itens = (sem.itens||[]).filter(function(it){ return it.id !== itemId; });
+  salvarEstado();
+  renderTudo();
+}
+
+function atualizarTransf(semId, val) {
+  var sem = getSem(semId);
+  if (!sem) return;
+  sem.transferencia = parseFloat(val) || 0;
+  salvarEstado();
+  renderTudo();
+}
+
+function getSem(id) { return estado.semanas.find(function(s){ return s.id===id; })||null; }
+
+// ══════════════════════════════════════════════════
+//  PDF — filtro por data
+// ══════════════════════════════════════════════════
+var _semFocoPDF = null; // null = modo filtro livre
+
+function abrirModalPDF() {
+  _semFocoPDF = null;
+  // Preencher filtro com intervalo completo por padrão
+  document.getElementById('filtro-de').value = '';
+  document.getElementById('filtro-ate').value = dataHojeISO();
+  gerarPreview(estado.semanas);
+  document.getElementById('modalOverlay').classList.add('open');
+}
+
+function abrirModalPDFSemana(id) {
+  _semFocoPDF = id;
+  var sem = getSem(id);
+  if (!sem) return;
+  document.getElementById('filtro-de').value = '';
+  document.getElementById('filtro-ate').value = '';
+  document.getElementById('filtro-info').textContent = 'Semana ' + sem.data;
+  gerarPreview([sem]);
+  document.getElementById('modalOverlay').classList.add('open');
+}
+
+function aplicarFiltro() {
+  var de  = document.getElementById('filtro-de').value;
+  var ate = document.getElementById('filtro-ate').value;
+  var sems = filtrarSemanasPorData(de, ate);
+  document.getElementById('filtro-info').textContent = sems.length + ' semana(s) no período';
+  gerarPreview(sems);
+}
+
+function limparFiltro() {
+  document.getElementById('filtro-de').value = '';
+  document.getElementById('filtro-ate').value = '';
+  document.getElementById('filtro-info').textContent = estado.semanas.length + ' semana(s)';
+  gerarPreview(estado.semanas);
+}
+
+function filtrarSemanasPorData(de, ate) {
+  if (!de && !ate) return estado.semanas;
+  return estado.semanas.filter(function(sem) {
+    // Tenta interpretar a data da semana (formato dd/MM ou dd/M)
+    var parts = sem.data.split('/');
+    var dia = parseInt(parts[0],10)||1;
+    var mes = parseInt(parts[1],10)||1;
+    var ano = new Date().getFullYear();
+    var dSem = new Date(ano, mes-1, dia);
+    if (de) {
+      var dDe = new Date(de + 'T00:00:00');
+      if (dSem < dDe) return false;
+    }
+    if (ate) {
+      var dAte = new Date(ate + 'T23:59:59');
+      if (dSem > dAte) return false;
+    }
+    return true;
+  });
+}
+
+function fecharModal() { document.getElementById('modalOverlay').classList.remove('open'); }
+
+// ══════════════════════════════════════════════════
+//  MONTAR HTML DO PDF
+// ══════════════════════════════════════════════════
+function gerarPreview(sems) {
+  // Recalcular saldos encadeados para o subconjunto filtrado
+  var saldoAcum = 0;
+  var semsCalc = sems.map(function(sem) {
+    var totalDesp = (sem.itens||[]).reduce(function(a,it){ return a+(parseFloat(it.valor)||0); }, 0);
+    var transf    = parseFloat(sem.transferencia)||0;
+    var saldo     = saldoAcum + transf - totalDesp;
+    var rogerio   = saldo < 0 ? Math.abs(saldo) : 0;
+    saldoAcum     = Math.max(saldo, 0);
+    return Object.assign({}, sem, { _td: totalDesp, _sa: saldo < 0 ? 0 : saldoAcum - (saldo > 0 ? saldo : 0), _saldo: saldo, _rogerio: rogerio });
+  });
+
+  if (!semsCalc.length) {
+    document.getElementById('pdf-preview').innerHTML = '<p style="color:#888;font-size:12px;padding:20px 0">Nenhuma semana no período selecionado.</p>';
+    return;
+  }
+
+  var hoje = new Date().toLocaleDateString('pt-BR');
+  var totEntradas = semsCalc.reduce(function(a,s){ return a+(parseFloat(s.transferencia)||0); }, 0);
+  var totSaidas   = semsCalc.reduce(function(a,s){ return a+(s._td||0); }, 0);
+  var saldoFinal  = semsCalc[semsCalc.length-1]._saldo;
+
+  var h =
+    '<div id="pdf-content">'+
+    '<div class="ph-box">'+
+    '<div><div class="ph-nome">Gestão Pecuária Lucrativa</div><div class="ph-sub">Rogério Avelino · (63) 99108-2453</div></div>'+
+    '<div class="ph-right"><strong>Prestação de Contas</strong><div>Para: Rafael</div><div>'+hoje+'</div></div>'+
+    '</div>';
+
+  semsCalc.forEach(function(sem) {
+    h += '<div class="pdf-sec"><div class="pdf-sem-title">Semana '+esc(sem.data)+'</div>';
+    if (!sem.itens || !sem.itens.length) {
+      h += '<div class="sem-itens-msg">Sem itens lançados</div>';
+    } else {
+      sem.itens.forEach(function(it) {
+        h += '<div class="pdf-item"><span>'+esc(it.desc)+'</span><span class="pdf-item-val">'+fmtBRL(it.valor)+'</span></div>';
+      });
+    }
+    h += '<div class="pdf-totais">';
+    h += '<div class="pdf-tot-row"><span style="color:#555">Total despesas</span><span class="pv vermelho">'+fmtBRL(sem._td)+'</span></div>';
+    h += '<div class="pdf-tot-row"><span style="color:#555">Depósito Rafael</span><span class="pv verde">'+fmtBRL(sem.transferencia||0)+'</span></div>';
+    if (sem._sa > 0) {
+      h += '<div class="pdf-tot-row"><span style="color:#555">Saldo anterior</span><span class="pv verde">'+fmtBRL(sem._sa)+'</span></div>';
+    }
+    if (sem._rogerio > 0) {
+      h += '<div class="pdf-tot-row"><span style="color:#555">Rogério cobriu</span><span class="pv vermelho">'+fmtBRL(sem._rogerio)+'</span></div>';
+    }
+    h += '<div class="pdf-tot-sep"></div>';
+    var sLabel = sem._saldo >= 0 ? 'Saldo' : 'Falta repor';
+    var sCor   = sem._saldo >= 0 ? 'verde' : 'vermelho';
+    h += '<div class="pdf-tot-row"><span style="font-weight:700">'+sLabel+'</span><span class="pv '+sCor+'">'+(sem._saldo<0?'− ':'')+fmtBRL(Math.abs(sem._saldo))+'</span></div>';
+    h += '</div></div>';
+  });
+
+  // Resumo geral (só se mais de 1 semana)
+  if (semsCalc.length > 1) {
+    h +=
+      '<div class="pdf-resumo-geral">'+
+      '<div><div class="prg-label">Total depositado</div><div class="prg-val">'+fmtBRL(totEntradas)+'</div></div>'+
+      '<div><div class="prg-label">Total despesas</div><div class="prg-val">'+fmtBRL(totSaidas)+'</div></div>'+
+      '<div><div class="prg-label">Saldo final</div><div class="prg-val" style="color:'+(saldoFinal<0?'#ef9a9a':'#a5d6a7')+'">'+
+      (saldoFinal<0?'− ':'')+fmtBRL(Math.abs(saldoFinal))+'</div></div>'+
+      '</div>';
+  }
+
+  // Aviso próximo depósito
+  if (saldoFinal < 0) {
+    h += '<div class="pdf-aviso neg"><strong>Próximo depósito sugerido</strong><br>Rafael, favor depositar no mínimo <strong>'+fmtBRL(Math.abs(saldoFinal))+'</strong> para quitar o saldo pendente.</div>';
+  } else if (saldoFinal > 0) {
+    h += '<div class="pdf-aviso pos"><strong>Saldo disponível</strong><br>Sobrou <strong>'+fmtBRL(saldoFinal)+'</strong> — será abatido no próximo período.</div>';
+  }
+
+  h += '</div>'; // #pdf-content
+  document.getElementById('pdf-preview').innerHTML = h;
+  semanasFiltradas = semsCalc;
+}
+
+// ══════════════════════════════════════════════════
+//  GERAR PDF (print)
+// ══════════════════════════════════════════════════
+function gerarPDF() {
+  var conteudo = document.getElementById('pdf-content');
+  if (!conteudo) { toast('Nenhum conteúdo para gerar PDF', true); return; }
+  var css =
+    '<style>'+
+    '*{box-sizing:border-box;margin:0;padding:0}'+
+    'body{font-family:Arial,sans-serif;font-size:12px;color:#1d1d1f;padding:16px}'+
+    '.ph-box{background:#1B5E20;color:#fff;padding:16px 20px;border-radius:8px 8px 0 0;display:flex;justify-content:space-between;align-items:flex-start}'+
+    '.ph-nome{font-size:15px;font-weight:700}.ph-sub{font-size:10px;color:#a5d6a7;margin-top:2px}'+
+    '.ph-right{text-align:right;font-size:11px;color:#c8e6c9}'+
+    '.ph-right strong{font-size:13px;color:#fff;display:block;margin-bottom:2px}'+
+    '.pdf-sec{border:1px solid #e0e7e0;border-top:none;padding:11px 15px}'+
+    '.pdf-sec:last-of-type{border-radius:0 0 8px 8px}'+
+    '.pdf-sem-title{font-size:13px;font-weight:700;color:#1B5E20;border-bottom:2px solid #e0e7e0;padding-bottom:5px;margin-bottom:7px}'+
+    '.pdf-item{display:flex;justify-content:space-between;padding:3px 0;font-size:11px;border-bottom:1px dashed #f0f0f0}'+
+    '.pdf-item:last-child{border-bottom:none}'+
+    '.pdf-item-val{font-weight:600;color:#e53935}'+
+    '.pdf-totais{background:#f5f5f5;padding:8px 12px;border-radius:6px;margin-top:7px}'+
+    '.pdf-tot-row{display:flex;justify-content:space-between;font-size:11px;margin-bottom:3px}'+
+    '.pdf-tot-sep{border-top:1px solid #ddd;margin:4px 0}'+
+    '.pv{font-weight:700}.verde{color:#1B5E20}.vermelho{color:#e53935}'+
+    '.pdf-resumo-geral{background:#1B5E20;color:#fff;padding:12px 15px;border-radius:8px;margin-top:12px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px}'+
+    '.prg-label{font-size:10px;color:#a5d6a7;margin-bottom:2px}.prg-val{font-size:15px;font-weight:700}'+
+    '.pdf-aviso{margin-top:10px;padding:10px 13px;border-radius:7px;font-size:11px}'+
+    '.pdf-aviso.neg{background:#fce4ec;border-left:4px solid #e53935;color:#c62828}'+
+    '.pdf-aviso.pos{background:#e8f5e9;border-left:4px solid #2E7D32;color:#1B5E20}'+
+    '.sem-itens-msg{font-size:11px;color:#bbb;font-style:italic;padding:3px 0}'+
+    '@media print{@page{margin:12mm;size:A4}}'+
+    '</style>';
+
+  document.getElementById('print-area').innerHTML = css + conteudo.outerHTML;
+  window.print();
+}
+
+// ══════════════════════════════════════════════════
+//  INIT
+// ══════════════════════════════════════════════════
+document.getElementById('modalOverlay').addEventListener('click', function(e){
+  if (e.target===this) fecharModal();
+});
+
+// Carregar dados: tenta Sheets primeiro, fallback local
+carregarDoSheets();
+</script>
+</body>
+</html>

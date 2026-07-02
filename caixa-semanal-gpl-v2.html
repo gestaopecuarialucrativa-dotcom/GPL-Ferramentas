@@ -24,6 +24,11 @@ body{font-family:Arial,'Segoe UI',Roboto,system-ui,sans-serif;background:var(--b
 .topbar-title{color:#fff;font-size:15px;font-weight:700;line-height:1.2}
 .topbar-sub{color:#a5d6a7;font-size:10px}
 .topbar-actions{display:flex;gap:8px;align-items:center}
+.aba-switch{display:flex;background:rgba(0,0,0,.2);border-radius:10px;padding:3px;gap:2px}
+.aba-btn{background:transparent;border:none;color:#a5d6a7;font-size:12px;font-weight:700;padding:6px 12px;border-radius:8px;cursor:pointer;transition:all .15s;white-space:nowrap}
+.aba-btn.ativa{background:#fff;color:var(--v)}
+.aba-btn:hover:not(.ativa){color:#fff}
+.aba-count{font-size:10px;opacity:.7;margin-left:3px}
 .btn-top{padding:7px 13px;border-radius:12px;border:none;font-size:12px;font-weight:700;cursor:pointer;transition:all .15s;display:flex;align-items:center;gap:5px;white-space:nowrap}
 .btn-top svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
 .btn-nova{background:var(--v3);color:#fff}.btn-nova:hover{background:var(--v2)}
@@ -58,6 +63,11 @@ body{font-family:Arial,'Segoe UI',Roboto,system-ui,sans-serif;background:var(--b
 .btn-icon svg{width:15px;height:15px;stroke:#fff;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
 .btn-icon:hover{background:rgba(255,255,255,.3)}
 .btn-icon.perigo:hover{background:rgba(229,57,53,.45)}
+.btn-icon.validar:hover{background:rgba(76,175,80,.55)}
+.semana-card.validada{opacity:.92;border-left-color:var(--v3)}
+.semana-card.validada .semana-header{background:#2E7D32}
+.selo-validada{display:inline-flex;align-items:center;gap:4px;background:#e8f5e9;color:var(--v2);font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;margin-left:4px}
+.selo-validada svg{width:11px;height:11px;stroke:var(--v2);fill:none;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
 
 /* ITENS */
 .itens-lista{padding:6px 0;flex:1}
@@ -219,6 +229,10 @@ body{font-family:Arial,'Segoe UI',Roboto,system-ui,sans-serif;background:var(--b
     </div>
   </div>
   <div class="topbar-actions">
+    <div class="aba-switch">
+      <button class="aba-btn ativa" id="aba-ativas" onclick="trocarAba('ativas')">Ativas</button>
+      <button class="aba-btn" id="aba-validadas" onclick="trocarAba('validadas')">Validadas</button>
+    </div>
     <span id="sync-status" title="Status da sincronização">
       <span class="sync-dot" id="sync-dot"></span>
       <span id="sync-txt" style="color:#a5d6a7;font-size:11px;display:none"></span>
@@ -453,6 +467,14 @@ function salvarEstado(){
 //  CÁLCULO — saldo encadeado + "falta repor" visível
 // ══════════════════════════════════════════════════
 function calcularSemanas(){
+  // Ordena por data (mais antiga primeiro) para o encadeamento e a regra de validação
+  estado.semanas.sort(function(a,b){
+    var da=a.dataISO||exibicaoParaISO(a.data||'');
+    var db=b.dataISO||exibicaoParaISO(b.data||'');
+    if(da<db)return -1;
+    if(da>db)return 1;
+    return 0;
+  });
   var saldoAcum=0; // saldo positivo que sobra pra próxima
   var reporAcum=0; // valor negativo (falta repor) que passa pra próxima
   estado.semanas.forEach(function(sem){
@@ -482,12 +504,15 @@ function calcularSemanas(){
 
 function calcularGeral(){
   var totE=0,totS=0,totR=0;
-  estado.semanas.forEach(function(sem){
+  // Totais do topo somam SÓ as semanas ativas (não validadas)
+  var ativas=estado.semanas.filter(function(s){return !s.validada;});
+  ativas.forEach(function(sem){
     totE+=sem._totalDep||0;
-    totS+=sem._totalItens||0; // despesas reais (sem contar repor, que é interno)
+    totS+=sem._totalItens||0;
     totR+=sem._rogerio||0;
   });
-  var saldoFinal=estado.semanas.length>0?estado.semanas[estado.semanas.length-1]._saldo:0;
+  // Saldo atual = saldo da última semana ativa
+  var saldoFinal=ativas.length>0?ativas[ativas.length-1]._saldo:0;
   document.getElementById('sg-entradas').textContent=fmtBRL(totE);
   document.getElementById('sg-saidas').textContent=fmtBRL(totS);
   document.getElementById('sg-rogerio').textContent=fmtBRL(totR);
@@ -501,12 +526,46 @@ function calcularGeral(){
 // ══════════════════════════════════════════════════
 function renderTudo(){ calcularSemanas(); calcularGeral(); renderSemanas(); }
 
+// Aba atual: 'ativas' ou 'validadas'
+var abaAtual='ativas';
+
+function trocarAba(aba){
+  abaAtual=aba;
+  document.getElementById('aba-ativas').className='aba-btn'+(aba==='ativas'?' ativa':'');
+  document.getElementById('aba-validadas').className='aba-btn'+(aba==='validadas'?' ativa':'');
+  renderSemanas();
+}
+
 function renderSemanas(){
   var grid=document.getElementById('semanasGrid'),empty=document.getElementById('emptyState');
   grid.querySelectorAll('.semana-card').forEach(function(c){c.remove();});
-  if(!estado.semanas.length){ empty.style.display='block'; return; }
+
+  var ativas=estado.semanas.filter(function(s){return !s.validada;});
+  var validadas=estado.semanas.filter(function(s){return s.validada;});
+
+  // Atualizar contadores nos botões de aba
+  document.getElementById('aba-ativas').innerHTML='Ativas<span class="aba-count">'+ativas.length+'</span>';
+  document.getElementById('aba-validadas').innerHTML='Validadas<span class="aba-count">'+validadas.length+'</span>';
+
+  var lista=abaAtual==='ativas'?ativas:validadas;
+
+  if(!lista.length){
+    empty.style.display='block';
+    var h3=empty.querySelector('h3'),p=empty.querySelector('p');
+    if(abaAtual==='validadas'){ h3.textContent='Nenhuma semana validada'; p.innerHTML='Semanas acertadas com o Rafael aparecem aqui'; }
+    else { h3.textContent='Nenhuma semana ativa'; p.innerHTML='Clique em <strong>Nova Semana</strong> para começar'; }
+    return;
+  }
   empty.style.display='none';
-  estado.semanas.forEach(function(sem,idx){ grid.appendChild(criarCard(sem,idx)); });
+
+  // ID da semana mais antiga ativa (única que pode ser validada)
+  var idMaisAntigaAtiva = ativas.length>0 ? ativas[0].id : null;
+  // Só pode validar se, após validar, sobrarem >= 2 ativas
+  var podeValidar = ativas.length > 2;
+
+  lista.forEach(function(sem,idx){
+    grid.appendChild(criarCard(sem,idx,sem.id===idMaisAntigaAtiva,podeValidar));
+  });
 }
 
 var ICO_PDF   = '<svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>';
@@ -518,19 +577,37 @@ var ICO_REPOR = '<svg viewBox="0 0 24 24"><path d="M21 12a9 9 0 11-3-6.7L21 8"/>
 var ICO_CHECK = '<svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>';
 var ICO_ALERTA= '<svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>';
 var ICO_MENOS = '<svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/></svg>';
+var ICO_VALIDAR = '<svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>';
+var ICO_VOLTAR  = '<svg viewBox="0 0 24 24"><polyline points="9 14 4 9 9 4"/><path d="M20 20v-7a4 4 0 00-4-4H4"/></svg>';
 
-function criarCard(sem,idx){
+function criarCard(sem,idx,podeSerValidada,podeValidar){
   var div=document.createElement('div');
   var temMov=(sem._totalItens>0||sem._totalDep>0||sem._reporAnterior>0);
   var cls=sem._saldo<0?'negativa':(sem._saldo===0&&temMov?'zerada':'');
+  if(sem.validada)cls+=' validada';
   div.className='semana-card '+cls;
   div.id='card-'+sem.id;
+
+  // Botão de validar/desarquivar conforme aba
+  var btnValidar='';
+  if(sem.validada){
+    // Na aba validadas: botão desarquivar
+    btnValidar='<button class="btn-icon" title="Voltar para ativas" onclick="desvalidarSemana(\''+sem.id+'\')">'+ICO_VOLTAR+'</button>';
+  } else if(podeSerValidada){
+    // Só a mais antiga ativa mostra o botão validar (se puder)
+    if(podeValidar){
+      btnValidar='<button class="btn-icon validar" title="Validar (acertado com Rafael)" onclick="validarSemana(\''+sem.id+'\')">'+ICO_VALIDAR+'</button>';
+    } else {
+      btnValidar='<button class="btn-icon" title="Precisa de pelo menos 2 semanas ativas restantes" style="opacity:.4;cursor:not-allowed" onclick="avisoValidar()">'+ICO_VALIDAR+'</button>';
+    }
+  }
 
   // HEADER
   div.innerHTML=
     '<div class="semana-header">'+
     '<input type="date" class="input-data-semana" value="'+sem.dataISO+'" onchange="editarData(\''+sem.id+'\',this)">'+
     '<div class="semana-menu">'+
+    btnValidar+
     '<button class="btn-icon" title="PDF desta semana" onclick="abrirModalPDFSemana(\''+sem.id+'\')">'+ICO_PDF+'</button>'+
     '<button class="btn-icon perigo" title="Excluir semana" onclick="excluirSemana(\''+sem.id+'\')">'+ICO_LIXO+'</button>'+
     '</div></div>';
@@ -670,6 +747,28 @@ function excluirSemana(id){
   if(!confirm('Excluir esta semana?'))return;
   estado.semanas=estado.semanas.filter(function(s){return s.id!==id;});
   salvarEstado(); renderTudo(); toast('Semana excluída');
+}
+function validarSemana(id){
+  var ativas=estado.semanas.filter(function(s){return !s.validada;});
+  // Regra: só valida a mais antiga ativa
+  if(!ativas.length||ativas[0].id!==id){ toast('Valide primeiro a semana mais antiga',true); return; }
+  // Regra: precisa sobrar pelo menos 2 ativas depois de validar
+  if(ativas.length<=2){ avisoValidar(); return; }
+  var sem=getSem(id); if(!sem)return;
+  if(!confirm('Validar a semana '+sem.data+'?\n\nEla vai para "Validadas" e sai da tela principal. O saldo continua contando para as próximas.'))return;
+  sem.validada=true;
+  sem.validadaEm=dataHojeISO();
+  salvarEstado(); renderTudo(); toast('Semana validada');
+}
+function desvalidarSemana(id){
+  var sem=getSem(id); if(!sem)return;
+  if(!confirm('Voltar a semana '+sem.data+' para as ativas?'))return;
+  sem.validada=false;
+  delete sem.validadaEm;
+  salvarEstado(); renderTudo(); toast('Semana voltou para ativas');
+}
+function avisoValidar(){
+  toast('Precisa manter pelo menos 2 semanas ativas na tela',true);
 }
 function editarData(id,inputEl){
   var sem=getSem(id); if(!sem)return;

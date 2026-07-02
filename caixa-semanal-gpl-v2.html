@@ -561,13 +561,11 @@ function renderSemanas(){
   }
   empty.style.display='none';
 
-  // ID da semana mais antiga ativa (única que pode ser validada)
+  // ID da semana mais antiga ativa (única que pode ser validada, da mais antiga p/ mais nova)
   var idMaisAntigaAtiva = ativas.length>0 ? ativas[0].id : null;
-  // Só pode validar se, após validar, sobrarem >= 2 ativas
-  var podeValidar = ativas.length > 2;
 
   lista.forEach(function(sem,idx){
-    grid.appendChild(criarCard(sem,idx,sem.id===idMaisAntigaAtiva,podeValidar));
+    grid.appendChild(criarCard(sem,idx,sem.id===idMaisAntigaAtiva));
   });
 }
 
@@ -583,7 +581,7 @@ var ICO_MENOS = '<svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/>
 var ICO_VALIDAR = '<svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>';
 var ICO_VOLTAR  = '<svg viewBox="0 0 24 24"><polyline points="9 14 4 9 9 4"/><path d="M20 20v-7a4 4 0 00-4-4H4"/></svg>';
 
-function criarCard(sem,idx,podeSerValidada,podeValidar){
+function criarCard(sem,idx,podeSerValidada){
   var div=document.createElement('div');
   var temMov=(sem._totalItens>0||sem._totalDep>0||sem._reporAnterior>0);
   var cls=sem._saldo<0?'negativa':(sem._saldo===0&&temMov?'zerada':'');
@@ -597,12 +595,8 @@ function criarCard(sem,idx,podeSerValidada,podeValidar){
     // Na aba validadas: botão desarquivar
     btnValidar='<button class="btn-icon" title="Voltar para ativas" onclick="desvalidarSemana(\''+sem.id+'\')">'+ICO_VOLTAR+'</button>';
   } else if(podeSerValidada){
-    // Só a mais antiga ativa mostra o botão validar (se puder)
-    if(podeValidar){
-      btnValidar='<button class="btn-icon validar" title="Validar (acertado com Rafael)" onclick="validarSemana(\''+sem.id+'\')">'+ICO_VALIDAR+'</button>';
-    } else {
-      btnValidar='<button class="btn-icon" title="Precisa de pelo menos 2 semanas ativas restantes" style="opacity:.4;cursor:not-allowed" onclick="avisoValidar()">'+ICO_VALIDAR+'</button>';
-    }
+    // Só a mais antiga ativa mostra o botão validar (da mais antiga p/ mais nova)
+    btnValidar='<button class="btn-icon validar" title="Validar (acertado com Rafael)" onclick="validarSemana(\''+sem.id+'\')">'+ICO_VALIDAR+'</button>';
   }
 
   // HEADER
@@ -764,8 +758,6 @@ function validarSemana(id){
   var ativas=estado.semanas.filter(function(s){return !s.validada;});
   // Regra: só valida a mais antiga ativa
   if(!ativas.length||ativas[0].id!==id){ toast('Valide primeiro a semana mais antiga',true); return; }
-  // Regra: precisa sobrar pelo menos 2 ativas depois de validar
-  if(ativas.length<=2){ avisoValidar(); return; }
   var sem=getSem(id); if(!sem)return;
   if(!confirm('Validar a semana '+sem.data+'?\n\nEla vai para "Validadas" e sai da tela principal. O saldo continua contando para as próximas.'))return;
   sem.validada=true;
@@ -778,9 +770,6 @@ function desvalidarSemana(id){
   sem.validada=false;
   delete sem.validadaEm;
   salvarEstado(); renderTudo(); toast('Semana voltou para ativas');
-}
-function avisoValidar(){
-  toast('Precisa manter pelo menos 2 semanas ativas na tela',true);
 }
 function editarData(id,inputEl){
   var sem=getSem(id); if(!sem)return;

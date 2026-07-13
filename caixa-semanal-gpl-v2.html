@@ -1014,9 +1014,7 @@ function gerarPreview(sems){
       '</div>';
   }
 
-  if(saldoFinal<0){
-    h+='<div class="pdf-aviso neg"><strong>Próximo depósito sugerido</strong><br>Rafael, favor depositar no mínimo <strong>'+fmtBRL(Math.abs(saldoFinal))+'</strong> para quitar o saldo pendente.</div>';
-  } else if(saldoFinal>0){
+  if(saldoFinal>0){
     h+='<div class="pdf-aviso pos"><strong>Saldo disponível</strong><br>Sobrou <strong>'+fmtBRL(saldoFinal)+'</strong> — será abatido no próximo período.</div>';
   }
 

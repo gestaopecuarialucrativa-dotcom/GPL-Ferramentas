@@ -929,17 +929,22 @@ function filtrarSemanasPorData(de,ate){
 function fecharModal(){ document.getElementById('modalOverlay').classList.remove('open'); }
 
 function gerarPreview(sems){
-  // Recalcular saldo encadeado para o subconjunto
-  var saldoAcum=0, reporAcum=0;
+  // IMPORTANTE: não recalcular do zero. Usar os valores já calculados por
+  // calcularSemanas() sobre TODAS as semanas — assim o "Repor semana anterior"
+  // e o "Saldo anterior" vindos das semanas de trás continuam corretos mesmo
+  // quando o PDF é de uma semana só ou de um período filtrado.
+  calcularSemanas(); // garante que os campos _ estão atualizados
+
   var semsCalc=sems.map(function(sem){
-    var totalItens=(sem.itens||[]).reduce(function(a,it){return a+(parseFloat(it.valor)||0);},0);
-    var totalDep=(sem.depositos||[]).reduce(function(a,d){return a+(parseFloat(d.valor)||0);},0);
-    var reporAnterior=reporAcum;
-    var totalDesp=totalItens+reporAnterior;
-    var saldo=saldoAcum+totalDep-totalDesp;
-    var rogerio=saldo<0?Math.abs(saldo):0;
-    if(saldo<0){reporAcum=Math.abs(saldo);saldoAcum=0;}else{reporAcum=0;saldoAcum=saldo;}
-    return Object.assign({},sem,{_ti:totalItens,_td:totalDesp,_dep:totalDep,_rep:reporAnterior,_sa:sem._saldoAntes,_saldo:saldo,_rogerio:rogerio});
+    return Object.assign({},sem,{
+      _ti:     sem._totalItens   || 0,   // despesas próprias da semana
+      _td:     sem._totalDesp    || 0,   // total (itens + repor anterior)
+      _dep:    sem._totalDep     || 0,   // depósitos do Rafael
+      _rep:    sem._reporAnterior|| 0,   // repor vindo da semana anterior
+      _sa:     sem._saldoAntes   || 0,   // saldo positivo vindo de trás
+      _saldo:  sem._saldo        || 0,
+      _rogerio:sem._rogerio      || 0
+    });
   });
 
   if(!semsCalc.length){

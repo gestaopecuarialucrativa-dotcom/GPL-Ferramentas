@@ -709,8 +709,8 @@ function montarFooter(sem){
   } else {
     sem.depositos.forEach(function(dep){
       h+='<div class="dep-row">'+
-         '<input type="date" class="dep-data" value="'+(dep.dataISO||'')+'" onchange="editarDeposito(\''+sem.id+'\',\''+dep.id+'\',\'data\',this.value)">'+
-         '<input type="text" inputmode="decimal" class="dep-valor" value="'+fmtNum(dep.valor||0)+'" oninput="mascaraMoeda(this)" onchange="editarDeposito(\''+sem.id+'\',\''+dep.id+'\',\'valor\',this.value)">'+
+         '<input type="date" class="dep-data" value="'+(dep.dataISO||'')+'" oninput="editarDeposito(\''+sem.id+'\',\''+dep.id+'\',\'data\',this.value)" onchange="editarDeposito(\''+sem.id+'\',\''+dep.id+'\',\'data\',this.value)">'+
+         '<input type="text" inputmode="decimal" class="dep-valor" value="'+fmtNum(dep.valor||0)+'" oninput="mascaraMoeda(this);editarDepositoVivo(\''+sem.id+'\',\''+dep.id+'\',this.value)" onblur="editarDeposito(\''+sem.id+'\',\''+dep.id+'\',\'valor\',this.value)">'+
          '<button class="dep-del" title="Remover depósito" onclick="removerDeposito(\''+sem.id+'\',\''+dep.id+'\')">'+ICO_X+'</button>'+
          '</div>';
     });
@@ -850,6 +850,47 @@ function editarDeposito(semId,depId,campo,valor){
   if(campo==='valor')dep.valor=parseNum(valor);
   else if(campo==='data')dep.dataISO=valor;
   salvarEstado(); renderTudo();
+}
+// Salva o depósito ENQUANTO digita, sem re-renderizar o card (senão o campo
+// perde o foco no celular). Atualiza só os totais na tela.
+function editarDepositoVivo(semId,depId,valor){
+  var sem=getSem(semId); if(!sem)return;
+  var dep=(sem.depositos||[]).find(function(d){return d.id===depId;}); if(!dep)return;
+  dep.valor=parseNum(valor);
+  salvarEstado();          // já persiste (local + Sheets com debounce)
+  calcularSemanas();       // recalcula saldos
+  calcularGeral();         // atualiza os cards do topo
+  atualizarTotaisNaTela(); // atualiza os totais dos cards sem recriar o HTML
+}
+// Atualiza apenas os números dos rodapés dos cards, sem recriar os inputs
+function atualizarTotaisNaTela(){
+  estado.semanas.forEach(function(sem){
+    var card=document.getElementById('card-'+sem.id);
+    if(!card)return;
+    var footer=card.querySelector('.semana-footer');
+    if(!footer)return;
+    // Guarda os valores atuais dos inputs de depósito antes de trocar o HTML
+    var focado=document.activeElement;
+    var idFocado=focado&&focado.classList&&focado.classList.contains('dep-valor')?focado:null;
+    if(idFocado&&card.contains(idFocado)){
+      // Card com input em foco: atualiza SÓ as linhas de total, sem tocar nos inputs
+      var linhas=footer.querySelectorAll('.footer-row');
+      linhas.forEach(function(l){
+        var lab=l.querySelector('.footer-label');
+        var val=l.querySelector('.footer-val');
+        if(!lab||!val)return;
+        var t=lab.textContent.trim();
+        if(t==='Total despesas')val.textContent=fmtBRL(sem._totalDesp);
+        else if(t==='Total depositado')val.textContent=fmtBRL(sem._totalDep);
+        else if(t==='Rogério cobriu')val.textContent=fmtBRL(sem._rogerio);
+        else if(t==='Saldo')val.textContent=(sem._saldo<0?'− ':'')+fmtBRL(Math.abs(sem._saldo));
+        else if(t==='Falta repor')val.textContent=fmtBRL(sem._falta);
+      });
+    } else {
+      // Card sem foco: pode recriar o rodapé inteiro
+      footer.innerHTML=montarFooter(sem);
+    }
+  });
 }
 function removerDeposito(semId,depId){
   var sem=getSem(semId); if(!sem)return;

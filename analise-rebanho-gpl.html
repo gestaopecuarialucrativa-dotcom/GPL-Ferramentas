@@ -96,9 +96,13 @@ table.venda tr.total td{border-top:2px solid var(--v2); font-weight:800; color:v
   <div class="hdr-info" id="hdrInfo"></div>
 
   <div class="bar">
+    <button class="btn btn-primary" onclick="carregarNuvem()">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12a8 8 0 0 1 14-5l2 2"/><path d="M20 4v5h-5"/><path d="M20 12a8 8 0 0 1-14 5l-2-2"/><path d="M4 20v-5h5"/></svg>
+      Carregar da planilha
+    </button>
     <button class="btn btn-ghost file-btn">
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3v5h5"/><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/></svg>
-      Importar planilha (.xlsx)
+      Importar .xlsx
       <input type="file" accept=".xlsx,.xls" onchange="importFile(this)">
     </button>
     <span class="field">Meta abate (kg) <input id="metaIn" inputmode="decimal" placeholder="480"></span>
@@ -121,6 +125,7 @@ table.venda tr.total td{border-top:2px solid var(--v2); font-weight:800; color:v
 const AR_DIV=30, UA_DIV=450, N_LOTES=10;
 const STORE_KEY="pesagem_curral_state_v1";
 const HDR_ROW=13, DATA_ROW=14;
+const BACKEND_URL="https://script.google.com/macros/s/AKfycby4lOB4zXu2dCBoA-pda6U_do8v9GDvNuH0dFOY6u5kc7FP7gZdPKofZX5Dt-QgnT4V/exec";
 
 let dados={ fazenda:"", data:"", animais:[], metaPeso:480, precoArroba:0 };
 
@@ -153,6 +158,40 @@ function carregarLocal(){
     })).filter(a=>a.peso!=null && a.lote);
     return dados.animais.length>0;
   }catch(e){ return false; }
+}
+
+/* ---------- carregar da planilha (nuvem, via JSONP) ---------- */
+function jsonp(url){
+  return new Promise(function(res,rej){
+    const cb="__gpl_ar_"+Date.now()+"_"+Math.floor(Math.random()*10000);
+    const s=document.createElement("script");
+    const t=setTimeout(function(){ cleanup(); rej(new Error("timeout")); }, 25000);
+    function cleanup(){ try{ delete window[cb]; }catch(e){ window[cb]=undefined; } if(s.parentNode) s.parentNode.removeChild(s); }
+    window[cb]=function(data){ clearTimeout(t); cleanup(); res(data); };
+    s.onerror=function(){ clearTimeout(t); cleanup(); rej(new Error("rede")); };
+    s.src=url+(url.indexOf("?")<0?"?":"&")+"callback="+cb+"&t="+Date.now();
+    document.head.appendChild(s);
+  });
+}
+async function carregarNuvem(){
+  const box=document.getElementById("content");
+  box.innerHTML='<div class="empty">Carregando da planilha...</div>';
+  try{
+    const r=await jsonp(BACKEND_URL+"?acao=pesagem_ler");
+    if(!r || !r.ok){ box.innerHTML='<div class="empty">Não consegui ler a planilha. Confira o backend.</div>'; return; }
+    if(!r.animais || !r.animais.length){ box.innerHTML='<div class="empty">A planilha não tem pesagem registrada ainda.</div>'; return; }
+    dados.fazenda=r.fazenda||"";
+    dados.data=r.data||"";
+    dados.animais=r.animais.map(a=>({
+      brinco:String(a.brinco||""), base:String(a.brinco||"").replace(/x+$/i,""),
+      peso:parseNum(a.peso), lote:parseInt(a.lote,10)||null,
+      pesoAnterior:parseNum(a.peso_anterior), gmd:parseNum(a.gmd), dias:parseNum(a.dias),
+      obs:a.obs||"", novo:!!a.is_novo, incerto:!!a.is_revisar
+    })).filter(a=>a.peso!=null && a.lote);
+    render();
+  }catch(e){
+    box.innerHTML='<div class="empty">Sem internet ou backend não respondeu. Tente de novo, ou use "Importar .xlsx".</div>';
+  }
 }
 
 function importFile(input){

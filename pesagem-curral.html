@@ -102,6 +102,7 @@ input:focus,select:focus{outline:2px solid var(--v3); border-color:var(--v3)}
 @media print{ .modal-bg{display:none!important} }
 
 .lote-tags{display:flex; flex-wrap:wrap; gap:6px; margin-top:8px}
+.hoje-search{margin:12px 0 4px; font-size:15px}
 
 /* Footer sticky */
 .footer{position:fixed; bottom:56px; left:0; right:0; z-index:15; background:#fff; border-top:1px solid var(--line);
@@ -255,6 +256,7 @@ input:focus,select:focus{outline:2px solid var(--v3); border-color:var(--v3)}
     <div class="card stripe">
       <h2><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3 8-8"/><path d="M20 12v6a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h9"/></svg> Pesados hoje</h2>
       <div id="resumoLotes"></div>
+      <input id="hojeSearch" class="hoje-search" oninput="renderList()" placeholder="Buscar número, lote ou observação..." autocomplete="off">
       <div id="hojeList"></div>
     </div>
   </div>
@@ -576,10 +578,10 @@ function onNum(){
   if(novoMode) return;
   if(!raw){ sel=null; renderMatches([]); renderDetail(); return; }
   const incerto=isIncerto(raw), base=baseBrinco(raw);
-  const jaHoje=state.today.find(t=>t.base===base && !t.incerto);
-  if(jaHoje && !incerto){
+  const jaHoje=state.today.find(t=>t.base===base);
+  if(jaHoje){
     const w=document.getElementById("numWarn");
-    w.textContent="⚠ Esse número já foi pesado hoje. Se for outro/incerto, adicione x no fim.";
+    w.innerHTML="\u26a0 N\u00ba <b>"+esc(jaHoje.brinco)+"</b> j\u00e1 pesado hoje: "+jaHoje.peso+"kg"+(jaHoje.obs?" \u00b7 <i>"+esc(jaHoje.obs)+"</i>":"")+". Confira a observa\u00e7\u00e3o para definir o n\u00famero certo.";
     w.style.display="block";
   }
   const matches=state.ref.list.filter(a=>a.base===base || a.base.startsWith(base));
@@ -654,6 +656,14 @@ function registrar(){
   if(!sel && !numRaw){ alert("Digite o número do animal ou use \"Novo animal\"."); return; }
   let s=sel || makeIncerto(baseBrinco(numRaw));
   if(!sel){ s.incerto = true; s.brinco = numRaw + (isIncerto(numRaw)?"":"x"); }
+  const baseNew=baseBrinco(s.brinco||numRaw);
+  if(baseNew){
+    const dup=state.today.find(t=>t.base===baseNew);
+    if(dup){
+      alert("O n\u00famero "+dup.brinco+" j\u00e1 foi pesado hoje ("+dup.peso+"kg"+(dup.obs?" \u00b7 "+dup.obs:"")+").\n\nCorrija o n\u00famero, ou edite esse animal na aba Hoje.");
+      return;
+    }
+  }
   const loteSel=document.getElementById("loteSel");
   const lote = loteSel ? loteSel.value : (s.lote||"");
   const dias=daysBetween(s.dataAnterior, state.data);
@@ -706,7 +716,21 @@ function renderResumoLotes(){
 function renderList(){
   const box=document.getElementById("hojeList");
   if(!state.today.length){ box.innerHTML='<p class="empty">Nenhum animal pesado hoje.</p>'; return; }
-  box.innerHTML=[...state.today].reverse().map(t=>`
+  const se=document.getElementById("hojeSearch");
+  const q=(se?se.value:"").trim().toLowerCase();
+  let arr=state.today.slice();
+  arr.sort(function(a,b){
+    const na=parseInt(a.base,10), nb=parseInt(b.base,10);
+    if(!isNaN(na)&&!isNaN(nb)&&na!==nb) return na-nb;
+    return String(a.base).localeCompare(String(b.base),"pt",{numeric:true,sensitivity:"base"});
+  });
+  if(q) arr=arr.filter(function(t){
+    return String(t.brinco).toLowerCase().indexOf(q)>=0 ||
+           ("lote "+t.lote).indexOf(q)>=0 || String(t.lote)===q ||
+           String(t.obs||"").toLowerCase().indexOf(q)>=0;
+  });
+  if(!arr.length){ box.innerHTML='<p class="empty">Nenhum animal encontrado para \u201c'+esc(q)+'\u201d.</p>'; return; }
+  box.innerHTML=arr.map(t=>`
     <div class="item">
       <div class="item-main" onclick="openAnimal('${t.id}')">
         <div class="b">${esc(t.brinco)}</div>

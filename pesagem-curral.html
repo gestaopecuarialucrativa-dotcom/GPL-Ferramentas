@@ -103,6 +103,10 @@ input:focus,select:focus{outline:2px solid var(--v3); border-color:var(--v3)}
 
 .lote-tags{display:flex; flex-wrap:wrap; gap:6px; margin-top:8px}
 .hoje-search{margin:12px 0 4px; font-size:15px}
+.pr-row{display:flex; align-items:center; gap:8px; padding:6px 0; border-bottom:1px solid var(--line)}
+.pr-row:last-child{border-bottom:none}
+.pr-lote{font-weight:800; color:var(--v1); min-width:56px}
+.pr-info{flex:1; font-size:13px; color:var(--muted)}
 
 /* Footer sticky */
 .footer{position:fixed; bottom:56px; left:0; right:0; z-index:15; background:#fff; border-top:1px solid var(--line);
@@ -248,6 +252,11 @@ input:focus,select:focus{outline:2px solid var(--v3); border-color:var(--v3)}
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
         Registrar pesagem
       </button>
+    </div>
+
+    <div class="card" id="pesarResumoCard" style="display:none">
+      <div style="font-size:12px; font-weight:800; color:var(--v2); margin-bottom:6px">RESUMO DOS LOTES (parcial)</div>
+      <div id="pesarResumo"></div>
     </div>
   </div>
 
@@ -624,7 +633,7 @@ function renderDetail(){
         <div><div class="k">Dias desde a última</div><div class="val">${dias!=null?dias:"—"}</div></div>
         <div><div class="k">GMD individual</div><div class="val gmd-big">${gmd!=null?gmd.toFixed(3)+" kg/d":"—"}</div></div>
       </div>
-      ${sel.obsAnterior?`<div><div class="k">Observação anterior</div><div style="font-size:13px;color:var(--muted)">${esc(sel.obsAnterior)}</div></div>`:""}
+      <div style="margin-top:4px; padding-top:6px; border-top:1px dashed #cfe6cf"><div class="k">Observação anterior (da última pesagem)</div><div style="font-size:14px;color:var(--v1);font-weight:700">${sel.obsAnterior?esc(sel.obsAnterior):"— sem observação"}</div></div>
       <div style="margin-top:8px"><label>Observação de hoje (opcional)</label><input id="obsNova" placeholder="Anotar algo?" value="${esc(window._obsNova||"")}"></div>
     </div>`;
   const oi=document.getElementById("obsNova"); if(oi) oi.oninput=()=>{window._obsNova=oi.value;};
@@ -666,6 +675,7 @@ function registrar(){
   }
   const loteSel=document.getElementById("loteSel");
   const lote = loteSel ? loteSel.value : (s.lote||"");
+  if(!lote){ alert("Selecione o LOTE antes de registrar."); if(loteSel) loteSel.focus(); return; }
   const dias=daysBetween(s.dataAnterior, state.data);
   let gmd=null;
   if(s.pesoAnterior!=null && dias && dias>0) gmd=+( (peso-s.pesoAnterior)/dias ).toFixed(3);
@@ -685,7 +695,7 @@ function registrar(){
   document.getElementById("novoBtn").classList.remove("btn-primary");
   document.getElementById("matches").innerHTML="";
   document.getElementById("numWarn").style.display="none";
-  renderDetail(); renderHoje(); renderFooter(); renderFaltantes();
+  renderDetail(); renderHoje(); renderFooter(); renderFaltantes(); renderPesarResumo();
   scheduleAutoSync();
   document.getElementById("pesoIn").focus();
 }
@@ -703,6 +713,20 @@ function loteStats(){
   return st;
 }
 function renderHoje(){ renderResumoLotes(); renderList(); }
+function renderPesarResumo(){
+  const box=document.getElementById("pesarResumo");
+  const card=document.getElementById("pesarResumoCard");
+  if(!box||!card) return;
+  const st=loteStats(); let html="";
+  for(let i=1;i<=N_LOTES;i++){ const s=st[i]; if(!s.qtd) continue;
+    const media=s.peso/s.qtd, gmd=s.gmdN?s.gmdSum/s.gmdN:null;
+    html+='<div class="pr-row"><span class="pr-lote">Lote '+i+'</span>'+
+          '<span class="pr-info">'+s.qtd+' cab \u00b7 '+media.toFixed(0)+'kg ('+(media/AR_DIV).toFixed(1)+'@)</span>'+
+          '<span class="pill '+(gmd!=null?"pill-green":"pill-grey")+'">GMD '+(gmd!=null?gmd.toFixed(3):"\u2014")+'</span></div>';
+  }
+  if(html){ box.innerHTML=html; card.style.display="block"; }
+  else { card.style.display="none"; }
+}
 function renderResumoLotes(){
   const st=loteStats(); let html="";
   for(let i=1;i<=N_LOTES;i++){ const s=st[i]; if(!s.qtd) continue;
@@ -742,12 +766,12 @@ function renderList(){
 }
 
 /* ---------- editar animal (modal) ---------- */
-let _editId=null, _editOrigBrinco="", _editRef={pesoAnterior:null, dataAnterior:null};
+let _editId=null, _editOrigBrinco="", _editRef={pesoAnterior:null, dataAnterior:null, obsAnterior:""};
 function openAnimal(id){
   const t=state.today.find(x=>x.id===id); if(!t) return;
   _editId=id;
   _editOrigBrinco=t.brinco||"";
-  _editRef={pesoAnterior:t.pesoAnterior, dataAnterior:t.dataAnterior};
+  _editRef={pesoAnterior:t.pesoAnterior, dataAnterior:t.dataAnterior, obsAnterior:t.obsAnterior||""};
   document.getElementById("mBrinco").value=t.brinco||"";
   document.getElementById("mPeso").value=t.peso!=null?t.peso:"";
   document.getElementById("mLote").innerHTML=loteOptions(t.lote);
@@ -760,8 +784,8 @@ function mRelookup(){
   const raw=document.getElementById("mBrinco").value.trim();
   const base=baseBrinco(raw);
   const rec=state.ref.byBrinco[base];
-  if(rec){ _editRef={pesoAnterior:rec.pesoAnterior, dataAnterior:rec.dataAnterior}; }
-  else{ _editRef={pesoAnterior:null, dataAnterior:null}; }
+  if(rec){ _editRef={pesoAnterior:rec.pesoAnterior, dataAnterior:rec.dataAnterior, obsAnterior:rec.obsAnterior||""}; }
+  else{ _editRef={pesoAnterior:null, dataAnterior:null, obsAnterior:""}; }
   mRecalc();
 }
 function mRecalc(){
@@ -777,7 +801,8 @@ function mRecalc(){
     '<div class="mi"><span class="k">Última pesagem</span><span class="v">'+(_editRef.pesoAnterior!=null?_editRef.pesoAnterior+" kg":"—")+(_editRef.dataAnterior?" ("+isoToBR(_editRef.dataAnterior)+")":"")+'</span></div>'+
     '<div class="mi"><span class="k">Dias no período</span><span class="v">'+(dias!=null?dias:"—")+'</span></div>'+
     '<div class="mi"><span class="k">Ganho de peso</span><span class="v">'+(ganho!=null?(ganho>=0?"+":"")+ganho.toFixed(0)+" kg":"—")+'</span></div>'+
-    '<div class="mi"><span class="k">GMD</span><span class="v">'+(gmd!=null?gmd.toFixed(3)+" kg/dia":"—")+'</span></div>';
+    '<div class="mi"><span class="k">GMD</span><span class="v">'+(gmd!=null?gmd.toFixed(3)+" kg/dia":"—")+'</span></div>'+
+    '<div class="mi"><span class="k">Obs. anterior</span><span class="v" style="font-weight:700">'+(_editRef.obsAnterior?esc(_editRef.obsAnterior):"—")+'</span></div>';
 }
 function saveAnimal(){
   const t=state.today.find(x=>x.id===_editId); if(!t){ closeAnimal(); return; }
@@ -785,6 +810,7 @@ function saveAnimal(){
   const peso=parseNum(document.getElementById("mPeso").value);
   if(!raw){ alert("Número não pode ficar vazio."); return; }
   if(peso==null){ alert("Peso inválido."); return; }
+  if(!document.getElementById("mLote").value){ alert("Selecione o LOTE."); return; }
   const incerto=isIncerto(raw);
   const brincoNovo=incerto?(baseBrinco(raw)+"x"):raw;
   if(baseBrinco(brincoNovo)!==baseBrinco(_editOrigBrinco)){
@@ -1321,6 +1347,7 @@ function go(s){
   document.querySelectorAll(".nav button").forEach(b=>b.classList.toggle("on", b.dataset.s===s));
   const showFooter=(s==="pesar"||s==="hoje"||s==="falt");
   document.getElementById("footer").style.display = showFooter?"flex":"none";
+  if(s==="pesar") renderPesarResumo();
   if(s==="hoje") renderHoje();
   if(s==="falt") renderFaltantes();
   if(s==="config") renderConfig();
@@ -1350,7 +1377,7 @@ window.onload=function(){
     document.getElementById("resumeBanner").style.display="flex";
     document.getElementById("resumeTxt").textContent=`Sessão de ${isoToBR(state.data)} restaurada — ${state.today.length} animais já pesados.`;
   }
-  renderConfig(); renderHoje(); renderFooter(); renderFaltantes();
+  renderConfig(); renderHoje(); renderFooter(); renderFaltantes(); renderPesarResumo();
 };
 </script>
 </body>

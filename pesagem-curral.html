@@ -628,6 +628,12 @@ function onNum(){
   const matches=state.ref.list.filter(a=>a.base===base || a.base.startsWith(base));
   const exact=state.ref.list.filter(a=>a.base===base);
   if(exact.length===1){ selectAnimal(exact[0], incerto); renderMatches([]); }
+  else if(matches.length===0 && raw){
+    // número não está na referência (não pesou da última vez) → tratar como novo,
+    // mas MOSTRAR o seletor de lote para poder definir o lote
+    sel={brinco:raw, base:base, incerto:incerto, novo:true, lote:"", pesoAnterior:null, dataAnterior:null, obsAnterior:""};
+    renderMatches([]); renderDetail();
+  }
   else { sel=incerto?makeIncerto(base):null; renderMatches(matches, incerto); renderDetail(); }
 }
 function makeIncerto(base){ return {brinco:base+"x", base, incerto:true, lote:"", pesoAnterior:null, dataAnterior:null, obsAnterior:""}; }

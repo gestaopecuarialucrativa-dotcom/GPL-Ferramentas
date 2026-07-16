@@ -143,6 +143,23 @@ input:focus,select:focus{outline:2px solid var(--v3); border-color:var(--v3)}
 .rel-proj-val.highlight{color:var(--v2); font-size:14px}
 .rel-divider{border:none; border-top:1px solid var(--line); margin:10px 0}
 .rel-ganho{font-size:12px; color:var(--muted); margin-top:8px; text-align:center}
+.rel-consumo{margin-top:10px; border-top:1px dashed var(--line); padding-top:10px}
+.rel-consumo-h{font-size:11px; font-weight:800; color:var(--v2); letter-spacing:.4px; margin-bottom:8px}
+.rel-consumo-empty{font-size:12px; color:var(--muted); margin-top:10px; border-top:1px dashed var(--line); padding-top:10px}
+.rel-link{color:var(--v2); font-weight:700; text-decoration:underline; cursor:pointer}
+.rel-prod-row{background:#f5f7f5; border-radius:10px; padding:10px; margin-bottom:8px}
+.rel-prod-nome{font-size:13px; font-weight:800; color:var(--v1); margin-bottom:6px}
+.rel-cvp{display:grid; grid-template-columns:1fr 1fr; gap:8px}
+.rel-cvp .k{display:block; font-size:10px; font-weight:700; color:var(--muted)}
+.rel-cvp .v{display:block; font-size:15px; font-weight:800; color:var(--v1)}
+.rel-consumo-sub{font-size:11px; color:var(--muted); margin-top:6px}
+.rel-custo{display:flex; flex-wrap:wrap; align-items:flex-end; gap:10px; margin-top:8px; background:#fff; border-radius:8px; padding:8px}
+.rel-custo-in{flex-shrink:0}
+.rel-custo-in label{font-size:10px}
+.rel-custo-in input{width:90px; padding:8px; font-size:14px}
+.rel-custo-v{font-size:11px; color:var(--muted)}
+.rel-custo-v .k{display:block; font-weight:700}
+.rel-custo-v b{font-size:14px; color:var(--v1)}
 
 /* print */
 @media print{
@@ -288,6 +305,17 @@ input:focus,select:focus{outline:2px solid var(--v3); border-color:var(--v3)}
       <div class="status-line" id="syncStatus">Dados salvos no aparelho. Sincronize quando tiver sinal.</div>
     </div>
 
+    <div class="card stripe">
+      <h2><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 14l3-3 3 3 4-5"/></svg> Consumo da fazenda</h2>
+      <p class="hint">Puxa os tratos e o estoque (%PV) do app fazenda para cruzar com o GMD no Relatório. Nada é gravado lá — só leitura.</p>
+      <button class="btn btn-primary" onclick="carregarConsumo()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12a8 8 0 0 1 14-5l2 2"/><path d="M20 4v5h-5"/><path d="M20 12a8 8 0 0 1-14 5l-2-2"/><path d="M4 20v-5h5"/></svg> Puxar consumo da fazenda</button>
+      <div class="status-line" id="consumoStatus">Consumo não carregado.</div>
+      <details style="margin-top:8px">
+        <summary style="font-size:12px; color:var(--muted); cursor:pointer">URL do backend (avançado)</summary>
+        <input id="fazUrlIn" style="margin-top:6px; font-size:12px" placeholder="URL do Apps Script da fazenda">
+      </details>
+    </div>
+
     <div class="card">
       <button class="btn btn-ghost" onclick="novaPesagem()" style="color:var(--danger); border-color:#f0d5d0"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--danger)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M6 6l1 14h10l1-14"/></svg> Nova pesagem (limpar tudo)</button>
     </div>
@@ -319,12 +347,16 @@ const DATA_ROW = 14;
 const AR_DIV = 30;
 const UA_DIV = 450;
 const N_LOTES = 10;
+const FAZENDA_URL_DEFAULT = "https://script.google.com/macros/s/AKfycbwc2lHSKdDzTsXxd-77mpxh0khrRNSB4BWt1XODEe7cOPq0h1sxkT4L5rc6TNgHdiZrMA/exec";
 
 let state = {
   data: todayISO(), fazenda:"", responsavel:"", metaPeso:480,
+  fazendaUrl: FAZENDA_URL_DEFAULT,
   ref:{loaded:false, name:"", data:null, byBrinco:{}, list:[]},
   hist:{loaded:false, name:"", data:null, byBrinco:{}},
-  today:[]
+  today:[],
+  consumo:{loaded:false, ts:null, tratos:[], est:{}},
+  precos:{}
 };
 let sel = null;
 let novoMode = false;
@@ -364,12 +396,68 @@ function daysBetween(a,b){
 }
 function esc(s){ return String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
 
+/* ---------- consumo (backend fazenda via JSONP) ---------- */
+function loteNum(s){ const m=String(s||"").match(/\d+/); return m?parseInt(m[0],10):null; }
+function jsonp(url){
+  return new Promise(function(res,rej){
+    const cb="__gpl_cb_"+Date.now()+"_"+Math.floor(Math.random()*10000);
+    const s=document.createElement("script");
+    const t=setTimeout(function(){ cleanup(); rej(new Error("timeout")); }, 22000);
+    function cleanup(){ try{ delete window[cb]; }catch(e){ window[cb]=undefined; } if(s.parentNode) s.parentNode.removeChild(s); }
+    window[cb]=function(data){ clearTimeout(t); cleanup(); res(data); };
+    s.onerror=function(){ clearTimeout(t); cleanup(); rej(new Error("rede")); };
+    s.src=url+(url.indexOf("?")<0?"?":"&")+"callback="+cb+"&t="+Date.now();
+    document.head.appendChild(s);
+  });
+}
+async function carregarConsumo(){
+  const el=document.getElementById("consumoStatus");
+  const url=(state.fazendaUrl||FAZENDA_URL_DEFAULT).trim();
+  if(el) el.textContent="Puxando dados da fazenda...";
+  try{
+    const cfg=await jsonp(url+"?acao=carregar");
+    const tratos=(cfg&&cfg.rT?cfg.rT:[]).filter(function(r){ return r && r.tipo==="trato"; });
+    const est=(cfg&&cfg.EST)?cfg.EST:{};
+    state.consumo={loaded:true, ts:new Date().toISOString(), tratos:tratos, est:est};
+    save();
+    if(el) el.innerHTML='<span class="status-ok">\u2713 Consumo carregado \u2014 '+tratos.length+' tratos, '+Object.keys(est).length+' produtos</span>';
+    renderRelatorio();
+  }catch(e){
+    if(el) el.textContent="N\u00e3o consegui puxar (sem internet ou URL incorreta). Tente de novo.";
+  }
+}
+function consumoLote(L){
+  const tr=(state.consumo&&state.consumo.tratos?state.consumo.tratos:[]).filter(function(t){ return loteNum(t.co||t.lote)===L; });
+  const ini=state.ref.data, fim=state.data;
+  const inWin=tr.filter(function(t){ if(!t.dt) return false; if(ini && t.dt<ini) return false; if(fim && t.dt>fim) return false; return true; });
+  const use=inWin.length?inWin:tr;
+  const porProduto={};
+  use.forEach(function(t){
+    const p=String(t.pr||t.prod||"?").trim();
+    if(!porProduto[p]) porProduto[p]={sacos:0,kg:0};
+    porProduto[p].sacos+=parseFloat(t.q||t.qtd)||0;
+    porProduto[p].kg+=parseFloat(t.kg_fornecido)||0;
+  });
+  return {porProduto:porProduto, tratos:use, ini:(inWin.length?ini:null), fim:fim, foraJanela:(inWin.length===0 && tr.length>0)};
+}
+function setProdPreco(inp){
+  const p=inp.getAttribute("data-p");
+  const v=parseFloat(String(inp.value).replace(",","."))||0;
+  if(!state.precos) state.precos={};
+  state.precos[p]=v; save(); renderRelatorio();
+}
+
 /* ---------- persistência ---------- */
 function save(){ try{ localStorage.setItem(STORE_KEY, JSON.stringify(state)); }catch(e){} }
 function load(){
   try{
     const s=localStorage.getItem(STORE_KEY);
-    if(s){ const p=JSON.parse(s); if(p&&p.today){ state=p; if(!state.metaPeso) state.metaPeso=480; return true; } }
+    if(s){ const p=JSON.parse(s); if(p&&p.today){ state=p;
+        if(!state.metaPeso) state.metaPeso=480;
+        if(!state.fazendaUrl) state.fazendaUrl=FAZENDA_URL_DEFAULT;
+        if(!state.consumo) state.consumo={loaded:false,ts:null,tratos:[],est:{}};
+        if(!state.precos) state.precos={};
+        return true; } }
   }catch(e){}
   return false;
 }
@@ -605,6 +693,9 @@ function renderConfig(){
   document.getElementById("histStatus").innerHTML = state.hist.loaded
     ? `<span class="status-ok">✓ ${esc(state.hist.name)}</span> · data ${isoToBR(state.hist.data)}`
     : "Nenhuma planilha carregada.";
+  const fu=document.getElementById("fazUrlIn"); if(fu) fu.value=state.fazendaUrl||FAZENDA_URL_DEFAULT;
+  const cs=document.getElementById("consumoStatus");
+  if(cs){ if(state.consumo&&state.consumo.loaded){ cs.innerHTML='<span class="status-ok">\u2713 '+(state.consumo.tratos.length)+' tratos, '+Object.keys(state.consumo.est||{}).length+' produtos</span> (atualize antes de gerar o relatório)'; } else { cs.textContent="Consumo não carregado."; } }
   const sub=[]; if(state.fazenda) sub.push(state.fazenda); sub.push(isoToBR(state.data));
   document.getElementById("topSub").textContent="GPL · "+sub.join(" · ");
 }
@@ -705,12 +796,71 @@ function renderRelatorio(){
       ${projHtml}
 
       ${ganhoTotal?`<div class="rel-ganho">Ganho acumulado no período: <strong>+${ganhoTotal} kg/animal</strong> (${diasMedio!=null?Math.round(diasMedio)+' dias':''} desde a última pesagem)</div>`:''}
+      ${renderConsumoLote(L, s, gmd, media, diasMedio)}
     </div>`;
   }
 
   document.getElementById('relContent').innerHTML=html;
 }
 
+function fmtBR(n,dec){ return (n==null||isNaN(n))?"—":Number(n).toFixed(dec==null?0:dec).replace(".",","); }
+function renderConsumoLote(L, s, gmd, media, dias){
+  if(!state.consumo || !state.consumo.loaded){
+    return '<div class="rel-consumo-empty">Consumo não carregado. <span class="rel-link" onclick="irConsumo()">Puxar da fazenda</span></div>';
+  }
+  const c=consumoLote(L);
+  const prods=Object.keys(c.porProduto);
+  if(!prods.length) return '<div class="rel-consumo-empty">Sem tratos deste lote no período.</div>';
+  const nA=s.qtd||0;
+  const d=(dias&&dias>0)?dias:(daysBetween(c.ini,c.fim)||0);
+  let rows="";
+  prods.forEach(function(p){
+    const pp=c.porProduto[p];
+    const est=(state.consumo.est&&state.consumo.est[p])?state.consumo.est[p]:{};
+    const pct=parseFloat(est.pct)||0;
+    const pratKgDia=(nA>0 && d>0)? pp.kg/nA/d : null;
+    const pratG=pratKgDia!=null? Math.round(pratKgDia*1000): null;
+    const espKgDia=(pct>0 && media>0)? pct/100*media : null;
+    const espG=espKgDia!=null? Math.round(espKgDia*1000): null;
+    let cmp="", cmpc="";
+    if(pratG!=null && espG!=null && espG>0){
+      const r=pratG/espG;
+      if(r>=0.9 && r<=1.1){cmp="No alvo do plano"; cmpc="rel-s-ok";}
+      else if(r<0.9){cmp="Abaixo do plano ("+Math.round(r*100)+"%)"; cmpc="rel-s-warn";}
+      else {cmp="Acima do plano ("+Math.round(r*100)+"%)"; cmpc="rel-s-warn";}
+    }
+    const preco=parseFloat(state.precos&&state.precos[p])||0;
+    const custoTot=preco>0? pp.sacos*preco : 0;
+    const custoCabDia=(preco>0 && nA>0 && d>0)? custoTot/nA/d : null;
+    const custoKgGanho=(custoCabDia!=null && gmd && gmd>0)? custoCabDia/gmd : null;
+    let veredito="", vclass="";
+    if(custoKgGanho!=null){
+      if(custoKgGanho<=8){veredito="Produto com bom retorno"; vclass="rel-s-ok";}
+      else if(custoKgGanho<=14){veredito="Retorno na média"; vclass="rel-s-warn";}
+      else {veredito="Custo alto para o ganho"; vclass="rel-s-bad";}
+    }
+    rows+='<div class="rel-prod-row">'+
+      '<div class="rel-prod-nome">'+esc(p)+'</div>'+
+      '<div class="rel-cvp">'+
+        '<div><span class="k">Praticado</span><span class="v">'+(pratG!=null?pratG+" g/cab/dia":"—")+'</span></div>'+
+        '<div><span class="k">Esperado</span><span class="v">'+(espG!=null?espG+" g/cab/dia":"—")+'</span></div>'+
+      '</div>'+
+      (cmp?'<span class="rel-sit '+cmpc+'">'+cmp+'</span>':'')+
+      '<div class="rel-consumo-sub">'+fmtBR(pp.sacos,1)+' sacos · '+fmtBR(pp.kg,0)+' kg no período'+(d?" ("+Math.round(d)+" dias)":"")+'</div>'+
+      '<div class="rel-custo">'+
+        '<div class="rel-custo-in"><label>R$/saco</label>'+
+        '<input inputmode="decimal" value="'+(preco?String(preco).replace(".",","):"")+'" data-p="'+esc(p)+'" onchange="setProdPreco(this)" placeholder="preço"></div>'+
+        (custoCabDia!=null?'<div class="rel-custo-v"><span class="k">Custo/cab/dia</span><b>R$ '+fmtBR(custoCabDia,2)+'</b></div>':'')+
+        (custoKgGanho!=null?'<div class="rel-custo-v"><span class="k">Custo/kg de ganho</span><b>R$ '+fmtBR(custoKgGanho,2)+'</b></div>':'')+
+      '</div>'+
+      (veredito?'<span class="rel-sit '+vclass+'" style="margin-top:6px">'+veredito+'</span>':'')+
+    '</div>';
+  });
+  return '<div class="rel-consumo"><div class="rel-consumo-h">CONSUMO — esperado × praticado</div>'+
+    (c.foraJanela?'<div class="rel-consumo-sub" style="margin-bottom:6px">⚠ Sem tratos entre as pesagens; mostrando todo o histórico do lote.</div>':'')+
+    rows+'</div>';
+}
+function irConsumo(){ go("config"); setTimeout(carregarConsumo, 150); }
 function shareRelatorio(){
   const st=loteStats();
   const meta=parseFloat(state.metaPeso)||480;
@@ -741,6 +891,26 @@ function shareRelatorio(){
       txt+=`Previsão de venda: ${isoToBR(dataPrev)} (~${dias} dias) — meta ${meta}kg\n`;
     } else if(media>=meta){
       txt+=`✓ Meta de ${meta}kg atingida — prontos para venda\n`;
+    }
+    if(state.consumo && state.consumo.loaded){
+      const c=consumoLote(i);
+      Object.keys(c.porProduto).forEach(function(p){
+        const pp=c.porProduto[p];
+        const est=(state.consumo.est&&state.consumo.est[p])?state.consumo.est[p]:{};
+        const pct=parseFloat(est.pct)||0;
+        const nA=s.qtd||0, d=(diasMedio&&diasMedio>0)?diasMedio:(daysBetween(c.ini,c.fim)||0);
+        const pratG=(nA>0&&d>0)?Math.round(pp.kg/nA/d*1000):null;
+        const espG=(pct>0&&media>0)?Math.round(pct/100*media*1000):null;
+        txt+=`Produto: ${p} — ${fmtBR(pp.sacos,1)} sacos`+"\n";
+        if(pratG!=null) txt+=`Consumo praticado: ${pratG} g/cab/dia`+(espG!=null?` (esperado ${espG})`:"")+"\n";
+        const preco=parseFloat(state.precos&&state.precos[p])||0;
+        if(preco>0 && nA>0 && d>0){
+          const custoCabDia=pp.sacos*preco/nA/d;
+          txt+=`Custo/cab/dia: R$ ${fmtBR(custoCabDia,2)}`;
+          if(gmd&&gmd>0) txt+=` · Custo/kg ganho: R$ ${fmtBR(custoCabDia/gmd,2)}`;
+          txt+="\n";
+        }
+      });
     }
     txt+='\n';
   }
@@ -834,6 +1004,8 @@ window.onload=function(){
   document.getElementById("fazendaIn").addEventListener("input", e=>{ state.fazenda=e.target.value; save(); renderConfig(); });
   document.getElementById("respIn").addEventListener("input", e=>{ state.responsavel=e.target.value; save(); });
   document.getElementById("metaPesoIn").addEventListener("input", e=>{ state.metaPeso=parseFloat(e.target.value)||480; save(); });
+  const fuEl=document.getElementById("fazUrlIn");
+  if(fuEl) fuEl.addEventListener("input", e=>{ state.fazendaUrl=e.target.value.trim()||FAZENDA_URL_DEFAULT; save(); });
   if(resumed && state.today.length){
     document.getElementById("resumeBanner").style.display="flex";
     document.getElementById("resumeTxt").textContent=`Sessão de ${isoToBR(state.data)} restaurada — ${state.today.length} animais já pesados.`;

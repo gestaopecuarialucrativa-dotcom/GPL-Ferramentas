@@ -632,7 +632,7 @@ function htmlBrinco() {
     + '<div style="margin-bottom:6px"><label class="lbl">No Animal / Brinco</label>'
     + '<input type="text" id="inp-brinco" placeholder="Digite o numero..." inputmode="text" autocomplete="off"'
     + ' oninput="S.query=this.value.trim();filterCandidates()"'
-    + ' onkeydown="if(event.key===\'Enter\'&&S.candidates.length===1)selByIdx(0)">'
+    + ' onkeydown="">'
     + '<div class="muted" style="margin-top:4px">Adicione "x" ao final (ex: 247x) para marcar como REVISAR</div></div>'
     + '<div id="cand-box"></div>'
     + '<div class="mt12"><button class="btn btn-ghost" onclick="S.step=\'new\';render()">'
@@ -658,7 +658,7 @@ function filterCandidates() {
     return String(a.brinco).localeCompare(String(b.brinco));
   });
   S.candidates = res.slice(0, 8);
-  if (S.candidates.length === 1 && !doubt) { selByIdx(0); return; }
+  // Sem auto-select: usuario sempre toca no candidato para confirmar
   if (S.candidates.length === 0) {
     var qd = stripX(q);
     box.innerHTML = '<div style="padding:12px;text-align:center;color:var(--g500);font-size:13px">Animal "' + qd + '" nao encontrado na referencia.'

@@ -609,9 +609,7 @@ function renderDetail(){
   const dias=daysBetween(sel.dataAnterior, state.data);
   let gmd=null;
   if(peso!=null && sel.pesoAnterior!=null && dias && dias>0) gmd=(peso-sel.pesoAnterior)/dias;
-  const loteSelect = sel.incerto || novoMode || !sel.lote
-     ? `<select id="loteSel">${loteOptions(sel.lote)}</select>`
-     : `<div class="val">Lote ${esc(sel.lote)}</div>`;
+  const loteSelect = `<select id="loteSel">${loteOptions(sel.lote)}</select>`;
   box.innerHTML=`
     <div class="detail">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">

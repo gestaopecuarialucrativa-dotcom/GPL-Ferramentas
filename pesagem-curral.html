@@ -330,6 +330,10 @@ input:focus,select:focus{outline:2px solid var(--v3); border-color:var(--v3)}
         </button>
       </div>
     </div>
+    <a class="btn btn-primary rel-actions" href="analise-rebanho-gpl.html" style="margin:0 16px 8px; text-decoration:none; color:#fff; display:flex; align-items:center; justify-content:center; gap:8px; background:var(--v1)">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><rect x="7" y="10" width="3" height="7"/><rect x="12" y="5" width="3" height="12"/><rect x="17" y="13" width="3" height="4"/></svg>
+      Análise de Rebanho completa
+    </a>
     <div id="dashContent"></div>
   </div>
 
@@ -1458,8 +1462,6 @@ window.onload=function(){
   document.getElementById("arrobaIn").addEventListener("input", e=>{ state.precoArroba=parseFloat(String(e.target.value).replace(",","."))||0; save(); });
   const ascEl=document.getElementById("autoSyncChk");
   if(ascEl) ascEl.addEventListener("change", e=>{ state.autoSync=e.target.checked; save(); });
-  const fuEl=document.getElementById("fazUrlIn");
-  if(fuEl) fuEl.addEventListener("input", e=>{ state.fazendaUrl=e.target.value.trim()||FAZENDA_URL_DEFAULT; save(); });
   if(resumed && state.today.length){
     document.getElementById("resumeBanner").style.display="flex";
     document.getElementById("resumeTxt").textContent=`Sessão de ${isoToBR(state.data)} restaurada — ${state.today.length} animais já pesados.`;

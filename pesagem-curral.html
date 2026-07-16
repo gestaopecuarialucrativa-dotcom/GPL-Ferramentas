@@ -88,6 +88,7 @@ input:focus,select:focus{outline:2px solid var(--v3); border-color:var(--v3)}
 .item .b{font-weight:800; color:var(--v1); min-width:64px}
 .item .m{font-size:12px; color:var(--muted); flex:1}
 .item .x{color:var(--danger); font-weight:800; padding:6px 8px; cursor:pointer}
+.item select.lote-edit{width:auto; flex-shrink:0; padding:7px 8px; font-size:13px; font-weight:700; border-radius:8px; color:var(--v1); border:1px solid var(--line); background:#fff}
 
 .lote-tags{display:flex; flex-wrap:wrap; gap:6px; margin-top:8px}
 
@@ -637,9 +638,15 @@ function renderList(){
   box.innerHTML=[...state.today].reverse().map(t=>`
     <div class="item">
       <div class="b">${esc(t.brinco)}</div>
-      <div class="m">${t.peso}kg · Lote ${esc(t.lote||"?")} · GMD ${t.gmd!=null?t.gmd.toFixed(3):"—"}${t.incerto?' · <span style="color:var(--warn)">incerto</span>':''}${t.obs?' · '+esc(t.obs):''}</div>
+      <div class="m">${t.peso}kg · GMD ${t.gmd!=null?t.gmd.toFixed(3):"—"}${t.incerto?' · <span style="color:var(--warn)">incerto</span>':''}${t.obs?' · '+esc(t.obs):''}</div>
+      <select class="lote-edit" title="Trocar lote" onchange="changeLote('${t.id}', this.value)">${loteOptions(t.lote)}</select>
       <div class="x" onclick="removeItem('${t.id}')">✕</div>
     </div>`).join("");
+}
+function changeLote(id, val){
+  const t=state.today.find(x=>x.id===id); if(!t) return;
+  t.lote=String(val||""); save();
+  renderResumoLotes(); renderFooter(); renderFaltantes();
 }
 function removeItem(id){
   if(!confirm("Remover esta pesagem?")) return;

@@ -341,7 +341,7 @@ input:focus,select:focus{outline:2px solid var(--v3); border-color:var(--v3)}
 
 <script>
 "use strict";
-const BACKEND_URL = "https://script.google.com/macros/s/AKfycbyjWp9UnWpnKYhzV2o2y48MwkJhu_ynr5baIHXAm4QpUVmk2BKu5LoBvOUOCmHPrw/exec";
+const BACKEND_URL = "https://script.google.com/macros/s/AKfycby4lOB4zXu2dCBoA-pda6U_do8v9GDvNuH0dFOY6u5kc7FP7gZdPKofZX5Dt-QgnT4V/exec";
 const STORE_KEY = "pesagem_curral_state_v1";
 const HDR_ROW = 13;
 const DATA_ROW = 14;
@@ -969,19 +969,41 @@ function exportXlsx(){
 async function syncSheets(){
   if(!state.today.length){ alert("Nenhum animal pesado para sincronizar."); return; }
   const statusEl=document.getElementById('syncStatus');
-  statusEl.textContent='Sincronizando...';
+  statusEl.textContent='Enviando para o Google Sheets...';
+  const diasInt = state.ref.data ? daysBetween(state.ref.data, state.data) : '';
+  const payload={
+    action:"pesagem_salvar",
+    data:{
+      data: state.data,
+      fazenda: state.fazenda,
+      responsavel: state.responsavel,
+      dias_intervalo: diasInt,
+      animais: state.today.map(t=>({
+        brinco: t.brinco,
+        peso: t.peso,
+        lote: t.lote,
+        peso_anterior: t.pesoAnterior,
+        gmd: t.gmd,
+        obs: t.obs,
+        is_novo: !!t.novo,
+        is_revisar: !!t.incerto
+      }))
+    }
+  };
   try{
-    const payload={ action:"pesagem_salvar", data:state.data, fazenda:state.fazenda, responsavel:state.responsavel,
-      animais: state.today.map(t=>({brinco:t.brinco, peso:t.peso, lote:t.lote, gmd:t.gmd, obs:t.obs})) };
     const res=await fetch(BACKEND_URL, {method:"POST", body:JSON.stringify(payload)});
-    const txt=await res.text(); let ok=false; try{ ok=JSON.parse(txt).ok; }catch(e){}
-    if(ok){
-      statusEl.innerHTML='<span class="status-ok">✓ Sincronizado com Google Sheets</span>';
+    let j=null; try{ j=JSON.parse(await res.text()); }catch(e){}
+    if(j && j.ok){
+      const n=(j.gravados!=null)?j.gravados:state.today.length;
+      statusEl.innerHTML='<span class="status-ok">\u2713 '+n+' pesagens gravadas na planilha</span>';
+    } else if(j && j.ok===false){
+      statusEl.textContent='O servidor recusou: '+(j.msg||'erro desconhecido')+'. Confira a planilha.';
     } else {
-      statusEl.textContent='Resposta inesperada do servidor. Verifique o Sheets manualmente.';
+      // resposta não legível (CORS) — o envio provavelmente ocorreu
+      statusEl.textContent='Enviado, mas não consegui confirmar a resposta. Abra a planilha para conferir.';
     }
   }catch(e){
-    statusEl.textContent='Sem sinal. Dados salvos no aparelho — tente de novo com internet.';
+    statusEl.textContent='Sem sinal / envio falhou. Dados seguem salvos no aparelho — tente de novo com internet.';
   }
 }
 

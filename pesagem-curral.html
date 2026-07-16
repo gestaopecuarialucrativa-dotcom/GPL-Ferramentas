@@ -89,6 +89,17 @@ input:focus,select:focus{outline:2px solid var(--v3); border-color:var(--v3)}
 .item .m{font-size:12px; color:var(--muted); flex:1}
 .item .x{color:var(--danger); font-weight:800; padding:6px 8px; cursor:pointer}
 .item select.lote-edit{width:auto; flex-shrink:0; padding:7px 8px; font-size:13px; font-weight:700; border-radius:8px; color:var(--v1); border:1px solid var(--line); background:#fff}
+.item-main{flex:1; min-width:0; cursor:pointer}
+.item-main:active{opacity:.7}
+.modal-bg{display:none; position:fixed; inset:0; background:rgba(0,0,0,.45); z-index:50; align-items:flex-end; justify-content:center}
+.modal{background:#fff; width:100%; max-width:480px; border-radius:18px 18px 0 0; padding:18px 16px 22px; max-height:90vh; overflow-y:auto}
+.modal-h{display:flex; align-items:center; justify-content:space-between; font-size:16px; font-weight:800; color:var(--v1); margin-bottom:12px}
+.modal-x{color:var(--muted); font-weight:800; padding:4px 8px; cursor:pointer; font-size:18px}
+.modal-info{background:var(--v7); border-radius:12px; padding:10px 12px; margin-top:10px}
+.modal-info .mi{display:flex; justify-content:space-between; align-items:center; padding:3px 0}
+.modal-info .k{font-size:12px; color:var(--muted); font-weight:700}
+.modal-info .v{font-size:14px; font-weight:800; color:var(--v1)}
+@media print{ .modal-bg{display:none!important} }
 
 .lote-tags{display:flex; flex-wrap:wrap; gap:6px; margin-top:8px}
 
@@ -357,6 +368,26 @@ input:focus,select:focus{outline:2px solid var(--v3); border-color:var(--v3)}
 
     <div class="card">
       <button class="btn btn-ghost" onclick="novaPesagem()" style="color:var(--danger); border-color:#f0d5d0"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--danger)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M6 6l1 14h10l1-14"/></svg> Nova pesagem (limpar tudo)</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal editar animal -->
+<div class="modal-bg" id="animalModal" onclick="if(event.target===this)closeAnimal()">
+  <div class="modal">
+    <div class="modal-h"><span>Editar animal</span><span class="modal-x" onclick="closeAnimal()">✕</span></div>
+    <label>Número / brinco <span style="font-weight:400;color:var(--muted)">(termine com x se incerto)</span></label>
+    <input id="mBrinco" onchange="mRelookup()" autocomplete="off">
+    <div class="row2" style="margin-top:8px">
+      <div><label>Peso hoje (kg)</label><input id="mPeso" inputmode="decimal" oninput="mRecalc()"></div>
+      <div><label>Lote</label><select id="mLote"></select></div>
+    </div>
+    <div class="modal-info" id="mInfo"></div>
+    <label style="margin-top:10px">Observação</label>
+    <input id="mObs" placeholder="Anotar algo?" autocomplete="off">
+    <div style="display:flex; gap:8px; margin-top:14px">
+      <button class="btn btn-ghost" onclick="closeAnimal()">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveAnimal()">Salvar</button>
     </div>
   </div>
 </div>
@@ -679,11 +710,81 @@ function renderList(){
   if(!state.today.length){ box.innerHTML='<p class="empty">Nenhum animal pesado hoje.</p>'; return; }
   box.innerHTML=[...state.today].reverse().map(t=>`
     <div class="item">
-      <div class="b">${esc(t.brinco)}</div>
-      <div class="m">${t.peso}kg · GMD ${t.gmd!=null?t.gmd.toFixed(3):"—"}${t.incerto?' · <span style="color:var(--warn)">incerto</span>':''}${t.obs?' · '+esc(t.obs):''}</div>
+      <div class="item-main" onclick="openAnimal('${t.id}')">
+        <div class="b">${esc(t.brinco)}</div>
+        <div class="m">${t.peso}kg · GMD ${t.gmd!=null?t.gmd.toFixed(3):"—"}${t.incerto?' · <span style="color:var(--warn)">incerto</span>':''}${t.obs?' · '+esc(t.obs):''}</div>
+      </div>
       <select class="lote-edit" title="Trocar lote" onchange="changeLote('${t.id}', this.value)">${loteOptions(t.lote)}</select>
       <div class="x" onclick="removeItem('${t.id}')">✕</div>
     </div>`).join("");
+}
+
+/* ---------- editar animal (modal) ---------- */
+let _editId=null, _editOrigBrinco="", _editRef={pesoAnterior:null, dataAnterior:null};
+function openAnimal(id){
+  const t=state.today.find(x=>x.id===id); if(!t) return;
+  _editId=id;
+  _editOrigBrinco=t.brinco||"";
+  _editRef={pesoAnterior:t.pesoAnterior, dataAnterior:t.dataAnterior};
+  document.getElementById("mBrinco").value=t.brinco||"";
+  document.getElementById("mPeso").value=t.peso!=null?t.peso:"";
+  document.getElementById("mLote").innerHTML=loteOptions(t.lote);
+  document.getElementById("mObs").value=t.obs||"";
+  mRecalc();
+  document.getElementById("animalModal").style.display="flex";
+}
+function closeAnimal(){ document.getElementById("animalModal").style.display="none"; _editId=null; }
+function mRelookup(){
+  const raw=document.getElementById("mBrinco").value.trim();
+  const base=baseBrinco(raw);
+  const rec=state.ref.byBrinco[base];
+  if(rec){ _editRef={pesoAnterior:rec.pesoAnterior, dataAnterior:rec.dataAnterior}; }
+  else{ _editRef={pesoAnterior:null, dataAnterior:null}; }
+  mRecalc();
+}
+function mRecalc(){
+  const peso=parseNum(document.getElementById("mPeso").value);
+  const dias=daysBetween(_editRef.dataAnterior, state.data);
+  let gmd=null, ganho=null;
+  if(peso!=null && _editRef.pesoAnterior!=null){
+    ganho=peso-_editRef.pesoAnterior;
+    if(dias && dias>0) gmd=ganho/dias;
+  }
+  const info=document.getElementById("mInfo");
+  info.innerHTML=
+    '<div class="mi"><span class="k">Última pesagem</span><span class="v">'+(_editRef.pesoAnterior!=null?_editRef.pesoAnterior+" kg":"—")+(_editRef.dataAnterior?" ("+isoToBR(_editRef.dataAnterior)+")":"")+'</span></div>'+
+    '<div class="mi"><span class="k">Dias no período</span><span class="v">'+(dias!=null?dias:"—")+'</span></div>'+
+    '<div class="mi"><span class="k">Ganho de peso</span><span class="v">'+(ganho!=null?(ganho>=0?"+":"")+ganho.toFixed(0)+" kg":"—")+'</span></div>'+
+    '<div class="mi"><span class="k">GMD</span><span class="v">'+(gmd!=null?gmd.toFixed(3)+" kg/dia":"—")+'</span></div>';
+}
+function saveAnimal(){
+  const t=state.today.find(x=>x.id===_editId); if(!t){ closeAnimal(); return; }
+  const raw=document.getElementById("mBrinco").value.trim();
+  const peso=parseNum(document.getElementById("mPeso").value);
+  if(!raw){ alert("Número não pode ficar vazio."); return; }
+  if(peso==null){ alert("Peso inválido."); return; }
+  const incerto=isIncerto(raw);
+  const brincoNovo=incerto?(baseBrinco(raw)+"x"):raw;
+  if(baseBrinco(brincoNovo)!==baseBrinco(_editOrigBrinco)){
+    if(!confirm("Mudar o número de "+_editOrigBrinco+" para "+brincoNovo+"?\n\nIsso troca o peso anterior e recalcula o GMD.")) return;
+  }
+  const dias=daysBetween(_editRef.dataAnterior, state.data);
+  let gmd=null;
+  if(peso!=null && _editRef.pesoAnterior!=null && dias && dias>0) gmd=+((peso-_editRef.pesoAnterior)/dias).toFixed(3);
+  t.brinco=brincoNovo;
+  t.base=baseBrinco(raw);
+  t.incerto=incerto;
+  t.peso=peso;
+  t.lote=String(document.getElementById("mLote").value||"");
+  t.obs=document.getElementById("mObs").value.trim();
+  t.pesoAnterior=_editRef.pesoAnterior;
+  t.dataAnterior=_editRef.dataAnterior;
+  t.dias=dias;
+  t.gmd=gmd;
+  save();
+  closeAnimal();
+  renderHoje(); renderFooter(); renderFaltantes();
+  scheduleAutoSync();
 }
 function changeLote(id, val){
   const t=state.today.find(x=>x.id===id); if(!t) return;

@@ -107,6 +107,15 @@ input:focus,select:focus{outline:2px solid var(--v3); border-color:var(--v3)}
 .pr-row:last-child{border-bottom:none}
 .pr-lote{font-weight:800; color:var(--v1); min-width:56px}
 .pr-info{flex:1; font-size:13px; color:var(--muted)}
+.fin-steps{margin-top:14px; display:flex; flex-direction:column; gap:12px}
+.fin-step .fin-n{display:inline-flex; align-items:center; justify-content:center; width:20px; height:20px; border-radius:50%; background:rgba(255,255,255,.25); font-size:12px; margin-right:2px}
+.btn-ghost .fin-n{background:var(--v7)}
+.fin-st{font-size:11px; color:var(--muted); margin-top:5px; padding-left:2px}
+.fin-st.ok{color:var(--v2); font-weight:700}
+.fin-resumo{background:var(--v7); border-radius:12px; padding:12px; margin-bottom:6px}
+.fin-resumo .big{font-size:22px; font-weight:800; color:var(--v1)}
+.fin-lote{display:flex; justify-content:space-between; font-size:13px; padding:3px 0; border-top:1px solid #cfe6cf}
+.fin-lote b{color:var(--v1)}
 
 /* Footer sticky */
 .footer{position:fixed; bottom:56px; left:0; right:0; z-index:15; background:#fff; border-top:1px solid var(--line);
@@ -358,7 +367,8 @@ input:focus,select:focus{outline:2px solid var(--v3); border-color:var(--v3)}
 
     <div class="card stripe">
       <h2><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M8 11l4 4 4-4"/><path d="M4 15v4a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-4"/></svg> Exportar e salvar</h2>
-      <button class="btn btn-primary" onclick="exportXlsx()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M8 11l4 4 4-4"/><path d="M4 15v4a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-4"/></svg> Exportar planilha (.xlsx)</button>
+      <button class="btn btn-primary" onclick="openFinalizar()" style="background:var(--v1)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg> Finalizar pesagem do dia</button>
+      <button class="btn btn-ghost" style="margin-top:10px" onclick="exportXlsx()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M8 11l4 4 4-4"/><path d="M4 15v4a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-4"/></svg> Exportar planilha (.xlsx)</button>
       <button class="btn btn-ghost" style="margin-top:10px" onclick="syncSheets()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12a8 8 0 0 1 14-5l2 2"/><path d="M20 4v5h-5"/><path d="M20 12a8 8 0 0 1-14 5l-2-2"/><path d="M4 20v-5h5"/></svg> Sincronizar Google Sheets</button>
       <label style="display:flex; align-items:center; gap:8px; margin-top:12px; font-weight:700; color:var(--ink); cursor:pointer">
         <input type="checkbox" id="autoSyncChk" style="width:auto; margin:0" checked> Salvar automático (com internet)
@@ -399,6 +409,28 @@ input:focus,select:focus{outline:2px solid var(--v3); border-color:var(--v3)}
     <div style="display:flex; gap:8px; margin-top:14px">
       <button class="btn btn-ghost" onclick="closeAnimal()">Cancelar</button>
       <button class="btn btn-primary" onclick="saveAnimal()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal finalizar pesagem -->
+<div class="modal-bg" id="finalizarModal" onclick="if(event.target===this)closeFinalizar()">
+  <div class="modal">
+    <div class="modal-h"><span>Finalizar pesagem do dia</span><span class="modal-x" onclick="closeFinalizar()">✕</span></div>
+    <div id="finResumo"></div>
+    <div class="fin-steps">
+      <div class="fin-step">
+        <button class="btn btn-primary" onclick="finSync()"><span class="fin-n">1</span> Salvar na planilha (nuvem)</button>
+        <div class="fin-st" id="finSyncSt"></div>
+      </div>
+      <div class="fin-step">
+        <button class="btn btn-ghost" onclick="finExport()"><span class="fin-n">2</span> Exportar backup (.xlsx)</button>
+        <div class="fin-st" id="finExpSt">Guarde este arquivo — é a referência do mês que vem.</div>
+      </div>
+      <div class="fin-step">
+        <button class="btn btn-ghost" onclick="finConcluir()" style="color:var(--danger); border-color:#f0d5d0"><span class="fin-n">3</span> Concluir e começar nova pesagem</button>
+        <div class="fin-st">Só faça isso depois de salvar e exportar.</div>
+      </div>
     </div>
   </div>
 </div>
@@ -1353,6 +1385,55 @@ function go(s){
   if(s==="config") renderConfig();
   if(s==="relatorio") renderRelatorio();
   if(s==="dashboard") renderDashboard();
+}
+function openFinalizar(){
+  if(!state.today.length){ alert("Nenhum animal pesado para finalizar."); return; }
+  const st=loteStats();
+  let gs=0,gn=0,pTot=0,qTot=0;
+  for(let i=1;i<=N_LOTES;i++){ gs+=st[i].gmdSum; gn+=st[i].gmdN; pTot+=st[i].peso; qTot+=st[i].qtd; }
+  const gmdGeral=gn?(gs/gn):null;
+  const pesoMed=qTot?pTot/qTot:0;
+  let lotes="";
+  for(let i=1;i<=N_LOTES;i++){ const s=st[i]; if(!s.qtd) continue;
+    const media=s.peso/s.qtd, gmd=s.gmdN?s.gmdSum/s.gmdN:null;
+    lotes+='<div class="fin-lote"><span><b>Lote '+i+'</b> · '+s.qtd+' cab</span><span>'+media.toFixed(0)+'kg ('+(media/AR_DIV).toFixed(1)+'@) · GMD '+(gmd!=null?gmd.toFixed(3):"—")+'</span></div>';
+  }
+  const semLote=state.today.filter(t=>!t.lote).length;
+  const revisar=state.today.filter(t=>t.incerto).length;
+  let avisos="";
+  if(semLote>0) avisos+='<div style="color:var(--danger);font-size:12px;font-weight:700;margin-top:6px">⚠ '+semLote+' animal(is) sem lote definido.</div>';
+  if(revisar>0) avisos+='<div style="color:var(--warn);font-size:12px;font-weight:700;margin-top:2px">⚠ '+revisar+' marcado(s) para revisar.</div>';
+  document.getElementById("finResumo").innerHTML=
+    '<div class="fin-resumo">'+
+      '<div style="font-size:12px;color:var(--muted);font-weight:700">'+(state.fazenda?esc(state.fazenda)+" · ":"")+isoToBR(state.data)+'</div>'+
+      '<div class="big">'+state.today.length+' animais</div>'+
+      '<div style="font-size:13px;color:var(--muted);margin-bottom:6px">peso médio '+pesoMed.toFixed(0)+'kg ('+(pesoMed/AR_DIV).toFixed(1)+'@) · GMD médio '+(gmdGeral!=null?gmdGeral.toFixed(3):"—")+'</div>'+
+      lotes+avisos+
+    '</div>';
+  document.getElementById("finSyncSt").innerHTML = state.syncDirty===false ? '<span class="ok">✓ já sincronizado</span>' : "Envie os dados para a planilha.";
+  document.getElementById("finExpSt").innerHTML = "Guarde este arquivo — é a referência do mês que vem.";
+  document.getElementById("finalizarModal").style.display="flex";
+}
+function closeFinalizar(){ document.getElementById("finalizarModal").style.display="none"; }
+async function finSync(){
+  const el=document.getElementById("finSyncSt");
+  el.textContent="Salvando...";
+  await syncSheets();
+  const ss=document.getElementById("syncStatus");
+  el.innerHTML = (ss && ss.textContent.indexOf("gravadas")>=0)
+    ? '<span class="ok">✓ salvo na planilha</span>'
+    : (ss?ss.innerHTML:"Verifique a planilha.");
+}
+function finExport(){
+  exportXlsx();
+  document.getElementById("finExpSt").innerHTML='<span class="ok">✓ arquivo exportado — guarde para o próximo mês</span>';
+}
+function finConcluir(){
+  if(!confirm("Concluir a pesagem e começar uma nova?\n\nConfirme que você JÁ salvou na planilha e exportou o backup. Isso limpa os animais pesados hoje (mantém a planilha de referência).")) return;
+  state.today=[]; state.data=todayISO(); window._obsNova=""; sel=null; state.syncDirty=false;
+  save(); closeFinalizar();
+  renderConfig(); renderHoje(); renderFooter(); renderFaltantes(); renderPesarResumo();
+  go("pesar");
 }
 function novaPesagem(){
   if(!confirm("Isso apaga a pesagem de hoje (mantém planilhas importadas). Continuar?")) return;

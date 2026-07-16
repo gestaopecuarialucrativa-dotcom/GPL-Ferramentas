@@ -184,6 +184,15 @@ input:focus,select:focus{border-color:var(--v3)}
         Planilha de Referencia
       </div>
       <p class="muted" style="margin-bottom:12px">Pesagem anterior — para identificar animais e calcular GMD.</p>
+      <!-- BANNER: dados salvos no celular/browser -->
+      <div id="ref-cached-banner" style="display:none;background:var(--v7);border:1.5px solid var(--v3);border-radius:12px;padding:14px;margin-bottom:12px">
+        <div style="font-size:13px;font-weight:700;color:var(--v1);margin-bottom:4px">✓ Planilha salva no dispositivo</div>
+        <div id="ref-cached-info" style="font-size:13px;color:var(--g700);margin-bottom:10px"></div>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-primary btn-sm" style="flex:1" onclick="useCachedRef()">Usar dados salvos</button>
+          <button class="btn btn-ghost btn-sm" style="flex:1" onclick="clearCachedRef()">Trocar planilha</button>
+        </div>
+      </div>
       <div class="import-box" id="ref-box" onclick="document.getElementById('ref-file').click()">
         <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="var(--v3)" stroke-width="1.5">
           <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
@@ -412,12 +421,103 @@ function readXLSX(file, cb) {
   r.readAsArrayBuffer(file);
 }
 
+/* ── CACHE localStorage ── */
+var CACHE_KEY = 'gpl_ref_v1';
+var CACHE_KEY_HIST = 'gpl_hist_v1';
+
+function saveRefToCache(animals, date, filename) {
+  try {
+    var byLote = {};
+    animals.forEach(function(v) { byLote[v.lote] = (byLote[v.lote] || 0) + 1; });
+    var payload = {
+      animals: Array.from(animals.entries()),
+      date: date ? date.toISOString() : null,
+      filename: filename,
+      lotes: byLote,
+      count: animals.size,
+      saved: new Date().toISOString()
+    };
+    localStorage.setItem(CACHE_KEY, JSON.stringify(payload));
+  } catch(e) {}
+}
+
+function saveHistToCache(animals, date, filename) {
+  try {
+    var payload = {
+      animals: Array.from(animals.entries()),
+      date: date ? date.toISOString() : null,
+      filename: filename,
+      count: animals.size
+    };
+    localStorage.setItem(CACHE_KEY_HIST, JSON.stringify(payload));
+  } catch(e) {}
+}
+
+function loadCachedRef() {
+  try {
+    var raw = localStorage.getItem(CACHE_KEY);
+    if (!raw) return;
+    var p = JSON.parse(raw);
+    var banner = document.getElementById('ref-cached-banner');
+    var byLote = p.lotes || {};
+    var loteStr = Object.keys(byLote).sort(function(a,b){return Number(a)-Number(b);})
+      .map(function(l){ return 'Lote '+l+': '+byLote[l]; }).join(' · ');
+    var dateStr = p.date ? fmtDate(new Date(p.date)) : '—';
+    document.getElementById('ref-cached-info').textContent =
+      p.count + ' animais · ' + dateStr + (p.filename ? ' · ' + p.filename : '') + '\n' + loteStr;
+    banner.style.display = 'block';
+    // Oculta o import-box por padrão quando há cache
+    document.getElementById('ref-box').style.display = 'none';
+  } catch(e) {}
+}
+
+function useCachedRef() {
+  try {
+    var p = JSON.parse(localStorage.getItem(CACHE_KEY));
+    S.refData = new Map(p.animals);
+    S.refDate = p.date ? new Date(p.date) : null;
+    // Atualiza UI
+    document.getElementById('ref-box').classList.add('ok');
+    document.getElementById('ref-box').style.display = 'block';
+    document.getElementById('ref-title').textContent = p.filename || 'Planilha de referencia';
+    document.getElementById('ref-sub').textContent = p.count + ' animais · ' + (p.date ? fmtDate(new Date(p.date)) : '');
+    document.getElementById('ref-cached-banner').style.display = 'none';
+    var byLote = p.lotes || {};
+    var ex = document.getElementById('ref-extra');
+    ex.style.display = 'block';
+    ex.textContent = Object.keys(byLote).sort(function(a,b){return Number(a)-Number(b);})
+      .map(function(l){ return 'Lote '+l+': '+byLote[l]; }).join('  ·  ');
+    toast(p.count + ' animais carregados do cache');
+    // Tenta também carregar hist
+    var rawH = localStorage.getItem(CACHE_KEY_HIST);
+    if (rawH) {
+      var ph = JSON.parse(rawH);
+      S.histData = new Map(ph.animals);
+      S.histDate = ph.date ? new Date(ph.date) : null;
+      document.getElementById('hist-box').classList.add('ok');
+      document.getElementById('hist-title').textContent = ph.filename || 'Historico';
+      document.getElementById('hist-sub').textContent = ph.count + ' animais carregados';
+    }
+  } catch(e) { toast('Erro ao carregar cache'); }
+}
+
+function clearCachedRef() {
+  localStorage.removeItem(CACHE_KEY);
+  localStorage.removeItem(CACHE_KEY_HIST);
+  document.getElementById('ref-cached-banner').style.display = 'none';
+  document.getElementById('ref-box').style.display = 'block';
+  toast('Cache limpo — importe uma nova planilha');
+}
+
 function importRef(inp) {
   if (!inp.files[0]) return;
   readXLSX(inp.files[0], function(wb) {
     var r = parseWB(wb);
     if (!r || r.animals.size === 0) { toast('Arquivo invalido ou sem dados'); return; }
     S.refData = r.animals; S.refDate = r.date;
+    saveRefToCache(r.animals, r.date, inp.files[0].name);
+    document.getElementById('ref-cached-banner').style.display = 'none';
+    document.getElementById('ref-box').style.display = 'block';
     document.getElementById('ref-box').classList.add('ok');
     document.getElementById('ref-title').textContent = inp.files[0].name;
     document.getElementById('ref-sub').textContent = r.animals.size + ' animais · ' + fmtDate(r.date);
@@ -427,7 +527,7 @@ function importRef(inp) {
     ex.style.display = 'block';
     ex.textContent = Object.keys(byLote).sort(function(a,b){return Number(a)-Number(b);})
       .map(function(l) { return 'Lote ' + l + ': ' + byLote[l]; }).join('  ·  ');
-    toast(r.animals.size + ' animais importados');
+    toast(r.animals.size + ' animais importados e salvos no dispositivo');
   });
 }
 
@@ -437,10 +537,11 @@ function importHist(inp) {
     var r = parseWB(wb);
     if (!r || r.animals.size === 0) { toast('Arquivo invalido'); return; }
     S.histData = r.animals; S.histDate = r.date;
+    saveHistToCache(r.animals, r.date, inp.files[0].name);
     document.getElementById('hist-box').classList.add('ok');
     document.getElementById('hist-title').textContent = inp.files[0].name;
     document.getElementById('hist-sub').textContent = r.animals.size + ' animais · ' + fmtDate(r.date);
-    toast('Historico: ' + r.animals.size + ' animais');
+    toast('Historico: ' + r.animals.size + ' animais salvos no dispositivo');
   });
 }
 
@@ -876,6 +977,8 @@ function saveGSheets() {
   document.getElementById('inp-date').value = d.getFullYear() + '-'
     + String(d.getMonth()+1).padStart(2,'0') + '-'
     + String(d.getDate()).padStart(2,'0');
+  // Carrega cache se existir
+  loadCachedRef();
 })();
 </script>
 </body>

@@ -59,6 +59,9 @@ body{margin:0; font-family:Arial,'Segoe UI',Roboto,system-ui; background:var(--b
 
 svg{width:100%; height:auto; display:block}
 .hist-cap{font-size:11px; color:var(--muted); margin:8px 0 4px; font-weight:700}
+.comp3{display:flex; gap:12px; flex-wrap:wrap; margin-top:6px}
+.comp3 .comp-col{flex:1; min-width:165px}
+.comp3 .comp-col .hist-cap{text-align:center; min-height:28px; margin-top:0}
 
 .rank{display:flex; justify-content:space-between; padding:6px 0; border-bottom:1px solid var(--line); font-size:13px}
 .rank:last-child{border-bottom:none}
@@ -81,7 +84,7 @@ table.venda tr.total td{border-top:2px solid var(--v2); font-weight:800; color:v
   .top{position:static}
   /* nada de bloco cortado no meio entre paginas */
   /* card grande flui entre paginas (sem pagina em branco); so blocos menores nao cortam */
-  .grid,.cell,.hist,.hist-cap,svg,.rank,.kpi,.chip{
+  .grid,.cell,.hist,.hist-cap,svg,.rank,.kpi,.chip,.comp-col{
     break-inside:avoid; page-break-inside:avoid;
   }
   .card{box-shadow:none}
@@ -413,12 +416,14 @@ function render(){
 
   // Gráficos gerais
   html+='<div class="card"><h2>Comparativo entre lotes</h2>';
-  html+='<div class="hist-cap">GMD por lote (kg/cab/dia) — linha = meta 0,35</div>'+
-    svgBars(stats.map(s=>({label:"L"+s.L, value:s.gmd||0, color:(s.gmd>=0.5?"#2E7D32":s.gmd>=0.35?"#4CAF50":s.gmd>=0.18?"#c9820a":"#c0392b")})),{dec:3,target:0.35});
-  html+='<div class="hist-cap" style="margin-top:12px">Peso médio por lote (@) — linha = meta '+fmt(meta/AR_DIV,1)+'@</div>'+
-    svgBars(stats.map(s=>({label:"L"+s.L, value:s.media/AR_DIV, color:"#2E7D32"})),{dec:1,target:meta/AR_DIV,unit:"@"});
-  html+='<div class="hist-cap" style="margin-top:12px">Uniformidade por lote (%) — quanto maior, mais parelho</div>'+
-    svgBars(stats.map(s=>({label:"L"+s.L, value:s.unif, color:(s.unif>=70?"#2E7D32":s.unif>=50?"#c9820a":"#c0392b")})),{dec:0,target:70,unit:"%"});
+  html+='<div class="comp3">';
+  html+='<div class="comp-col"><div class="hist-cap">GMD (kg/cab/dia)<br>meta 0,35</div>'+
+    svgBars(stats.map(s=>({label:"L"+s.L, value:s.gmd||0, color:(s.gmd>=0.5?"#2E7D32":s.gmd>=0.35?"#4CAF50":s.gmd>=0.18?"#c9820a":"#c0392b")})),{dec:3,target:0.35})+'</div>';
+  html+='<div class="comp-col"><div class="hist-cap">Peso médio (@)<br>meta '+fmt(meta/AR_DIV,1)+'@</div>'+
+    svgBars(stats.map(s=>({label:"L"+s.L, value:s.media/AR_DIV, color:"#2E7D32"})),{dec:1,target:meta/AR_DIV,unit:"@"})+'</div>';
+  html+='<div class="comp-col"><div class="hist-cap">Uniformidade (%)<br>meta 70%</div>'+
+    svgBars(stats.map(s=>({label:"L"+s.L, value:s.unif, color:(s.unif>=70?"#2E7D32":s.unif>=50?"#c9820a":"#c0392b")})),{dec:0,target:70,unit:"%"})+'</div>';
+  html+='</div>';
   html+='</div>';
 
   // Card por lote

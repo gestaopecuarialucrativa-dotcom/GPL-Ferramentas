@@ -403,7 +403,7 @@ function render(){
       '</div>'+
       '<div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:8px">'+
         '<span class="tag '+cu.cls+'">Uniformidade '+fmt(s.unif,0)+'% · '+cu.t+'</span>'+
-        '<span class="tag t-grey">CV '+fmt(s.cv,1)+'%</span>'+
+        '<span class="tag t-grey" title="Coeficiente de variação: quanto menor, mais parelho o lote">Variação de peso '+fmt(s.cv,1)+'%</span>'+
         '<span class="tag '+cg.cls+'">GMD '+cg.t+'</span>'+
       '</div>'+
       '<div class="hist-cap">Distribuição de peso (kg) — barras escuras já na meta · linha vermelha = meta</div>'+
@@ -419,6 +419,35 @@ function render(){
     '<div><div class="hist-cap">🔝 Maiores</div>'+top.map(a=>rankRow(a)).join("")+'</div>'+
     '<div><div class="hist-cap">🔻 Menores</div>'+bot.map(a=>rankRow(a)).join("")+'</div>'+
   '</div></div>';
+
+  // Animais que precisam de atenção (GMD baixo ou negativo)
+  const atencao=dados.animais.filter(a=>a.gmd!=null && a.gmd<0.15).sort((a,b)=>a.gmd-b.gmd);
+  html+='<div class="card"><h2>⚠ Animais que precisam de atenção</h2>';
+  if(atencao.length){
+    html+='<div class="cap">GMD baixo ou negativo — vale conferir saúde/manejo destes '+atencao.length+' animais.</div>';
+    atencao.forEach(a=>{
+      const gcls=a.gmd<0?"t-bad":"t-warn";
+      html+='<div class="rank"><span class="b">'+esc(a.brinco)+' <span style="font-weight:400;color:var(--muted)">L'+a.lote+'</span></span>'+
+        '<span><span class="tag '+gcls+'" style="padding:2px 8px">GMD '+fmt(a.gmd,3)+'</span> '+fmt(a.peso,0)+'kg'+(a.obs?' · '+esc(a.obs):'')+'</span></div>';
+    });
+  } else {
+    html+='<div class="cap">Nenhum animal com GMD baixo. Todos ganhando bem. ✓</div>';
+  }
+  html+='</div>';
+
+  // Lista completa de todos os animais
+  const todos=dados.animais.slice().sort((a,b)=>{
+    if(a.lote!==b.lote) return a.lote-b.lote;
+    const na=parseInt(a.base,10), nb=parseInt(b.base,10);
+    if(!isNaN(na)&&!isNaN(nb)&&na!==nb) return na-nb;
+    return String(a.brinco).localeCompare(String(b.brinco));
+  });
+  html+='<div class="card"><h2>Lista completa — '+todos.length+' animais</h2><div class="cap">Todos os números, com peso, lote e GMD.</div>';
+  html+='<table class="venda"><tr><th>Nº</th><th>Lote</th><th>Peso</th><th>@</th><th>GMD</th><th>Obs</th></tr>';
+  todos.forEach(a=>{
+    html+='<tr><td>'+esc(a.brinco)+'</td><td>'+a.lote+'</td><td>'+fmt(a.peso,0)+'</td><td>'+fmt(a.peso/AR_DIV,1)+'</td><td>'+(a.gmd!=null?fmt(a.gmd,3):"—")+'</td><td style="text-align:left;font-size:11px;color:var(--muted)">'+esc(a.obs||"")+'</td></tr>';
+  });
+  html+='</table></div>';
 
   // Quadro de venda
   html+='<div class="card"><h2>Quadro de venda</h2>';

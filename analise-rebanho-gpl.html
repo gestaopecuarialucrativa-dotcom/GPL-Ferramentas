@@ -89,7 +89,13 @@ table.venda tr.total td{border-top:2px solid var(--v2); font-weight:800; color:v
   tr{break-inside:avoid; page-break-inside:avoid}
   thead{display:table-header-group}
   h1,h2,h3{break-after:avoid; page-break-after:avoid}
+  .print-only{display:block!important}
+  .print-brand{text-align:center; margin:0 0 12px; padding-bottom:8px; border-bottom:2px solid #1B5E20}
+  .print-brand .pb-t{font-size:18px; font-weight:800; color:#1B5E20}
+  .print-brand .pb-frase{font-style:italic; color:#2E7D32; font-weight:600; font-size:12px; margin-top:4px}
+  .print-foot{margin-top:14px; border-top:1px solid #cfe0cf; padding-top:6px; text-align:center; font-size:10px; color:#5f6b60}
 }
+.print-only{display:none}
 </style>
 </head>
 <body>
@@ -118,7 +124,7 @@ table.venda tr.total td{border-top:2px solid var(--v2); font-weight:800; color:v
     </button>
     <span class="field">Meta abate (kg) <input id="metaIn" inputmode="decimal" placeholder="480"></span>
     <span class="field">R$/arroba <input id="arrobaIn" inputmode="decimal" placeholder="320"></span>
-    <button class="btn btn-ghost" onclick="gerarPDF()">
+    <button class="btn btn-ghost" onclick="window.print()">
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><path d="M6 14h12v8H6z"/></svg>
       PDF
     </button>
@@ -128,7 +134,7 @@ table.venda tr.total td{border-top:2px solid var(--v2); font-weight:800; color:v
     </button>
   </div>
 
-  <div id="content"></div>
+  <div class="print-only print-brand"><div class="pb-t">Gestão Pecuária Lucrativa</div><div class="pb-frase">"Pare de gerenciar no escuro — descubra o lucro real por hectare."</div></div><div id="content"></div><div class="print-only print-foot">gestaopecuarialucrativa.com.br · Rogério Avelino — Consultor Gama Inttegra · (63) 99108-2453 · @gestaopecuarialucrativa</div>
 </div>
 
 <script>

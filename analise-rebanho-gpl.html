@@ -541,7 +541,9 @@ function gerarPDF(){
     '<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;border-bottom:2px solid #1B5E20;padding-bottom:8px">'+
     '<div><div style="font-size:20px;font-weight:800;color:#1B5E20">Análise de Rebanho — GPL</div>'+
     '<div style="font-size:12px;color:#5f6b60">'+(hdr?hdr.textContent:"")+'</div></div></div>'+
-    content.innerHTML;
+    '<div style="font-style:italic;color:#2E7D32;font-weight:700;font-size:13px;margin:8px 0 14px;padding:9px 13px;background:#E8F5E9;border-radius:8px;border-left:4px solid #4CAF50">\"Pare de gerenciar no escuro — descubra o lucro real por hectare.\"</div>'+
+    content.innerHTML+
+    '<div style="margin-top:16px;border-top:1px solid #cfe0cf;padding-top:8px;font-size:10px;color:#5f6b60;text-align:center;line-height:1.6"><b style="color:#1B5E20">Gestão Pecuária Lucrativa</b> · Rogério Avelino — Consultor Gama Inttegra<br>gestaopecuarialucrativa.com.br · (63) 99108-2453 · @gestaopecuarialucrativa</div>';
   document.body.appendChild(wrap);
   var nome="Analise-Rebanho-"+((dados&&dados.data)?dados.data:"GPL")+".pdf";
   var opt={ margin:[8,8,10,8], filename:nome,

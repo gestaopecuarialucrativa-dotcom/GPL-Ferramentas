@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <title>Pesagem de Curral — GPL</title>
 <script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <style>
 :root{
   --v1:#1B5E20; --v2:#2E7D32; --v3:#4CAF50; --v7:#E8F5E9;
@@ -214,6 +215,14 @@ input:focus,select:focus{outline:2px solid var(--v3); border-color:var(--v3)}
   .rel-logo{display:block; text-align:center; margin:0 0 10px}
   .rel-logo img{height:48px}
 }
+.pdf-wrap{ padding:16px; font-family:inherit; color:#1a1a1a; background:#fff }
+.pdf-cap{ display:flex; align-items:center; gap:12px; border-bottom:3px solid #1B5E20; padding-bottom:10px; margin-bottom:6px }
+.pdf-cap-t{ font-size:20px; font-weight:800; color:#1B5E20; line-height:1.15 }
+.pdf-cap-s{ font-size:12px; color:#5f6b60; margin-top:2px }
+.pdf-frase{ font-style:italic; color:#2E7D32; font-weight:700; font-size:13px; margin:8px 0 14px; padding:9px 13px; background:#E8F5E9; border-radius:8px; border-left:4px solid #4CAF50 }
+.pdf-rodape{ margin-top:16px; border-top:1px solid #cfe0cf; padding-top:8px; font-size:10px; color:#5f6b60; text-align:center; line-height:1.6 }
+.pdf-rodape b{ color:#1B5E20 }
+.pdf-wrap .rel-card,.pdf-wrap .rel-proj,.pdf-wrap .dash-chart,.pdf-wrap .dash-kpi,.pdf-wrap .rel-prod-row{ break-inside:avoid; page-break-inside:avoid }
 </style>
 </head>
 <body>
@@ -310,7 +319,7 @@ input:focus,select:focus{outline:2px solid var(--v3); border-color:var(--v3)}
           <div id="relHeader" style="font-size:12px; color:var(--muted); margin-top:2px"></div>
         </div>
         <div style="display:flex; gap:8px; flex-shrink:0">
-          <button class="btn btn-ghost btn-sm rel-actions" onclick="window.print()">
+          <button class="btn btn-ghost btn-sm rel-actions" onclick="gerarPDF('relContent','Relatório de Pesagem')">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><path d="M6 14h12v8H6z"/></svg>
             PDF
           </button>
@@ -335,7 +344,7 @@ input:focus,select:focus{outline:2px solid var(--v3); border-color:var(--v3)}
           <div style="font-size:15px; font-weight:800; color:var(--v1)">Dashboard</div>
           <div id="dashHeader" style="font-size:12px; color:var(--muted); margin-top:2px"></div>
         </div>
-        <button class="btn btn-ghost btn-sm rel-actions" onclick="window.print()">
+        <button class="btn btn-ghost btn-sm rel-actions" onclick="gerarPDF('dashContent','Painel do Rebanho')">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><path d="M6 14h12v8H6z"/></svg> PDF
         </button>
       </div>
@@ -577,6 +586,32 @@ function setProdPreco(inp){
   const v=parseFloat(String(inp.value).replace(",","."))||0;
   if(!state.precos) state.precos={};
   state.precos[p]=v; save(); renderRelatorio();
+}
+function gerarPDF(alvoId, titulo){
+  var alvo=document.getElementById(alvoId);
+  if(!alvo || !alvo.innerHTML.trim()){ alert("Gere o conteúdo antes de exportar o PDF."); return; }
+  if(typeof html2pdf==="undefined"){ alert("O gerador de PDF ainda está carregando. Tente de novo em 2 segundos."); return; }
+  var faz=state.fazenda||"", data=state.data?isoToBR(state.data):"";
+  var logo=document.querySelector(".hdr-logo"); var logoSrc=logo?logo.getAttribute("src"):"";
+  var wrap=document.createElement("div");
+  wrap.style.position="fixed"; wrap.style.left="-10000px"; wrap.style.top="0"; wrap.style.width="800px";
+  wrap.className="pdf-wrap";
+  wrap.innerHTML=
+    '<div class="pdf-cap">'+(logoSrc?'<img src="'+logoSrc+'" style="height:44px">':"")+
+      '<div><div class="pdf-cap-t">'+esc(titulo)+'</div>'+
+      '<div class="pdf-cap-s">'+esc(faz)+(data?" · "+data:"")+'</div></div></div>'+
+    '<div class="pdf-frase">"Pare de gerenciar no escuro — descubra o lucro real por hectare."</div>'+
+    alvo.innerHTML+
+    '<div class="pdf-rodape"><b>Gestão Pecuária Lucrativa</b> · Rogério Avelino — Consultor Gama Inttegra<br>'+
+      'gestaopecuarialucrativa.com.br · (63) 99108-2453 · @gestaopecuarialucrativa</div>';
+  document.body.appendChild(wrap);
+  var nome="GPL-"+String(titulo).replace(/[^a-zA-Z0-9]+/g,"-")+"-"+(state.data||"")+".pdf";
+  var opt={ margin:[8,8,10,8], filename:nome, image:{type:"jpeg", quality:0.96},
+    html2canvas:{scale:2, useCORS:true, backgroundColor:"#ffffff"},
+    jsPDF:{unit:"mm", format:"a4", orientation:"portrait"},
+    pagebreak:{ mode:["css","legacy"], avoid:[".rel-card",".rel-proj",".dash-chart",".dash-kpi",".rel-prod-row","tr"] } };
+  html2pdf().set(opt).from(wrap).save().then(function(){ if(wrap.parentNode) document.body.removeChild(wrap); })
+    .catch(function(){ if(wrap.parentNode) document.body.removeChild(wrap); });
 }
 function setProdOculto(pEnc, hide){
   const p=decodeURIComponent(pEnc);

@@ -414,7 +414,7 @@ input:focus,select:focus{outline:2px solid var(--v3); border-color:var(--v3)}
     </div>
     <div class="modal-info" id="mInfo"></div>
     <label style="margin-top:10px">Observação</label>
-    <input id="mObs" placeholder="Anotar algo?" autocomplete="off">
+    <input id="mObs" placeholder="Anotar algo?" spellcheck="true" autocorrect="on" autocapitalize="sentences" lang="pt-BR">
     <div style="display:flex; gap:8px; margin-top:14px">
       <button class="btn btn-ghost" onclick="closeAnimal()">Cancelar</button>
       <button class="btn btn-primary" onclick="saveAnimal()">Salvar</button>
@@ -681,7 +681,7 @@ function renderDetail(){
         <div><div class="k">GMD individual</div><div class="val gmd-big">${gmd!=null?gmd.toFixed(3)+" kg/d":"—"}</div></div>
       </div>
       <div style="margin-top:4px; padding-top:6px; border-top:1px dashed #cfe6cf"><div class="k">Observação anterior (da última pesagem)</div><div style="font-size:14px;color:var(--v1);font-weight:700">${sel.obsAnterior?esc(sel.obsAnterior):"— sem observação"}</div></div>
-      <div style="margin-top:8px"><label>Observação de hoje (opcional)</label><input id="obsNova" placeholder="Anotar algo?" value="${esc(window._obsNova||"")}"></div>
+      <div style="margin-top:8px"><label>Observação de hoje (opcional)</label><input id="obsNova" placeholder="Anotar algo?" spellcheck="true" autocorrect="on" autocapitalize="sentences" lang="pt-BR" value="${esc(window._obsNova||"")}"></div>
     </div>`;
   const oi=document.getElementById("obsNova"); if(oi) oi.oninput=()=>{window._obsNova=oi.value;};
 }

@@ -222,6 +222,23 @@ input:focus,select:focus{outline:2px solid var(--v3); border-color:var(--v3)}
   .print-brand .pb-frase{font-style:italic; color:#2E7D32; font-weight:600; font-size:12px; margin-top:4px}
   .print-foot{margin-top:14px; border-top:1px solid #cfe0cf; padding-top:6px; text-align:center; font-size:10px; color:#5f6b60}
 }
+.rel-gmdg{background:#f7faf7; border:1px solid #e0ebe0; border-radius:10px; padding:10px 12px; margin-bottom:10px}
+.rel-gmdg-row{display:flex; justify-content:space-between; gap:8px; flex-wrap:wrap; font-size:12px; color:var(--muted)}
+.rel-gmdg-row b{font-size:16px; color:var(--v1); font-weight:800}
+.rel-gmdg-diff{font-size:14px; font-weight:800; margin-top:6px}
+.rel-gmdg-diff.rel-s-ok{color:var(--v2)}
+.rel-gmdg-diff.rel-s-bad{color:#c0392b}
+.rel-gmdg-sub{font-size:11px; color:var(--muted); margin-top:4px}
+.rel-gmdg-sub b{color:var(--v1)}
+.rel-trato-manual{background:#f0f7f0; border:1px solid #cfe3cf; border-radius:10px; padding:12px; margin:2px 0 12px}
+.rel-trato-ins{display:flex; gap:10px; flex-wrap:wrap; margin:8px 0}
+.rel-trato-ins label{display:flex; flex-direction:column; font-size:11px; color:var(--muted); font-weight:700; gap:3px}
+.rel-trato-ins input{padding:7px 8px; border:1px solid var(--line); border-radius:8px; font-family:inherit; font-size:15px; font-weight:700; width:120px}
+.rel-trato-big{display:flex; gap:10px; flex-wrap:wrap; margin-top:8px}
+.rel-trato-big > div{flex:1; min-width:135px; background:#fff; border-radius:8px; padding:9px 11px}
+.rel-trato-big .k{display:block; font-size:11px; color:var(--muted); font-weight:700; margin-bottom:2px}
+.rel-trato-big b{font-size:21px; color:var(--v1); font-weight:800; line-height:1.1}
+.rel-trato-big .u{font-size:10px; color:var(--muted); margin-left:5px}
 .pdf-wrap{ padding:16px; font-family:inherit; color:#1a1a1a; background:#fff }
 .pdf-cap{ display:flex; align-items:center; gap:12px; border-bottom:3px solid #1B5E20; padding-bottom:10px; margin-bottom:6px }
 .pdf-cap-t{ font-size:20px; font-weight:800; color:#1B5E20; line-height:1.15 }
@@ -382,6 +399,11 @@ input:focus,select:focus{outline:2px solid var(--v3); border-color:var(--v3)}
         <input id="arrobaIn" inputmode="decimal" placeholder="Ex: 320">
         <div class="hint">Usado para calcular se o ganho paga a alimentação (retorno econômico)</div>
       </div>
+      <div class="field">
+        <label>GMD Global da fazenda (kg/dia)</label>
+        <input id="gmdGlobalIn" inputmode="decimal" placeholder="Ex: 0,386">
+        <div class="hint">Média da fazenda (do Inttegra). Compara com o GMD de cada lote para ver se o trato está valendo.</div>
+      </div>
     </div>
 
     <div class="card stripe">
@@ -504,7 +526,9 @@ let state = {
   consumo:{loaded:false, ts:null, tratos:[], est:{}},
   precos:{},
   produtosOcultos:{},
-  consumoAnimais:{}
+  consumoAnimais:{},
+  trato:{},
+  gmdGlobal:0
 };
 let sel = null;
 let novoMode = false;
@@ -648,6 +672,8 @@ function load(){
         if(!state.precos) state.precos={};
         if(!state.produtosOcultos) state.produtosOcultos={};
         if(!state.consumoAnimais) state.consumoAnimais={};
+        if(!state.trato) state.trato={};
+        if(state.gmdGlobal==null) state.gmdGlobal=0;
         return true; } }
   }catch(e){}
   return false;
@@ -1107,6 +1133,7 @@ function renderConfig(){
   document.getElementById("respIn").value=state.responsavel||"";
   document.getElementById("metaPesoIn").value=state.metaPeso||480;
   document.getElementById("arrobaIn").value=state.precoArroba||"";
+  var gg=document.getElementById("gmdGlobalIn"); if(gg) gg.value=state.gmdGlobal?String(state.gmdGlobal).replace(".",","):"";
   const asc=document.getElementById("autoSyncChk"); if(asc) asc.checked=!!state.autoSync;
   document.getElementById("refStatus").innerHTML = state.ref.loaded
     ? `<span class="status-ok">✓ ${esc(state.ref.name)}</span> — ${state.ref.list.length} animais · data ${isoToBR(state.ref.data)}`
@@ -1316,6 +1343,7 @@ function renderRelatorio(){
         </div>
       </div>
 
+      ${gmdGlobalHTML(gmd)}
       ${projHtml}
 
       ${ganhoTotal?`<div class="rel-ganho">Ganho acumulado no período: <strong>+${ganhoTotal} kg/animal</strong> (${diasMedio!=null?Math.round(diasMedio)+' dias':''} desde a última pesagem)</div>`:''}
@@ -1331,6 +1359,70 @@ function fmtBR(n,dec){
   var p=Number(n).toFixed(dec==null?0:dec).split(".");
   p[0]=p[0].replace(/\B(?=(\d{3})+(?!\d))/g,".");
   return p.length>1 ? p[0]+","+p[1] : p[0];
+}
+function gmdGlobalHTML(gmd){
+  var g=parseFloat(state.gmdGlobal)||0;
+  if(!(g>0) || gmd==null) return "";
+  var diff=gmd-g;
+  var pct=g>0?Math.round((gmd/g-1)*100):0;
+  var pArr=parseFloat(state.precoArroba)||0;
+  var valExtra=(pArr>0)?(diff/AR_DIV)*pArr:null;
+  var acima=diff>=0;
+  var cls=acima?"rel-s-ok":"rel-s-bad";
+  var pctTxt=pct?(" ("+(acima?"+":"")+pct+"%)"):"";
+  var h="<div class=\"rel-gmdg\">";
+  h+="<div class=\"rel-gmdg-row\"><span>GMD do lote <b>"+gmd.toFixed(3)+"</b></span><span>GMD global fazenda <b>"+g.toFixed(3)+"</b></span></div>";
+  h+="<div class=\"rel-gmdg-diff "+cls+"\">"+(acima?"+":"")+diff.toFixed(3)+" kg/dia "+(acima?"acima":"abaixo")+" da média da fazenda"+pctTxt+"</div>";
+  if(valExtra!=null && Math.abs(diff)>0.0005){
+    h+="<div class=\"rel-gmdg-sub\">Esse ganho "+(acima?"a mais":"a menos")+" vale <b>R$ "+fmtBR(Math.abs(valExtra),2)+"/cab/dia</b> (@ R$ "+fmtBR(pArr,2)+") — compare com o custo do trato abaixo</div>";
+  }
+  h+="</div>";
+  return h;
+}
+function setTrato(L, campo, inp){
+  if(!state.trato) state.trato={};
+  if(!state.trato[L]) state.trato[L]={};
+  var v=inp.value;
+  if(campo==="sacos"||campo==="preco"){ v=parseFloat(String(v).replace(",","."))||0; }
+  state.trato[L][campo]=v; save(); renderRelatorio();
+}
+function tratoManualHTML(L, nA, gmd){
+  var t=(state.trato&&state.trato[L])?state.trato[L]:{};
+  var inicio=t.inicio||state.ref.data||"";
+  var sacos=(t.sacos!=null&&t.sacos!=="")?t.sacos:"";
+  var preco=(t.preco!=null&&t.preco!=="")?t.preco:"";
+  if(preco==="" && state.precos){ for(var k in state.precos){ if(state.precos[k]>0){ preco=state.precos[k]; break; } } }
+  var dias=(inicio&&state.data)?daysBetween(inicio,state.data):null;
+  var sN=parseFloat(sacos)||0, pN=parseFloat(preco)||0;
+  var custoDia=(sN>0&&pN>0)?sN*pN:null;
+  var custoCabDia=(custoDia!=null&&nA>0)?custoDia/nA:null;
+  var custoTotal=(custoDia!=null&&dias)?custoDia*dias:null;
+  var custoKgGanho=(custoCabDia!=null&&gmd>0)?custoCabDia/gmd:null;
+  var lq=esc(String(L));
+  var sV=(sacos!==""?String(sacos).replace(".",","):"");
+  var pV=(preco!==""?String(preco).replace(".",","):"");
+  var h='<div class="rel-trato-manual">';
+  h+='<div class="rel-consumo-h" style="color:var(--v1)">TRATO DO DIA (informado)</div>';
+  h+='<div class="rel-trato-ins">';
+  h+='<label>Início do trato<input type="date" value="'+inicio+'" onchange="setTrato(\''+lq+'\',\'inicio\',this)"></label>';
+  h+='<label>Sacos por dia<input inputmode="decimal" value="'+sV+'" onchange="setTrato(\''+lq+'\',\'sacos\',this)" placeholder="ex: 2"></label>';
+  h+='<label>R$ / saco<input inputmode="decimal" value="'+pV+'" onchange="setTrato(\''+lq+'\',\'preco\',this)" placeholder="ex: 66"></label>';
+  h+='</div>';
+  if(dias!=null) h+='<div class="rel-consumo-sub">'+Math.round(dias)+' dias de trato ('+(inicio?isoToBR(inicio):"?")+' \u2192 '+(state.data?isoToBR(state.data):"?")+') \u00b7 dividido por '+nA+' animais</div>';
+  if(custoDia!=null){
+    h+='<div class="rel-trato-big">';
+    h+='<div><span class="k">Custo do trato / dia</span><b>R$ '+fmtBR(custoDia,2)+'</b><span class="u">no lote</span></div>';
+    h+='<div><span class="k">Custo por cabeça / dia</span><b>R$ '+fmtBR(custoCabDia,2)+'</b></div>';
+    h+='</div>';
+    h+='<div class="rel-trato-big">';
+    if(custoTotal!=null) h+='<div><span class="k">Custo no período</span><b>R$ '+fmtBR(custoTotal,2)+'</b><span class="u">'+Math.round(dias)+' dias</span></div>';
+    if(custoKgGanho!=null) h+='<div><span class="k">Custo por kg de ganho</span><b>R$ '+fmtBR(custoKgGanho,2)+'</b></div>';
+    h+='</div>';
+  } else {
+    h+='<div class="rel-consumo-sub">Preencha sacos/dia e R$/saco para ver o custo do trato.</div>';
+  }
+  h+='</div>';
+  return h;
 }
 function animaisPeriodo(L){
   if(state.consumoAnimais && state.consumoAnimais[L]!=null && state.consumoAnimais[L]>0) return state.consumoAnimais[L];
@@ -1434,6 +1526,7 @@ function renderConsumoLote(L, s, gmd, media, dias){
       '<input inputmode="numeric" value="'+nA+'" onchange="setConsumoAnimais(\''+esc(String(L))+'\',this)" style="width:58px;padding:5px 6px;border:1px solid var(--line);border-radius:6px;font-family:inherit;font-size:13px;font-weight:800;color:var(--v1);text-align:center">'+
       (nRef>0 && nRef!==nA?'<span class="rel-link" onclick="setConsumoAnimais(\''+esc(String(L))+'\',{value:'+nRef+'})">usar '+nRef+' (anterior)</span>':'')+
     '</div>'+
+    tratoManualHTML(L,nA,gmd)+
     (c.foraJanela?'<div class="rel-consumo-sub" style="margin-bottom:6px">⚠ Sem tratos entre as pesagens; mostrando todo o histórico do lote.</div>':'')+
     rows+econ+'</div>';
 }
@@ -1672,6 +1765,7 @@ window.onload=function(){
   document.getElementById("respIn").addEventListener("input", e=>{ state.responsavel=e.target.value; save(); });
   document.getElementById("metaPesoIn").addEventListener("input", e=>{ state.metaPeso=parseFloat(e.target.value)||480; save(); });
   document.getElementById("arrobaIn").addEventListener("input", e=>{ state.precoArroba=parseFloat(String(e.target.value).replace(",","."))||0; save(); });
+  var ggEl=document.getElementById("gmdGlobalIn"); if(ggEl) ggEl.addEventListener("input", e=>{ state.gmdGlobal=parseFloat(String(e.target.value).replace(",","."))||0; save(); renderRelatorio(); });
   const ascEl=document.getElementById("autoSyncChk");
   if(ascEl) ascEl.addEventListener("change", e=>{ state.autoSync=e.target.checked; save(); });
   if(resumed && state.today.length){

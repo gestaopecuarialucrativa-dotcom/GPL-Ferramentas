@@ -134,7 +134,12 @@ function isoToBR(iso){ if(!iso) return "—"; const p=String(iso).split("-"); if
 function addDays(iso,n){ const d=new Date(iso+"T12:00:00"); if(isNaN(d)) return ""; d.setDate(d.getDate()+Math.round(n)); return d.toISOString().slice(0,10); }
 function mesAno(iso){ const M=["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"]; const p=String(iso).split("-"); if(p.length<2) return ""; return M[parseInt(p[1],10)-1]+"/"+p[0]; }
 function parseNum(v){ if(v==null||v==="") return null; const f=parseFloat(String(v).replace(/\s/g,"").replace(",",".")); return isNaN(f)?null:f; }
-function fmt(n,dec){ return (n==null||isNaN(n))?"—":Number(n).toFixed(dec==null?0:dec).replace(".",","); }
+function fmt(n,dec){
+  if(n==null||isNaN(n)) return "—";
+  var p=Number(n).toFixed(dec==null?0:dec).split(".");
+  p[0]=p[0].replace(/\B(?=(\d{3})+(?!\d))/g,".");
+  return p.length>1 ? p[0]+","+p[1] : p[0];
+}
 function esc(s){ return String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
 function media(arr){ return arr.length? arr.reduce((a,b)=>a+b,0)/arr.length : 0; }
 function desvioPad(arr){ if(arr.length<2) return 0; const m=media(arr); const v=arr.reduce((a,b)=>a+(b-m)*(b-m),0)/(arr.length-1); return Math.sqrt(v); }

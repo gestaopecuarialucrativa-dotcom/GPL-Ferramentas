@@ -275,6 +275,9 @@ input:focus,select:focus{outline:2px solid var(--v3); border-color:var(--v3)}
       <h2><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3 8-8"/><path d="M20 12v6a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h9"/></svg> Pesados hoje</h2>
       <div id="resumoLotes"></div>
       <input id="hojeSearch" class="hoje-search" oninput="renderList()" placeholder="Buscar número, lote ou observação..." autocomplete="off">
+      <label style="display:flex; align-items:center; gap:8px; margin:2px 0 8px; font-size:13px; font-weight:700; color:var(--muted); cursor:pointer">
+        <input type="checkbox" id="hojeSoObs" style="width:auto; margin:0" onchange="renderList()"> Mostrar só os que têm observação
+      </label>
       <div id="hojeList"></div>
     </div>
   </div>
@@ -789,12 +792,15 @@ function renderList(){
   if(!state.today.length){ box.innerHTML='<p class="empty">Nenhum animal pesado hoje.</p>'; return; }
   const se=document.getElementById("hojeSearch");
   const q=(se?se.value:"").trim().toLowerCase();
+  const soObsEl=document.getElementById("hojeSoObs");
+  const soObs=soObsEl?soObsEl.checked:false;
   let arr=state.today.slice();
   arr.sort(function(a,b){
     const na=parseInt(a.base,10), nb=parseInt(b.base,10);
     if(!isNaN(na)&&!isNaN(nb)&&na!==nb) return na-nb;
     return String(a.base).localeCompare(String(b.base),"pt",{numeric:true,sensitivity:"base"});
   });
+  if(soObs) arr=arr.filter(function(t){ return t.obs && String(t.obs).trim()!==""; });
   if(q) arr=arr.filter(function(t){
     return String(t.brinco).toLowerCase().indexOf(q)>=0 ||
            ("lote "+t.lote).indexOf(q)>=0 || String(t.lote)===q ||
@@ -1201,7 +1207,12 @@ function renderRelatorio(){
   document.getElementById('relContent').innerHTML=html;
 }
 
-function fmtBR(n,dec){ return (n==null||isNaN(n))?"—":Number(n).toFixed(dec==null?0:dec).replace(".",","); }
+function fmtBR(n,dec){
+  if(n==null||isNaN(n)) return "—";
+  var p=Number(n).toFixed(dec==null?0:dec).split(".");
+  p[0]=p[0].replace(/\B(?=(\d{3})+(?!\d))/g,".");
+  return p.length>1 ? p[0]+","+p[1] : p[0];
+}
 function renderConsumoLote(L, s, gmd, media, dias){
   if(!state.consumo || !state.consumo.loaded){
     return '<div class="rel-consumo-empty">Consumo não carregado. <span class="rel-link" onclick="irConsumo()">Puxar da fazenda</span></div>';

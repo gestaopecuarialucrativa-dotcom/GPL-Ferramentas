@@ -75,9 +75,19 @@ table.venda tr.total td{border-top:2px solid var(--v2); font-weight:800; color:v
 
 @media print{
   .inicio,.bar,.field{display:none!important}
-  body{background:#fff; padding:0}
-  .card{break-inside:avoid; box-shadow:none}
+  html,body{background:#fff; padding:0; margin:0; -webkit-print-color-adjust:exact; print-color-adjust:exact}
+  @page{ margin:10mm }
   .top{position:static}
+  /* nada de bloco cortado no meio entre paginas */
+  .card,.grid,.cell,.hist,.hist-cap,svg,.rank,.lote-card,.kpi,.kpis,.chip{
+    break-inside:avoid; page-break-inside:avoid;
+  }
+  .card{box-shadow:none}
+  /* tabelas: nao corta linha no meio e repete o cabecalho */
+  table{page-break-inside:auto}
+  tr{break-inside:avoid; page-break-inside:avoid}
+  thead{display:table-header-group}
+  h1,h2,h3{break-after:avoid; page-break-after:avoid}
 }
 </style>
 </head>
@@ -508,8 +518,6 @@ function shareWhats(){
 /* ---------- init ---------- */
 document.getElementById("metaIn").addEventListener("input", e=>{ dados.metaPeso=parseNum(e.target.value)||480; render(); });
 document.getElementById("arrobaIn").addEventListener("input", e=>{ dados.precoArroba=parseNum(e.target.value)||0; render(); });
-// Ao abrir: se este aparelho tem a pesagem local (foi ele que pesou), mostra na hora.
-// Se não tem (ex.: celular vendo o que foi pesado no PC), puxa automático da planilha.
 carregarNuvem();  // ao abrir, puxa direto da planilha (nuvem). Se falhar, usa o local.
 </script>
 </body>

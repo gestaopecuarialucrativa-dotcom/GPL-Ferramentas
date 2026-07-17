@@ -594,7 +594,7 @@ function gerarPDF(alvoId, titulo){
   var faz=state.fazenda||"", data=state.data?isoToBR(state.data):"";
   var logo=document.querySelector(".hdr-logo"); var logoSrc=logo?logo.getAttribute("src"):"";
   var wrap=document.createElement("div");
-  wrap.style.position="fixed"; wrap.style.left="-10000px"; wrap.style.top="0"; wrap.style.width="800px";
+  wrap.style.position="absolute"; wrap.style.left="0"; wrap.style.top="0"; wrap.style.zIndex="-1"; wrap.style.width="800px";
   wrap.className="pdf-wrap";
   wrap.innerHTML=
     '<div class="pdf-cap">'+(logoSrc?'<img src="'+logoSrc+'" style="height:44px">':"")+
@@ -610,8 +610,14 @@ function gerarPDF(alvoId, titulo){
     html2canvas:{scale:2, useCORS:true, backgroundColor:"#ffffff"},
     jsPDF:{unit:"mm", format:"a4", orientation:"portrait"},
     pagebreak:{ mode:["css","legacy"], avoid:[".rel-card",".rel-proj",".dash-chart",".dash-kpi",".rel-prod-row","tr"] } };
-  html2pdf().set(opt).from(wrap).save().then(function(){ if(wrap.parentNode) document.body.removeChild(wrap); })
-    .catch(function(){ if(wrap.parentNode) document.body.removeChild(wrap); });
+  var win=window.open("", "_blank");
+  if(win){ try{ win.document.write("<p style=\"font-family:sans-serif;padding:24px;color:#1B5E20\">Gerando PDF, aguarde...</p>"); }catch(e){} }
+  function _limparPDF(){ if(wrap.parentNode) document.body.removeChild(wrap); }
+  html2pdf().set(opt).from(wrap).toPdf().get("pdf").then(function(pdf){
+    var url=pdf.output("bloburl");
+    if(win){ win.location.href=url; } else { window.open(url,"_blank"); }
+    _limparPDF();
+  }).catch(function(e){ if(win){ try{ win.close(); }catch(_){} } alert("Não consegui gerar o PDF. Tente de novo."); _limparPDF(); });
 }
 function setProdOculto(pEnc, hide){
   const p=decodeURIComponent(pEnc);

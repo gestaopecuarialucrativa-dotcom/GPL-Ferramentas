@@ -195,7 +195,8 @@ async function carregarNuvem(){
     })).filter(a=>a.peso!=null && a.lote);
     render();
   }catch(e){
-    box.innerHTML='<div class="empty">Sem internet ou backend não respondeu. Tente de novo, ou use "Importar .xlsx".</div>';
+    if(carregarLocal()){ render(); }
+    else box.innerHTML='<div class="empty">Sem internet e sem dados neste aparelho. Conecte à internet, ou use "Importar .xlsx".</div>';
   }
 }
 
@@ -509,8 +510,7 @@ document.getElementById("metaIn").addEventListener("input", e=>{ dados.metaPeso=
 document.getElementById("arrobaIn").addEventListener("input", e=>{ dados.precoArroba=parseNum(e.target.value)||0; render(); });
 // Ao abrir: se este aparelho tem a pesagem local (foi ele que pesou), mostra na hora.
 // Se não tem (ex.: celular vendo o que foi pesado no PC), puxa automático da planilha.
-if(carregarLocal()){ render(); }
-else { render(); carregarNuvem(); }
+carregarNuvem();  // ao abrir, puxa direto da planilha (nuvem). Se falhar, usa o local.
 </script>
 </body>
 </html>

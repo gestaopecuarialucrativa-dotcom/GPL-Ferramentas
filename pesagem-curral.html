@@ -503,7 +503,8 @@ let state = {
   today:[],
   consumo:{loaded:false, ts:null, tratos:[], est:{}},
   precos:{},
-  produtosOcultos:{}
+  produtosOcultos:{},
+  consumoAnimais:{}
 };
 let sel = null;
 let novoMode = false;
@@ -646,6 +647,7 @@ function load(){
         if(!state.consumo) state.consumo={loaded:false,ts:null,tratos:[],est:{}};
         if(!state.precos) state.precos={};
         if(!state.produtosOcultos) state.produtosOcultos={};
+        if(!state.consumoAnimais) state.consumoAnimais={};
         return true; } }
   }catch(e){}
   return false;
@@ -1170,7 +1172,7 @@ function margemLote(L, gmd, media){
   const pArr=parseFloat(state.precoArroba)||0;
   if(!(pArr>0) || !(gmd>0)) return null;
   const c=consumoLote(L);
-  const st=loteStats()[L]; const nA=st?st.qtd:0;
+  const nA=animaisPeriodo(L);
   const d=daysBetween(c.ini,c.fim)||0;
   let custoDia=0, tem=false;
   Object.keys(c.porProduto).forEach(function(p){
@@ -1330,6 +1332,20 @@ function fmtBR(n,dec){
   p[0]=p[0].replace(/\B(?=(\d{3})+(?!\d))/g,".");
   return p.length>1 ? p[0]+","+p[1] : p[0];
 }
+function animaisPeriodo(L){
+  if(state.consumoAnimais && state.consumoAnimais[L]!=null && state.consumoAnimais[L]>0) return state.consumoAnimais[L];
+  if(state.ref && state.ref.loaded){
+    var n=state.ref.list.filter(function(a){ return String(a.lote||"")===String(L); }).length;
+    if(n>0) return n;
+  }
+  var st=loteStats()[L]; return st?st.qtd:0;
+}
+function setConsumoAnimais(L, inp){
+  var v=parseInt(String(inp.value).replace(/\D/g,""),10);
+  if(!state.consumoAnimais) state.consumoAnimais={};
+  if(v>0) state.consumoAnimais[L]=v; else delete state.consumoAnimais[L];
+  save(); renderRelatorio();
+}
 function renderConsumoLote(L, s, gmd, media, dias){
   if(!state.consumo || !state.consumo.loaded){
     return '<div class="rel-consumo-empty">Consumo não carregado. <span class="rel-link" onclick="irConsumo()">Puxar da fazenda</span></div>';
@@ -1337,7 +1353,8 @@ function renderConsumoLote(L, s, gmd, media, dias){
   const c=consumoLote(L);
   const prods=Object.keys(c.porProduto);
   if(!prods.length) return '<div class="rel-consumo-empty">Sem tratos deste lote no período.</div>';
-  const nA=s.qtd||0;
+  const nA=animaisPeriodo(L);
+  const nRef=(state.ref&&state.ref.loaded)?state.ref.list.filter(function(a){return String(a.lote||"")===String(L);}).length:0;
   const d=(dias&&dias>0)?dias:(daysBetween(c.ini,c.fim)||0);
   let rows="";
   let totalCustoDia=0, temPreco=false;
@@ -1406,12 +1423,17 @@ function renderConsumoLote(L, s, gmd, media, dias){
         (paga? "✓ O ganho paga a comida — sobra R$ "+fmtBR(margem,2)+"/cab/dia"
              : "✗ A comida custa mais que o ganho — falta R$ "+fmtBR(Math.abs(margem),2)+"/cab/dia")+
       '</span>'+
-      '<div class="rel-consumo-sub" style="margin-top:6px">No período ('+Math.round(d)+" dias): sobra/déficit de R$ "+fmtBR(margem*d,2)+"/animal · R$ "+fmtBR(margem*d*(s.qtd||0),2)+" no lote</div>"+
+      '<div class="rel-consumo-sub" style="margin-top:6px">No período ('+Math.round(d)+" dias): sobra/déficit de R$ "+fmtBR(margem*d,2)+"/animal · R$ "+fmtBR(margem*d*nA,2)+" no lote</div>"+
     '</div>';
   } else if(temPreco && !(pArr>0)){
     econ='<div class="rel-econ-hint">Preencha o <b>preço da arroba</b> em Config para ver se o ganho paga a alimentação.</div>';
   }
   return '<div class="rel-consumo"><div class="rel-consumo-h">CONSUMO — esperado × praticado</div>'+
+    '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:2px 0 10px;font-size:12px;color:var(--muted)">'+
+      '<span>Animais que comeram no período:</span>'+
+      '<input inputmode="numeric" value="'+nA+'" onchange="setConsumoAnimais(\''+esc(String(L))+'\',this)" style="width:58px;padding:5px 6px;border:1px solid var(--line);border-radius:6px;font-family:inherit;font-size:13px;font-weight:800;color:var(--v1);text-align:center">'+
+      (nRef>0 && nRef!==nA?'<span class="rel-link" onclick="setConsumoAnimais(\''+esc(String(L))+'\',{value:'+nRef+'})">usar '+nRef+' (anterior)</span>':'')+
+    '</div>'+
     (c.foraJanela?'<div class="rel-consumo-sub" style="margin-bottom:6px">⚠ Sem tratos entre as pesagens; mostrando todo o histórico do lote.</div>':'')+
     rows+econ+'</div>';
 }

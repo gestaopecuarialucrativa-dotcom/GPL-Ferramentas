@@ -213,9 +213,22 @@ input:focus,select:focus{outline:2px solid var(--v3); border-color:var(--v3)}
   .wrap{max-width:100%}
   .screen{display:none!important}
   .screen.on{display:block!important}
-  .rel-card,.rel-proj,.rel-prod-row,.dash-chart,.dash-kpi{break-inside:avoid; page-break-inside:avoid}
+  /* card grande pode fluir entre paginas (sem deixar pagina em branco); so os blocos menores nao cortam */
+  .rel-proj,.rel-prod-row,.dash-chart,.dash-kpi,.rel-status,.rel-trato-manual,.rel-gmdg,.rel-econ,.rel-trato-big > div{break-inside:avoid; page-break-inside:avoid}
   tr{break-inside:avoid; page-break-inside:avoid}
   .rel-card{box-shadow:none; border:1px solid #ccc}
+  /* valores maiores no PDF */
+  .rel-v{font-size:20px}
+  .rel-v.rel-gmd-big{font-size:26px}
+  .rel-cvp .v{font-size:16px; font-weight:800}
+  .rel-econ .rel-cvp .v{font-size:18px}
+  .rel-custo-v b{font-size:16px}
+  .rel-status-txt{font-size:14px}
+  .rel-sit{font-size:13px}
+  .rel-consumo-h{font-size:13px}
+  .rel-trato-big b{font-size:22px}
+  .rel-gmdg-row b{font-size:17px}
+  .rel-gmdg-diff{font-size:15px}
   .print-only{display:block!important}
   .print-brand{text-align:center; margin:0 0 12px; padding-bottom:8px; border-bottom:2px solid #1B5E20}
   .print-brand .pb-t{font-size:18px; font-weight:800; color:#1B5E20}

@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <title>Análise de Rebanho — GPL</title>
 <script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <style>
 :root{
   --v1:#1B5E20; --v2:#2E7D32; --v3:#4CAF50; --v7:#E8F5E9;
@@ -117,7 +118,7 @@ table.venda tr.total td{border-top:2px solid var(--v2); font-weight:800; color:v
     </button>
     <span class="field">Meta abate (kg) <input id="metaIn" inputmode="decimal" placeholder="480"></span>
     <span class="field">R$/arroba <input id="arrobaIn" inputmode="decimal" placeholder="320"></span>
-    <button class="btn btn-ghost" onclick="window.print()">
+    <button class="btn btn-ghost" onclick="gerarPDF()">
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><path d="M6 14h12v8H6z"/></svg>
       PDF
     </button>
@@ -528,6 +529,29 @@ function cellHtml(k,v,u){ return '<div class="cell"><div class="k">'+k+'</div><d
 function rankRow(a){ return '<div class="rank"><span class="b">'+esc(a.brinco)+' <span style="font-weight:400;color:var(--muted)">L'+a.lote+'</span></span><span>'+fmt(a.peso,0)+' kg ('+fmt(a.peso/AR_DIV,1)+'@)</span></div>'; }
 
 /* ---------- WhatsApp ---------- */
+function gerarPDF(){
+  var content=document.getElementById("content");
+  if(!content || !content.innerHTML.trim()){ alert("Carregue os dados antes de gerar o PDF."); return; }
+  if(typeof html2pdf==="undefined"){ alert("O gerador de PDF ainda está carregando. Tente de novo em 2 segundos."); return; }
+  var hdr=document.getElementById("hdrInfo");
+  var wrap=document.createElement("div");
+  wrap.style.position="fixed"; wrap.style.left="-10000px"; wrap.style.top="0";
+  wrap.style.width="800px"; wrap.style.padding="14px"; wrap.style.background="#fff";
+  wrap.innerHTML=
+    '<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;border-bottom:2px solid #1B5E20;padding-bottom:8px">'+
+    '<div><div style="font-size:20px;font-weight:800;color:#1B5E20">Análise de Rebanho — GPL</div>'+
+    '<div style="font-size:12px;color:#5f6b60">'+(hdr?hdr.textContent:"")+'</div></div></div>'+
+    content.innerHTML;
+  document.body.appendChild(wrap);
+  var nome="Analise-Rebanho-"+((dados&&dados.data)?dados.data:"GPL")+".pdf";
+  var opt={ margin:[8,8,10,8], filename:nome,
+    image:{type:"jpeg", quality:0.96},
+    html2canvas:{scale:2, useCORS:true, backgroundColor:"#ffffff"},
+    jsPDF:{unit:"mm", format:"a4", orientation:"portrait"},
+    pagebreak:{ mode:["css","legacy"], avoid:[".card","tr",".grid"] } };
+  html2pdf().set(opt).from(wrap).save().then(function(){ if(wrap.parentNode) document.body.removeChild(wrap); })
+    .catch(function(){ if(wrap.parentNode) document.body.removeChild(wrap); });
+}
 function shareWhats(){
   if(!dados.animais.length){ alert("Sem dados para compartilhar."); return; }
   const meta=parseNum(dados.metaPeso)||480, pArr=parseNum(dados.precoArroba)||0;

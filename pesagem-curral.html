@@ -491,6 +491,7 @@ let state = {
 };
 let sel = null;
 let novoMode = false;
+let diaCompleto = false;
 
 /* ---------- utils ---------- */
 function todayISO(){const d=new Date(); return d.toISOString().slice(0,10);}
@@ -957,6 +958,7 @@ async function carregarRefNuvem(silent){
       byBrinco[base]=rec; list.push(rec);
     });
     state.ref={loaded:true, fonte:"nuvem", name:"Nuvem — pesagem de "+(r.data?isoToBR(r.data):"?"), data:r.data||null, byBrinco, list};
+    if(!String(state.fazenda||"").trim() && r.fazenda) state.fazenda=r.fazenda;
     save(); renderConfig(); renderFooter(); renderFaltantes();
     if(sel) onNum();
     return true;
@@ -964,6 +966,31 @@ async function carregarRefNuvem(silent){
     if(el && !silent) el.textContent="Sem internet ou backend nao respondeu. Tente de novo.";
     return false;
   }
+}
+async function carregarDiaNuvem(silent){
+  var el=document.getElementById("syncStatus");
+  try{
+    if(el && !silent) el.textContent="Puxando a pesagem do dia da planilha...";
+    var r=await jsonp(BACKEND_URL+"?acao=pesagem_ler&data="+encodeURIComponent(state.data||todayISO()));
+    if(!r || !r.ok) return false;
+    if(!r.animais || !r.animais.length){
+      if(el && !silent) el.textContent="Este dia ainda nao esta na planilha (dia novo).";
+      return false;
+    }
+    if(r.fazenda) state.fazenda=r.fazenda;
+    state.today=r.animais.map(function(a){ return {
+      id:Date.now()+"_"+Math.random().toString(36).slice(2,6),
+      brinco:String(a.brinco||""), base:String(a.brinco||"").replace(/x+$/i,""),
+      incerto:!!a.is_revisar, novo:!!a.is_novo,
+      peso:parseNum(a.peso), lote:String(a.lote||""),
+      pesoAnterior:parseNum(a.peso_anterior), dataAnterior:null,
+      dias:parseNum(a.dias), gmd:parseNum(a.gmd), obsAnterior:"", obs:a.obs||""
+    }; }).filter(function(x){ return x.peso!=null && x.lote; });
+    diaCompleto=true; state.syncDirty=false; save();
+    renderConfig(); renderHoje(); renderFooter(); renderFaltantes(); renderPesarResumo();
+    if(el && !silent) el.innerHTML="<span class=\"status-ok\">OK "+state.today.length+" animais carregados da planilha</span>";
+    return true;
+  }catch(e){ if(el && !silent) el.textContent="Sem internet — usando dados do aparelho. Sincronize depois."; return false; }
 }
 async function carregarNuvemPesagem(){
   const el=document.getElementById("syncStatus");
@@ -982,6 +1009,7 @@ async function carregarNuvemPesagem(){
       pesoAnterior:parseNum(a.peso_anterior), dataAnterior:null,
       dias:parseNum(a.dias), gmd:parseNum(a.gmd), obsAnterior:"", obs:a.obs||""
     })).filter(x=>x.peso!=null && x.lote);
+    diaCompleto=true;
     save();
     renderConfig(); renderHoje(); renderFooter(); renderFaltantes(); renderPesarResumo();
     if(el) el.innerHTML='<span class="status-ok">✓ '+state.today.length+' animais carregados da planilha</span>';
@@ -1442,6 +1470,7 @@ function exportXlsx(){
 let _autoSyncTimer=null;
 function scheduleAutoSync(){
   if(!state.autoSync) return;
+  if(!String(state.fazenda||"").trim()) return;
   if(typeof navigator!=="undefined" && navigator.onLine===false) return;
   if(!state.today.length) return;
   clearTimeout(_autoSyncTimer);
@@ -1449,6 +1478,11 @@ function scheduleAutoSync(){
 }
 async function syncSheets(auto){
   if(!state.today.length){ alert("Nenhum animal pesado para sincronizar."); return; }
+  if(!String(state.fazenda||"").trim()){
+    var se=document.getElementById("syncStatus"); if(se) se.textContent="Informe a Fazenda (aba Config) antes de sincronizar.";
+    if(!auto){ alert("Informe o nome da Fazenda na aba Config antes de sincronizar. Sem a fazenda, a planilha grava separado."); go("config"); }
+    return;
+  }
   const statusEl=document.getElementById('syncStatus');
   statusEl.textContent='Enviando para o Google Sheets...';
   const diasInt = state.ref.data ? daysBetween(state.ref.data, state.data) : '';
@@ -1458,6 +1492,7 @@ async function syncSheets(auto){
       data: state.data,
       fazenda: state.fazenda,
       responsavel: state.responsavel,
+      completo: diaCompleto,
       dias_intervalo: diasInt,
       animais: state.today.map(t=>({
         brinco: t.brinco,
@@ -1547,14 +1582,14 @@ function finExport(){
 }
 function finConcluir(){
   if(!confirm("Concluir a pesagem e começar uma nova?\n\nConfirme que você JÁ salvou na planilha e exportou o backup. Isso limpa os animais pesados hoje (mantém a planilha de referência).")) return;
-  state.today=[]; state.data=todayISO(); window._obsNova=""; sel=null; state.syncDirty=false;
+  state.today=[]; state.data=todayISO(); window._obsNova=""; sel=null; state.syncDirty=false; diaCompleto=false;
   save(); closeFinalizar();
   renderConfig(); renderHoje(); renderFooter(); renderFaltantes(); renderPesarResumo();
   go("pesar");
 }
 function novaPesagem(){
   if(!confirm("Isso apaga a pesagem de hoje (mantém planilhas importadas). Continuar?")) return;
-  state.today=[]; state.data=todayISO(); window._obsNova=""; sel=null;
+  state.today=[]; state.data=todayISO(); window._obsNova=""; sel=null; diaCompleto=false;
   save(); renderConfig(); renderHoje(); renderFooter(); renderFaltantes(); go("pesar");
 }
 
@@ -1574,7 +1609,15 @@ window.onload=function(){
     document.getElementById("resumeTxt").textContent=`Sessão de ${isoToBR(state.data)} restaurada — ${state.today.length} animais já pesados.`;
   }
   renderConfig(); renderHoje(); renderFooter(); renderFaltantes(); renderPesarResumo();
-  if(state.autoSync && (!state.ref.loaded || state.ref.fonte==="nuvem")) carregarRefNuvem(true);
+  if(state.autoSync){
+    if(state.syncDirty && state.today.length){
+      var rb=document.getElementById("resumeBanner"); var rt=document.getElementById("resumeTxt");
+      if(rb){ rb.style.display="flex"; if(rt) rt.textContent=state.today.length+" animais ainda NAO enviados — toque em Sincronizar (aba Config)."; }
+    } else {
+      carregarDiaNuvem(true);
+    }
+    if(!state.ref.loaded || state.ref.fonte==="nuvem") carregarRefNuvem(true);
+  }
 };
 </script>
 </body>

@@ -80,10 +80,12 @@ table.venda tr.total td{border-top:2px solid var(--v2); font-weight:800; color:v
   @page{ margin:10mm }
   .top{position:static}
   /* nada de bloco cortado no meio entre paginas */
-  .card,.grid,.cell,.hist,.hist-cap,svg,.rank,.lote-card,.kpi,.kpis,.chip{
+  /* card grande flui entre paginas (sem pagina em branco); so blocos menores nao cortam */
+  .grid,.cell,.hist,.hist-cap,svg,.rank,.kpi,.chip{
     break-inside:avoid; page-break-inside:avoid;
   }
   .card{box-shadow:none}
+  .kpi b,.kpi .v{font-size:20px}
   /* tabelas: nao corta linha no meio e repete o cabecalho */
   table{page-break-inside:auto}
   tr{break-inside:avoid; page-break-inside:avoid}

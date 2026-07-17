@@ -138,6 +138,7 @@ const HDR_ROW=13, DATA_ROW=14;
 const BACKEND_URL="https://script.google.com/macros/s/AKfycby4lOB4zXu2dCBoA-pda6U_do8v9GDvNuH0dFOY6u5kc7FP7gZdPKofZX5Dt-QgnT4V/exec";
 
 let dados={ fazenda:"", data:"", animais:[], metaPeso:480, precoArroba:0 };
+let ordemLista="lote";
 
 /* ---------- utils ---------- */
 function isoToBR(iso){ if(!iso) return "—"; const p=String(iso).split("-"); if(p.length<3) return iso; return p[2].slice(0,2)+"/"+p[1]+"/"+p[0]; }
@@ -346,6 +347,27 @@ function svgHist(pesos, meta){
   return '<svg viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="xMidYMid meet"><line x1="'+padL+'" y1="'+y0+'" x2="'+(W-padR)+'" y2="'+y0+'" stroke="#e0e7e0"/>'+bars+ml+'</svg>';
 }
 
+function svgHistGMD(gmds){
+  var vals=gmds.filter(function(g){return g!=null;});
+  if(!vals.length) return "";
+  var labels=["neg","0–0,2","0,2–0,4","0,4–0,6","0,6–0,8","0,8–1,0","1,0–1,2","1,2+"];
+  var cores =["#c0392b","#E8A33D","#8FBF8F","#6AAE6A","#4CAF50","#2E7D32","#1B5E20","#14481A"];
+  var nb=labels.length, bins=new Array(nb).fill(0);
+  vals.forEach(function(g){ var i; if(g<0)i=0; else { i=Math.floor(g/0.2)+1; if(i>7)i=7; } bins[i]++; });
+  var W=Math.max(340, nb*44), H=160, padB=34, padT=16, padL=8, padR=8;
+  var bw=(W-padL-padR)/nb, maxC=Math.max.apply(null,bins)||1, plotH=H-padB-padT, y0=padT+plotH;
+  var bars="";
+  for(var i=0;i<nb;i++){
+    var bh=bins[i]/maxC*plotH, x=padL+i*bw+2, wr=bw-4, y=y0-bh;
+    bars+='<rect x="'+x.toFixed(1)+'" y="'+y.toFixed(1)+'" width="'+wr.toFixed(1)+'" height="'+bh.toFixed(1)+'" rx="3" fill="'+cores[i]+'"/>';
+    if(bins[i]>0) bars+='<text x="'+(x+wr/2).toFixed(1)+'" y="'+(y-3).toFixed(1)+'" text-anchor="middle" font-size="10" font-weight="700" fill="#1B5E20">'+bins[i]+'</text>';
+    bars+='<text x="'+(x+wr/2).toFixed(1)+'" y="'+(y0+14).toFixed(1)+'" text-anchor="middle" font-size="8.5" fill="#5f6b60">'+labels[i]+'</text>';
+  }
+  return '<svg viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="xMidYMid meet"><line x1="'+padL+'" y1="'+y0+'" x2="'+(W-padR)+'" y2="'+y0+'" stroke="#e0e7e0"/>'+bars+'</svg>';
+}
+function setOrdem(v){ ordemLista=v; render(); }
+function ordemOpt(v,t){ return '<option value="'+v+'"'+(ordemLista===v?" selected":"")+'>'+t+'</option>'; }
+
 /* ---------- render ---------- */
 function render(){
   const meta=parseNum(dados.metaPeso)||480;
@@ -436,6 +458,14 @@ function render(){
     '<div><div class="hist-cap">🔻 Menores</div>'+bot.map(a=>rankRow(a)).join("")+'</div>'+
   '</div></div>';
 
+  // Distribuição de GMD (ganhos parecidos)
+  const gmdAll=dados.animais.map(a=>a.gmd).filter(g=>g!=null);
+  if(gmdAll.length){
+    html+='<div class="card"><h2>Distribuição de ganho (GMD)</h2>'+
+      '<div class="hist-cap">Quantos animais têm ganho parecido (kg/cab/dia) — verde bom, amarelo fraco, vermelho negativo</div>'+
+      svgHistGMD(gmdAll)+'</div>';
+  }
+
   // Animais que precisam de atenção (GMD baixo ou negativo)
   const atencao=dados.animais.filter(a=>a.gmd!=null && a.gmd<0.15).sort((a,b)=>a.gmd-b.gmd);
   html+='<div class="card"><h2>⚠ Animais que precisam de atenção</h2>';
@@ -453,12 +483,20 @@ function render(){
 
   // Lista completa de todos os animais
   const todos=dados.animais.slice().sort((a,b)=>{
+    if(ordemLista==="peso_asc") return (a.peso||0)-(b.peso||0);
+    if(ordemLista==="peso_desc") return (b.peso||0)-(a.peso||0);
+    if(ordemLista==="gmd_asc") return (a.gmd==null?1e9:a.gmd)-(b.gmd==null?1e9:b.gmd);
+    if(ordemLista==="gmd_desc") return (b.gmd==null?-1e9:b.gmd)-(a.gmd==null?-1e9:a.gmd);
     if(a.lote!==b.lote) return a.lote-b.lote;
     const na=parseInt(a.base,10), nb=parseInt(b.base,10);
     if(!isNaN(na)&&!isNaN(nb)&&na!==nb) return na-nb;
     return String(a.brinco).localeCompare(String(b.brinco));
   });
-  html+='<div class="card"><h2>Lista completa — '+todos.length+' animais</h2><div class="cap">Todos os números, com peso, lote e GMD.</div>';
+  html+='<div class="card"><h2>Lista completa — '+todos.length+' animais</h2>'+
+    '<div class="cap" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">Ordenar do menor para o maior: '+
+    '<select onchange="setOrdem(this.value)" style="padding:4px 6px;border:1px solid var(--line);border-radius:6px;font-family:inherit;font-size:13px">'+
+    ordemOpt("lote","Lote e número")+ordemOpt("peso_asc","Peso ↑ (menor→maior)")+ordemOpt("peso_desc","Peso ↓ (maior→menor)")+ordemOpt("gmd_asc","GMD ↑ (menor→maior)")+ordemOpt("gmd_desc","GMD ↓ (maior→menor)")+
+    '</select></div>';
   html+='<table class="venda"><tr><th>Nº</th><th>Lote</th><th>Peso</th><th>@</th><th>GMD</th><th>Obs</th></tr>';
   todos.forEach(a=>{
     html+='<tr><td>'+esc(a.brinco)+'</td><td>'+a.lote+'</td><td>'+fmt(a.peso,0)+'</td><td>'+fmt(a.peso/AR_DIV,1)+'</td><td>'+(a.gmd!=null?fmt(a.gmd,3):"—")+'</td><td style="text-align:left;font-size:11px;color:var(--muted)">'+esc(a.obs||"")+'</td></tr>';

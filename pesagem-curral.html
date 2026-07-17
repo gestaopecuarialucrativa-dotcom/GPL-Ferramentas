@@ -174,7 +174,10 @@ input:focus,select:focus{outline:2px solid var(--v3); border-color:var(--v3)}
 .rel-consumo-empty{font-size:12px; color:var(--muted); margin-top:10px; border-top:1px dashed var(--line); padding-top:10px}
 .rel-link{color:var(--v2); font-weight:700; text-decoration:underline; cursor:pointer}
 .rel-prod-row{background:#f5f7f5; border-radius:10px; padding:10px; margin-bottom:8px}
-.rel-prod-nome{font-size:13px; font-weight:800; color:var(--v1); margin-bottom:6px}
+.rel-prod-nome{font-size:13px; font-weight:800; color:var(--v1); margin-bottom:6px; display:flex; justify-content:space-between; align-items:center; gap:8px}
+.rel-prod-ocultar{font-size:11px; font-weight:700; color:#b71c1c; text-decoration:underline; cursor:pointer; flex:none}
+.rel-prod-oculto{display:flex; justify-content:space-between; align-items:center; gap:8px; background:#eee; opacity:.75; padding:8px 10px}
+.rel-prod-oc-nome{font-size:12px; color:#666}
 .rel-cvp{display:grid; grid-template-columns:1fr 1fr; gap:8px}
 .rel-cvp .k{display:block; font-size:10px; font-weight:700; color:var(--muted)}
 .rel-cvp .v{display:block; font-size:15px; font-weight:800; color:var(--v1)}
@@ -370,6 +373,7 @@ input:focus,select:focus{outline:2px solid var(--v3); border-color:var(--v3)}
       <label>1ª planilha — referência (peso anterior + lotes)</label>
       <button class="btn btn-ghost file-btn"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3v5h5"/><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/></svg> Escolher arquivo<input type="file" accept=".xlsx,.xls" onchange="importFile(this,'ref')"></button>
       <div id="refStatus" class="status-line">Nenhuma planilha carregada.</div>
+      <button class="btn btn-ghost" style="margin-top:8px" onclick="carregarRefNuvem(false)"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M8 11l4 4 4-4"/><path d="M4 15v4a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-4"/></svg> Puxar peso anterior da nuvem</button>
 
       <label style="margin-top:12px">2ª planilha — histórico (opcional)</label>
       <button class="btn btn-ghost file-btn"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3v5h5"/><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/></svg> Escolher arquivo<input type="file" accept=".xlsx,.xls" onchange="importFile(this,'hist')"></button>
@@ -482,7 +486,8 @@ let state = {
   hist:{loaded:false, name:"", data:null, byBrinco:{}},
   today:[],
   consumo:{loaded:false, ts:null, tratos:[], est:{}},
-  precos:{}
+  precos:{},
+  produtosOcultos:{}
 };
 let sel = null;
 let novoMode = false;
@@ -572,6 +577,12 @@ function setProdPreco(inp){
   if(!state.precos) state.precos={};
   state.precos[p]=v; save(); renderRelatorio();
 }
+function setProdOculto(pEnc, hide){
+  const p=decodeURIComponent(pEnc);
+  if(!state.produtosOcultos) state.produtosOcultos={};
+  if(hide) state.produtosOcultos[p]=true; else delete state.produtosOcultos[p];
+  save(); renderRelatorio();
+}
 
 /* ---------- persistência ---------- */
 function save(){ try{ localStorage.setItem(STORE_KEY, JSON.stringify(state)); }catch(e){} }
@@ -585,6 +596,7 @@ function load(){
         if(!state.fazendaUrl) state.fazendaUrl=FAZENDA_URL_DEFAULT;
         if(!state.consumo) state.consumo={loaded:false,ts:null,tratos:[],est:{}};
         if(!state.precos) state.precos={};
+        if(!state.produtosOcultos) state.produtosOcultos={};
         return true; } }
   }catch(e){}
   return false;
@@ -613,7 +625,7 @@ function importFile(input, kind){
                    pesoAnterior:peso, dataAnterior:dataSheet, obsAnterior:(obs==null?"":String(obs).trim())};
         byBrinco[base]=rec; list.push(rec);
       }
-      state[kind]={loaded:true, name:f.name, data:dataSheet, byBrinco, list:(kind==="ref"?list:[])};
+      state[kind]={loaded:true, fonte:"arquivo", name:f.name, data:dataSheet, byBrinco, list:(kind==="ref"?list:[])};
       save(); renderConfig(); renderFooter(); renderFaltantes();
     }catch(err){
       alert("Não consegui ler a planilha. Confira se é o formato de pesagem (cabeçalho na linha 13).");
@@ -924,6 +936,35 @@ function shareFaltantes(){
   t+="_Enviado pelo app de pesagem GPL_";
   window.open("https://wa.me/?text="+encodeURIComponent(t),"_blank");
 }
+async function carregarRefNuvem(silent){
+  const el=document.getElementById("refStatus");
+  try{
+    if(el && !silent) el.textContent="Puxando peso anterior da nuvem...";
+    const r=await jsonp(BACKEND_URL+"?acao=pesagem_ler&antes="+encodeURIComponent(state.data||todayISO()));
+    if(!r || !r.ok || !r.animais || !r.animais.length){
+      if(el && !silent) el.textContent="A planilha ainda nao tem pesagem anterior a esta data.";
+      return false;
+    }
+    const byBrinco={}, list=[];
+    r.animais.forEach(function(a){
+      const brincoStr=String(a.brinco||"").trim();
+      if(!brincoStr) return;
+      const base=baseBrinco(brincoStr);
+      const rec={brinco:brincoStr, base,
+                 lote:(a.lote==null?"":String(a.lote).trim()),
+                 pesoAnterior:parseNum(a.peso), dataAnterior:r.data||null,
+                 obsAnterior:(a.obs==null?"":String(a.obs).trim())};
+      byBrinco[base]=rec; list.push(rec);
+    });
+    state.ref={loaded:true, fonte:"nuvem", name:"Nuvem — pesagem de "+(r.data?isoToBR(r.data):"?"), data:r.data||null, byBrinco, list};
+    save(); renderConfig(); renderFooter(); renderFaltantes();
+    if(sel) onNum();
+    return true;
+  }catch(e){
+    if(el && !silent) el.textContent="Sem internet ou backend nao respondeu. Tente de novo.";
+    return false;
+  }
+}
 async function carregarNuvemPesagem(){
   const el=document.getElementById("syncStatus");
   if(!confirm("Carregar a última pesagem da planilha?\n\nIsso substitui os animais que estão neste aparelho agora.")) return;
@@ -1225,6 +1266,11 @@ function renderConsumoLote(L, s, gmd, media, dias){
   let rows="";
   let totalCustoDia=0, temPreco=false;
   prods.forEach(function(p){
+    if(state.produtosOcultos && state.produtosOcultos[p]){
+      rows+='<div class="rel-prod-row rel-prod-oculto"><span class="rel-prod-oc-nome">'+esc(p)+' <em>(oculto)</em></span>'+
+        '<span class="rel-link" onclick="setProdOculto(\''+encodeURIComponent(p)+'\',false)">mostrar</span></div>';
+      return;
+    }
     const pp=c.porProduto[p];
     const est=(state.consumo.est&&state.consumo.est[p])?state.consumo.est[p]:{};
     const pct=parseFloat(est.pct)||0;
@@ -1251,7 +1297,7 @@ function renderConsumoLote(L, s, gmd, media, dias){
       else {veredito="Custo alto para o ganho"; vclass="rel-s-bad";}
     }
     rows+='<div class="rel-prod-row">'+
-      '<div class="rel-prod-nome">'+esc(p)+'</div>'+
+      '<div class="rel-prod-nome">'+esc(p)+'<span class="rel-prod-ocultar" onclick="setProdOculto(\''+encodeURIComponent(p)+'\',true)">ocultar</span></div>'+
       '<div class="rel-cvp">'+
         '<div><span class="k">Praticado</span><span class="v">'+(pratG!=null?pratG+" g/cab/dia":"—")+'</span></div>'+
         '<div><span class="k">Esperado</span><span class="v">'+(espG!=null?espG+" g/cab/dia":"—")+'</span></div>'+
@@ -1328,6 +1374,7 @@ function shareRelatorio(){
     if(state.consumo && state.consumo.loaded){
       const c=consumoLote(i);
       Object.keys(c.porProduto).forEach(function(p){
+        if(state.produtosOcultos && state.produtosOcultos[p]) return;
         const pp=c.porProduto[p];
         const est=(state.consumo.est&&state.consumo.est[p])?state.consumo.est[p]:{};
         const pct=parseFloat(est.pct)||0;
@@ -1527,6 +1574,7 @@ window.onload=function(){
     document.getElementById("resumeTxt").textContent=`Sessão de ${isoToBR(state.data)} restaurada — ${state.today.length} animais já pesados.`;
   }
   renderConfig(); renderHoje(); renderFooter(); renderFaltantes(); renderPesarResumo();
+  if(state.autoSync && (!state.ref.loaded || state.ref.fonte==="nuvem")) carregarRefNuvem(true);
 };
 </script>
 </body>

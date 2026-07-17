@@ -473,8 +473,10 @@ function shareWhats(){
 /* ---------- init ---------- */
 document.getElementById("metaIn").addEventListener("input", e=>{ dados.metaPeso=parseNum(e.target.value)||480; render(); });
 document.getElementById("arrobaIn").addEventListener("input", e=>{ dados.precoArroba=parseNum(e.target.value)||0; render(); });
-carregarLocal();
-render();
+// Ao abrir: se este aparelho tem a pesagem local (foi ele que pesou), mostra na hora.
+// Se não tem (ex.: celular vendo o que foi pesado no PC), puxa automático da planilha.
+if(carregarLocal()){ render(); }
+else { render(); carregarNuvem(); }
 </script>
 </body>
 </html>

@@ -350,7 +350,7 @@ function svgHist(pesos, meta){
     const naMeta = meta && lo>=meta;
     bars+='<rect x="'+x.toFixed(1)+'" y="'+y.toFixed(1)+'" width="'+wr.toFixed(1)+'" height="'+bh.toFixed(1)+'" rx="3" fill="'+(naMeta?"#1B5E20":"#8FBF8F")+'"/>';
     if(bins[i]>0) bars+='<text x="'+(x+wr/2).toFixed(1)+'" y="'+(y-3).toFixed(1)+'" text-anchor="middle" font-size="10" font-weight="700" fill="#1B5E20">'+bins[i]+'</text>';
-    bars+='<text x="'+(x+wr/2).toFixed(1)+'" y="'+(y0+15).toFixed(1)+'" text-anchor="middle" font-size="9" fill="#5f6b60">'+Math.round(lo)+'</text>';
+    bars+='<text x="'+(x+wr/2).toFixed(1)+'" y="'+(y0+14).toFixed(1)+'" text-anchor="middle" font-size="8" fill="#5f6b60">'+Math.round(lo)+'–'+Math.round(hi)+'</text>';
   }
   let ml="";
   if(meta && meta>=min && meta<=max){ const mx=padL+(meta-min)/w*(W-padL-padR);
@@ -458,7 +458,7 @@ function render(){
         '<span class="tag t-grey" title="Coeficiente de variação: quanto menor, mais parelho o lote">Variação de peso '+fmt(s.cv,1)+'%</span>'+
         '<span class="tag '+cg.cls+'">GMD '+cg.t+'</span>'+
       '</div>'+
-      '<div class="hist-cap">Distribuição de peso (kg) — barras escuras já na meta · linha vermelha = meta</div>'+
+      '<div class="hist-cap">Distribuição por faixa de peso (kg, de–até) — barras escuras já na meta · linha vermelha = meta</div>'+
       svgHist(s.pesos, meta)+
       proj+comp+
     '</div>';

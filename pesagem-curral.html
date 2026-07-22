@@ -1779,8 +1779,9 @@ window.onload=function(){
   const resumed=load();
   var _fz=gplFazendaLock();
   if(_fz){
-    if(state.fazenda && state.fazenda!==_fz){
-      // dados locais sao de outra fazenda -> limpa pra nao vazar dado entre clientes
+    // Cliente travado numa fazenda: SEMPRE parte limpo e puxa a fazenda dele da nuvem.
+    // Assim nunca mostra dado local de outra fazenda (mesmo se ja estava salvo no aparelho).
+    if(state.fazenda!==_fz || (state.today && state.today.length)){
       state.today=[]; state.syncDirty=false;
       state.ref={loaded:false, name:"", data:null, byBrinco:{}, list:[]};
       state.consumo={loaded:false, ts:null, tratos:[], est:{}};

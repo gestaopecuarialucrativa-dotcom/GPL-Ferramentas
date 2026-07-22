@@ -522,7 +522,7 @@ input:focus,select:focus{outline:2px solid var(--v3); border-color:var(--v3)}
 <script>
 "use strict";
 const BACKEND_URL = "https://script.google.com/macros/s/AKfycby4lOB4zXu2dCBoA-pda6U_do8v9GDvNuH0dFOY6u5kc7FP7gZdPKofZX5Dt-QgnT4V/exec";
-function gplAuth(){ try{ return JSON.parse(localStorage.getItem("gpl_cliente_auth")||"null"); }catch(e){ return null; } }
+function gplAuth(){ try{ var u=new URLSearchParams(location.search); var fz=u.get("fz"); if(fz) return {fazenda:fz, token:u.get("tk")||""}; return JSON.parse(sessionStorage.getItem("gpl_auth")||"null"); }catch(e){ return null; } }
 function gplToken(){ var a=gplAuth(); return (a&&a.token)?a.token:""; }
 function gplFazendaLock(){ var a=gplAuth(); return (a&&a.fazenda)?a.fazenda:null; }
 
@@ -1147,6 +1147,7 @@ function renderFooter(){
 function renderConfig(){
   document.getElementById("dataHoje").value=state.data;
   document.getElementById("fazendaIn").value=state.fazenda||"";
+  var _fzk=gplFazendaLock(); if(_fzk){ var _fzi=document.getElementById("fazendaIn"); if(_fzi){ _fzi.value=_fzk; _fzi.readOnly=true; _fzi.style.background="#eef3ee"; _fzi.title="Fazenda do cliente — bloqueada"; } }
   document.getElementById("respIn").value=state.responsavel||"";
   document.getElementById("metaPesoIn").value=state.metaPeso||480;
   document.getElementById("arrobaIn").value=state.precoArroba||"";

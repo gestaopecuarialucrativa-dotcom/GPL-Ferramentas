@@ -229,47 +229,6 @@ function notif(msg){
 function getClientesFazendas(){ try{ return JSON.parse(localStorage.getItem('gpl_clientes')||'[]'); }catch(e){ return []; } }
 function saveClientesFazendas(arr){ localStorage.setItem('gpl_clientes', JSON.stringify(arr)); }
 
-// SINCRONIZAÇÃO COM A PLANILHA (Google Sheets)
-var GPL_SYNC_URL = "https://script.google.com/macros/s/AKfycbyjWp9UnWpnKYhzV2o2y48MwkJhu_ynr5baIHXAm4QpUVmk2BKu5LoBvOUOCmHPrw/exec";
-function syncSalvarFazenda(faz){
-  try{
-    var q = '?acao=fazenda_salvar'
-      + '&id='+encodeURIComponent(faz.id)
-      + '&nome='+encodeURIComponent(faz.nome||'')
-      + '&prop='+encodeURIComponent(faz.prop||'')
-      + '&pin='+encodeURIComponent(faz.pinHash||faz.pin||'')
-      + '&ferramentas='+encodeURIComponent((faz.ferramentas||[]).join(','))
-      + '&ativo='+(faz.ativo?'1':'0')
-      + '&criadoEm='+encodeURIComponent(faz.criadoEm||'');
-    var img=new Image(); img.src=GPL_SYNC_URL+q+'&_='+Date.now();
-  }catch(e){}
-}
-function syncExcluirFazenda(id){
-  try{ var img=new Image(); img.src=GPL_SYNC_URL+'?acao=fazenda_excluir&id='+encodeURIComponent(id)+'&_='+Date.now(); }catch(e){}
-}
-function syncCarregarFazendas(cb){
-  var url=GPL_SYNC_URL+'?acao=fazendas_listar&_='+Date.now();
-  fetch(url).then(function(r){return r.json();}).then(function(res){
-    if(res && res.ok && res.fazendas){
-      var arr=res.fazendas.map(function(f){
-        return { id:f.id, nome:f.nome, prop:f.prop, pinHash:f.pin, pin:'',
-                 ferramentas:f.ferramentas||[], ativo:f.ativo, criadoEm:f.criadoEm };
-      });
-      saveClientesFazendas(arr);
-    }
-    if(cb) cb(true);
-  }).catch(function(e){ if(cb) cb(false); });
-}
-function syncMigrarSeNecessario(){
-  try{
-    if(localStorage.getItem('gpl_migrado')==='1') return;
-    var locais=getClientesFazendas();
-    locais.forEach(function(f){ if(!f.id) f.id=Date.now()+Math.floor(Math.random()*1000); syncSalvarFazenda(f); });
-    saveClientesFazendas(locais);
-    localStorage.setItem('gpl_migrado','1');
-  }catch(e){}
-}
-
 /* SHA1 (mesmo do login.html) */
 function sha1Gestor(str){
   function rotl(n,s){return(n<<s)|(n>>>(32-s));}
@@ -360,8 +319,6 @@ function salvarFazendaGestor(){
       ferramentas: ferramentas, ativo: ativo, criadoEm: new Date().toLocaleDateString('pt-BR') });
   }
   saveClientesFazendas(fazendas);
-  var _fazSalva = (_editandoIdx>=0) ? fazendas[_editandoIdx] : fazendas[fazendas.length-1];
-  if(_fazSalva) syncSalvarFazenda(_fazSalva);
   fecharModalNF();
   renderGestorLista();
   notif('✅ Fazenda "'+ nome +'" salva!');
@@ -405,10 +362,8 @@ function renderGestorLista(){
 function excluirFazendaGestor(i){
   var fazendas = getClientesFazendas();
   if(!confirm('Excluir fazenda "'+fazendas[i].nome+'"?')) return;
-  var _idRemovido = fazendas[i].id;
   fazendas.splice(i,1);
   saveClientesFazendas(fazendas);
-  if(_idRemovido) syncExcluirFazenda(_idRemovido);
   renderGestorLista();
   notif('🗑 Fazenda excluída');
 }
@@ -507,11 +462,6 @@ function enviarLinkWpp(){
 function escHtml(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
 renderGestorLista();
-// Sincroniza com a planilha ao abrir (migra o que existe e puxa a lista mais recente)
-(function(){
-  try{ syncMigrarSeNecessario(); }catch(e){}
-  try{ syncCarregarFazendas(function(ok){ renderGestorLista(); }); }catch(e){}
-})();
 
 // ── RELATÓRIO DE ACESSOS ──
 var GPL_TRACK_URL = "https://script.google.com/macros/s/AKfycbyjWp9UnWpnKYhzV2o2y48MwkJhu_ynr5baIHXAm4QpUVmk2BKu5LoBvOUOCmHPrw/exec";

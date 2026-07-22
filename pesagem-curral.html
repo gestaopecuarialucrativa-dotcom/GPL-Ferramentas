@@ -1034,7 +1034,7 @@ async function carregarRefNuvem(silent){
   const el=document.getElementById("refStatus");
   try{
     if(el && !silent) el.textContent="Puxando peso anterior da nuvem...";
-    const r=await jsonp(BACKEND_URL+"?acao=pesagem_ler&antes="+encodeURIComponent(state.data||todayISO())+"&token="+encodeURIComponent(gplToken()));
+    const r=await jsonp(BACKEND_URL+"?acao=pesagem_ler&antes="+encodeURIComponent(state.data||todayISO())+"&token="+encodeURIComponent(gplToken())+"&fazenda="+encodeURIComponent(state.fazenda||""));
     if(!r || !r.ok || !r.animais || !r.animais.length){
       if(el && !silent) el.textContent="A planilha ainda nao tem pesagem anterior a esta data.";
       return false;
@@ -1064,7 +1064,7 @@ async function carregarDiaNuvem(silent){
   var el=document.getElementById("syncStatus");
   try{
     if(el && !silent) el.textContent="Puxando a pesagem do dia da planilha...";
-    var r=await jsonp(BACKEND_URL+"?acao=pesagem_ler&data="+encodeURIComponent(state.data||todayISO())+"&token="+encodeURIComponent(gplToken()));
+    var r=await jsonp(BACKEND_URL+"?acao=pesagem_ler&data="+encodeURIComponent(state.data||todayISO())+"&token="+encodeURIComponent(gplToken())+"&fazenda="+encodeURIComponent(state.fazenda||""));
     if(!r || !r.ok) return false;
     if(!r.animais || !r.animais.length){
       if(el && !silent) el.textContent="Este dia ainda nao esta na planilha (dia novo).";
@@ -1090,7 +1090,7 @@ async function carregarNuvemPesagem(){
   if(!confirm("Carregar a última pesagem da planilha?\n\nIsso substitui os animais que estão neste aparelho agora.")) return;
   if(el) el.textContent="Carregando da planilha...";
   try{
-    const r=await jsonp(BACKEND_URL+"?acao=pesagem_ler&token="+encodeURIComponent(gplToken()));
+    const r=await jsonp(BACKEND_URL+"?acao=pesagem_ler&token="+encodeURIComponent(gplToken())+"&fazenda="+encodeURIComponent(state.fazenda||""));
     if(!r || !r.ok || !r.animais || !r.animais.length){ if(el) el.textContent="A planilha não tem pesagem registrada."; return; }
     if(r.data) state.data=r.data;
     if(r.fazenda) state.fazenda=r.fazenda;
@@ -1777,7 +1777,16 @@ function novaPesagem(){
 
 window.onload=function(){
   const resumed=load();
-  var _fz=gplFazendaLock(); if(_fz){ state.fazenda=_fz; save(); }
+  var _fz=gplFazendaLock();
+  if(_fz){
+    if(state.fazenda && state.fazenda!==_fz){
+      // dados locais sao de outra fazenda -> limpa pra nao vazar dado entre clientes
+      state.today=[]; state.syncDirty=false;
+      state.ref={loaded:false, name:"", data:null, byBrinco:{}, list:[]};
+      state.consumo={loaded:false, ts:null, tratos:[], est:{}};
+    }
+    state.fazenda=_fz; save();
+  }
   document.getElementById("pesoIn").addEventListener("input", ()=>{ if(sel) renderDetail(); });
   document.getElementById("numIn").addEventListener("input", onNum);
   document.getElementById("dataHoje").addEventListener("change", e=>{ state.data=e.target.value||todayISO(); save(); renderConfig(); renderFooter(); if(sel) renderDetail(); });

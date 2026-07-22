@@ -148,6 +148,10 @@ const AR_DIV=30, UA_DIV=450, N_LOTES=10;
 const STORE_KEY="pesagem_curral_state_v1";
 const HDR_ROW=13, DATA_ROW=14;
 const BACKEND_URL="https://script.google.com/macros/s/AKfycby4lOB4zXu2dCBoA-pda6U_do8v9GDvNuH0dFOY6u5kc7FP7gZdPKofZX5Dt-QgnT4V/exec";
+function gplAuth(){ try{ return JSON.parse(localStorage.getItem("gpl_cliente_auth")||"null"); }catch(e){ return null; } }
+function gplToken(){ var a=gplAuth(); return (a&&a.token)?a.token:""; }
+function gplFazendaLock(){ var a=gplAuth(); return (a&&a.fazenda)?a.fazenda:null; }
+
 
 let dados={ fazenda:"", data:"", animais:[], metaPeso:480, precoArroba:0 };
 let ordemLista="lote";
@@ -205,7 +209,7 @@ async function carregarNuvem(){
   const box=document.getElementById("content");
   box.innerHTML='<div class="empty">Carregando da planilha...</div>';
   try{
-    const r=await jsonp(BACKEND_URL+"?acao=pesagem_ler");
+    const r=await jsonp(BACKEND_URL+"?acao=pesagem_ler&token="+encodeURIComponent(gplToken())+(gplFazendaLock()?"&fazenda="+encodeURIComponent(gplFazendaLock()):""));
     if(!r || !r.ok){ box.innerHTML='<div class="empty">Não consegui ler a planilha. Confira o backend.</div>'; return; }
     if(!r.animais || !r.animais.length){ box.innerHTML='<div class="empty">A planilha não tem pesagem registrada ainda.</div>'; return; }
     dados.fazenda=r.fazenda||"";

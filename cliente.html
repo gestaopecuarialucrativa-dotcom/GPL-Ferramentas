@@ -193,6 +193,7 @@ var SESSAO = null;
   }
 
   // Monta interface
+  try{ localStorage.setItem('gpl_client', SESSAO.fazenda); }catch(e){}
   document.getElementById('tb-fazenda').textContent = SESSAO.fazenda;
   document.getElementById('home-fazenda').textContent = SESSAO.fazenda;
   document.title = SESSAO.fazenda + ' — GPL';
@@ -283,6 +284,7 @@ function toggleSb(){
 function sair(){
   if(confirm('Deseja sair?')){
     sessionStorage.removeItem('gpl_auth');
+    try{ localStorage.removeItem('gpl_client'); }catch(e){}
     window.location.href='index.html';
   }
 }

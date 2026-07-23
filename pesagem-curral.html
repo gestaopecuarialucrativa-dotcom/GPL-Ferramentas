@@ -402,6 +402,11 @@ input:focus,select:focus{outline:2px solid var(--v3); border-color:var(--v3)}
         <div class="field"><label>Fazenda</label><input id="fazendaIn" placeholder="Opcional"></div>
         <div class="field"><label>Responsável</label><input id="respIn" placeholder="Opcional"></div>
       </div>
+      <div class="field" id="fazendaSelWrap" style="display:none">
+        <label>Trocar de fazenda (consultor)</label>
+        <select id="fazendaSel" onchange="trocarFazenda(this.value)" style="width:100%; padding:10px; border:1px solid var(--line); border-radius:10px; font-family:inherit; font-size:15px; font-weight:600"></select>
+        <div class="hint">Escolha qual fazenda pesar/ver — limpa a tela e puxa os dados dela da nuvem. (O cliente não vê isso; fica travado na fazenda dele.)</div>
+      </div>
       <div class="field">
         <label>Meta de peso de abate (kg)</label>
         <input id="metaPesoIn" inputmode="decimal" placeholder="480">
@@ -1068,6 +1073,7 @@ async function carregarDiaNuvem(silent){
     if(!r || !r.ok) return false;
     if(!r.animais || !r.animais.length){
       if(el && !silent) el.textContent="Este dia ainda nao esta na planilha (dia novo).";
+      diaCompleto=true; save();
       return false;
     }
     if(r.fazenda) state.fazenda=r.fazenda;
@@ -1084,6 +1090,33 @@ async function carregarDiaNuvem(silent){
     if(el && !silent) el.innerHTML="<span class=\"status-ok\">OK "+state.today.length+" animais carregados da planilha</span>";
     return true;
   }catch(e){ if(el && !silent) el.textContent="Sem internet — usando dados do aparelho. Sincronize depois."; return false; }
+}
+async function carregarListaFazendas(){
+  try{
+    var r=await jsonp(BACKEND_URL+"?acao=fazendas&token="+encodeURIComponent(gplToken()));
+    if(!r || !r.ok || !r.fazendas) return;
+    var sel=document.getElementById("fazendaSel"); if(!sel) return;
+    var cur=state.fazenda||"";
+    var opts='<option value="">— escolha uma fazenda —</option>';
+    r.fazendas.forEach(function(nf){
+      opts+='<option value="'+esc(nf)+'"'+(nf===cur?" selected":"")+'>'+esc(nf)+'</option>';
+    });
+    sel.innerHTML=opts;
+  }catch(e){}
+}
+async function trocarFazenda(nome){
+  nome=String(nome||"").trim();
+  if(!nome) return;
+  if(gplFazendaLock()) return;   // cliente nao troca de fazenda
+  if(state.today && state.today.length && !confirm('Trocar para "'+nome+'"?\n\nIsso limpa os dados na tela. O que já foi sincronizado continua na planilha.')){ var s=document.getElementById("fazendaSel"); if(s) s.value=state.fazenda||""; return; }
+  state.today=[]; state.syncDirty=false;
+  state.ref={loaded:false, name:"", data:null, byBrinco:{}, list:[]};
+  state.consumo={loaded:false, ts:null, tratos:[], est:{}};
+  state.fazenda=nome; diaCompleto=false; save();
+  document.getElementById("fazendaIn").value=nome;
+  renderConfig(); renderHoje(); renderFooter(); renderFaltantes(); renderPesarResumo();
+  await carregarDiaNuvem(false);
+  await carregarRefNuvem(true);
 }
 async function carregarNuvemPesagem(){
   const el=document.getElementById("syncStatus");
@@ -1788,6 +1821,7 @@ window.onload=function(){
     }
     state.fazenda=_fz; save();
   }
+  if(!gplFazendaLock()){ var _selw=document.getElementById("fazendaSelWrap"); if(_selw) _selw.style.display="block"; carregarListaFazendas(); }
   document.getElementById("pesoIn").addEventListener("input", ()=>{ if(sel) renderDetail(); });
   document.getElementById("numIn").addEventListener("input", onNum);
   document.getElementById("dataHoje").addEventListener("change", e=>{ state.data=e.target.value||todayISO(); save(); renderConfig(); renderFooter(); if(sel) renderDetail(); });

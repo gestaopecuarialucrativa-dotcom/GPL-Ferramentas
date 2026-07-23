@@ -529,7 +529,7 @@ input:focus,select:focus{outline:2px solid var(--v3); border-color:var(--v3)}
 const BACKEND_URL = "https://script.google.com/macros/s/AKfycby4lOB4zXu2dCBoA-pda6U_do8v9GDvNuH0dFOY6u5kc7FP7gZdPKofZX5Dt-QgnT4V/exec";
 function gplAuth(){ try{ var u=new URLSearchParams(location.search); var fz=u.get("fz"); if(fz) return {fazenda:fz, token:u.get("tk")||""}; return JSON.parse(sessionStorage.getItem("gpl_auth")||"null"); }catch(e){ return null; } }
 function gplToken(){ var a=gplAuth(); return (a&&a.token)?a.token:""; }
-function gplFazendaLock(){ var a=gplAuth(); return (a&&a.fazenda)?a.fazenda:null; }
+function gplFazendaLock(){ try{ var u=new URLSearchParams(location.search); var fz=u.get("fz"); return fz?fz:null; }catch(e){ return null; } }
 
 const STORE_KEY = "pesagem_curral_state_v1";
 const HDR_ROW = 13;

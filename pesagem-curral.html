@@ -284,13 +284,13 @@ input:focus,select:focus{outline:2px solid var(--v3); border-color:var(--v3)}
 .vd-field label{display:block;font-size:12px;font-weight:700;color:var(--muted);margin-bottom:4px}
 .vd-datapag{padding:12px 14px;border:1px solid var(--line);border-radius:12px;font-size:16px;font-weight:800;color:var(--v1);background:#f5f7f5;min-height:48px;display:flex;align-items:center}
 .vd-datapag.ok{background:var(--v7);border-color:#cfe6cf}
-.vd-hero{background:var(--v1);color:#fff;border-radius:14px;padding:14px 16px;margin-bottom:10px}
+.vd-hero-venda{background:var(--v1);color:#fff;border-radius:14px;padding:14px 16px;margin-bottom:10px}
 .vd-hero-total{font-size:32px;font-weight:800;line-height:1;margin-bottom:2px}
 .vd-hero-sub{font-size:12px;opacity:.8;margin-top:6px}
-.vd-kpis{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
+.vd-kpis{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:10px}
 .vd-kpi{background:#fff;border:1px solid var(--line);border-left:4px solid var(--v2);border-radius:10px;padding:10px 12px}
 .vd-kpi .k{font-size:11px;font-weight:700;color:var(--muted)}
-.vd-kpi .v{font-size:20px;font-weight:800;color:var(--v1);line-height:1.15;margin-top:2px}
+.vd-kpi .v{font-size:18px;font-weight:800;color:var(--v1);line-height:1.15;margin-top:2px}
 .vd-kpi .s{font-size:11px;color:var(--muted)}
 .vd-table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
 .vd-table{width:100%;border-collapse:collapse;font-size:13px}
@@ -300,6 +300,23 @@ input:focus,select:focus{outline:2px solid var(--v3); border-color:var(--v3)}
 .vd-table .r{text-align:right;font-weight:700;color:var(--v1)}
 .vd-table tfoot td{background:var(--v7);font-weight:800;color:var(--v1)}
 .vd-alert{background:#fdf1dc;border:1px solid #f0c060;border-radius:10px;padding:10px 12px;font-size:12px;font-weight:700;color:var(--warn);display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.vd-load-row{display:flex;gap:8px;align-items:flex-end;margin-bottom:4px}
+.vd-load-row input[type=date]{flex:1;padding:10px 12px;border:1px solid var(--line);border-radius:10px;font-size:15px;font-family:inherit;background:#fff;color:var(--txt);-webkit-appearance:none}
+.vd-load-btn{padding:10px 14px;border-radius:10px;background:var(--v2);color:#fff;font-weight:800;font-size:13px;border:none;cursor:pointer;white-space:nowrap;font-family:inherit;flex-shrink:0}
+.vd-status{font-size:12px;color:var(--muted);min-height:14px}
+/* ========== VENDIDOS ========== */
+.vds-card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px 16px;margin:0 16px 10px}
+.vds-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.vds-left{flex:1;min-width:0}
+.vds-data{font-size:11px;font-weight:800;color:var(--muted);letter-spacing:.3px;text-transform:uppercase}
+.vds-comprador{font-size:15px;font-weight:800;color:var(--v1);margin:2px 0 4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.vds-valor{font-size:22px;font-weight:800;color:var(--v1);line-height:1.1}
+.vds-badge{background:var(--v7);color:var(--v1);border-radius:8px;padding:4px 10px;font-size:12px;font-weight:800;flex-shrink:0;align-self:flex-start}
+.vds-meta{font-size:12px;color:var(--muted);margin-top:6px;line-height:1.7}
+.vds-toggle{background:none;border:none;color:var(--v2);font-size:12px;font-weight:800;cursor:pointer;padding:8px 0 0;font-family:inherit}
+.vds-detail{display:none;margin-top:8px;border-top:1px solid var(--line);padding-top:8px}
+.vds-detail.open{display:block}
+.vds-empty{text-align:center;padding:48px 16px;color:var(--muted)}
 
 </style>
 </head>
@@ -560,17 +577,25 @@ input:focus,select:focus{outline:2px solid var(--v3); border-color:var(--v3)}
   <!-- ============ VENDA ============ -->
   <div class="screen" id="scr-venda">
     <div class="card stripe">
-      <h2><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg> Pesagem de Venda</h2>
-      <div style="font-size:12px;color:var(--muted)">Pese os animais na aba <b>Pesar</b>, depois preencha os campos abaixo. As arrobas são calculadas automaticamente (@ a pé = peso ÷ 30 kg).</div>
+      <h2><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg> Relatório de Venda</h2>
+      <div style="font-size:12px;color:var(--muted)">Selecione a data da pesagem, preencha os dados da negociação e gere o relatório. @ a pé = peso ÷ 30 kg (peso vivo).</div>
     </div>
 
     <div class="card stripe">
+      <div class="vd-field">
+        <label>Pesagem a usar</label>
+        <div class="vd-load-row">
+          <input type="date" id="vdDataPes" onchange="vdCarregarData()">
+          <button class="vd-load-btn" onclick="vdCarregarData()">Carregar</button>
+        </div>
+        <div class="vd-status" id="vdStatus"></div>
+      </div>
       <div class="vd-field">
         <label>Comprador / Quem comprou</label>
         <input id="vdComprador" placeholder="Nome do comprador" oninput="renderVenda()">
       </div>
       <div class="vd-field">
-        <label>Preço da arroba (R$ / @)</label>
+        <label>Preço da arroba (R$/@)</label>
         <input id="vdPrecoArr" inputmode="decimal" placeholder="Ex: 320,00" oninput="renderVenda()">
       </div>
       <div class="vd-field">
@@ -590,12 +615,27 @@ input:focus,select:focus{outline:2px solid var(--v3); border-color:var(--v3)}
     <div id="vdResultado" style="margin:0 16px"></div>
     <div id="vdPDFContent" style="display:none"></div>
 
-    <div style="margin:4px 16px 24px">
-      <button class="btn btn-primary" onclick="gerarPDF('vdPDFContent','Pesagem de Venda')" id="vdPDFBtnInner" style="display:none">
+    <div style="margin:4px 16px 6px">
+      <button class="btn btn-primary" onclick="gerarPDF('vdPDFContent','Relatório de Venda')" id="vdPDFBtnInner" style="display:none">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><path d="M6 14h12v8H6z"/></svg>
         Gerar PDF da venda
       </button>
     </div>
+    <div style="margin:0 16px 24px">
+      <button class="btn" id="vdVendidoBtn" style="display:none;border-color:var(--v2);color:var(--v2);font-weight:800" onclick="vdMarcarVendidos()">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+        Marcar como vendidos e arquivar
+      </button>
+    </div>
+  </div>
+
+  <!-- ============ VENDIDOS ============ -->
+  <div class="screen" id="scr-vendidos">
+    <div class="card stripe">
+      <h2><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg> Histórico de Vendas</h2>
+      <div style="font-size:12px;color:var(--muted)">Animais marcados como vendidos são arquivados aqui e removidos da pesagem ativa.</div>
+    </div>
+    <div id="vdsLista" style="margin-top:4px"></div>
   </div>
 
   <div class="nav" id="nav">
@@ -605,6 +645,7 @@ input:focus,select:focus{outline:2px solid var(--v3); border-color:var(--v3)}
   <button data-s="relatorio" onclick="go('relatorio')"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M16 13H8"/><path d="M16 17H8"/><path d="M10 9H8"/></svg>Relatório</button>
   <button data-s="dashboard" onclick="go('dashboard')"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><rect x="7" y="10" width="3" height="7"/><rect x="12" y="6" width="3" height="11"/><rect x="17" y="13" width="3" height="4"/></svg>Painel</button>
   <button data-s="venda" onclick="go('venda')"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>Venda</button>
+  <button data-s="vendidos" onclick="go('vendidos')"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>Vendidos</button>
   <button data-s="config" onclick="go('config')"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v3"/><path d="M12 17v3"/><path d="M4 12h3"/><path d="M17 12h3"/><circle cx="12" cy="12" r="3.5"/></svg>Config</button>
 </div>
 
@@ -732,7 +773,7 @@ function gerarPDF(alvoId, titulo){
   var faz=state.fazenda||"", data=state.data?isoToBR(state.data):"";
   var logo=document.querySelector(".hdr-logo"); var logoSrc=logo?logo.getAttribute("src"):"";
   var wrap=document.createElement("div");
-  wrap.style.position="absolute"; wrap.style.left="0"; wrap.style.top="0"; wrap.style.zIndex="-1"; wrap.style.width="800px";
+  wrap.style.cssText="position:fixed;left:-10000px;top:0;z-index:9999;width:800px;";
   wrap.className="pdf-wrap";
   wrap.innerHTML=
     '<div class="pdf-cap">'+(logoSrc?'<img src="'+logoSrc+'" style="height:44px">':"")+
@@ -779,6 +820,7 @@ function load(){
         if(!state.produtosOcultos) state.produtosOcultos={};
         if(!state.consumoAnimais) state.consumoAnimais={};
         if(!state.trato) state.trato={};
+        if(!state.vendidos) state.vendidos=[];
         if(state.gmdGlobal==null) state.gmdGlobal=0;
         return true; } }
   }catch(e){}
@@ -1857,6 +1899,7 @@ function go(s){
   if(s==="relatorio") renderRelatorio();
   if(s==="dashboard") renderDashboard();
   if(s==="venda") renderVenda();
+  if(s==="vendidos") renderVendidos();
 }
 function openFinalizar(){
   if(!state.today.length){ alert("Nenhum animal pesado para finalizar."); return; }
@@ -1954,189 +1997,313 @@ window.onload=function(){
 };
 
 // ============ RELATÓRIO DE VENDA ============
+var _vdAnimais = [];
+var _vdDataSel = '';
+
 function vdProxUtil(d){
   var dw=d.getDay();
-  if(dw===6)d.setDate(d.getDate()+2);
-  else if(dw===0)d.setDate(d.getDate()+1);
+  if(dw===6) d.setDate(d.getDate()+2);
+  else if(dw===0) d.setDate(d.getDate()+1);
   return d;
 }
 function vdFmtData(d){
   return ('0'+d.getDate()).slice(-2)+'/'+('0'+(d.getMonth()+1)).slice(-2)+'/'+d.getFullYear();
 }
-function vdN(n,d){
-  if(isNaN(n))return '—';
-  return n.toLocaleString('pt-BR',{minimumFractionDigits:d||0,maximumFractionDigits:d||0});
+function vdN(n,dec){
+  if(n==null||isNaN(n)) return '—';
+  return n.toLocaleString('pt-BR',{minimumFractionDigits:dec||0,maximumFractionDigits:dec||0});
+}
+
+async function vdCarregarData(){
+  var dpEl=document.getElementById('vdDataPes');
+  var data=dpEl?dpEl.value:'';
+  var stEl=document.getElementById('vdStatus');
+  if(!data){ if(stEl) stEl.textContent='Escolha uma data.'; return; }
+  _vdDataSel=data;
+  var curData=state.data||todayISO();
+  if(data===curData){
+    _vdAnimais=(state.today||[]).slice();
+    if(stEl) stEl.textContent=_vdAnimais.length+' animais — sessão atual ('+vdFmtData(new Date(data+'T12:00:00'))+')';
+    renderVenda(); return;
+  }
+  if(stEl) stEl.textContent='Carregando...';
+  try{
+    var url=BACKEND_URL+'?acao=pesagem_ler&data='+encodeURIComponent(data)+'&token='+encodeURIComponent(gplToken())+'&fazenda='+encodeURIComponent(state.fazenda||'');
+    var r=await jsonp(url);
+    if(r&&r.animais&&r.animais.length){
+      _vdAnimais=r.animais.map(function(a){return{num:a.num||a.brinco||'',brinco:a.brinco||a.num||'',lote:a.lote||a.lot||'',peso:parseFloat(a.peso)||0,id:a.id||String(Math.random())};});
+      if(stEl) stEl.textContent=_vdAnimais.length+' animais carregados — '+vdFmtData(new Date(data+'T12:00:00'));
+    } else {
+      _vdAnimais=[];
+      if(stEl) stEl.textContent='Nenhum animal encontrado para esta data.';
+    }
+  }catch(e){
+    if(stEl) stEl.textContent='Erro ao carregar. Verifique a conexão.';
+    _vdAnimais=[];
+  }
+  renderVenda();
 }
 
 function renderVenda(){
-  var comprador = ((document.getElementById('vdComprador')||{}).value||'').trim();
-  var precoArr  = parseFloat(String((document.getElementById('vdPrecoArr')||{}).value||'').replace(',','.'))||0;
-  var prazo     = parseInt(String((document.getElementById('vdPrazo')||{}).value||'')||'0')||0;
-  var obs       = ((document.getElementById('vdObs')||{}).value||'').trim();
-
-  // ── Data de pagamento ──
-  var dpEl      = document.getElementById('vdDataPag');
-  var dataStr   = ''; var dataLabel = ''; var ajustou = false;
-  if(prazo > 0){
-    var base = new Date(); base.setDate(base.getDate()+prazo);
-    ajustou = (base.getDay()===6||base.getDay()===0);
-    vdProxUtil(base);
-    dataStr  = vdFmtData(base);
-    var dias_semana = ['dom','seg','ter','qua','qui','sex','sáb'];
-    dataLabel = dataStr + (ajustou?' ('+dias_semana[base.getDay()]+' — próximo dia útil)':'');
-    if(dpEl){dpEl.textContent=dataLabel; dpEl.className='vd-datapag ok';}
-  } else {
-    if(dpEl){dpEl.textContent='Preencha o prazo acima'; dpEl.className='vd-datapag';}
+  // Inicializa com sessão atual se vazio
+  if(!_vdAnimais.length&&(state.today||[]).length){
+    _vdAnimais=state.today.slice();
+    _vdDataSel=state.data||todayISO();
+  }
+  // Preenche campo data se vazio
+  var dpEl=document.getElementById('vdDataPes');
+  if(dpEl&&!dpEl.value){
+    dpEl.value=_vdDataSel||state.data||todayISO();
+    var stEl=document.getElementById('vdStatus');
+    if(stEl&&!stEl.textContent&&_vdAnimais.length) stEl.textContent=_vdAnimais.length+' animais — sessão atual';
   }
 
-  // ── Animais pesados hoje ──
-  var animais = (state.today||[]).slice().sort(function(a,b){
-    return String(a.num||a.brinco||'').localeCompare(String(b.num||b.brinco||''), 'pt-BR', {numeric:true});
-  });
-  var n = animais.length;
+  var comprador=((document.getElementById('vdComprador')||{}).value||'').trim();
+  var precoArr=parseFloat(String((document.getElementById('vdPrecoArr')||{}).value||'').replace(',','.'))||0;
+  var prazo=parseInt(String((document.getElementById('vdPrazo')||{}).value||'')||'0')||0;
+  var obs=((document.getElementById('vdObs')||{}).value||'').trim();
 
-  var el       = document.getElementById('vdResultado');
-  var btnInner = document.getElementById('vdPDFBtnInner');
+  // Data de pagamento
+  var dpPagEl=document.getElementById('vdDataPag');
+  var dataStr='',dataLabel='',ajustou=false;
+  if(prazo>0){
+    var base=new Date(); base.setDate(base.getDate()+prazo);
+    ajustou=(base.getDay()===6||base.getDay()===0);
+    vdProxUtil(base);
+    dataStr=vdFmtData(base);
+    var ds=['dom','seg','ter','qua','qui','sex','sáb'];
+    dataLabel=dataStr+(ajustou?' ('+ds[base.getDay()]+' — próximo dia útil)':'');
+    if(dpPagEl){dpPagEl.textContent=dataLabel;dpPagEl.className='vd-datapag ok';}
+  } else {
+    if(dpPagEl){dpPagEl.textContent='Preencha o prazo acima';dpPagEl.className='vd-datapag';}
+  }
+
+  var animais=(_vdAnimais||[]).slice().sort(function(a,b){
+    return String(a.num||a.brinco||'').localeCompare(String(b.num||b.brinco||''),'pt-BR',{numeric:true});
+  });
+  var n=animais.length;
+  var el=document.getElementById('vdResultado');
+  var btnPDF=document.getElementById('vdPDFBtnInner');
+  var btnVds=document.getElementById('vdVendidoBtn');
   if(!el) return;
 
-  // ── Aviso sem animais ──
-  var warn = '';
   if(!n){
-    warn = '<div class="vd-alert">'+
-      '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4"/><path d="M12 17h.01"/><path d="M10.3 3.9L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg>'+
-      'Nenhum animal pesado hoje. Peseje na aba <b style="margin-left:2px">Pesar</b> primeiro.</div>';
-    el.innerHTML = warn;
-    if(btnInner) btnInner.style.display='none';
-    // populate PDF blank anyway
-    var pdfEl=document.getElementById('vdPDFContent');
-    if(pdfEl) pdfEl.innerHTML='<p style="color:#c0392b">Nenhum animal pesado.</p>';
+    el.innerHTML='<div class="vd-alert"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4"/><path d="M12 17h.01"/><path d="M10.3 3.9L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg>Nenhum animal. Pese na aba <b style="margin:0 2px">Pesar</b> ou selecione outra data acima.</div>';
+    if(btnPDF) btnPDF.style.display='none';
+    if(btnVds) btnVds.style.display='none';
+    var pEl=document.getElementById('vdPDFContent'); if(pEl) pEl.innerHTML='';
     return;
   }
 
-  // ── Cálculos por animal: @ a pé = peso / 30 ──
-  var pesoTotal=0, arrobasTotal=0, valorTotal=0;
-  var rowsApp='', rowsPDF='';
+  var pesoTotal=0,arrobasTotal=0,valorTotal=0;
+  var rowsApp='',rowsPDF='';
   animais.forEach(function(t){
-    var brinco = t.num||t.brinco||'?';
-    var lote   = t.lote||t.lot||'';
-    var peso   = parseFloat(t.peso)||0;
-    var arr    = peso/30;                          // @ a pé
-    var val    = precoArr>0 ? arr*precoArr : 0;
-    pesoTotal    += peso;
-    arrobasTotal += arr;
-    valorTotal   += val;
-    // linha tabela app
-    rowsApp +=
-      '<tr><td><b>'+esc(brinco)+'</b>'+(lote?'<br><span style="font-size:10px;color:var(--muted)">'+esc(lote)+'</span>':'')+'</td>'+
+    var brinco=t.num||t.brinco||'?';
+    var lote=t.lote||t.lot||'';
+    var peso=parseFloat(t.peso)||0;
+    var arr=peso/30;
+    var val=precoArr>0?arr*precoArr:0;
+    pesoTotal+=peso; arrobasTotal+=arr; valorTotal+=val;
+    rowsApp+='<tr>'+
+      '<td><b>'+esc(brinco)+'</b>'+(lote?'<br><span style="font-size:10px;color:var(--muted)">'+esc(lote)+'</span>':'')+'</td>'+
       '<td class="r">'+vdN(peso,0)+' kg</td>'+
       '<td class="r">'+vdN(arr,2)+'</td>'+
-      '<td class="r">'+(val>0?'R$&nbsp;'+vdN(val,2):'—')+'</td></tr>';
-    // linha tabela PDF
-    rowsPDF +=
-      '<tr style="border-bottom:1px solid #e8f0e8">'+
+      '<td class="r">'+(val>0?'R$ '+vdN(val,2):'—')+'</td></tr>';
+    rowsPDF+='<tr style="border-bottom:1px solid #e8f0e8">'+
       '<td style="padding:5px 8px">'+esc(brinco)+(lote?' <span style="color:#888;font-size:10px">('+esc(lote)+')</span>':'')+'</td>'+
       '<td style="text-align:right;padding:5px 8px">'+vdN(peso,0)+' kg</td>'+
       '<td style="text-align:right;padding:5px 8px">'+vdN(arr,2)+'</td>'+
       '<td style="text-align:right;padding:5px 8px">'+(val>0?'R$ '+vdN(val,2):'—')+'</td></tr>';
   });
+  var pesoMedio=n?pesoTotal/n:0;
+  var valorCab=n&&valorTotal>0?valorTotal/n:0;
 
-  var pesoMedio  = n ? pesoTotal/n   : 0;
-  var arrMedio   = n ? arrobasTotal/n: 0;
-  var valorCab   = n && valorTotal>0 ? valorTotal/n : 0;
-
-  // ── Hero (app) ──
+  // Hero
   var heroHtml='';
   if(valorTotal>0){
-    heroHtml='<div class="vd-hero">'+
+    heroHtml='<div class="vd-hero-venda">'+
       '<div style="font-size:11px;font-weight:700;opacity:.75;letter-spacing:.5px">TOTAL DA VENDA — '+n+' cabeças</div>'+
-      '<div class="vd-hero-total">R$&nbsp;'+vdN(valorTotal,2)+'</div>'+
-      '<div class="vd-hero-sub">'+vdN(arrobasTotal,2)+' @ · R$&nbsp;'+vdN(valorCab,2)+'/cab</div>'+
+      '<div class="vd-hero-total">R$ '+vdN(valorTotal,2)+'</div>'+
+      '<div class="vd-hero-sub">'+vdN(arrobasTotal,2)+' @ · R$ '+vdN(valorCab,2)+'/cab</div>'+
       '</div>';
   }
 
-  // ── KPIs (app) ──
+  // KPIs — sempre visíveis (6 cards em grid 3x2)
   var kpis='<div class="vd-kpis">'+
-    '<div class="vd-kpi"><div class="k">Cabeças</div><div class="v">'+n+'</div></div>'+
-    '<div class="vd-kpi"><div class="k">Peso médio</div><div class="v">'+vdN(pesoMedio,0)+'<span style="font-size:13px"> kg</span></div></div>'+
-    '<div class="vd-kpi"><div class="k">Peso total</div><div class="v">'+vdN(pesoTotal,0)+'<span style="font-size:13px"> kg</span></div></div>'+
-    '<div class="vd-kpi"><div class="k">Total arrobas</div><div class="v">'+vdN(arrobasTotal,2)+'<span style="font-size:13px"> @</span></div></div>'+
+    '<div class="vd-kpi"><div class="k">Quantidade</div><div class="v">'+n+'<span style="font-size:12px"> cab</span></div></div>'+
+    '<div class="vd-kpi"><div class="k">Peso médio</div><div class="v">'+vdN(pesoMedio,0)+'<span style="font-size:12px"> kg</span></div></div>'+
+    '<div class="vd-kpi"><div class="k">Peso total</div><div class="v">'+vdN(pesoTotal,0)+'<span style="font-size:12px"> kg</span></div></div>'+
+    '<div class="vd-kpi"><div class="k">Total arrobas</div><div class="v">'+vdN(arrobasTotal,1)+'<span style="font-size:12px"> @</span></div></div>'+
+    '<div class="vd-kpi"><div class="k">Valor total</div><div class="v" style="font-size:'+(valorTotal>0?'15':'13')+'px">'+(valorTotal>0?'R$ '+vdN(valorTotal,2):'<span style="color:var(--muted)">preencha R$/@</span>')+'</div></div>'+
+    '<div class="vd-kpi"><div class="k">Valor / cabeça</div><div class="v" style="font-size:15px">'+(valorCab>0?'R$ '+vdN(valorCab,2):'—')+'</div></div>'+
     '</div>';
 
-  // ── Detalhes venda (app) ──
-  var detalhes='';
+  // Detalhes
+  var det='';
   if(precoArr>0||comprador||prazo>0){
-    detalhes='<div class="card" style="margin:0 0 10px">';
-    if(comprador)     detalhes+='<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--line)"><span style="font-size:12px;color:var(--muted);font-weight:700">Comprador</span><span style="font-weight:800;color:var(--v1)">'+esc(comprador)+'</span></div>';
-    if(precoArr>0)    detalhes+='<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--line)"><span style="font-size:12px;color:var(--muted);font-weight:700">Preço da @</span><span style="font-weight:800;color:var(--v1)">R$ '+vdN(precoArr,2)+'/@</span></div>';
-    if(valorCab>0)    detalhes+='<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--line)"><span style="font-size:12px;color:var(--muted);font-weight:700">Valor por cabeça</span><span style="font-weight:800;color:var(--v1)">R$ '+vdN(valorCab,2)+'</span></div>';
-    if(prazo>0)       detalhes+='<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0'+(obs?';border-bottom:1px solid var(--line)':'')+'"><span style="font-size:12px;color:var(--muted);font-weight:700">Pagamento ('+prazo+'d)</span><span style="font-weight:800;color:var(--v2);text-align:right;max-width:60%">'+dataLabel+'</span></div>';
-    if(obs)           detalhes+='<div style="padding:6px 0;font-size:12px;color:var(--muted)"><b>Obs:</b> '+esc(obs)+'</div>';
-    detalhes+='</div>';
+    det='<div class="card" style="margin:0 0 10px">';
+    if(comprador) det+='<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--line)"><span style="font-size:12px;color:var(--muted);font-weight:700">Comprador</span><span style="font-weight:800;color:var(--v1)">'+esc(comprador)+'</span></div>';
+    if(precoArr>0) det+='<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--line)"><span style="font-size:12px;color:var(--muted);font-weight:700">Preço da @</span><span style="font-weight:800;color:var(--v1)">R$ '+vdN(precoArr,2)+' / @</span></div>';
+    if(valorCab>0) det+='<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--line)"><span style="font-size:12px;color:var(--muted);font-weight:700">Média / cabeça</span><span style="font-weight:800;color:var(--v1)">R$ '+vdN(valorCab,2)+'</span></div>';
+    if(prazo>0) det+='<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0'+(obs?';border-bottom:1px solid var(--line)':'')+'"><span style="font-size:12px;color:var(--muted);font-weight:700">Pagamento ('+prazo+'d)</span><span style="font-weight:800;color:var(--v2);text-align:right;max-width:60%">'+dataLabel+'</span></div>';
+    if(obs) det+='<div style="padding:6px 0;font-size:12px;color:var(--muted)"><b>Obs:</b> '+esc(obs)+'</div>';
+    det+='</div>';
   }
 
-  // ── Tabela individual (app) ──
-  var tabelaApp='<div class="card" style="margin:0 0 10px;padding:12px">'+
-    '<div style="font-size:12px;font-weight:800;color:var(--v1);margin-bottom:8px">Relatório individual</div>'+
+  // Tabela individual
+  var tbl='<div class="card" style="margin:0 0 10px;padding:12px">'+
+    '<div style="font-size:12px;font-weight:800;color:var(--v1);margin-bottom:8px">Relatório individual ('+n+' animais)</div>'+
     '<div class="vd-table-wrap"><table class="vd-table">'+
-    '<thead><tr>'+
-    '<th>Brinco</th><th style="text-align:right">Peso (kg)</th><th style="text-align:right">@ a pé</th><th style="text-align:right">Valor</th>'+
-    '</tr></thead><tbody>'+rowsApp+'</tbody>'+
+    '<thead><tr><th>Brinco</th><th style="text-align:right">Peso (kg)</th><th style="text-align:right">@ a pé</th><th style="text-align:right">Valor</th></tr></thead>'+
+    '<tbody>'+rowsApp+'</tbody>'+
     '<tfoot><tr>'+
     '<td>TOTAL ('+n+')</td>'+
     '<td class="r">'+vdN(pesoTotal,0)+' kg</td>'+
     '<td class="r">'+vdN(arrobasTotal,2)+'</td>'+
-    '<td class="r">'+(valorTotal>0?'R$&nbsp;'+vdN(valorTotal,2):'—')+'</td>'+
+    '<td class="r">'+(valorTotal>0?'R$ '+vdN(valorTotal,2):'—')+'</td>'+
     '</tr></tfoot></table></div></div>';
 
-  el.innerHTML = warn + heroHtml + kpis + detalhes + tabelaApp;
+  el.innerHTML=heroHtml+kpis+det+tbl;
+  if(btnPDF) btnPDF.style.display='flex';
+  if(btnVds) btnVds.style.display='flex';
 
-  // ── PDF content (para gerarPDF existente) ──
-  var faz     = state.fazenda||'';
-  var dataVd  = state.data ? isoToBR(state.data) : '';
-
-  var pdfBody =
-    // Bloco topo
-    '<table style="width:100%;border-collapse:collapse;font-size:13px;margin-bottom:14px">'+
-    (comprador  ?'<tr><td style="padding:5px 0;color:#5f6b60;font-weight:700;width:42%;border-bottom:1px solid #e8f0e8">Comprador</td><td style="padding:5px 0;border-bottom:1px solid #e8f0e8;font-weight:800;color:#1B5E20">'+esc(comprador)+'</td></tr>':'')+
-    (precoArr>0 ?'<tr><td style="padding:5px 0;color:#5f6b60;font-weight:700;border-bottom:1px solid #e8f0e8">Preço da arroba</td><td style="padding:5px 0;border-bottom:1px solid #e8f0e8;font-weight:800">R$ '+vdN(precoArr,2)+' / @</td></tr>':'')+
-    '<tr><td style="padding:5px 0;color:#5f6b60;font-weight:700;border-bottom:1px solid #e8f0e8">Método de cálculo</td><td style="padding:5px 0;border-bottom:1px solid #e8f0e8">@ a pé — peso vivo ÷ 30 kg</td></tr>'+
-    (obs        ?'<tr><td style="padding:5px 0;color:#5f6b60;font-weight:700">Observações</td><td style="padding:5px 0">'+esc(obs)+'</td></tr>':'')+
+  // PDF body (inline styles, sem CSS variables)
+  var pdfBody=
+    '<table style="width:100%;border-collapse:collapse;font-size:13px;margin-bottom:12px">'+
+    (comprador?'<tr><td style="padding:5px 0;color:#5f6b60;font-weight:700;width:44%;border-bottom:1px solid #e8f0e8">Comprador</td><td style="padding:5px 0;border-bottom:1px solid #e8f0e8;font-weight:800;color:#1B5E20">'+esc(comprador)+'</td></tr>':'')+
+    (precoArr>0?'<tr><td style="padding:5px 0;color:#5f6b60;font-weight:700;border-bottom:1px solid #e8f0e8">Preço da arroba</td><td style="padding:5px 0;border-bottom:1px solid #e8f0e8;font-weight:800">R$ '+vdN(precoArr,2)+' / @</td></tr>':'')+
+    '<tr><td style="padding:5px 0;color:#5f6b60;font-weight:700;border-bottom:1px solid #e8f0e8">Cálculo</td><td style="padding:5px 0;border-bottom:1px solid #e8f0e8">@ a pé — peso vivo ÷ 30 kg</td></tr>'+
+    (obs?'<tr><td style="padding:5px 0;color:#5f6b60;font-weight:700">Observações</td><td style="padding:5px 0">'+esc(obs)+'</td></tr>':'')+
     '</table>'+
-    // Hero valor
+    // KPIs no PDF
+    '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:8px 0 12px">'+
+    '<div style="border:1px solid #cfe6cf;border-left:4px solid #4CAF50;border-radius:8px;padding:7px 10px"><div style="font-size:9px;font-weight:700;color:#5f6b60;text-transform:uppercase">Quantidade</div><div style="font-size:18px;font-weight:800;color:#1B5E20;line-height:1.2">'+n+' cab</div></div>'+
+    '<div style="border:1px solid #cfe6cf;border-left:4px solid #4CAF50;border-radius:8px;padding:7px 10px"><div style="font-size:9px;font-weight:700;color:#5f6b60;text-transform:uppercase">Peso Médio</div><div style="font-size:18px;font-weight:800;color:#1B5E20;line-height:1.2">'+vdN(pesoMedio,0)+' kg</div></div>'+
+    '<div style="border:1px solid #cfe6cf;border-left:4px solid #4CAF50;border-radius:8px;padding:7px 10px"><div style="font-size:9px;font-weight:700;color:#5f6b60;text-transform:uppercase">Peso Total</div><div style="font-size:18px;font-weight:800;color:#1B5E20;line-height:1.2">'+vdN(pesoTotal,0)+' kg</div></div>'+
+    '<div style="border:1px solid #cfe6cf;border-left:4px solid #2E7D32;border-radius:8px;padding:7px 10px"><div style="font-size:9px;font-weight:700;color:#5f6b60;text-transform:uppercase">Total Arrobas</div><div style="font-size:18px;font-weight:800;color:#1B5E20;line-height:1.2">'+vdN(arrobasTotal,2)+' @</div></div>'+
     (valorTotal>0?
-      '<div style="background:#1B5E20;border-radius:10px;padding:14px 18px;margin:14px 0;display:flex;justify-content:space-between;align-items:center;page-break-inside:avoid">'+
-      '<div>'+
-        '<div style="color:rgba(255,255,255,.75);font-size:11px;font-weight:700;letter-spacing:.5px">TOTAL DA VENDA — '+n+' cabeças</div>'+
-        '<div style="color:rgba(255,255,255,.7);font-size:12px;margin-top:3px">'+vdN(arrobasTotal,2)+' arrobas · R$ '+vdN(valorCab,2)+' por cabeça</div>'+
-      '</div>'+
-      '<div style="color:#fff;font-size:28px;font-weight:800">R$&nbsp;'+vdN(valorTotal,2)+'</div>'+
-      '</div>':'')+
-    // Data pagamento
+      '<div style="border:1px solid #cfe6cf;border-left:4px solid #1B5E20;border-radius:8px;padding:7px 10px"><div style="font-size:9px;font-weight:700;color:#5f6b60;text-transform:uppercase">Valor Total</div><div style="font-size:18px;font-weight:800;color:#1B5E20;line-height:1.2">R$ '+vdN(valorTotal,2)+'</div></div>'+
+      '<div style="border:1px solid #cfe6cf;border-left:4px solid #1B5E20;border-radius:8px;padding:7px 10px"><div style="font-size:9px;font-weight:700;color:#5f6b60;text-transform:uppercase">Valor / Cab</div><div style="font-size:18px;font-weight:800;color:#1B5E20;line-height:1.2">R$ '+vdN(valorCab,2)+'</div></div>'
+    :'<div></div><div></div>')+
+    '</div>'+
+    (valorTotal>0?
+      '<div style="background:#1B5E20;border-radius:10px;padding:12px 16px;margin:0 0 10px;display:flex;justify-content:space-between;align-items:center;page-break-inside:avoid">'+
+      '<div><div style="color:rgba(255,255,255,.75);font-size:10px;font-weight:700;letter-spacing:.5px;text-transform:uppercase">Total da Venda — '+n+' cabeças</div>'+
+      '<div style="color:rgba(255,255,255,.7);font-size:11px;margin-top:2px">'+vdN(arrobasTotal,2)+' arrobas · R$ '+vdN(valorCab,2)+' por cabeça</div></div>'+
+      '<div style="color:#fff;font-size:26px;font-weight:800">R$ '+vdN(valorTotal,2)+'</div></div>':'')+
     (prazo>0?
-      '<div style="background:#E8F5E9;border-radius:8px;padding:12px 14px;margin:10px 0;display:flex;justify-content:space-between;align-items:center;page-break-inside:avoid">'+
-      '<div style="font-size:12px;font-weight:700;color:#2E7D32">PAGAMENTO EM '+prazo+' DIAS CORRIDOS'+(ajustou?'<br><span style="font-size:10px;font-weight:600;color:#5f6b60">Ajustado para próximo dia útil</span>':'')+'</div>'+
-      '<div style="font-size:22px;font-weight:800;color:#1B5E20">'+dataStr+'</div>'+
-      '</div>':'')+
-    // Tabela individual
-    '<div style="font-size:12px;font-weight:800;color:#1B5E20;margin:12px 0 6px">Relatório individual</div>'+
-    '<table style="width:100%;border-collapse:collapse;font-size:12px">'+
+      '<div style="background:#E8F5E9;border-radius:8px;padding:10px 14px;margin:0 0 10px;display:flex;justify-content:space-between;align-items:center;page-break-inside:avoid">'+
+      '<div style="font-size:11px;font-weight:700;color:#2E7D32">PAGAMENTO EM '+prazo+' DIAS CORRIDOS'+(ajustou?'<br><span style="font-size:10px;color:#5f6b60;font-weight:600">Ajustado — próximo dia útil</span>':'')+'</div>'+
+      '<div style="font-size:20px;font-weight:800;color:#1B5E20">'+dataStr+'</div></div>':'')+
+    '<div style="font-size:11px;font-weight:800;color:#1B5E20;margin:10px 0 6px;border-top:1px solid #e8f0e8;padding-top:8px">Relatório individual por animal</div>'+
+    '<table style="width:100%;border-collapse:collapse;font-size:11px;page-break-inside:auto">'+
     '<thead><tr style="background:#E8F5E9">'+
-    '<th style="text-align:left;padding:6px 8px;border-bottom:2px solid #cfe6cf;color:#1B5E20">Brinco</th>'+
-    '<th style="text-align:right;padding:6px 8px;border-bottom:2px solid #cfe6cf;color:#1B5E20">Peso vivo (kg)</th>'+
-    '<th style="text-align:right;padding:6px 8px;border-bottom:2px solid #cfe6cf;color:#1B5E20">@ a pé</th>'+
-    '<th style="text-align:right;padding:6px 8px;border-bottom:2px solid #cfe6cf;color:#1B5E20">Valor (R$)</th>'+
+    '<th style="text-align:left;padding:5px 8px;border-bottom:2px solid #cfe6cf;color:#1B5E20">Brinco</th>'+
+    '<th style="text-align:right;padding:5px 8px;border-bottom:2px solid #cfe6cf;color:#1B5E20">Peso vivo (kg)</th>'+
+    '<th style="text-align:right;padding:5px 8px;border-bottom:2px solid #cfe6cf;color:#1B5E20">@ a pé</th>'+
+    '<th style="text-align:right;padding:5px 8px;border-bottom:2px solid #cfe6cf;color:#1B5E20">Valor (R$)</th>'+
     '</tr></thead>'+
     '<tbody>'+rowsPDF+'</tbody>'+
     '<tfoot><tr style="background:#E8F5E9;font-weight:800">'+
-    '<td style="padding:6px 8px;color:#1B5E20">TOTAL ('+n+' cabeças)</td>'+
-    '<td style="text-align:right;padding:6px 8px">'+vdN(pesoTotal,0)+' kg</td>'+
-    '<td style="text-align:right;padding:6px 8px">'+vdN(arrobasTotal,2)+'</td>'+
-    '<td style="text-align:right;padding:6px 8px">'+(valorTotal>0?'R$ '+vdN(valorTotal,2):'—')+'</td>'+
+    '<td style="padding:5px 8px;color:#1B5E20">TOTAL ('+n+' cabeças)</td>'+
+    '<td style="text-align:right;padding:5px 8px">'+vdN(pesoTotal,0)+' kg</td>'+
+    '<td style="text-align:right;padding:5px 8px">'+vdN(arrobasTotal,2)+'</td>'+
+    '<td style="text-align:right;padding:5px 8px">'+(valorTotal>0?'R$ '+vdN(valorTotal,2):'—')+'</td>'+
     '</tr></tfoot></table>';
 
   var pdfEl=document.getElementById('vdPDFContent');
   if(pdfEl) pdfEl.innerHTML=pdfBody;
-  if(btnInner) btnInner.style.display='flex';
+}
+
+function vdMarcarVendidos(){
+  var n=(_vdAnimais||[]).length;
+  if(!n){ alert('Nenhum animal carregado.'); return; }
+  var comprador=((document.getElementById('vdComprador')||{}).value||'').trim();
+  var precoArr=parseFloat(String((document.getElementById('vdPrecoArr')||{}).value||'').replace(',','.'))||0;
+  var prazo=parseInt(String((document.getElementById('vdPrazo')||{}).value||'')||'0')||0;
+  var obs=((document.getElementById('vdObs')||{}).value||'').trim();
+  var dpPagEl=document.getElementById('vdDataPag');
+  var dataPagLabel=dpPagEl?dpPagEl.textContent:'';
+  var msg='Confirma arquivamento de '+n+' animais como vendidos'+(comprador?' para '+comprador:'')+' ?\n\nEles serão removidos da pesagem ativa.';
+  if(!confirm(msg)) return;
+  if(!state.vendidos) state.vendidos=[];
+  state.vendidos.unshift({
+    ts:new Date().toISOString(),
+    data:_vdDataSel||state.data||todayISO(),
+    comprador:comprador,
+    precoArr:precoArr,
+    prazo:prazo,
+    dataPag:dataPagLabel,
+    obs:obs,
+    animais:_vdAnimais.map(function(a){return{num:String(a.num||a.brinco||''),lote:String(a.lote||''),peso:parseFloat(a.peso)||0};})
+  });
+  var ids=new Set(_vdAnimais.map(function(a){return String(a.num||a.brinco||'');}));
+  state.today=(state.today||[]).filter(function(t){return !ids.has(String(t.num||t.brinco||''));});
+  _vdAnimais=[]; _vdDataSel='';
+  ['vdComprador','vdPrecoArr','vdPrazo','vdObs'].forEach(function(id){var e=document.getElementById(id);if(e)e.value='';});
+  var dpEl=document.getElementById('vdDataPes'); if(dpEl) dpEl.value='';
+  var stEl=document.getElementById('vdStatus'); if(stEl) stEl.textContent='';
+  if(dpPagEl){dpPagEl.textContent='Preencha o prazo acima';dpPagEl.className='vd-datapag';}
+  save();
+  alert('✓ '+n+' animais arquivados como vendidos!');
+  go('vendidos');
+}
+
+function renderVendidos(){
+  var el=document.getElementById('vdsLista'); if(!el) return;
+  var lista=state.vendidos||[];
+  if(!lista.length){
+    el.innerHTML='<div class="vds-empty"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" style="color:#aaa;display:block;margin:0 auto 12px"><path d="M20 6L9 17l-5-5"/></svg><div style="font-size:14px;font-weight:700;color:#888">Nenhuma venda arquivada</div><div style="font-size:12px;color:#aaa;margin-top:4px">Marque animais como vendidos na aba Venda</div></div>';
+    return;
+  }
+  var html='';
+  lista.forEach(function(v,i){
+    var nAni=(v.animais||[]).length;
+    var peso=(v.animais||[]).reduce(function(s,a){return s+(parseFloat(a.peso)||0);},0);
+    var arrs=peso/30;
+    var val=v.precoArr>0?arrs*v.precoArr:0;
+    var dataVd=v.data?vdFmtData(new Date(v.data+'T12:00:00')):'—';
+    html+='<div class="vds-card">'+
+      '<div class="vds-head">'+
+      '<div class="vds-left">'+
+      '<div class="vds-data">'+dataVd+'</div>'+
+      '<div class="vds-comprador">'+(v.comprador?esc(v.comprador):'Comprador não informado')+'</div>'+
+      (val>0?'<div class="vds-valor">R$ '+vdN(val,2)+'</div>':'<div style="font-size:14px;color:#888;margin-top:2px">Preço não informado</div>')+
+      '</div>'+
+      '<div class="vds-badge">'+nAni+' cab</div>'+
+      '</div>'+
+      '<div class="vds-meta">'+
+      (v.precoArr>0?'R$ '+vdN(v.precoArr,2)+' / @ · ':'')+
+      vdN(arrs,2)+' @ · '+vdN(peso,0)+' kg total'+
+      (v.dataPag&&v.prazo?'<br>Pagamento ('+v.prazo+'d): '+v.dataPag:'')+
+      (v.obs?'<br>Obs: '+esc(v.obs):'')+
+      '</div>'+
+      '<button class="vds-toggle" onclick="vdsToggle(this)">▼ ver animais ('+nAni+')</button>'+
+      '<div class="vds-detail">'+
+      '<table class="vd-table" style="font-size:12px;margin-top:4px"><thead><tr>'+
+      '<th>Brinco</th><th>Lote</th><th style="text-align:right">Peso</th><th style="text-align:right">@ a pé</th>'+
+      (v.precoArr>0?'<th style="text-align:right">Valor</th>':'')+
+      '</tr></thead><tbody>'+
+      (v.animais||[]).map(function(a){
+        var ap=(parseFloat(a.peso)||0)/30;
+        var av=v.precoArr>0?ap*v.precoArr:0;
+        return '<tr><td><b>'+esc(a.num||'?')+'</b></td>'+
+          '<td style="color:var(--muted)">'+esc(a.lote||'—')+'</td>'+
+          '<td class="r">'+vdN(parseFloat(a.peso)||0,0)+' kg</td>'+
+          '<td class="r">'+vdN(ap,2)+'</td>'+
+          (v.precoArr>0?'<td class="r">R$ '+vdN(av,2)+'</td>':'')+
+          '</tr>';
+      }).join('')+
+      '</tbody></table>'+
+      '</div></div>';
+  });
+  el.innerHTML=html;
+}
+function vdsToggle(btn){
+  var det=btn.nextElementSibling;
+  var isOpen=det.classList.contains('open');
+  det.classList.toggle('open',!isOpen);
+  btn.textContent=(isOpen?'▼ ver animais ('+det.querySelectorAll('tr').length+')':'▲ fechar');
 }
 
 </script>

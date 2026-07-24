@@ -260,6 +260,25 @@ input:focus,select:focus{outline:2px solid var(--v3); border-color:var(--v3)}
 .pdf-rodape{ margin-top:16px; border-top:1px solid #cfe0cf; padding-top:8px; font-size:10px; color:#5f6b60; text-align:center; line-height:1.6 }
 .pdf-rodape b{ color:#1B5E20 }
 .pdf-wrap .rel-card,.pdf-wrap .rel-proj,.pdf-wrap .dash-chart,.pdf-wrap .dash-kpi,.pdf-wrap .rel-prod-row{ break-inside:avoid; page-break-inside:avoid }
+
+/* ========== VENDA / RELATÓRIO DE VENDA ========== */
+.vd-table{width:100%;border-collapse:collapse;font-size:13px;margin-top:8px}
+.vd-table th{background:var(--v7);color:var(--v1);font-size:11px;font-weight:800;padding:7px 8px;text-align:left;border-bottom:2px solid #cfe6cf}
+.vd-table td{padding:7px 8px;border-bottom:1px solid var(--line);vertical-align:middle}
+.vd-table tr:last-child td{border-bottom:none}
+.vd-table .num{text-align:right;font-weight:700;color:var(--v1)}
+.vd-kpi-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+.vd-kpi-grid .k{font-size:11px;font-weight:700;color:var(--muted)}
+.vd-kpi-grid .v{font-size:20px;font-weight:800;color:var(--v1);line-height:1.1}
+.vd-kpi-grid .s{font-size:11px;color:var(--muted);margin-top:1px}
+.vd-hero{background:linear-gradient(135deg,var(--v1) 0%,var(--v2) 100%);color:#fff;border-radius:14px;padding:16px;margin:0 16px 10px;text-align:center}
+.vd-hero .big{font-size:34px;font-weight:800;line-height:1}
+.vd-hero .lbl{font-size:12px;opacity:.85;margin-top:4px}
+.vd-hero .sub{font-size:14px;margin-top:8px;opacity:.9}
+.vd-lote-sel{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 2px}
+.vd-lote-btn{padding:6px 12px;border-radius:999px;border:1px solid var(--line);font-size:12px;font-weight:700;cursor:pointer;background:#fff;color:var(--muted);font-family:inherit}
+.vd-lote-btn.on{background:var(--v2);color:#fff;border-color:var(--v2)}
+
 </style>
 </head>
 <body>
@@ -515,12 +534,46 @@ input:focus,select:focus{outline:2px solid var(--v3); border-color:var(--v3)}
 </div>
 
 <!-- Bottom nav -->
+
+  <!-- ============ VENDA ============ -->
+  <div class="screen" id="scr-venda">
+    <div class="card stripe">
+      <h2><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg> Relatório de Venda</h2>
+      <div style="font-size:12px;color:var(--muted)">Pese os animais na aba <b>Pesar</b>, depois volte aqui para gerar o relatório com logo GPL.</div>
+      <div style="margin-top:10px">
+        <label>Filtrar por lote</label>
+        <div class="vd-lote-sel" id="vdLoteSel"></div>
+      </div>
+    </div>
+    <div class="card stripe" id="vdParamCard">
+      <h2><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2V9M9 21H5a2 2 0 0 1-2-2V9m0 0h18"/></svg> Parâmetros da venda</h2>
+      <div class="row2">
+        <div class="field"><label>Preço da @ (R$)</label><input id="vdArroba" inputmode="decimal" placeholder="320" oninput="renderVenda()"></div>
+        <div class="field"><label>Rendimento de carcaça (%)</label><input id="vdRend" inputmode="decimal" placeholder="52" oninput="renderVenda()"></div>
+      </div>
+      <div style="font-size:11px;font-weight:800;color:var(--muted);margin:8px 0 6px;letter-spacing:.4px">COMPARAÇÃO COM COMPRA (opcional)</div>
+      <div class="row2">
+        <div class="field"><label>Peso entrada médio (kg)</label><input id="vdPesoCompra" inputmode="decimal" placeholder="300" oninput="renderVenda()"></div>
+        <div class="field"><label>Valor de compra/cab (R$)</label><input id="vdValCompra" inputmode="decimal" placeholder="2500" oninput="renderVenda()"></div>
+      </div>
+      <div class="field"><label>Dias em confinamento</label><input id="vdDias" inputmode="number" placeholder="90" oninput="renderVenda()"></div>
+    </div>
+    <div id="vdResultado"></div>
+    <div style="margin:4px 16px 16px" id="vdPDFBtn">
+      <button class="btn btn-primary" onclick="gerarPDFVenda()" style="display:none" id="vdPDFBtnInner">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><path d="M6 14h12v8H6z"/></svg>
+        Gerar PDF do relatório de venda
+      </button>
+    </div>
+  </div>
+
 <div class="nav" id="nav">
   <button class="on" data-s="pesar" onclick="go('pesar')"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v3"/><path d="M6 6l-3 7h6l-3-7z"/><path d="M18 6l-3 7h6l-3-7z"/><path d="M5 6h14"/><path d="M9 20h6"/><path d="M12 6v14"/></svg>Pesar</button>
   <button data-s="hoje" onclick="go('hoje')"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3 8-8"/><path d="M20 12v6a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h9"/></svg>Hoje</button>
   <button data-s="falt" onclick="go('falt')"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4"/><path d="M12 17h.01"/><path d="M10.3 3.9L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg>Faltas</button>
   <button data-s="relatorio" onclick="go('relatorio')"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M16 13H8"/><path d="M16 17H8"/><path d="M10 9H8"/></svg>Relatório</button>
   <button data-s="dashboard" onclick="go('dashboard')"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><rect x="7" y="10" width="3" height="7"/><rect x="12" y="6" width="3" height="11"/><rect x="17" y="13" width="3" height="4"/></svg>Painel</button>
+  <button data-s="venda" onclick="go('venda')"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>Venda</button>
   <button data-s="config" onclick="go('config')"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v3"/><path d="M12 17v3"/><path d="M4 12h3"/><path d="M17 12h3"/><circle cx="12" cy="12" r="3.5"/></svg>Config</button>
 </div>
 
@@ -1772,6 +1825,7 @@ function go(s){
   if(s==="config") renderConfig();
   if(s==="relatorio") renderRelatorio();
   if(s==="dashboard") renderDashboard();
+  if(s==="venda") renderVenda();
 }
 function openFinalizar(){
   if(!state.today.length){ alert("Nenhum animal pesado para finalizar."); return; }
@@ -1867,6 +1921,246 @@ window.onload=function(){
     if(!state.ref.loaded || state.ref.fonte==="nuvem") carregarRefNuvem(true);
   }
 };
+
+// ============ RELATÓRIO DE VENDA ============
+var vdLoteFiltro = null;
+
+function renderVendaLotes(){
+  var lotes = {};
+  (state.today||[]).forEach(function(t){
+    var l = String(t.lote||t.lot||'Sem lote').trim()||'Sem lote';
+    lotes[l] = (lotes[l]||0) + 1;
+  });
+  var el = document.getElementById('vdLoteSel');
+  if(!el) return;
+  var keys = Object.keys(lotes);
+  if(!keys.length){ el.innerHTML='<span style="font-size:12px;color:var(--muted)">Nenhum animal pesado hoje ainda.</span>'; return; }
+  if(keys.length<=1 && !lotes['Sem lote']){ el.innerHTML='<span style="font-size:12px;color:var(--muted)">Todos os animais do lote <b>'+esc(keys[0])+'</b></span>'; vdLoteFiltro=null; return; }
+  var h = '<button class="vd-lote-btn'+(vdLoteFiltro===null?' on':'')+'" onclick="vdSetLote(null)">Todos</button>';
+  keys.forEach(function(l){
+    h += '<button class="vd-lote-btn'+(vdLoteFiltro===l?' on':'')+'" onclick="vdSetLote(\''+l.replace(/'/g,"\\'")+'\')">' +esc(l)+ ' ('+lotes[l]+')</button>';
+  });
+  el.innerHTML = h;
+}
+
+function vdSetLote(l){
+  vdLoteFiltro = l;
+  renderVendaLotes();
+  renderVenda();
+}
+
+function vdNum(n,dec){
+  return n.toLocaleString('pt-BR',{minimumFractionDigits:dec||0,maximumFractionDigits:dec||0});
+}
+
+function renderVenda(){
+  renderVendaLotes();
+  var animais = (state.today||[]).filter(function(t){
+    if(vdLoteFiltro===null) return true;
+    return String(t.lote||t.lot||'Sem lote').trim()===vdLoteFiltro;
+  });
+  var el = document.getElementById('vdResultado');
+  var btnInner = document.getElementById('vdPDFBtnInner');
+  if(!el) return;
+  if(!animais.length){
+    el.innerHTML = '<div class="empty">Nenhum animal pesado hoje'+(vdLoteFiltro?' neste lote':'')+'. Peseje os animais na aba <b>Pesar</b> primeiro.</div>';
+    if(btnInner) btnInner.style.display='none';
+    return;
+  }
+  var parroba = parseFloat(String((document.getElementById('vdArroba')||{}).value||'').replace(',','.'))||0;
+  var rend = parseFloat(String((document.getElementById('vdRend')||{}).value||'').replace(',','.'))||52;
+  var pesoCompra = parseFloat(String((document.getElementById('vdPesoCompra')||{}).value||'').replace(',','.'))||0;
+  var valCompra = parseFloat(String((document.getElementById('vdValCompra')||{}).value||'').replace(',','.'))||0;
+  var dias = parseFloat(String((document.getElementById('vdDias')||{}).value||'').replace(',','.'))||0;
+  var rendFrac = rend/100;
+  var pesoTotal=0, arrobasTotal=0, valorTotal=0;
+  var rows='';
+  animais.forEach(function(t){
+    var brinco = t.num||t.brinco||'?';
+    var lote = t.lote||t.lot||'';
+    var peso = parseFloat(t.peso)||0;
+    var arrobas = peso*rendFrac/15;
+    var valor = parroba>0?arrobas*parroba:0;
+    pesoTotal+=peso; arrobasTotal+=arrobas; valorTotal+=valor;
+    rows+='<tr><td><b>'+esc(brinco)+'</b>'+(lote?'<br><span style="font-size:10px;color:var(--muted)">'+esc(lote)+'</span>':'')+'</td>'+
+      '<td class="num">'+vdNum(peso,0)+' kg</td>'+
+      '<td class="num">'+vdNum(peso*rendFrac,0)+' kg</td>'+
+      '<td class="num">'+vdNum(arrobas,2)+'</td>'+
+      '<td class="num">'+(valor>0?'R$'+vdNum(valor,2):'—')+'</td></tr>';
+  });
+  var n=animais.length, pesoMedio=n?pesoTotal/n:0, arrobasMedio=n?arrobasTotal/n:0, valorMedio=n?valorTotal/n:0;
+
+  // Hero
+  var heroHtml='';
+  if(parroba>0){
+    heroHtml='<div class="vd-hero">'+
+      '<div class="lbl">Total da venda — '+n+' cabeças</div>'+
+      '<div class="big">R$ '+vdNum(valorTotal,2)+'</div>'+
+      '<div class="sub">'+vdNum(arrobasTotal,1)+' arrobas · R$ '+vdNum(valorMedio,0)+'/cab</div>'+
+      '</div>';
+  }
+
+  // KPIs
+  var kpiHtml='<div class="card" style="margin:0 16px 10px"><div class="vd-kpi-grid">'+
+    '<div><div class="k">Cabeças</div><div class="v">'+n+'</div></div>'+
+    '<div><div class="k">Peso vivo médio</div><div class="v">'+vdNum(pesoMedio,0)+'<span style="font-size:13px"> kg</span></div></div>'+
+    '<div><div class="k">Total arrobas</div><div class="v">'+vdNum(arrobasTotal,1)+'<span style="font-size:13px"> @</span></div></div>'+
+    '<div><div class="k">Média/cabeça</div><div class="v">'+vdNum(arrobasMedio,2)+'<span style="font-size:13px"> @</span></div></div>'+
+    '</div></div>';
+
+  // Comparação
+  var compraHtml='';
+  if(pesoCompra>0||valCompra>0){
+    var gmd=(dias>0&&pesoCompra>0)?(pesoMedio-pesoCompra)/dias:0;
+    var arrobasCompra=pesoCompra>0?pesoCompra*rendFrac/15:0;
+    var ganhoArr=arrobasMedio-arrobasCompra;
+    var valorizacao=(valorMedio>0&&valCompra>0)?valorMedio-valCompra:0;
+    var resultTotal=(valCompra>0&&n>0)?valorTotal-valCompra*n:null;
+    compraHtml='<div class="card" style="margin:0 16px 10px;border-left:4px solid var(--v2)">'+
+      '<div style="font-size:13px;font-weight:800;color:var(--v1);margin-bottom:10px">Comparação com a compra</div>'+
+      '<div class="vd-kpi-grid">';
+    if(pesoCompra>0) compraHtml+='<div><div class="k">Peso entrada → saída</div><div class="v" style="font-size:16px">'+vdNum(pesoCompra,0)+' → '+vdNum(pesoMedio,0)+' kg</div><div class="s">+'+vdNum(pesoMedio-pesoCompra,0)+' kg ganho</div></div>';
+    if(gmd>0) compraHtml+='<div><div class="k">GMD estimado</div><div class="v" style="font-size:18px">'+gmd.toFixed(3)+'<span style="font-size:12px"> kg/dia</span></div><div class="s">'+vdNum(dias,0)+' dias</div></div>';
+    if(ganhoArr>0) compraHtml+='<div><div class="k">Ganho em @/cab</div><div class="v" style="font-size:18px;color:var(--v2)">+'+vdNum(ganhoArr,2)+' @</div></div>';
+    if(valorizacao!==0) compraHtml+='<div><div class="k">Valorização/cab</div><div class="v" style="font-size:18px;color:'+(valorizacao>=0?'var(--v2)':'var(--danger)')+'">R$'+vdNum(valorizacao,0)+'</div></div>';
+    if(resultTotal!==null){
+      compraHtml+='</div><div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--line);display:flex;justify-content:space-between;align-items:center">'+
+        '<div style="font-size:13px;font-weight:800;color:var(--v1)">Resultado total estimado</div>'+
+        '<div style="font-size:22px;font-weight:800;color:'+(resultTotal>=0?'var(--v2)':'var(--danger)')+'">R$ '+vdNum(resultTotal,0)+'</div>';
+    }
+    compraHtml+='</div></div>';
+  }
+
+  // Table
+  var tableHtml='<div class="card" style="margin:0 16px 10px;overflow-x:auto">'+
+    '<div style="font-size:12px;font-weight:800;color:var(--v1);margin-bottom:8px">Animais pesados para venda</div>'+
+    '<table class="vd-table"><thead><tr>'+
+    '<th>Brinco</th><th style="text-align:right">Vivo (kg)</th><th style="text-align:right">Carc. (kg)</th><th style="text-align:right">Arrobas</th><th style="text-align:right">Valor</th>'+
+    '</tr></thead><tbody>'+rows+'</tbody>'+
+    '<tfoot><tr style="background:var(--v7);font-weight:800">'+
+    '<td style="color:var(--v1)">TOTAL ('+n+' cab)</td>'+
+    '<td class="num">'+vdNum(pesoTotal,0)+' kg</td>'+
+    '<td class="num">'+vdNum(pesoTotal*rendFrac,0)+' kg</td>'+
+    '<td class="num">'+vdNum(arrobasTotal,2)+'</td>'+
+    '<td class="num">'+(valorTotal>0?'R$'+vdNum(valorTotal,2):'—')+'</td>'+
+    '</tr></tfoot></table></div>';
+
+  el.innerHTML = heroHtml+kpiHtml+compraHtml+tableHtml;
+  if(btnInner) btnInner.style.display='flex';
+}
+
+function gerarPDFVenda(){
+  var animais=(state.today||[]).filter(function(t){
+    if(vdLoteFiltro===null) return true;
+    return String(t.lote||t.lot||'Sem lote').trim()===vdLoteFiltro;
+  });
+  if(!animais.length){alert('Nenhum animal para gerar o PDF.');return;}
+  if(typeof html2pdf==="undefined"){alert("O gerador de PDF ainda está carregando. Tente de novo em 2 segundos.");return;}
+  var parroba=parseFloat(String((document.getElementById('vdArroba')||{}).value||'').replace(',','.'))||0;
+  var rend=parseFloat(String((document.getElementById('vdRend')||{}).value||'').replace(',','.'))||52;
+  var pesoCompra=parseFloat(String((document.getElementById('vdPesoCompra')||{}).value||'').replace(',','.'))||0;
+  var valCompra=parseFloat(String((document.getElementById('vdValCompra')||{}).value||'').replace(',','.'))||0;
+  var dias=parseFloat(String((document.getElementById('vdDias')||{}).value||'').replace(',','.'))||0;
+  var rendFrac=rend/100;
+  var pesoTotal=0,arrobasTotal=0,valorTotal=0,n=animais.length;
+  var rows=animais.map(function(t){
+    var brinco=t.num||t.brinco||'?';
+    var lote=t.lote||t.lot||'';
+    var peso=parseFloat(t.peso)||0;
+    var arrobas=peso*rendFrac/15;
+    var valor=parroba>0?arrobas*parroba:0;
+    pesoTotal+=peso;arrobasTotal+=arrobas;valorTotal+=valor;
+    return '<tr style="border-bottom:1px solid #e0e7e0"><td style="padding:6px 8px">'+esc(brinco)+(lote?' <span style="color:#777;font-size:10px">('+esc(lote)+')</span>':'')+'</td>'+
+      '<td style="text-align:right;padding:6px 8px">'+peso.toFixed(0)+'</td>'+
+      '<td style="text-align:right;padding:6px 8px">'+(peso*rendFrac).toFixed(0)+'</td>'+
+      '<td style="text-align:right;padding:6px 8px">'+arrobas.toFixed(2)+'</td>'+
+      '<td style="text-align:right;padding:6px 8px">'+(valor>0?'R$'+valor.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}):'—')+'</td></tr>';
+  }).join('');
+  var pesoMedio=n?pesoTotal/n:0,arrobasMedio=n?arrobasTotal/n:0,valorMedio=n?valorTotal/n:0;
+  var faz=state.fazenda||'';
+  var dataStr=state.data?isoToBR(state.data):'';
+  var logo=document.querySelector('.hdr-logo');
+  var logoSrc=logo?logo.getAttribute('src'):'';
+
+  // Bloco comparação
+  var compraBloco='';
+  if(pesoCompra>0||valCompra>0){
+    var gmd=(dias>0&&pesoCompra>0)?(pesoMedio-pesoCompra)/dias:0;
+    var ganhoArr=arrobasMedio-(pesoCompra>0?pesoCompra*rendFrac/15:0);
+    var valorizacao=(valorMedio>0&&valCompra>0)?valorMedio-valCompra:0;
+    var resultTotal=(valCompra>0&&n>0)?valorTotal-valCompra*n:null;
+    compraBloco='<div style="background:#E8F5E9;border-radius:8px;padding:12px;margin:10px 0;page-break-inside:avoid">'+
+      '<div style="font-size:13px;font-weight:800;color:#1B5E20;margin-bottom:8px">Comparação com a compra</div>'+
+      '<table style="width:100%;font-size:12px;border-collapse:collapse"><tr>'+
+      (pesoCompra>0?'<td style="padding:4px 8px"><b style="color:#1B5E20">Peso entrada</b><br>'+pesoCompra.toFixed(0)+' kg</td><td style="padding:4px 8px"><b style="color:#1B5E20">Peso saída médio</b><br>'+pesoMedio.toFixed(0)+' kg</td>':'')+
+      (gmd>0?'<td style="padding:4px 8px"><b style="color:#1B5E20">GMD estimado</b><br>'+gmd.toFixed(3)+' kg/dia ('+dias+' dias)</td>':'')+'</tr>'+
+      '<tr>'+
+      (ganhoArr>0?'<td style="padding:4px 8px"><b style="color:#1B5E20">Ganho @/cab</b><br>+'+ganhoArr.toFixed(2)+' @</td>':'')+
+      (valorizacao!==0?'<td style="padding:4px 8px"><b style="color:#1B5E20">Valorização/cab</b><br>R$'+valorizacao.toLocaleString('pt-BR',{minimumFractionDigits:0,maximumFractionDigits:0})+'</td>':'')+
+      (resultTotal!==null?'<td style="padding:4px 8px"><b style="color:#1B5E20">Resultado total</b><br><b style="font-size:16px;color:'+(resultTotal>=0?'#1B5E20':'#c0392b')+'">R$'+resultTotal.toLocaleString('pt-BR',{minimumFractionDigits:0,maximumFractionDigits:0})+'</b></td>':'')+
+      '</tr></table></div>';
+  }
+
+  var wrap=document.createElement('div');
+  wrap.style.cssText='position:absolute;left:0;top:0;z-index:-1;width:800px;font-family:Arial,sans-serif;color:#1a1a1a;background:#fff;padding:20px';
+  wrap.innerHTML=
+    // Cabeçalho
+    '<div style="display:flex;align-items:center;gap:14px;border-bottom:3px solid #1B5E20;padding-bottom:12px;margin-bottom:8px">'+
+    (logoSrc?'<img src="'+logoSrc+'" style="height:48px;flex-shrink:0">':'')+
+    '<div><div style="font-size:22px;font-weight:800;color:#1B5E20">Relatório de Pesagem de Venda</div>'+
+    '<div style="font-size:12px;color:#5f6b60;margin-top:2px">'+esc(faz)+(dataStr?' · '+dataStr:'')+(vdLoteFiltro?' · Lote: '+esc(vdLoteFiltro):' · Todos os lotes')+'</div></div></div>'+
+    // Frase
+    '<div style="font-style:italic;color:#2E7D32;font-weight:700;font-size:12px;margin:8px 0 12px;padding:8px 12px;background:#E8F5E9;border-radius:8px;border-left:4px solid #4CAF50">"Pare de gerenciar no escuro — descubra o lucro real por hectare."</div>'+
+    // KPIs
+    '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px;page-break-inside:avoid">'+
+    '<div style="background:#E8F5E9;border-radius:8px;padding:10px"><div style="font-size:10px;font-weight:700;color:#5f6b60">Cabeças vendidas</div><div style="font-size:24px;font-weight:800;color:#1B5E20">'+n+'</div></div>'+
+    '<div style="background:#E8F5E9;border-radius:8px;padding:10px"><div style="font-size:10px;font-weight:700;color:#5f6b60">Peso vivo médio</div><div style="font-size:24px;font-weight:800;color:#1B5E20">'+pesoMedio.toFixed(0)+'<span style="font-size:13px"> kg</span></div></div>'+
+    '<div style="background:#E8F5E9;border-radius:8px;padding:10px"><div style="font-size:10px;font-weight:700;color:#5f6b60">Total arrobas</div><div style="font-size:24px;font-weight:800;color:#1B5E20">'+arrobasTotal.toFixed(1)+'<span style="font-size:13px"> @</span></div></div>'+
+    (parroba>0?'<div style="background:#1B5E20;border-radius:8px;padding:10px"><div style="font-size:10px;font-weight:700;color:rgba(255,255,255,.8)">Total da venda</div><div style="font-size:20px;font-weight:800;color:#fff">R$'+valorTotal.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})+'</div><div style="font-size:11px;color:rgba(255,255,255,.8);margin-top:2px">R$'+valorMedio.toLocaleString('pt-BR',{minimumFractionDigits:0,maximumFractionDigits:0})+'/cab</div></div>':'<div style="background:#f5f7f5;border-radius:8px;padding:10px"><div style="font-size:10px;font-weight:700;color:#5f6b60">Preço @</div><div style="font-size:16px;font-weight:700;color:#5f6b60">Não informado</div></div>')+
+    '</div>'+
+    '<div style="font-size:11px;color:#5f6b60;margin-bottom:8px">Parâmetros: Rendimento de carcaça: <b>'+rend+'%</b>'+
+    (parroba>0?' · Preço @: <b>R$'+parroba+'</b>':'')+' · Peso carcaça médio: <b>'+( pesoMedio*rendFrac).toFixed(0)+'kg</b></div>'+
+    compraBloco+
+    // Tabela
+    '<table style="width:100%;border-collapse:collapse;font-size:12px;margin-top:8px;page-break-inside:avoid">'+
+    '<thead><tr style="background:#E8F5E9">'+
+    '<th style="text-align:left;padding:7px 8px;border-bottom:2px solid #cfe6cf;color:#1B5E20">Brinco</th>'+
+    '<th style="text-align:right;padding:7px 8px;border-bottom:2px solid #cfe6cf;color:#1B5E20">Peso Vivo (kg)</th>'+
+    '<th style="text-align:right;padding:7px 8px;border-bottom:2px solid #cfe6cf;color:#1B5E20">Carcaça (kg)</th>'+
+    '<th style="text-align:right;padding:7px 8px;border-bottom:2px solid #cfe6cf;color:#1B5E20">Arrobas (@)</th>'+
+    '<th style="text-align:right;padding:7px 8px;border-bottom:2px solid #cfe6cf;color:#1B5E20">Valor (R$)</th>'+
+    '</tr></thead><tbody>'+rows+'</tbody>'+
+    '<tfoot><tr style="background:#E8F5E9;font-weight:800">'+
+    '<td style="padding:7px 8px;color:#1B5E20">TOTAL ('+n+' cabeças)</td>'+
+    '<td style="text-align:right;padding:7px 8px">'+pesoTotal.toFixed(0)+'</td>'+
+    '<td style="text-align:right;padding:7px 8px">'+(pesoTotal*rendFrac).toFixed(0)+'</td>'+
+    '<td style="text-align:right;padding:7px 8px">'+arrobasTotal.toFixed(2)+'</td>'+
+    '<td style="text-align:right;padding:7px 8px">'+(valorTotal>0?'R$'+valorTotal.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}):'—')+'</td>'+
+    '</tr></tfoot></table>'+
+    '<div style="margin-top:16px;border-top:1px solid #cfe0cf;padding-top:8px;font-size:10px;color:#5f6b60;text-align:center;line-height:1.6">'+
+    '<b style="color:#1B5E20">Gestão Pecuária Lucrativa</b> · Rogério Avelino — Consultor Gama Inttegra<br>'+
+    'gestaopecuarialucrativa.com.br · (63) 99108-2453 · @gestaopecuarialucrativa</div>';
+
+  document.body.appendChild(wrap);
+  var loteStr=vdLoteFiltro?('-'+vdLoteFiltro.replace(/[^a-zA-Z0-9]+/g,'-')):'';
+  var nome='GPL-Venda-'+esc(faz).replace(/[^a-zA-Z0-9]+/g,'-')+loteStr+'-'+(state.data||'')+'.pdf';
+  var opt={margin:[8,8,10,8],filename:nome,image:{type:'jpeg',quality:0.97},
+    html2canvas:{scale:2,useCORS:true,backgroundColor:'#ffffff'},
+    jsPDF:{unit:'mm',format:'a4',orientation:'portrait'},
+    pagebreak:{mode:['css','legacy']}};
+  var win=window.open('','_blank');
+  if(win){try{win.document.write('<p style="font-family:sans-serif;padding:24px;color:#1B5E20">Gerando PDF do relatório de venda...</p>');}catch(e){}}
+  html2pdf().set(opt).from(wrap).toPdf().get('pdf').then(function(pdf){
+    var url=pdf.output('bloburl');
+    if(win){win.location.href=url;}else{window.open(url,'_blank');}
+    if(wrap.parentNode)document.body.removeChild(wrap);
+  }).catch(function(e){
+    if(win){try{win.close();}catch(_){}}
+    alert('Não consegui gerar o PDF. Tente de novo.');
+    if(wrap.parentNode)document.body.removeChild(wrap);
+  });
+}
+
 </script>
 </body>
 </html>

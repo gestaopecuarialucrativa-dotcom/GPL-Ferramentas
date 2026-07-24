@@ -128,7 +128,7 @@ iframe{width:100%;height:100%;border:none;background:white}
         <div class="iframe-title" id="iframe-title">Ferramenta</div>
         <div class="iframe-btns">
           <button class="iframe-btn" onclick="voltarHome()">← Início</button>
-          <button class="iframe-btn" onclick="abrirNova()">↗ Nova aba</button>
+          
         </div>
       </div>
       <div class="iframe-wrap">
@@ -243,8 +243,10 @@ function renderFerramentas(){
 // ── NAVEGAÇÃO ────────────────────────────────────────
 var _urlAtual = '';
 function _authQ(u){ var q=(u.indexOf('?')<0?'?':'&'); return q+'fz='+encodeURIComponent((SESSAO&&SESSAO.fazenda)||''); }
+function _regAcesso(ev, fr){ try{ fetch('https://script.google.com/macros/s/AKfycbyjWp9UnWpnKYhzV2o2y48MwkJhu_ynr5baIHXAm4QpUVmk2BKu5LoBvOUOCmHPrw/exec?fazenda='+encodeURIComponent((SESSAO&&SESSAO.fazenda)||'')+'&evento='+encodeURIComponent(ev)+'&ferramenta='+encodeURIComponent(fr||''), {mode:'no-cors'}); }catch(e){} }
 function abrirFerramenta(f){
   _urlAtual = f.url;
+  _regAcesso('ferramenta', f.nome);
   // Ferramentas que podem ter restrição de iframe — abre em nova aba
   var abreNova = ['analise','checklist','relatorio','portfolio','ceci','plano','bezerro','viabilidade','levantamento','instagram','visita','agenda','comparativo','orcamento','contrato','mapa','maquinas'];
   if(abreNova.indexOf(f.id) >= 0){

@@ -341,7 +341,7 @@ function renderGestorLista(){
     });
     html += '<div class="fazenda-card-g"><div class="fazenda-card-g-head">';
     html += '<div class="fcg-info"><div class="fcg-nome">🏡 '+escHtml(faz.nome)+'</div>';
-    html += '<div class="fcg-meta">'+(faz.prop?escHtml(faz.prop)+' · ':'')+'PIN: '+faz.pin+' · '+(faz.criadoEm||'—')+'</div></div>';
+    html += '<div class="fcg-meta">'+(faz.prop?escHtml(faz.prop)+' · ':'')+'PIN: '+faz.pin+' · '+fmtData(faz.criadoEm)+'</div></div>';
     html += '<span class="fcg-status '+(faz.ativo?'ativo':'inativo')+'">'+(faz.ativo?'Ativo':'Bloqueado')+'</span>';
     html += '<div class="fcg-btns">';
     html += '<button class="fcg-btn link" onclick="abrirModalLink('+i+')">🔗 Link</button>';
@@ -500,7 +500,7 @@ function renderAcessos(faz, lista){
   html += '<div class="mac-kpi"><div class="mac-kpi-num">'+logins.length+'</div><div class="mac-kpi-lab">Vezes que entrou</div></div>';
   html += '<div class="mac-kpi"><div class="mac-kpi-num">'+ferrs.length+'</div><div class="mac-kpi-lab">Ferramentas abertas</div></div>';
   html += '</div>';
-  html += '<div style="font-size:12px;color:var(--mut);margin-bottom:6px">Último acesso: <b style="color:var(--v)">'+escHtml(ultimo.dataHora)+'</b></div>';
+  html += '<div style="font-size:12px;color:var(--mut);margin-bottom:6px">Último acesso: <b style="color:var(--v)">'+escHtml(fmtData(ultimo.dataHora))+'</b></div>';
 
   if(ferrOrden.length){
     html += '<div class="mac-sec">Ferramentas mais usadas</div>';
@@ -513,10 +513,22 @@ function renderAcessos(faz, lista){
   var recentes = lista.slice(-12).reverse();
   recentes.forEach(function(a){
     var txt = a.evento==='login' ? 'Entrou no portal' : ('Abriu: '+escHtml(a.ferramenta||''));
-    html += '<div class="mac-log"><span>'+txt+'</span><span class="ev">'+escHtml(a.dataHora)+'</span></div>';
+    html += '<div class="mac-log"><span>'+txt+'</span><span class="ev">'+escHtml(fmtData(a.dataHora))+'</span></div>';
   });
 
   body.innerHTML = html;
+}
+function fmtData(x){
+  if(!x) return '—';
+  x=String(x).trim();
+  var m=x.match(/^(\d{2})\/(\d{2})\/(\d{4})(?:[ ,T]+(\d{2}):(\d{2}))?/);
+  if(m) return m[1]+'/'+m[2]+'/'+m[3]+(m[4]?(' '+m[4]+':'+m[5]):'');
+  var d=new Date(x);
+  if(!isNaN(d.getTime())){
+    var p=function(n){return ('0'+n).slice(-2);};
+    return p(d.getDate())+'/'+p(d.getMonth()+1)+'/'+d.getFullYear()+' '+p(d.getHours())+':'+p(d.getMinutes());
+  }
+  return x.replace(/\s*GMT.*$/,'').replace(/\s*\(.*\)\s*$/,'');
 }
 
 </script>

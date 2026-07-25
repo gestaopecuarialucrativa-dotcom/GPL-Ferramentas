@@ -234,7 +234,21 @@ input:focus,select:focus{outline:2px solid var(--v3); border-color:var(--v3)}
   .print-brand .pb-t{font-size:18px; font-weight:800; color:#1B5E20}
   .print-brand .pb-frase{font-style:italic; color:#2E7D32; font-weight:600; font-size:12px; margin-top:4px}
   .print-foot{margin-top:14px; border-top:1px solid #cfe0cf; padding-top:6px; text-align:center; font-size:10px; color:#5f6b60}
+  /* venda print override */
+  body.printing-venda .screen,body.printing-venda .screen.on,body.printing-venda .nav,body.printing-venda .hdr,body.printing-venda .top,body.printing-venda .footer{display:none!important}
+  body.printing-venda #vdPrintArea{display:block!important}
+  /* venda print styles */
+  #vdPrintArea .pdf-cap{display:flex;align-items:center;gap:14px;border-bottom:3px solid #1B5E20;padding-bottom:10px;margin-bottom:6px}
+  #vdPrintArea .pdf-cap img{height:44px;width:auto}
+  #vdPrintArea .pdf-cap-t{font-size:20px;font-weight:800;color:#1B5E20;line-height:1.15}
+  #vdPrintArea .pdf-cap-s{font-size:12px;color:#5f6b60;margin-top:2px}
+  #vdPrintArea .pdf-frase{font-style:italic;color:#2E7D32;font-weight:700;font-size:12px;margin:8px 0 14px;padding:8px 12px;background:#E8F5E9;border-radius:6px;border-left:4px solid #4CAF50}
+  #vdPrintArea .pdf-rodape{margin-top:20px;border-top:1px solid #cfe0cf;padding-top:8px;font-size:10px;color:#5f6b60;text-align:center;line-height:1.7}
+  #vdPrintArea .pdf-rodape b{color:#1B5E20}
+  #vdPrintArea table{border-collapse:collapse;width:100%}
 }
+#vdPrintArea{display:none}
+.vd-lote-sel{margin-top:6px;width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:8px;font-size:14px;background:var(--bg);color:var(--text);-webkit-appearance:none;appearance:none}
 .rel-gmdg{background:#f7faf7; border:1px solid #e0ebe0; border-radius:10px; padding:10px 12px; margin-bottom:10px}
 .rel-gmdg-row{display:flex; justify-content:space-between; gap:8px; flex-wrap:wrap; font-size:12px; color:var(--muted)}
 .rel-gmdg-row b{font-size:16px; color:var(--v1); font-weight:800}
@@ -589,6 +603,7 @@ input:focus,select:focus{outline:2px solid var(--v3); border-color:var(--v3)}
           <button class="vd-load-btn" onclick="vdCarregarData()">Carregar</button>
         </div>
         <div class="vd-status" id="vdStatus"></div>
+        <select class="vd-lote-sel" id="vdLoteSel" style="display:none" onchange="vdFiltrarLote()"><option value="">Todos os lotes</option></select>
       </div>
       <div class="vd-field">
         <label>Comprador / Quem comprou</label>
@@ -616,7 +631,7 @@ input:focus,select:focus{outline:2px solid var(--v3); border-color:var(--v3)}
     <div id="vdPDFContent" style="display:none"></div>
 
     <div style="margin:4px 16px 6px">
-      <button class="btn btn-primary" onclick="gerarPDF('vdPDFContent','Relatório de Venda')" id="vdPDFBtnInner" style="display:none">
+      <button class="btn btn-primary" onclick="gerarPDFVenda()" id="vdPDFBtnInner" style="display:none">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><path d="M6 14h12v8H6z"/></svg>
         Gerar PDF da venda
       </button>
@@ -1996,9 +2011,44 @@ window.onload=function(){
   }
 };
 
+// ============ PDF VENDA (print nativo — sem html2canvas) ============
+function gerarPDFVenda(){
+  var pdfEl=document.getElementById('vdPDFContent');
+  if(!pdfEl||!pdfEl.innerHTML.trim()){ alert('Preencha os dados da venda primeiro.'); return; }
+  var printArea=document.getElementById('vdPrintArea');
+  if(!printArea){ alert('Erro interno: área de impressão não encontrada.'); return; }
+  var logo=document.querySelector('.hdr-logo'); var logoSrc=logo?logo.getAttribute('src'):'';
+  var faz=esc(state.fazenda||''); var dataStr=state.data?isoToBR(state.data):'';
+  printArea.innerHTML=
+    '<div class="pdf-cap">'+
+    (logoSrc?'<img src="'+logoSrc+'" alt="GPL" onerror="this.style.display=\'none\'">':'')+
+    '<div><div class="pdf-cap-t">Relatório de Venda</div>'+
+    '<div class="pdf-cap-s">'+faz+(dataStr?' · '+dataStr:'')+'</div></div></div>'+
+    '<div class="pdf-frase">"Pare de gerenciar no escuro — descubra o lucro real por hectare."</div>'+
+    pdfEl.innerHTML+
+    '<div class="pdf-rodape"><b>Gestão Pecuária Lucrativa</b> · Rogério Avelino — Consultor Gama Inttegra<br>'+
+    'gestaopecuarialucrativa.com.br · (63) 99108-2453 · @gestaopecuarialucrativa</div>';
+  document.body.classList.add('printing-venda');
+  window.print();
+  setTimeout(function(){
+    document.body.classList.remove('printing-venda');
+    printArea.innerHTML='';
+  }, 600);
+}
+
 // ============ RELATÓRIO DE VENDA ============
 var _vdAnimais = [];
+var _vdAnimaisOriginal = [];
 var _vdDataSel = '';
+
+function vdFiltrarLote(){
+  var sel=document.getElementById('vdLoteSel');
+  var lote=sel?sel.value:'';
+  _vdAnimais=lote?_vdAnimaisOriginal.filter(function(a){return (a.lote||a.lot||'')===lote;}):_vdAnimaisOriginal.slice();
+  var stEl=document.getElementById('vdStatus');
+  if(stEl) stEl.textContent=_vdAnimais.length+' animais'+(lote?' — lote '+lote:'');
+  renderVenda();
+}
 
 function vdProxUtil(d){
   var dw=d.getDay();
@@ -2014,6 +2064,22 @@ function vdN(n,dec){
   return n.toLocaleString('pt-BR',{minimumFractionDigits:dec||0,maximumFractionDigits:dec||0});
 }
 
+function vdPreencherLotes(lista){
+  var sel=document.getElementById('vdLoteSel');
+  if(!sel) return;
+  var lotes=[];
+  lista.forEach(function(a){ var l=a.lote||a.lot||''; if(l&&lotes.indexOf(l)<0) lotes.push(l); });
+  lotes.sort(function(a,b){ return String(a).localeCompare(String(b),'pt-BR',{numeric:true}); });
+  if(lotes.length>1){
+    sel.innerHTML='<option value="">Todos os lotes ('+lista.length+')</option>'+
+      lotes.map(function(l){ return '<option value="'+l+'">Lote '+l+' ('+lista.filter(function(a){return (a.lote||a.lot||'')===l;}).length+' cab)</option>'; }).join('');
+    sel.value='';
+    sel.style.display='block';
+  } else {
+    sel.innerHTML='<option value="">Todos os lotes</option>';
+    sel.style.display='none';
+  }
+}
 async function vdCarregarData(){
   var dpEl=document.getElementById('vdDataPes');
   var data=dpEl?dpEl.value:'';
@@ -2022,7 +2088,9 @@ async function vdCarregarData(){
   _vdDataSel=data;
   var curData=state.data||todayISO();
   if(data===curData){
-    _vdAnimais=(state.today||[]).slice();
+    _vdAnimaisOriginal=(state.today||[]).slice();
+    _vdAnimais=_vdAnimaisOriginal.slice();
+    vdPreencherLotes(_vdAnimaisOriginal);
     if(stEl) stEl.textContent=_vdAnimais.length+' animais — sessão atual ('+vdFmtData(new Date(data+'T12:00:00'))+')';
     renderVenda(); return;
   }
@@ -2031,7 +2099,9 @@ async function vdCarregarData(){
     var url=BACKEND_URL+'?acao=pesagem_ler&data='+encodeURIComponent(data)+'&token='+encodeURIComponent(gplToken())+'&fazenda='+encodeURIComponent(state.fazenda||'');
     var r=await jsonp(url);
     if(r&&r.animais&&r.animais.length){
-      _vdAnimais=r.animais.map(function(a){return{num:a.num||a.brinco||'',brinco:a.brinco||a.num||'',lote:a.lote||a.lot||'',peso:parseFloat(a.peso)||0,id:a.id||String(Math.random())};});
+      _vdAnimaisOriginal=r.animais.map(function(a){return{num:a.num||a.brinco||'',brinco:a.brinco||a.num||'',lote:a.lote||a.lot||'',peso:parseFloat(a.peso)||0,id:a.id||String(Math.random())};});
+      _vdAnimais=_vdAnimaisOriginal.slice();
+      vdPreencherLotes(_vdAnimaisOriginal);
       if(stEl) stEl.textContent=_vdAnimais.length+' animais carregados — '+vdFmtData(new Date(data+'T12:00:00'));
     } else {
       _vdAnimais=[];
@@ -2134,6 +2204,7 @@ function renderVenda(){
     '<div class="vd-kpi"><div class="k">Peso médio</div><div class="v">'+vdN(pesoMedio,0)+'<span style="font-size:12px"> kg</span></div></div>'+
     '<div class="vd-kpi"><div class="k">Peso total</div><div class="v">'+vdN(pesoTotal,0)+'<span style="font-size:12px"> kg</span></div></div>'+
     '<div class="vd-kpi"><div class="k">Total arrobas</div><div class="v">'+vdN(arrobasTotal,1)+'<span style="font-size:12px"> @</span></div></div>'+
+    '<div class="vd-kpi"><div class="k">Média @/cab</div><div class="v">'+vdN(n?arrobasTotal/n:0,2)+'<span style="font-size:12px"> @</span></div></div>'+
     '<div class="vd-kpi"><div class="k">Valor total</div><div class="v" style="font-size:'+(valorTotal>0?'15':'13')+'px">'+(valorTotal>0?'R$ '+vdN(valorTotal,2):'<span style="color:var(--muted)">preencha R$/@</span>')+'</div></div>'+
     '<div class="vd-kpi"><div class="k">Valor / cabeça</div><div class="v" style="font-size:15px">'+(valorCab>0?'R$ '+vdN(valorCab,2):'—')+'</div></div>'+
     '</div>';
@@ -2181,6 +2252,7 @@ function renderVenda(){
     '<div style="border:1px solid #cfe6cf;border-left:4px solid #4CAF50;border-radius:8px;padding:7px 10px"><div style="font-size:9px;font-weight:700;color:#5f6b60;text-transform:uppercase">Peso Médio</div><div style="font-size:18px;font-weight:800;color:#1B5E20;line-height:1.2">'+vdN(pesoMedio,0)+' kg</div></div>'+
     '<div style="border:1px solid #cfe6cf;border-left:4px solid #4CAF50;border-radius:8px;padding:7px 10px"><div style="font-size:9px;font-weight:700;color:#5f6b60;text-transform:uppercase">Peso Total</div><div style="font-size:18px;font-weight:800;color:#1B5E20;line-height:1.2">'+vdN(pesoTotal,0)+' kg</div></div>'+
     '<div style="border:1px solid #cfe6cf;border-left:4px solid #2E7D32;border-radius:8px;padding:7px 10px"><div style="font-size:9px;font-weight:700;color:#5f6b60;text-transform:uppercase">Total Arrobas</div><div style="font-size:18px;font-weight:800;color:#1B5E20;line-height:1.2">'+vdN(arrobasTotal,2)+' @</div></div>'+
+    '<div style="border:1px solid #cfe6cf;border-left:4px solid #2E7D32;border-radius:8px;padding:7px 10px"><div style="font-size:9px;font-weight:700;color:#5f6b60;text-transform:uppercase">Média @/Cab</div><div style="font-size:18px;font-weight:800;color:#1B5E20;line-height:1.2">'+vdN(n?arrobasTotal/n:0,2)+' @</div></div>'+
     (valorTotal>0?
       '<div style="border:1px solid #cfe6cf;border-left:4px solid #1B5E20;border-radius:8px;padding:7px 10px"><div style="font-size:9px;font-weight:700;color:#5f6b60;text-transform:uppercase">Valor Total</div><div style="font-size:18px;font-weight:800;color:#1B5E20;line-height:1.2">R$ '+vdN(valorTotal,2)+'</div></div>'+
       '<div style="border:1px solid #cfe6cf;border-left:4px solid #1B5E20;border-radius:8px;padding:7px 10px"><div style="font-size:9px;font-weight:700;color:#5f6b60;text-transform:uppercase">Valor / Cab</div><div style="font-size:18px;font-weight:800;color:#1B5E20;line-height:1.2">R$ '+vdN(valorCab,2)+'</div></div>'
@@ -2307,5 +2379,6 @@ function vdsToggle(btn){
 }
 
 </script>
+<div id="vdPrintArea"></div>
 </body>
 </html>

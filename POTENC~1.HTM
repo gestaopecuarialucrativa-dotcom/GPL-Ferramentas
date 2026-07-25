@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Potencial da Fazenda | Gestão Pecuária Lucrativa</title>
+<style>
+  :root{
+    --verde-esc:#1B5E20; --verde:#2E7D32; --verde-claro:#4CAF50;
+    --fundo:#eef2ec; --card:#fff; --texto:#1b2c1b; --fraco:#65766a; --borda:#e0e7e0; --alerta:#FF6F00;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:Arial,'Segoe UI',Roboto,system-ui,sans-serif;color:var(--texto);background:var(--fundo);line-height:1.45}
+  .app{max-width:480px;margin:0 auto;background:var(--fundo);min-height:100vh}
+  .topbar{background:var(--verde-esc);color:#fff;padding:12px 14px;display:flex;align-items:center;gap:12px;position:relative}
+  .topbar .logo{height:44px;width:auto;filter:brightness(0) invert(1);flex:0 0 auto}
+  .logofb{display:none;font-size:.5rem;line-height:1.1;letter-spacing:1px;flex:0 0 auto;text-align:left}
+  .logofb b{font-size:.82rem;color:var(--verde-claro);display:block;letter-spacing:1.5px}
+  .logofb span{display:block;font-size:.44rem;opacity:.8;border-top:1px solid rgba(255,255,255,.35);margin-top:1px;padding-top:1px}
+  .htext{flex:1;min-width:0;text-align:left}
+  .htext .ttl{font-size:1.12rem;font-weight:bold;line-height:1.1}
+  .htext .sub{font-size:.72rem;opacity:.85;margin-top:2px}
+  .topbar .build{position:absolute;right:8px;top:6px;font-size:.58rem;color:rgba(255,255,255,.55)}
+  .content{padding:14px}
+  .seg{display:flex;gap:6px;margin-bottom:10px}
+  .seg .s{flex:1;padding:9px 6px;border:1px solid var(--borda);background:var(--card);border-radius:12px;
+      cursor:pointer;text-align:center;font-weight:bold;font-size:.82rem;color:var(--fraco)}
+  .seg .s.active{background:var(--verde);color:#fff;border-color:var(--verde)}
+  .posse{display:flex;gap:6px;margin-bottom:12px}
+  .posse button{flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:10px;
+      border:1px solid var(--borda);background:var(--card);border-radius:12px;cursor:pointer;font-weight:bold;font-size:.85rem;color:var(--fraco)}
+  .posse button.active{background:var(--verde-claro);color:#fff;border-color:var(--verde-claro)}
+  .posse button svg{width:18px;height:18px}
+  .note{background:var(--card);border-left:4px solid var(--verde);border-radius:14px;padding:11px 13px;
+      font-size:.8rem;margin-bottom:12px;color:var(--texto);display:flex;gap:9px;align-items:flex-start}
+  .note svg{width:18px;height:18px;color:var(--verde);flex:0 0 auto;margin-top:1px}
+  .card{background:var(--card);border-left:4px solid var(--verde);border-radius:14px;padding:13px;margin-bottom:12px}
+  .card h3{font-size:.9rem;color:var(--verde-esc);margin-bottom:10px;display:flex;align-items:center;gap:7px}
+  .card h3 svg{width:18px;height:18px;color:var(--verde)}
+  .field{margin-bottom:11px}
+  .field:last-child{margin-bottom:0}
+  .field label{display:block;font-size:.78rem;font-weight:bold;margin-bottom:3px}
+  .field label small{color:var(--fraco);font-weight:normal}
+  .field small.hint{display:block;color:var(--fraco);font-size:.72rem;margin-top:2px}
+  .field input,.field select{width:100%;padding:9px 11px;border:1px solid var(--borda);border-radius:12px;
+      font-size:.95rem;font-family:inherit;color:var(--texto);background:#fff}
+  .field input:focus,.field select:focus{outline:2px solid var(--verde-claro)}
+  .pill{border-radius:14px;padding:12px 13px;margin-bottom:12px;font-weight:bold;font-size:.9rem;display:flex;gap:9px;align-items:flex-start}
+  .pill svg{width:20px;height:20px;flex:0 0 auto;margin-top:1px}
+  .pill.ok{background:#e7f3e7;color:var(--verde-esc)}
+  .pill.ok svg{color:var(--verde)}
+  .pill.no{background:#fff1e0;color:#8a4b00}
+  .pill.no svg{color:var(--alerta)}
+  .pill small{display:block;font-weight:normal;font-size:.78rem;margin-top:3px;color:var(--fraco)}
+  .kpis{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:12px}
+  .kpi{background:var(--card);border-left:4px solid var(--verde);border-radius:14px;padding:11px}
+  .kpi .l{font-size:.68rem;color:var(--fraco);text-transform:uppercase;letter-spacing:.3px;margin-bottom:3px}
+  .kpi .v{font-size:1.05rem;font-weight:bold;color:var(--verde-esc)}
+  .kpi.alerta{border-left-color:var(--alerta)}.kpi.alerta .v{color:var(--alerta)}
+  table{width:100%;border-collapse:collapse;font-size:.82rem}
+  td{padding:7px 4px;border-bottom:1px solid var(--borda);vertical-align:top}
+  td.ind{color:var(--texto)}
+  td.val{text-align:right;font-weight:bold;white-space:nowrap;font-variant-numeric:tabular-nums}
+  .calc{color:var(--fraco);font-size:.68rem;display:block;margin-top:1px}
+  .actions{display:flex;gap:8px;margin:4px 0 20px}
+  .actions button{flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:11px;
+      border-radius:12px;font-weight:bold;cursor:pointer;font-size:.85rem;font-family:inherit;border:1px solid var(--borda)}
+  .actions button svg{width:17px;height:17px}
+  .btn-print{background:var(--verde-claro);color:#fff;border-color:var(--verde-claro)}
+  .btn-reset{background:#fff;color:var(--fraco)}
+  footer{text-align:center;padding:0 14px 22px;font-size:.72rem;color:var(--fraco)}
+  footer a{color:var(--verde)}
+  #tableOut tr:nth-child(even) td{background:#f4f8f1}
+  .contact{display:flex;gap:8px;padding:2px 14px 18px}
+  .contact a{flex:1;display:flex;align-items:center;justify-content:center;gap:7px;padding:12px;border-radius:12px;font-weight:bold;font-size:.85rem;text-decoration:none}
+  .contact a svg{width:18px;height:18px}
+  .contact .wa{background:#25D366;color:#fff}
+  .contact .ig{background:#fff;color:var(--verde-esc);border:1px solid var(--borda)}
+  .save button{width:100%;margin-top:2px;padding:12px;border:none;border-radius:12px;background:var(--verde-claro);color:#fff;font-weight:bold;font-size:.9rem;font-family:inherit;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px}
+  .save button svg{width:18px;height:18px}
+  .save .row{display:flex;gap:8px}
+  .save .row .field{flex:1}
+  .msg{font-size:.8rem;margin-top:8px;padding:8px 10px;border-radius:10px;display:none}
+  .msg.ok{display:block;background:#e7f3e7;color:var(--verde-esc)}
+  .msg.erro{display:block;background:#fff1e0;color:#8a4b00}
+  .admin{padding:0 14px 22px}
+  .admin details{background:#fff;border:1px solid var(--borda);border-radius:12px;padding:10px 12px}
+  .admin summary{cursor:pointer;font-weight:bold;font-size:.82rem;color:var(--fraco);list-style:none;display:flex;align-items:center;gap:7px}
+  .admin summary::-webkit-details-marker{display:none}
+  .admin summary svg{width:16px;height:16px;color:var(--fraco)}
+  .admin .arow{display:flex;gap:8px;margin-top:10px}
+  .admin .arow input{flex:1;padding:9px 11px;border:1px solid var(--borda);border-radius:10px;font-size:.9rem;font-family:inherit}
+  .admin .go{padding:9px 14px;border:none;border-radius:10px;background:var(--verde);color:#fff;font-weight:bold;cursor:pointer;font-family:inherit}
+  .admin .resumo{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+  .admin .rc{background:var(--fundo);border-radius:10px;padding:8px 10px;font-size:.76rem;color:var(--texto)}
+  .admin .rc b{display:block;font-size:1.05rem;color:var(--verde-esc)}
+  .admin table{width:100%;font-size:.75rem;margin-top:10px;border-collapse:collapse}
+  .admin table th,.admin table td{padding:5px 4px;border-bottom:1px solid var(--borda);text-align:left}
+  .admin table th{color:var(--fraco)}
+  @media print{.seg,.posse,.actions,.inputs-hide,.contact,.save,.admin{display:none!important}
+    body,.app{background:#fff}.topbar{-webkit-print-color-adjust:exact;print-color-adjust:exact}}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="topbar">
+    <img class="logo" src="logo.png" alt="Gestão Pecuária Lucrativa · Rogério Avelino"
+         onerror="this.style.display='none';document.getElementById('logofb').style.display='block'">
+    <div id="logofb" class="logofb">GESTÃO PECUÁRIA<b>LUCRATIVA</b><span>ROGÉRIO AVELINO</span></div>
+    <div class="htext">
+      <div class="ttl">Potencial da Fazenda</div>
+      <div class="sub">GPL · Saiba o lucro real por hectare</div>
+    </div>
+    <div class="build">v1</div>
+  </div>
+
+  <div class="content">
+    <div class="seg" id="seg">
+      <div class="s active" data-sys="cc">Ciclo Completo</div>
+      <div class="s" data-sys="cria">Cria</div>
+      <div class="s" data-sys="re">Recria-Engorda</div>
+    </div>
+
+    <div class="posse">
+      <button data-posse="proprio" class="active"><svg id="i1"></svg>Terra Própria</button>
+      <button data-posse="arrendamento"><svg id="i2"></svg>Arrendamento</button>
+    </div>
+
+    <div class="note" id="posseNote"></div>
+
+    <div class="inputs-hide" id="inputs"></div>
+
+    <div id="verdictBox"></div>
+    <div class="kpis" id="kpis"></div>
+    <div class="card">
+      <h3><span id="i3"></span>Detalhamento</h3>
+      <table id="tableOut"><tbody></tbody></table>
+    </div>
+
+    <div class="card save">
+      <h3><svg viewBox="0 0 24 24"><path d="M5 3h11l3 3v14a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="M8 3v5h7M8 21v-6h8v6" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></svg>Salvar meus dados</h3>
+      <div class="row">
+        <div class="field"><label>Nome</label><input id="svNome" type="text" placeholder="Seu nome"></div>
+        <div class="field"><label>WhatsApp</label><input id="svZap" type="text" placeholder="(63) 9...."></div>
+      </div>
+      <div class="field"><label>Fazenda</label><input id="svFaz" type="text" placeholder="Nome da fazenda"></div>
+      <button onclick="salvar()"><svg viewBox="0 0 24 24"><path d="M5 12l5 5 9-11" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg>Salvar</button>
+      <div class="msg" id="svMsg"></div>
+    </div>
+
+    <div class="actions">
+      <button class="btn-print" onclick="window.print()"><span id="i4"></span>Imprimir / PDF</button>
+      <button class="btn-reset" onclick="location.reload()"><span id="i5"></span>Limpar</button>
+    </div>
+  </div>
+
+  <div class="contact">
+    <a class="wa" href="https://wa.me/5563991082453?text=Ol%C3%A1%20Rog%C3%A9rio!%20Vim%20pela%20ferramenta%20Potencial%20da%20Fazenda." target="_blank" rel="noopener"><svg viewBox="0 0 24 24"><path d="M20 12a8 8 0 0 1-11.9 7L4 20l1.1-4A8 8 0 1 1 20 12z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="M9 9.5c0 3.5 2 5.5 5.5 5.5" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>(63) 99108-2453</a>
+    <a class="ig" href="https://instagram.com/gestaopecuarialucrativa" target="_blank" rel="noopener"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="5" fill="none" stroke="currentColor" stroke-width="1.7"/><circle cx="12" cy="12" r="3.5" fill="none" stroke="currentColor" stroke-width="1.7"/><circle cx="17" cy="7" r="1" fill="currentColor"/></svg>Instagram</a>
+  </div>
+
+  <footer>
+    Gestão Pecuária Lucrativa · Rogério Avelino — BPO Pecuário<br>
+    Consultor Gama Inttegra · <a href="https://github.com/gestaopecuarialucrativa-dotcom/GPL-Ferramentas" target="_blank">GPL-Ferramentas</a>
+  </footer>
+
+  <div class="admin">
+    <details>
+      <summary><svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="9" rx="2" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="M8 11V8a4 4 0 0 1 8 0v3" fill="none" stroke="currentColor" stroke-width="1.7"/></svg>Área do consultor</summary>
+      <div class="arow">
+        <input id="admSenha" type="password" placeholder="Senha do admin">
+        <button class="go" onclick="entrarAdmin()">Entrar</button>
+      </div>
+      <div class="msg" id="admMsg"></div>
+      <div id="admOut"></div>
+    </details>
+  </div>
+</div>
+
+<script>
+"use strict";
+/* Cole aqui a URL /exec do seu Apps Script (etapa 2) */
+const SCRIPT_URL="https://script.google.com/macros/s/AKfycbz2f21Ikn_SBvhQAzWbzDiJgxCiqzRNDGygb-3wOUJbt72gj1YGtJ7EbbHxhPsBninV/exec";
+const state={sys:'cc',posse:'proprio'};
+
+/* ---- ícones SVG de linha (sem emoji) ---- */
+const IC={
+  home:'<path d="M3 11l9-8 9 8" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/><path d="M5 9.5V21h14V9.5" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>',
+  file:'<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8l-5-5z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="M14 3v5h5" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/>',
+  info:'<circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="M12 11v5M12 8h.01" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>',
+  check:'<circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="M8.5 12.5l2.3 2.3 4.7-5.6" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>',
+  alert:'<path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="M12 9v4M12 17h.01" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>',
+  list:'<path d="M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>',
+  print:'<path d="M6 9V3h12v6" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="M6 18H4a2 2 0 0 1-2-2v-4a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2h-2" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="M6 14h12v7H6z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/>',
+  refresh:'<path d="M20 11a8 8 0 0 0-14-4.5L3 9" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 13a8 8 0 0 0 14 4.5L21 15" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/><path d="M3 4v5h5M21 20v-5h-5" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>'
+};
+function svg(name){return '<svg viewBox="0 0 24 24" width="18" height="18">'+IC[name]+'</svg>';}
+document.getElementById('i1').outerHTML='<svg viewBox="0 0 24 24">'+IC.home+'</svg>';
+document.getElementById('i2').outerHTML='<svg viewBox="0 0 24 24">'+IC.file+'</svg>';
+document.getElementById('i3').outerHTML='<svg viewBox="0 0 24 24">'+IC.list+'</svg>';
+document.getElementById('i4').outerHTML='<svg viewBox="0 0 24 24">'+IC.print+'</svg>';
+document.getElementById('i5').outerHTML='<svg viewBox="0 0 24 24">'+IC.refresh+'</svg>';
+
+const $=s=>document.querySelector(s);
+const brl=v=>isFinite(v)?v.toLocaleString('pt-BR',{style:'currency',currency:'BRL',maximumFractionDigits:0}):'—';
+const brl2=v=>isFinite(v)?v.toLocaleString('pt-BR',{style:'currency',currency:'BRL',maximumFractionDigits:2}):'—';
+const num=(v,d=1)=>isFinite(v)?v.toLocaleString('pt-BR',{minimumFractionDigits:d,maximumFractionDigits:d}):'—';
+const pct=v=>isFinite(v)?(v*100).toLocaleString('pt-BR',{maximumFractionDigits:1})+'%':'—';
+const g=id=>{const el=document.getElementById(id);return el?parseFloat(String(el.value).replace(',','.'))||0:0;};
+const gsel=id=>{const el=document.getElementById(id);return el?el.value:'';};
+
+const F={
+  areaTotal:{label:'Área total',unit:'ha',val:1500,hint:'área total da fazenda'},
+  areaProd:{label:'Área produtiva',unit:'ha',val:1200,hint:'área produtiva pecuária'},
+  valorHa:{label:'Valor do ha',unit:'R$/ha',val:30000,hint:'valor de mercado do ha hoje'},
+  meta:{label:'Meta de resultado',unit:'%',val:4,step:0.5,hint:'% sobre o valor da terra/ano'},
+  margem:{label:'Margem sobre a venda',unit:'%',val:28,step:1,hint:'potencial do sistema produtivo'},
+  valorVenda:{label:'Valor médio de venda',unit:'R$/cab',val:5000,hint:'conforme sua região'},
+  desmame:{label:'Taxa de desmame',unit:'%',val:80,step:1,hint:'realidade ou benchmarking'},
+  partMatriz:{label:'Participação das matrizes',unit:'%',val:70,step:1,hint:'geralmente ~55-70%'},
+  pesoMedio:{label:'Peso médio',unit:'kg/cab',val:330,hint:'(peso entrada + saída)/2'},
+  valorArroba:{label:'Valor da arroba',unit:'R$/@',val:330,hint:'valor da @ na sua região'},
+  lotUA:{label:'Lotação de referência',unit:'UA/ha',val:1.0,step:0.1,hint:'capacidade de suporte do pasto'},
+  repos:{label:'Desembolso reposição',unit:'R$/cab',val:3500,hint:'valor de compra do bezerro/garrote'},
+  pesoEntrada:{label:'Peso de entrada',unit:'kg',val:210,hint:'peso na compra'},
+  pesoAbate:{label:'Peso ao abate',unit:'kg',val:560,hint:'peso final'},
+  gmd:{label:'Ganho médio diário (GMD)',unit:'kg/dia',val:0.5,step:0.05,hint:'ganho pós-compra'},
+  arrModo:{label:'Cobrar o arrendamento em',type:'select',val:'at',opts:[
+     ['at','@ por ha / ano'],['reais','R$ por ha / ano'],['cabAno','R$ por cabeça / ano'],['cabMes','R$ por cabeça / mês']]},
+  arrArrobas:{label:'Arrendamento',unit:'@/ha/ano',val:4.5,step:0.1,hint:'arrobas por ha por ano'},
+  arrReais:{label:'Arrendamento',unit:'R$/ha/ano',val:1200,hint:'reais por ha por ano'},
+  arrCabAno:{label:'Arrendamento',unit:'R$/cab/ano',val:600,hint:'reais por cabeça por ano'},
+  arrCabMes:{label:'Arrendamento',unit:'R$/cab/mês',val:50,hint:'reais por cabeça por mês'},
+  rebDriver:{label:'Definir o rebanho por',type:'select',val:'lot',opts:[
+     ['lot','Lotação (UA/ha)'],['cab','Informar nº de cabeças']]},
+  rebInformado:{label:'Nº de cabeças',unit:'cab',val:1500,hint:'quantas cabeças você quer rodar'},
+};
+
+function fieldsFor(sys,posse){
+  let list=[];
+  if(posse==='proprio') list=['areaTotal','areaProd','valorHa','meta','margem','valorVenda','valorArroba'];
+  else list=['areaProd','arrModo','arrArrobas','arrReais','arrCabAno','arrCabMes','valorArroba','margem','valorVenda','rebDriver','lotUA','rebInformado'];
+  if(sys==='cc'||sys==='cria') list.push('desmame','partMatriz','pesoMedio');
+  if(sys==='re') list.push('repos','pesoEntrada','pesoAbate','gmd');
+  return list;
+}
+function skip(id){
+  const m=gsel('arrModo'),d=gsel('rebDriver');
+  if(id==='arrArrobas'&&m!=='at')return true;
+  if(id==='arrReais'&&m!=='reais')return true;
+  if(id==='arrCabAno'&&m!=='cabAno')return true;
+  if(id==='arrCabMes'&&m!=='cabMes')return true;
+  if(id==='lotUA'&&d==='cab')return true;
+  if(id==='rebInformado'&&d!=='cab')return true;
+  return false;
+}
+function renderInputs(){
+  const box=$('#inputs');box.innerHTML='';
+  const fields=fieldsFor(state.sys,state.posse);
+  const grpA=state.posse==='proprio'
+    ?['areaTotal','areaProd','valorHa','meta','margem','valorVenda','valorArroba']
+    :['areaProd','arrModo','arrArrobas','arrReais','arrCabAno','arrCabMes','margem','valorVenda','valorArroba','rebDriver','lotUA','rebInformado'];
+  const cA=document.createElement('div');cA.className='card';
+  cA.innerHTML='<h3>'+svg('home')+(state.posse==='proprio'?'Fazenda e metas':'Arrendamento e metas')+'</h3>';
+  const cB=document.createElement('div');cB.className='card';
+  cB.innerHTML='<h3>'+svg('list')+'Produção</h3>';
+  fields.forEach(id=>{
+    const f=F[id];if(!f||skip(id))return;
+    const div=document.createElement('div');div.className='field';
+    let inner='<label>'+f.label+(f.unit?' <small>('+f.unit+')</small>':'')+'</label>';
+    if(f.type==='select') inner+='<select id="'+id+'">'+f.opts.map(o=>'<option value="'+o[0]+'"'+(f.val===o[0]?' selected':'')+'>'+o[1]+'</option>').join('')+'</select>';
+    else inner+='<input id="'+id+'" type="number" step="'+(f.step||1)+'" value="'+f.val+'">';
+    if(f.hint) inner+='<small class="hint">'+f.hint+'</small>';
+    div.innerHTML=inner;
+    (grpA.includes(id)?cA:cB).appendChild(div);
+  });
+  box.appendChild(cA);box.appendChild(cB);
+  box.querySelectorAll('input,select').forEach(el=>el.addEventListener('input',()=>{
+    if(el.id==='arrModo'){F.arrModo.val=el.value;renderInputs();}
+    if(el.id==='rebDriver'){F.rebDriver.val=el.value;renderInputs();}
+    compute();
+  }));
+}
+
+function compute(){
+  const sys=state.sys,posse=state.posse;
+  const areaProd=g('areaProd'),margem=g('margem')/100,valorVenda=g('valorVenda'),valorArroba=g('valorArroba');
+  let R={};
+  let valorFazenda=0,resultadoEsp=0,custoArrend=0,custoArrendHa=0,custoArrendCab=0,arrArrobasHa=0,arrModo=gsel('arrModo');
+  if(posse==='proprio'){
+    const areaTotal=g('areaTotal'),valorHa=g('valorHa'),meta=g('meta')/100;
+    valorFazenda=areaTotal*valorHa;resultadoEsp=valorFazenda*meta;
+  }
+  let faturamento,vendas,rebanho,matrizes,valorRebanho,pesoMedio,desembolso,fatPerHead;
+  function rebanhoArrend(pm){ if(gsel('rebDriver')==='cab')return g('rebInformado'); return pm?(areaProd*g('lotUA')*450)/pm:0; }
+  if(sys==='cc'||sys==='cria'){
+    pesoMedio=g('pesoMedio');const desmame=g('desmame')/100,part=g('partMatriz')/100;
+    fatPerHead=part*desmame*valorVenda;
+    if(posse==='proprio'){faturamento=resultadoEsp/margem;vendas=faturamento/valorVenda;matrizes=vendas/desmame;rebanho=matrizes/part;}
+    else{rebanho=rebanhoArrend(pesoMedio);matrizes=rebanho*part;vendas=matrizes*desmame;faturamento=vendas*valorVenda;resultadoEsp=faturamento*margem;}
+    valorRebanho=(pesoMedio/30)*valorArroba*rebanho;
+  }
+  if(sys==='re'){
+    const repos=g('repos'),pe=g('pesoEntrada'),pa=g('pesoAbate'),gmd=g('gmd');
+    const producao=pa-pe,permDias=gmd?producao/gmd:0,permMeses=permDias/30.4,giro=permMeses?12/permMeses:0;
+    pesoMedio=(pe+pa)/2;fatPerHead=giro*valorVenda;
+    if(posse==='proprio'){faturamento=resultadoEsp/margem;vendas=faturamento/valorVenda;rebanho=giro?vendas/giro:0;}
+    else{rebanho=rebanhoArrend(pesoMedio);vendas=rebanho*giro;faturamento=vendas*valorVenda;resultadoEsp=faturamento*margem;}
+    valorRebanho=(pesoMedio/30)*valorArroba*rebanho;
+    R._re={producao,permDias,permMeses,giro,repos,desembReposAno:repos*vendas};
+  }
+  if(posse==='arrendamento'){
+    if(arrModo==='at'){arrArrobasHa=g('arrArrobas');custoArrendHa=arrArrobasHa*valorArroba;custoArrend=custoArrendHa*areaProd;}
+    else if(arrModo==='reais'){custoArrendHa=g('arrReais');arrArrobasHa=valorArroba?custoArrendHa/valorArroba:0;custoArrend=custoArrendHa*areaProd;}
+    else if(arrModo==='cabAno'){custoArrendCab=g('arrCabAno');custoArrend=custoArrendCab*rebanho;custoArrendHa=areaProd?custoArrend/areaProd:0;}
+    else if(arrModo==='cabMes'){custoArrendCab=g('arrCabMes')*12;custoArrend=custoArrendCab*rebanho;custoArrendHa=areaProd?custoArrend/areaProd:0;}
+  }
+  desembolso=faturamento-resultadoEsp;
+  let rebMin=NaN,daCerto=false,tipoCusto='';
+  const desembPerHead=fatPerHead*(1-margem);
+  if(posse==='arrendamento'){
+    if(arrModo==='at'||arrModo==='reais'){tipoCusto='ha';rebMin=desembPerHead>0?custoArrend/desembPerHead:Infinity;daCerto=rebanho>=rebMin&&isFinite(rebMin);}
+    else{tipoCusto='cab';daCerto=desembPerHead>=custoArrendCab;rebMin=daCerto?0:Infinity;}
+  }
+  R.common={faturamento,vendas,rebanho,matrizes,valorRebanho,pesoMedio,desembolso,resultadoEsp,areaProd,valorFazenda,custoArrend,custoArrendHa,custoArrendCab,arrArrobasHa,arrModo,margem,valorArroba,posse,sys,rebMin,daCerto,tipoCusto,desembPerHead,fatPerHead};
+  renderResults(R);
+}
+
+function renderResults(R){
+  const c=R.common,posse=c.posse,sys=c.sys;
+  const lotCab=c.rebanho/c.areaProd,lotUAout=(lotCab*c.pesoMedio)/450;
+  const desembCabMes=c.rebanho?c.desembolso/c.rebanho/12:NaN;
+  const resHaAno=c.resultadoEsp/c.areaProd;
+  const resRebanho=c.valorRebanho?c.resultadoEsp/c.valorRebanho:NaN;
+  const lucroCab=c.rebanho?c.resultadoEsp/c.rebanho:NaN;
+
+  const vb=$('#verdictBox');vb.innerHTML='';
+  if(posse==='arrendamento'){
+    let msg,sub,cls,ic;
+    if(c.daCerto){cls='ok';ic='check';msg='Dá certo com '+num(c.rebanho,0)+' cabeças';
+      sub=c.tipoCusto==='ha'
+        ?'Rebanho mínimo para o arrendamento fechar: '+num(c.rebMin,0)+' cab. Acima disso o faturamento cobre o arrendamento e ainda entrega a margem de '+pct(c.margem)+'.'
+        :'Com este custo por cabeça o negócio fecha em qualquer escala mantendo a margem de '+pct(c.margem)+'. Sobra por cabeça (fora arrendamento): '+brl2(c.desembPerHead-c.custoArrendCab)+'.';
+    }else{cls='no';ic='alert';msg='Não fecha com '+num(c.rebanho,0)+' cabeças';
+      sub=c.tipoCusto==='ha'
+        ?'Você precisa de pelo menos '+num(c.rebMin,0)+' cabeças ('+num(c.rebMin/c.areaProd,2)+' cab/ha) para o arrendamento caber na margem. Aumente o rebanho/lotação, reduza o custo do arrendamento ou a margem alvo.'
+        :'O arrendamento por cabeça ('+brl2(c.custoArrendCab)+'/ano) é maior que a sobra por cabeça ('+brl2(c.desembPerHead)+'). Reduza o valor do arrendamento, aumente o valor de venda ou a produtividade.';
+    }
+    vb.innerHTML='<div class="pill '+cls+'">'+svg(ic)+'<div>'+msg+'<small>'+sub+'</small></div></div>';
+  }
+
+  const kpis=[];
+  kpis.push(['','Resultado esperado/ano',brl(c.resultadoEsp)]);
+  kpis.push(['','Faturamento anual',brl(c.faturamento)]);
+  kpis.push(['','Rebanho médio',num(c.rebanho,0)+' cab']);
+  kpis.push(['','Resultado / ha / ano',brl(resHaAno)]);
+  kpis.push(['','Resultado / rebanho',pct(resRebanho)]);
+  if(posse==='arrendamento'){
+    kpis.push(['alerta','Arrendamento/ano',brl(c.custoArrend)]);
+    kpis.push(['alerta','Arrend. sobre a venda',pct(c.faturamento?c.custoArrend/c.faturamento:NaN)]);
+    kpis.push(['','Lucro por cabeça',brl(lucroCab)]);
+  }
+  $('#kpis').innerHTML=kpis.map(k=>'<div class="kpi '+k[0]+'"><div class="l">'+k[1]+'</div><div class="v">'+k[2]+'</div></div>').join('');
+
+  const rows=[];const add=(i,v,d)=>rows.push([i,v,d||'']);
+  if(posse==='proprio'){
+    add('Valor da fazenda',brl(c.valorFazenda),'área total × valor/ha');
+    add('Resultado esperado',brl(c.resultadoEsp),'valor da terra × meta');
+  }else{
+    const t={at:'@/ha/ano',reais:'R$/ha/ano',cabAno:'R$/cab/ano',cabMes:'R$/cab/mês'}[c.arrModo];
+    add('Base do arrendamento',t,'forma de cobrança');
+    add('Arrendamento (/ha/ano)',brl(c.custoArrendHa),'equivalente por hectare');
+    if(c.arrModo==='cabAno'||c.arrModo==='cabMes') add('Arrendamento (/cab/ano)',brl(c.custoArrendCab),'equivalente por cabeça');
+    add('Arrendamento total/ano',brl(c.custoArrend),'custo × área/rebanho');
+    add('Lucro esperado',brl(c.resultadoEsp),'margem × faturamento');
+  }
+  add('Faturamento anual',brl(c.faturamento),posse==='proprio'?'resultado / margem':'vendas × valor médio');
+  add('Desembolso anual',brl(c.desembolso),'faturamento − resultado');
+  if(posse==='arrendamento') add('Desembolso operacional',brl(c.desembolso-c.custoArrend),'desembolso − arrendamento');
+  add('Vendas necessárias/ano',num(c.vendas,0)+' cab','faturamento / valor médio');
+  if(sys!=='re') add('Matrizes necessárias',num(c.matrizes,0)+' cab','vendas / taxa desmame');
+  add('Rebanho médio',num(c.rebanho,0)+' cab',posse==='arrendamento'?(gsel('rebDriver')==='cab'?'informado por você':'área × lotação'):'derivado da meta');
+  if(posse==='arrendamento'&&c.tipoCusto==='ha'&&isFinite(c.rebMin)) add('Rebanho mínimo p/ dar certo',num(c.rebMin,0)+' cab','arrend. / sobra por cabeça');
+  add('Lotação cabeça/ha',num(lotCab,2)+' cab/ha','rebanho / área produtiva');
+  add('Lotação UA/ha',num(lotUAout,2)+' UA/ha','lotação × peso médio / 450');
+  add('Peso médio',num(c.pesoMedio,0)+' kg','');
+  if(R._re){
+    add('Produção (kg/cab)',num(R._re.producao,0)+' kg','peso abate − entrada');
+    add('Permanência',num(R._re.permMeses,1)+' meses ('+num(R._re.permDias,0)+' d)','produção / GMD');
+    add('Giro de estoque',num(R._re.giro,2)+'×/ano','12 / permanência');
+    add('Reposição/ano',brl(R._re.desembReposAno),'valor compra × vendas');
+  }
+  add('Desembolso/cab/mês',brl2(desembCabMes),'desembolso / rebanho / 12');
+  if(posse==='arrendamento') add('Lucro por cabeça/ano',brl2(lucroCab),'resultado / rebanho');
+  add('Resultado/ha/ano',brl(resHaAno),'resultado / área produtiva');
+  add('Valor do rebanho',brl(c.valorRebanho),'peso/30 × @ × rebanho');
+  add('Resultado/rebanho',pct(resRebanho),'resultado / valor do rebanho');
+
+  $('#tableOut').querySelector('tbody').innerHTML=
+    rows.map(r=>'<tr><td class="ind">'+r[0]+(r[2]?'<span class="calc">'+r[2]+'</span>':'')+'</td><td class="val">'+r[1]+'</td></tr>').join('');
+  window.ULT=Object.assign({},c,{resHaAno:resHaAno,resRebanho:resRebanho});
+}
+
+function updateNote(){
+  const el=$('#posseNote');
+  const t=state.posse==='proprio'
+    ?'<b>Terra própria:</b> o resultado esperado é um retorno (%) sobre o valor da sua terra. A ferramenta mostra a eficiência (desembolso/cab/mês) necessária para atingi-lo.'
+    :'<b>Arrendamento:</b> o custo (por ha ou por cabeça) entra como despesa. Informe a lotação ou o nº de cabeças e veja se dá certo, o rebanho mínimo, o lucro por cabeça e o retorno sobre o rebanho.';
+  el.innerHTML=svg('info')+'<div>'+t+'</div>';
+}
+
+document.querySelectorAll('.seg .s').forEach(t=>t.addEventListener('click',()=>{
+  document.querySelectorAll('.seg .s').forEach(x=>x.classList.remove('active'));
+  t.classList.add('active');state.sys=t.dataset.sys;applyDefaults();renderInputs();compute();
+}));
+document.querySelectorAll('.posse button').forEach(b=>b.addEventListener('click',()=>{
+  document.querySelectorAll('.posse button').forEach(x=>x.classList.remove('active'));
+  b.classList.add('active');state.posse=b.dataset.posse;updateNote();renderInputs();compute();
+}));
+
+function applyDefaults(){
+  const d={
+    cc:{areaTotal:1500,areaProd:1200,valorHa:30000,meta:4,margem:28,valorVenda:5000,desmame:80,partMatriz:70,pesoMedio:330,valorArroba:330},
+    cria:{areaTotal:17000,areaProd:10000,valorHa:4000,meta:4,margem:30,valorVenda:3500,desmame:60,partMatriz:55,pesoMedio:350,valorArroba:330},
+    re:{areaTotal:1500,areaProd:1200,valorHa:40000,meta:4,margem:20,valorVenda:6800,repos:3500,pesoEntrada:210,pesoAbate:560,gmd:0.5,valorArroba:330}
+  }[state.sys];
+  Object.keys(d).forEach(k=>{if(F[k])F[k].val=d[k];});
+}
+
+/* ---------- Salvar no Drive + Área do consultor ---------- */
+function val(id){const e=document.getElementById(id);return e?e.value:'';}
+function sysNome(s){return {cc:'Ciclo Completo',cria:'Cria',re:'Recria-Engorda'}[s]||s;}
+function coletar(){
+  const inputs={};
+  fieldsFor(state.sys,state.posse).forEach(id=>{if(!skip(id)&&document.getElementById(id))inputs[id]=document.getElementById(id).value;});
+  const c=window.ULT||{};
+  return {nome:val('svNome').trim(),whatsapp:val('svZap').trim(),fazenda:val('svFaz').trim(),
+    sistema:sysNome(state.sys),posse:state.posse==='proprio'?'Terra Própria':'Arrendamento',
+    resultado:c.resultadoEsp,faturamento:c.faturamento,rebanho:c.rebanho,
+    resHaAno:c.resHaAno,resRebanho:c.resRebanho,arrendamento:c.custoArrend||0,
+    daCerto:state.posse==='arrendamento'?(c.daCerto?'Sim':'Não'):'-',inputs:inputs};
+}
+function mostrar(id,txt,cls){const m=document.getElementById(id);if(!m)return;if(!txt){m.style.display='none';return;}m.className='msg '+cls;m.textContent=txt;m.style.display='block';}
+async function salvar(){
+  if(!SCRIPT_URL||SCRIPT_URL.indexOf('COLE_AQUI')>=0){mostrar('svMsg','Ainda falta colar a URL do Apps Script no código (SCRIPT_URL).','erro');return;}
+  if(!val('svNome').trim()){mostrar('svMsg','Preencha ao menos o nome.','erro');return;}
+  mostrar('svMsg','Salvando...','ok');
+  try{
+    const r=await fetch(SCRIPT_URL,{method:'POST',body:JSON.stringify(coletar())});
+    const j=await r.json();
+    if(j.ok) mostrar('svMsg','Salvo com sucesso!','ok');
+    else mostrar('svMsg','Não salvou: '+(j.erro||'erro'),'erro');
+  }catch(e){mostrar('svMsg','Falha de conexão: '+e.message,'erro');}
+}
+async function entrarAdmin(){
+  if(!SCRIPT_URL||SCRIPT_URL.indexOf('COLE_AQUI')>=0){mostrar('admMsg','Falta colar a URL do Apps Script.','erro');return;}
+  const s=val('admSenha');if(!s){mostrar('admMsg','Digite a senha.','erro');return;}
+  mostrar('admMsg','Entrando...','ok');
+  try{
+    const r=await fetch(SCRIPT_URL+'?senha='+encodeURIComponent(s));
+    const j=await r.json();
+    if(!j.ok){mostrar('admMsg','Senha incorreta.','erro');document.getElementById('admOut').innerHTML='';return;}
+    mostrar('admMsg','','ok');
+    renderAdmin(j);
+  }catch(e){mostrar('admMsg','Falha: '+e.message,'erro');}
+}
+function renderAdmin(j){
+  let h='<div class="resumo"><div class="rc"><b>'+(j.total||0)+'</b>cadastros</div>';
+  Object.keys(j.porSistema||{}).forEach(k=>h+='<div class="rc"><b>'+j.porSistema[k]+'</b>'+k+'</div>');
+  Object.keys(j.porPosse||{}).forEach(k=>h+='<div class="rc"><b>'+j.porPosse[k]+'</b>'+k+'</div>');
+  h+='</div><table><tr><th>Nome</th><th>WhatsApp</th><th>Fazenda</th><th>Sistema</th></tr>';
+  (j.registros||[]).forEach(x=>{h+='<tr><td>'+(x.nome||'')+'</td><td>'+(x.whatsapp||'')+'</td><td>'+(x.fazenda||'')+'</td><td>'+(x.sistema||'')+'</td></tr>';});
+  h+='</table>';
+  document.getElementById('admOut').innerHTML=h;
+}
+
+applyDefaults();updateNote();renderInputs();compute();
+</script>
+</body>
+</html>

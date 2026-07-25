@@ -197,6 +197,7 @@ body{font-family:Arial,'Segoe UI',Roboto,system-ui,sans-serif;background:var(--b
 
 <script>
 var FERRAMENTAS_DISPONIVEIS = [
+  {id:'potencial', nome:"Potencial da Fazenda", url:'Potencial.html', svg:'<svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" fill="none"><path d="M4 19V5"/><path d="M4 19h16"/><path d="M7 16l4-5 3 3 5-7"/></svg>'},
   {id:'visita', nome:"Visita Técnica", url:'visita_tecnica.html', svg:'<svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" fill="none"><path d="M12 21V11"/><path d="M12 13c0-3 2-5 6-5 0 4-2 6-6 5Z"/><path d="M12 16c0-2.5-1.7-4-5-4 0 3.5 1.7 5 5 4Z"/></svg>'},
   {id:'agenda', nome:"Agenda & Tarefas", url:'agenda_tarefas.html', svg:'<svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" fill="none"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 3v3"/><path d="M15 3v3"/><path d="M9 11h6"/><path d="M9 15h4"/></svg>'},
   {id:'pesagem', nome:"Pesagem de Curral", url:'pesagem-curral.html', svg:'<svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" fill="none"><path d="M12 3v3"/><path d="M5 6h14l2 9a5 5 0 0 1-9 0"/><path d="M12 6 7.5 6 5.5 15a5 5 0 0 0 9 0"/><path d="M9 21h6"/><path d="M12 18v3"/></svg>'},
@@ -309,19 +310,41 @@ function salvarFazendaGestor(){
   var fazendas = getClientesFazendas();
   var ferramentas = [];
   document.querySelectorAll('.mnf-tool-item.sel').forEach(function(el){ ferramentas.push(el.dataset.id); });
+  var salvo;
   if(_editandoIdx >= 0){
     var faz = fazendas[_editandoIdx];
+    if(!faz.id){ faz.id = Date.now(); }
     faz.nome = nome; faz.prop = prop; faz.ferramentas = ferramentas; faz.ativo = ativo;
     if(pin.length===4 && /^[0-9]{4}$/.test(pin)){ faz.pin = pin; faz.pinHash = sha1Gestor(pin); }
+    salvo = faz;
   } else {
     if(!pin || pin.length!==4 || !/^[0-9]{4}$/.test(pin)){ alert('Informe um PIN de 4 dígitos!'); return; }
-    fazendas.push({ id: Date.now(), nome: nome, prop: prop, pin: pin, pinHash: sha1Gestor(pin),
-      ferramentas: ferramentas, ativo: ativo, criadoEm: new Date().toLocaleDateString('pt-BR') });
+    salvo = { id: Date.now(), nome: nome, prop: prop, pin: pin, pinHash: sha1Gestor(pin),
+      ferramentas: ferramentas, ativo: ativo, criadoEm: new Date().toLocaleDateString('pt-BR') };
+    fazendas.push(salvo);
   }
   saveClientesFazendas(fazendas);
+  sincronizarFazendaBackend(salvo);
   fecharModalNF();
   renderGestorLista();
   notif('✅ Fazenda "'+ nome +'" salva!');
+}
+
+/* Envia a config da fazenda para o backend (aba Fazendas) — assim o mesmo link do cliente reflete a edição */
+function sincronizarFazendaBackend(faz){
+  try{
+    if(!faz || typeof GPL_TRACK_URL==='undefined' || !GPL_TRACK_URL) return;
+    var u = GPL_TRACK_URL + '?acao=fazenda_salvar'
+      + '&id=' + encodeURIComponent(faz.id||'')
+      + '&nome=' + encodeURIComponent(faz.nome||'')
+      + '&prop=' + encodeURIComponent(faz.prop||'')
+      + '&pin=' + encodeURIComponent(faz.pin||'')
+      + '&ferramentas=' + encodeURIComponent((faz.ferramentas||[]).join(','))
+      + '&ativo=' + (faz.ativo?'1':'0')
+      + '&criadoEm=' + encodeURIComponent(faz.criadoEm||'')
+      + '&_=' + Date.now();
+    fetch(u).then(function(r){return r.json();}).catch(function(){});
+  }catch(e){}
 }
 
 /* Lista */

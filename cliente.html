@@ -200,6 +200,20 @@ var SESSAO = null;
   document.title = SESSAO.fazenda + ' — GPL';
 
   renderFerramentas();
+  // Sincroniza as ferramentas liberadas com o servidor: o MESMO link passa a
+  // refletir o que você editar no Gestor (fallback: mantém o que veio no link).
+  try{
+    fetch('https://script.google.com/macros/s/AKfycbyjWp9UnWpnKYhzV2o2y48MwkJhu_ynr5baIHXAm4QpUVmk2BKu5LoBvOUOCmHPrw/exec?acao=fazendas_listar&_='+Date.now())
+      .then(function(r){ return r.json(); })
+      .then(function(res){
+        if(!res || !res.ok || !res.fazendas) return;
+        var f = res.fazendas.filter(function(x){ return x.nome === SESSAO.fazenda; })[0];
+        if(!f || !f.ferramentas || !f.ferramentas.length) return;
+        SESSAO.ferramentas = f.ferramentas;
+        try{ sessionStorage.setItem('gpl_auth', JSON.stringify(SESSAO)); }catch(e){}
+        renderFerramentas();
+      }).catch(function(){});
+  }catch(e){}
 })();
 
 function renderFerramentas(){

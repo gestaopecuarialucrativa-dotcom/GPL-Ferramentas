@@ -138,6 +138,9 @@ input:focus,select:focus{outline:2px solid var(--v3); border-color:var(--v3)}
 .empty{text-align:center; color:var(--muted); font-size:13px; padding:24px 12px}
 .banner{background:var(--v7); border:1px solid #cfe6cf; color:var(--v1); font-size:13px; font-weight:700;
   border-radius:12px; padding:10px 12px; margin:12px 16px 0; display:flex; align-items:center; gap:8px}
+.banner.banner-alerta{background:#FFF3E0; border-color:#FF6F00; color:#E65100}
+.banner-data-btn{margin-left:auto;flex-shrink:0;background:#FF6F00;color:#fff;border:none;border-radius:8px;padding:5px 10px;font-size:12px;font-weight:800;cursor:pointer;font-family:inherit;white-space:nowrap}
+.banner-data-btn:hover{background:#E65100}
 .inline-warn{font-size:12px; color:var(--warn); font-weight:700; margin-top:6px; display:none}
 .file-btn{position:relative; overflow:hidden}
 .file-btn input[type=file]{position:absolute; inset:0; opacity:0; cursor:pointer}
@@ -289,7 +292,7 @@ input:focus,select:focus{outline:2px solid var(--v3); border-color:var(--v3)}
 .vd-hero .big{font-size:34px;font-weight:800;line-height:1}
 .vd-hero .lbl{font-size:12px;opacity:.85;margin-top:4px}
 .vd-hero .sub{font-size:14px;margin-top:8px;opacity:.9}
-.vd-lote-sel{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 2px}
+.vd-lote-pills{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 2px}
 .vd-lote-btn{padding:6px 12px;border-radius:999px;border:1px solid var(--line);font-size:12px;font-weight:700;cursor:pointer;background:#fff;color:var(--muted);font-family:inherit}
 .vd-lote-btn.on{background:var(--v2);color:#fff;border-color:var(--v2)}
 
@@ -350,8 +353,9 @@ input:focus,select:focus{outline:2px solid var(--v3); border-color:var(--v3)}
   </div>
 
   <div id="resumeBanner" class="banner" style="display:none">
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--v1)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8v4l3 2"/><circle cx="12" cy="12" r="9"/></svg>
+    <svg id="resumeIcon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8v4l3 2"/><circle cx="12" cy="12" r="9"/></svg>
     <span id="resumeTxt"></span>
+    <button id="resumeDataBtn" class="banner-data-btn" style="display:none" onclick="atualizarDataHoje()"></button>
   </div>
 
   <!-- ============ PESAR ============ -->
@@ -822,6 +826,20 @@ function setProdOculto(pEnc, hide){
 
 /* ---------- persistência ---------- */
 function save(){ try{ localStorage.setItem(STORE_KEY, JSON.stringify(state)); }catch(e){} }
+
+function atualizarDataHoje(){
+  state.data=todayISO();
+  save();
+  var rb=document.getElementById("resumeBanner");
+  var rt=document.getElementById("resumeTxt");
+  var rdb=document.getElementById("resumeDataBtn");
+  if(rb) rb.classList.remove("banner-alerta");
+  if(rt) rt.textContent="Data atualizada para hoje ("+isoToBR(todayISO())+") — "+state.today.length+" animais.";
+  if(rdb) rdb.style.display="none";
+  // Atualiza campo data na Config
+  var dh=document.getElementById("dataHoje"); if(dh) dh.value=state.data;
+  renderConfig(); renderFooter(); if(typeof renderRelatorio==="function") renderRelatorio();
+}
 function load(){
   try{
     const s=localStorage.getItem(STORE_KEY);
@@ -1996,8 +2014,20 @@ window.onload=function(){
   const ascEl=document.getElementById("autoSyncChk");
   if(ascEl) ascEl.addEventListener("change", e=>{ state.autoSync=e.target.checked; save(); });
   if(resumed && state.today.length){
-    document.getElementById("resumeBanner").style.display="flex";
-    document.getElementById("resumeTxt").textContent=`Sessão de ${isoToBR(state.data)} restaurada — ${state.today.length} animais já pesados.`;
+    var rb=document.getElementById("resumeBanner");
+    var rt=document.getElementById("resumeTxt");
+    var rdb=document.getElementById("resumeDataBtn");
+    rb.style.display="flex";
+    if(state.data && state.data!==todayISO()){
+      // sessão de outro dia — alerta laranja com botão de atualizar
+      rb.classList.add("banner-alerta");
+      rt.textContent="Sessão de "+isoToBR(state.data)+" restaurada ("+state.today.length+" animais). Pesando hoje "+isoToBR(todayISO())+"?";
+      if(rdb){ rdb.textContent="Atualizar para "+isoToBR(todayISO()); rdb.style.display="block"; }
+    } else {
+      rb.classList.remove("banner-alerta");
+      rt.textContent="Sessão de "+isoToBR(state.data)+" restaurada — "+state.today.length+" animais já pesados.";
+      if(rdb) rdb.style.display="none";
+    }
   }
   renderConfig(); renderHoje(); renderFooter(); renderFaltantes(); renderPesarResumo();
   if(state.autoSync){
@@ -2018,7 +2048,7 @@ function gerarPDFVenda(){
   var printArea=document.getElementById('vdPrintArea');
   if(!printArea){ alert('Erro interno: área de impressão não encontrada.'); return; }
   var logo=document.querySelector('.hdr-logo'); var logoSrc=logo?logo.getAttribute('src'):'';
-  var faz=esc(state.fazenda||''); var dataStr=state.data?isoToBR(state.data):'';
+  var faz=esc(state.fazenda||''); var dataStr=isoToBR(todayISO());
   printArea.innerHTML=
     '<div class="pdf-cap">'+
     (logoSrc?'<img src="'+logoSrc+'" alt="GPL" onerror="this.style.display=\'none\'">':'')+
@@ -2087,11 +2117,13 @@ async function vdCarregarData(){
   if(!data){ if(stEl) stEl.textContent='Escolha uma data.'; return; }
   _vdDataSel=data;
   var curData=state.data||todayISO();
-  if(data===curData){
+  // usa state.today se: data é hoje OU data é a data da sessão restaurada
+  if(data===todayISO()||data===curData){
     _vdAnimaisOriginal=(state.today||[]).slice();
     _vdAnimais=_vdAnimaisOriginal.slice();
     vdPreencherLotes(_vdAnimaisOriginal);
-    if(stEl) stEl.textContent=_vdAnimais.length+' animais — sessão atual ('+vdFmtData(new Date(data+'T12:00:00'))+')';
+    var label=data===todayISO()?'hoje':'sessão '+vdFmtData(new Date(curData+'T12:00:00'));
+    if(stEl) stEl.textContent=_vdAnimais.length+' animais — '+label+' (sessão atual)';
     renderVenda(); return;
   }
   if(stEl) stEl.textContent='Carregando...';
@@ -2117,13 +2149,15 @@ async function vdCarregarData(){
 function renderVenda(){
   // Inicializa com sessão atual se vazio
   if(!_vdAnimais.length&&(state.today||[]).length){
-    _vdAnimais=state.today.slice();
-    _vdDataSel=state.data||todayISO();
+    _vdAnimaisOriginal=(state.today||[]).slice();
+    _vdAnimais=_vdAnimaisOriginal.slice();
+    _vdDataSel=todayISO();  // sempre data real de hoje, não state.data
+    vdPreencherLotes(_vdAnimaisOriginal);
   }
   // Preenche campo data se vazio
   var dpEl=document.getElementById('vdDataPes');
   if(dpEl&&!dpEl.value){
-    dpEl.value=_vdDataSel||state.data||todayISO();
+    dpEl.value=todayISO();
     var stEl=document.getElementById('vdStatus');
     if(stEl&&!stEl.textContent&&_vdAnimais.length) stEl.textContent=_vdAnimais.length+' animais — sessão atual';
   }

@@ -355,7 +355,6 @@ input:focus,select:focus{outline:2px solid var(--v3); border-color:var(--v3)}
   <div id="resumeBanner" class="banner" style="display:none">
     <svg id="resumeIcon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8v4l3 2"/><circle cx="12" cy="12" r="9"/></svg>
     <span id="resumeTxt"></span>
-    <button id="resumeDataBtn" class="banner-data-btn" style="display:none" onclick="atualizarDataHoje()"></button>
   </div>
 
   <!-- ============ PESAR ============ -->
@@ -827,19 +826,6 @@ function setProdOculto(pEnc, hide){
 /* ---------- persistência ---------- */
 function save(){ try{ localStorage.setItem(STORE_KEY, JSON.stringify(state)); }catch(e){} }
 
-function atualizarDataHoje(){
-  state.data=todayISO();
-  save();
-  var rb=document.getElementById("resumeBanner");
-  var rt=document.getElementById("resumeTxt");
-  var rdb=document.getElementById("resumeDataBtn");
-  if(rb) rb.classList.remove("banner-alerta");
-  if(rt) rt.textContent="Data atualizada para hoje ("+isoToBR(todayISO())+") — "+state.today.length+" animais.";
-  if(rdb) rdb.style.display="none";
-  // Atualiza campo data na Config
-  var dh=document.getElementById("dataHoje"); if(dh) dh.value=state.data;
-  renderConfig(); renderFooter(); if(typeof renderRelatorio==="function") renderRelatorio();
-}
 function load(){
   try{
     const s=localStorage.getItem(STORE_KEY);
@@ -2016,17 +2002,14 @@ window.onload=function(){
   if(resumed && state.today.length){
     var rb=document.getElementById("resumeBanner");
     var rt=document.getElementById("resumeTxt");
-    var rdb=document.getElementById("resumeDataBtn");
     rb.style.display="flex";
     if(state.data && state.data!==todayISO()){
-      // sessão de outro dia — alerta laranja com botão de atualizar
+      // sessão de outro dia — aviso laranja informativo (sem mudar data automaticamente)
       rb.classList.add("banner-alerta");
-      rt.textContent="Sessão de "+isoToBR(state.data)+" restaurada ("+state.today.length+" animais). Pesando hoje "+isoToBR(todayISO())+"?";
-      if(rdb){ rdb.textContent="Atualizar para "+isoToBR(todayISO()); rdb.style.display="block"; }
+      rt.textContent="Sessão de "+isoToBR(state.data)+" restaurada ("+state.today.length+" animais). Para pesar hoje "+isoToBR(todayISO())+": finalize a pesagem de "+isoToBR(state.data)+" (Config → Finalizar), depois troque a data.";
     } else {
       rb.classList.remove("banner-alerta");
       rt.textContent="Sessão de "+isoToBR(state.data)+" restaurada — "+state.today.length+" animais já pesados.";
-      if(rdb) rdb.style.display="none";
     }
   }
   renderConfig(); renderHoje(); renderFooter(); renderFaltantes(); renderPesarResumo();

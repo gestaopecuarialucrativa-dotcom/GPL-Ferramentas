@@ -359,6 +359,13 @@ input:focus,select:focus{outline:2px solid var(--v3); border-color:var(--v3)}
 
   <!-- ============ PESAR ============ -->
   <div class="screen on" id="scr-pesar">
+    <div class="card stripe" id="pesarLoteCard" style="display:none">
+      <h2><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7h18"/><path d="M3 12h18"/><path d="M3 17h18"/></svg> Lote a pesar hoje</h2>
+      <select id="pesarLoteSel" onchange="pesarSetLote()" style="width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:10px;font-size:15px;background:#fff;color:var(--text);-webkit-appearance:none;appearance:none">
+        <option value="">Todos os lotes</option>
+      </select>
+      <div id="pesarLoteInfo" style="margin-top:10px;font-size:13px"></div>
+    </div>
     <div class="card stripe">
       <h2><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v3"/><path d="M6 6l-3 7h6l-3-7z"/><path d="M18 6l-3 7h6l-3-7z"/><path d="M5 6h14"/><path d="M9 20h6"/><path d="M12 6v14"/></svg> 1. Peso na balança (kg)</h2>
       <input id="pesoIn" class="peso-input" inputmode="decimal" placeholder="0" autocomplete="off">
@@ -926,7 +933,7 @@ function renderDetail(){
   const dias=daysBetween(sel.dataAnterior, state.data);
   let gmd=null;
   if(peso!=null && sel.pesoAnterior!=null && dias && dias>0) gmd=(peso-sel.pesoAnterior)/dias;
-  const loteSelect = `<select id="loteSel">${loteOptions(sel.lote)}</select>`;
+  const loteSelect = `<select id="loteSel">${loteOptions(sel.lote||_pesarLote)}</select>`;
   box.innerHTML=`
     <div class="detail">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
@@ -1357,6 +1364,46 @@ function renderFaltantes(){
     html+='</div>';
   });
   box.innerHTML=html || '<p class="empty">Referência sem lotes.</p>';
+  pesarPreencherLoteSel();
+}
+
+// ===== Item 3: escolher lote na tela Pesar + faltantes ao vivo =====
+var _pesarLote='';
+function pesarPreencherLoteSel(){
+  var sel=document.getElementById('pesarLoteSel');
+  var card=document.getElementById('pesarLoteCard');
+  if(!sel||!card) return;
+  if(!state.ref||!state.ref.loaded||!state.ref.list||!state.ref.list.length){ card.style.display='none'; return; }
+  var lotes=[];
+  state.ref.list.forEach(function(a){ var L=String(a.lote||''); if(L&&lotes.indexOf(L)<0) lotes.push(L); });
+  lotes.sort(function(a,b){ return (parseInt(a)||99)-(parseInt(b)||99); });
+  sel.innerHTML='<option value="">Todos os lotes</option>'+lotes.map(function(L){ return '<option value="'+esc(L)+'"'+(L===_pesarLote?' selected':'')+'>Lote '+esc(L)+'</option>'; }).join('');
+  card.style.display='block';
+  renderPesarLoteInfo();
+}
+function pesarSetLote(){
+  var sel=document.getElementById('pesarLoteSel');
+  _pesarLote=sel?sel.value:'';
+  renderPesarLoteInfo();
+}
+function renderPesarLoteInfo(){
+  var box=document.getElementById('pesarLoteInfo');
+  if(!box) return;
+  if(!state.ref||!state.ref.loaded){ box.innerHTML=''; return; }
+  var pesados=new Set(state.today.filter(function(t){return !t.incerto;}).map(function(t){return t.base;}));
+  if(!_pesarLote){
+    var totRef=state.ref.list.length, totPes=state.ref.list.filter(function(a){return pesados.has(a.base);}).length;
+    box.innerHTML='<span style="color:var(--muted)">Escolha um lote acima pra focar. Geral: <b style="color:var(--v1)">'+totPes+' de '+totRef+'</b> pesados.</span>';
+    return;
+  }
+  var doLote=state.ref.list.filter(function(a){return String(a.lote||'')===_pesarLote;});
+  var faltam=doLote.filter(function(a){return !pesados.has(a.base);});
+  faltam.sort(function(x,y){ var nx=parseInt(x.base,10),ny=parseInt(y.base,10); if(!isNaN(nx)&&!isNaN(ny)&&nx!==ny)return nx-ny; return String(x.base).localeCompare(String(y.base),'pt',{numeric:true}); });
+  var pes=doLote.length-faltam.length;
+  var h='<div style="font-weight:800;color:var(--v1)">Lote '+esc(_pesarLote)+': '+pes+' de '+doLote.length+' pesados</div>';
+  if(faltam.length){ h+='<div style="font-size:11px;color:var(--muted);margin:5px 0 3px">Faltam '+faltam.length+':</div><div class="lote-tags">'+faltam.map(function(a){return '<span class="pill pill-grey">'+esc(a.brinco)+'</span>';}).join('')+'</div>'; }
+  else { h+='<span class="pill pill-green" style="margin-top:6px;display:inline-block">Lote completo &#10003;</span>'; }
+  box.innerHTML=h;
 }
 
 function renderFooter(){
@@ -2144,7 +2191,7 @@ async function vdCarregarData(){
     var url=BACKEND_URL+'?acao=pesagem_ler&data='+encodeURIComponent(data)+'&token='+encodeURIComponent(gplToken())+'&fazenda='+encodeURIComponent(state.fazenda||'');
     var r=await jsonp(url);
     if(r&&r.animais&&r.animais.length){
-      _vdAnimaisOriginal=r.animais.map(function(a){return{num:a.num||a.brinco||'',brinco:a.brinco||a.num||'',lote:a.lote||a.lot||'',peso:parseFloat(a.peso)||0,gmd:vdParseGmd(a.gmd),id:a.id||String(Math.random())};});
+      _vdAnimaisOriginal=r.animais.map(function(a){return{num:a.num||a.brinco||'',brinco:a.brinco||a.num||'',lote:a.lote||a.lot||'',peso:parseFloat(a.peso)||0,gmd:vdParseGmd(a.gmd),dias:vdParseGmd(a.dias),id:a.id||String(Math.random())};});
       _vdAnimais=_vdAnimaisOriginal.slice();
       vdPreencherLotes(_vdAnimaisOriginal);
       if(stEl) stEl.textContent=_vdAnimais.length+' animais carregados — '+vdFmtData(new Date(data+'T12:00:00'));
@@ -2213,7 +2260,7 @@ function renderVenda(){
   }
 
   var pesoTotal=0,arrobasTotal=0,valorTotal=0;
-  var gmdSoma=0,gmdCont=0;
+  var gmdGanhoSoma=0,gmdDiasSoma=0,gmdCont=0;   // media PONDERADA por dias
   var rowsApp='',rowsPDF='';
   animais.forEach(function(t){
     var brinco=t.num||t.brinco||'?';
@@ -2223,7 +2270,10 @@ function renderVenda(){
     var val=precoArr>0?arr*precoArr:0;
     pesoTotal+=peso; arrobasTotal+=arr; valorTotal+=val;
     var gmdv=vdParseGmd(t.gmd);
-    if(gmdv!=null&&gmdv>=0&&gmdv<=2){ gmdSoma+=gmdv; gmdCont++; }
+    var diasv=vdParseGmd(t.dias);
+    // GMD do lote = media PONDERADA por dias (ganho total / dias totais).
+    // Inclui negativos reais; exclui erro grosseiro de numero (>2 ou < -1,5).
+    if(gmdv!=null&&gmdv>=-1.5&&gmdv<=2&&diasv&&diasv>0){ gmdGanhoSoma+=gmdv*diasv; gmdDiasSoma+=diasv; gmdCont++; }
     var gmdTxt=(gmdv!=null)?vdN(gmdv,3):'-';
     var gmdCor=(gmdv!=null&&gmdv<0)?'#c0392b':'#1b2c1b';
     rowsApp+='<tr>'+
@@ -2241,7 +2291,7 @@ function renderVenda(){
   });
   var pesoMedio=n?pesoTotal/n:0;
   var valorCab=n&&valorTotal>0?valorTotal/n:0;
-  var gmdLote=gmdCont?gmdSoma/gmdCont:null;
+  var gmdLote=gmdDiasSoma>0?gmdGanhoSoma/gmdDiasSoma:null;
 
   // Hero
   var heroHtml='';
@@ -2326,10 +2376,10 @@ function renderVenda(){
       '<div style="font-size:11px;font-weight:700;color:#2E7D32">PAGAMENTO EM '+prazo+' DIAS CORRIDOS'+(ajustou?'<br><span style="font-size:10px;color:#5f6b60;font-weight:600">Ajustado — próximo dia útil</span>':'')+'</div>'+
       '<div style="font-size:20px;font-weight:800;color:#1B5E20">'+dataStr+'</div></div>':'')+
     '<div style="font-size:11px;font-weight:800;color:#1B5E20;margin:10px 0 6px;border-top:1px solid #e8f0e8;padding-top:8px">Relatório individual por animal</div>'+
-    (gmdLote!=null?
-      '<div style="background:#E3F2FD;border-radius:8px;padding:10px 14px;margin:0 0 10px;display:flex;justify-content:space-between;align-items:center;page-break-inside:avoid">'+
-      '<div style="font-size:11px;font-weight:700;color:#1565C0">DESEMPENHO DO LOTE — GMD medio<br><span style="font-size:10px;color:#5f6b60;font-weight:600">media de '+gmdCont+' animais</span></div>'+
-      '<div style="font-size:22px;font-weight:800;color:#1565C0">'+vdN(gmdLote,3)+' kg/dia</div></div>':'')+
+    '<div style="background:#E3F2FD;border-radius:8px;padding:10px 14px;margin:0 0 10px;display:flex;justify-content:space-between;align-items:center;page-break-inside:avoid">'+
+      '<div style="font-size:12px;font-weight:800;color:#1565C0">DESEMPENHO DO LOTE'+(gmdLote!=null?'<br><span style="font-size:10px;color:#5f6b60;font-weight:600">GMD: media de '+gmdCont+' animais</span>':'')+'</div>'+
+      '<div style="text-align:right"><div style="font-size:14px;font-weight:800;color:#1B5E20">Peso medio '+vdN(pesoMedio,0)+' kg ('+vdN(pesoMedio/30,1)+' @)</div>'+
+      (gmdLote!=null?'<div style="font-size:20px;font-weight:800;color:#1565C0">GMD '+vdN(gmdLote,3)+' kg/dia</div>':'')+'</div></div>'+
     '<table style="width:100%;border-collapse:collapse;font-size:11px;page-break-inside:auto">'+
     '<thead><tr style="background:#E8F5E9">'+
     '<th style="text-align:left;padding:5px 8px;border-bottom:2px solid #cfe6cf;color:#1B5E20">Brinco</th>'+

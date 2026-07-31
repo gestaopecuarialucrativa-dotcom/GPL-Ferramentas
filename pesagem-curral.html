@@ -1239,24 +1239,27 @@ function shareFaltantes(){
 async function carregarRefNuvem(silent){
   const el=document.getElementById("refStatus");
   try{
-    if(el && !silent) el.textContent="Puxando peso anterior da nuvem...";
-    const r=await jsonp(BACKEND_URL+"?acao=pesagem_ler&antes="+encodeURIComponent(state.data||todayISO())+"&token="+encodeURIComponent(gplToken())+"&fazenda="+encodeURIComponent(state.fazenda||""));
+    if(el && !silent) el.textContent="Puxando última pesagem de cada animal...";
+    // pesagem_ultimas: a ULTIMA pesagem de CADA animal (cada um com a data dele).
+    const r=await jsonp(BACKEND_URL+"?acao=pesagem_ultimas&antes="+encodeURIComponent(state.data||todayISO())+"&token="+encodeURIComponent(gplToken())+"&fazenda="+encodeURIComponent(state.fazenda||""));
     if(!r || !r.ok || !r.animais || !r.animais.length){
       if(el && !silent) el.textContent="A planilha ainda nao tem pesagem anterior a esta data.";
       return false;
     }
-    const byBrinco={}, list=[];
+    const byBrinco={}, list=[]; let maxData=null;
     r.animais.forEach(function(a){
       const brincoStr=String(a.brinco||"").trim();
       if(!brincoStr) return;
       const base=baseBrinco(brincoStr);
+      const dAnt=a.data||null;
+      if(dAnt && (!maxData || dAnt>maxData)) maxData=dAnt;
       const rec={brinco:brincoStr, base,
                  lote:(a.lote==null?"":String(a.lote).trim()),
-                 pesoAnterior:parseNum(a.peso), dataAnterior:r.data||null,
+                 pesoAnterior:parseNum(a.peso), dataAnterior:dAnt,
                  obsAnterior:(a.obs==null?"":String(a.obs).trim())};
       byBrinco[base]=rec; list.push(rec);
     });
-    state.ref={loaded:true, fonte:"nuvem", name:"Nuvem — pesagem de "+(r.data?isoToBR(r.data):"?"), data:r.data||null, byBrinco, list};
+    state.ref={loaded:true, fonte:"nuvem", name:"Nuvem — última de cada animal", data:maxData, byBrinco, list};
     if(!String(state.fazenda||"").trim() && r.fazenda) state.fazenda=r.fazenda;
     save(); renderConfig(); renderFooter(); renderFaltantes();
     if(sel) onNum();
@@ -2075,18 +2078,30 @@ window.onload=function(){
   var ggEl=document.getElementById("gmdGlobalIn"); if(ggEl) ggEl.addEventListener("input", e=>{ state.gmdGlobal=parseFloat(String(e.target.value).replace(",","."))||0; save(); renderRelatorio(); });
   const ascEl=document.getElementById("autoSyncChk");
   if(ascEl) ascEl.addEventListener("change", e=>{ state.autoSync=e.target.checked; save(); });
-  if(resumed && state.today.length){
+  // DATA = HOJE: se a sessão restaurada é de um dia passado JÁ SALVO na planilha,
+  // começa uma sessão nova de hoje. O dia antigo continua na planilha (vira referência).
+  if(resumed && state.data && state.data!==todayISO()){
+    var rb0=document.getElementById("resumeBanner");
+    var rt0=document.getElementById("resumeTxt");
+    if(rb0) rb0.style.display="flex";
+    if(state.today.length && state.syncDirty){
+      // tem animais NÃO enviados — não mexe, avisa pra sincronizar
+      if(rb0) rb0.classList.add("banner-alerta");
+      if(rt0) rt0.textContent=state.today.length+" animais de "+isoToBR(state.data)+" ainda NÃO enviados. Sincronize (Config) antes de pesar hoje.";
+    } else {
+      // já salvo (ou vazio): abre o dia de hoje
+      var diaAnt=state.data;
+      state.today=[]; state.data=todayISO(); diaCompleto=false; state.syncDirty=false; sel=null;
+      save();
+      if(rb0){ rb0.classList.remove("banner-alerta"); }
+      if(rt0) rt0.textContent="Pesagem de hoje ("+isoToBR(todayISO())+"). A de "+isoToBR(diaAnt)+" está salva na planilha e vira referência.";
+    }
+  } else if(resumed && state.today.length){
     var rb=document.getElementById("resumeBanner");
     var rt=document.getElementById("resumeTxt");
     rb.style.display="flex";
-    if(state.data && state.data!==todayISO()){
-      // sessão de outro dia — aviso laranja informativo (sem mudar data automaticamente)
-      rb.classList.add("banner-alerta");
-      rt.textContent="Sessão de "+isoToBR(state.data)+" restaurada ("+state.today.length+" animais). Para pesar hoje "+isoToBR(todayISO())+": finalize a pesagem de "+isoToBR(state.data)+" (Config → Finalizar), depois troque a data.";
-    } else {
-      rb.classList.remove("banner-alerta");
-      rt.textContent="Sessão de "+isoToBR(state.data)+" restaurada — "+state.today.length+" animais já pesados.";
-    }
+    rb.classList.remove("banner-alerta");
+    rt.textContent="Sessão de "+isoToBR(state.data)+" restaurada — "+state.today.length+" animais já pesados.";
   }
   renderConfig(); renderHoje(); renderFooter(); renderFaltantes(); renderPesarResumo();
   if(state.autoSync){

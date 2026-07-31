@@ -489,17 +489,13 @@ input:focus,select:focus{outline:2px solid var(--v3); border-color:var(--v3)}
   <!-- ============ CONFIG ============ -->
   <div class="screen" id="scr-config">
     <div class="card stripe">
-      <h2><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v3"/><path d="M12 17v3"/><path d="M4 12h3"/><path d="M17 12h3"/><circle cx="12" cy="12" r="3.5"/></svg> Dados da pesagem</h2>
-      <div class="field"><label>Data de hoje</label><input type="date" id="dataHoje"></div>
+      <h2><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v3"/><path d="M12 17v3"/><path d="M4 12h3"/><path d="M17 12h3"/><circle cx="12" cy="12" r="3.5"/></svg> Ajustes da fazenda</h2>
+      <input type="hidden" id="dataHoje">
       <div class="row2">
         <div class="field"><label>Fazenda</label><input id="fazendaIn" placeholder="Opcional"></div>
         <div class="field"><label>Responsável</label><input id="respIn" placeholder="Opcional"></div>
       </div>
-      <div class="field" id="fazendaSelWrap" style="display:none">
-        <label>Trocar de fazenda (consultor)</label>
-        <select id="fazendaSel" onchange="trocarFazenda(this.value)" style="width:100%; padding:10px; border:1px solid var(--line); border-radius:10px; font-family:inherit; font-size:15px; font-weight:600"></select>
-        <div class="hint">Escolha qual fazenda pesar/ver — limpa a tela e puxa os dados dela da nuvem. (O cliente não vê isso; fica travado na fazenda dele.)</div>
-      </div>
+      <div class="field" id="fazendaSelWrap" style="display:none"><select id="fazendaSel" onchange="trocarFazenda(this.value)"></select></div>
       <div class="field">
         <label>Meta de peso de abate (kg)</label>
         <input id="metaPesoIn" inputmode="decimal" placeholder="480">
@@ -518,23 +514,10 @@ input:focus,select:focus{outline:2px solid var(--v3); border-color:var(--v3)}
     </div>
 
     <div class="card stripe">
-      <h2><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V3"/><path d="M8 7l4-4 4 4"/><path d="M4 15v4a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-4"/></svg> Importar planilhas anteriores</h2>
-      <label>1ª planilha — referência (peso anterior + lotes)</label>
-      <button class="btn btn-ghost file-btn"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3v5h5"/><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/></svg> Escolher arquivo<input type="file" accept=".xlsx,.xls" onchange="importFile(this,'ref')"></button>
-      <div id="refStatus" class="status-line">Nenhuma planilha carregada.</div>
-      <button class="btn btn-ghost" style="margin-top:8px" onclick="carregarRefNuvem(false)"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M8 11l4 4 4-4"/><path d="M4 15v4a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-4"/></svg> Puxar peso anterior da nuvem</button>
-
-      <label style="margin-top:12px">2ª planilha — histórico (opcional)</label>
-      <button class="btn btn-ghost file-btn"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3v5h5"/><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/></svg> Escolher arquivo<input type="file" accept=".xlsx,.xls" onchange="importFile(this,'hist')"></button>
-      <div id="histStatus" class="status-line">Nenhuma planilha carregada.</div>
-    </div>
-
-    <div class="card stripe">
       <h2><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M8 11l4 4 4-4"/><path d="M4 15v4a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-4"/></svg> Exportar e salvar</h2>
       <button class="btn btn-primary" onclick="openFinalizar()" style="background:var(--v1)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg> Finalizar pesagem do dia</button>
       <button class="btn btn-ghost" style="margin-top:10px" onclick="exportXlsx()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M8 11l4 4 4-4"/><path d="M4 15v4a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-4"/></svg> Exportar planilha (.xlsx)</button>
       <button class="btn btn-ghost" style="margin-top:10px" onclick="syncSheets()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12a8 8 0 0 1 14-5l2 2"/><path d="M20 4v5h-5"/><path d="M20 12a8 8 0 0 1-14 5l-2-2"/><path d="M4 20v-5h5"/></svg> Sincronizar Google Sheets</button>
-      <button class="btn btn-ghost" style="margin-top:10px" onclick="carregarNuvemPesagem()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M8 11l4 4 4-4"/><path d="M4 15v4a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-4"/></svg> Carregar pesagem da planilha</button>
       <label style="display:flex; align-items:center; gap:8px; margin-top:12px; font-weight:700; color:var(--ink); cursor:pointer">
         <input type="checkbox" id="autoSyncChk" style="width:auto; margin:0" checked> Salvar automático (com internet)
       </label>
@@ -1497,10 +1480,12 @@ function renderConfig(){
   document.getElementById("arrobaIn").value=state.precoArroba||"";
   var gg=document.getElementById("gmdGlobalIn"); if(gg) gg.value=state.gmdGlobal?String(state.gmdGlobal).replace(".",","):"";
   const asc=document.getElementById("autoSyncChk"); if(asc) asc.checked=!!state.autoSync;
-  document.getElementById("refStatus").innerHTML = state.ref.loaded
+  var _rs=document.getElementById("refStatus");
+  if(_rs) _rs.innerHTML = state.ref.loaded
     ? `<span class="status-ok">✓ ${esc(state.ref.name)}</span> — ${state.ref.list.length} animais · data ${isoToBR(state.ref.data)}`
     : "Nenhuma planilha carregada.";
-  document.getElementById("histStatus").innerHTML = state.hist.loaded
+  var _hs=document.getElementById("histStatus");
+  if(_hs) _hs.innerHTML = state.hist.loaded
     ? `<span class="status-ok">✓ ${esc(state.hist.name)}</span> · data ${isoToBR(state.hist.data)}`
     : "Nenhuma planilha carregada.";
   const fu=document.getElementById("fazUrlIn"); if(fu) fu.value=state.fazendaUrl||FAZENDA_URL_DEFAULT;
@@ -2134,7 +2119,7 @@ window.onload=function(){
     }
     state.fazenda=_fz; save();
   }
-  if(!gplFazendaLock()){ var _selw=document.getElementById("fazendaSelWrap"); if(_selw) _selw.style.display="block"; carregarListaFazendas(); }
+  // trocar de fazenda agora fica no seletor do topo (pesgBar); o dropdown do Config fica oculto
   document.getElementById("pesoIn").addEventListener("input", ()=>{ if(sel) renderDetail(); });
   document.getElementById("numIn").addEventListener("input", onNum);
   document.getElementById("dataHoje").addEventListener("change", e=>{ state.data=e.target.value||todayISO(); save(); renderConfig(); renderFooter(); if(sel) renderDetail(); });

@@ -982,11 +982,40 @@ function registrar(){
   const loteSel=document.getElementById("loteSel");
   const lote = loteSel ? loteSel.value : (s.lote||"");
   if(!lote){ alert("Selecione o LOTE antes de registrar."); if(loteSel) loteSel.focus(); return; }
-  const dias=daysBetween(s.dataAnterior, state.data);
-  let gmd=null;
-  if(s.pesoAnterior!=null && dias && dias>0) gmd=+( (peso-s.pesoAnterior)/dias ).toFixed(3);
+  // GMD e dias SO quando ha peso anterior valido (evita "dias" lixo em animal novo)
+  let dias=null, gmd=null;
+  if(s.pesoAnterior!=null){
+    const dd=daysBetween(s.dataAnterior, state.data);
+    if(dd && dd>0){ dias=dd; gmd=+( (peso-s.pesoAnterior)/dd ).toFixed(3); }
+  }
   let obs=(window._obsNova||"").trim();
   if(s.incerto){ obs=(obs?obs+" · ":"")+"revisar depois"; }
+
+  // ===== VALIDACOES antes de salvar (se cancelar, NAO salva) =====
+  const pesoInEl=document.getElementById("pesoIn");
+  const numInEl=document.getElementById("numIn");
+  const numMostra=s.incerto?(baseBrinco(s.brinco)+"x"):s.brinco;
+  // 1) Peso ALTO (>700 kg) — possivel erro de digitacao (ex: 350 virou 3500)
+  if(peso>700){
+    if(!confirm("Peso ALTO: "+peso+" kg.\n\nConfere o peso? As vezes 350 vira 3500 sem querer.\n\nOK = salvar assim   |   Cancelar = corrigir")){
+      if(pesoInEl){ pesoInEl.focus(); pesoInEl.select(); } return;
+    }
+  }
+  // 2) Peso BAIXO (<80 kg) — bezerro mamando? Se confirmar, anota na observacao
+  if(peso<80){
+    if(confirm("Peso BAIXO: "+peso+" kg.\n\nE bezerro mamando ao pe?\n\nOK = sim (anoto 'bezerro mamando')   |   Cancelar = corrigir o peso")){
+      obs=(obs?obs+" · ":"")+"bezerro mamando";
+    } else {
+      if(pesoInEl){ pesoInEl.focus(); pesoInEl.select(); } return;
+    }
+  }
+  // 3) GMD ALTO (>1,400 kg/dia) — costuma ser numero do animal trocado
+  if(gmd!=null && gmd>1.4){
+    if(!confirm("GMD muito alto: "+gmd.toFixed(3)+" kg/dia (animal "+numMostra+").\n\nO numero do animal esta certo? GMD assim costuma ser numero trocado.\n\nOK = salvar   |   Cancelar = conferir o numero")){
+      if(numInEl){ numInEl.focus(); numInEl.select(); } return;
+    }
+  }
+
   state.today.push({
     id:Date.now()+"_"+Math.random().toString(36).slice(2,6),
     brinco:s.incerto?(baseBrinco(s.brinco)+"x"):s.brinco,
@@ -2076,6 +2105,7 @@ function vdN(n,dec){
   if(n==null||isNaN(n)) return '—';
   return n.toLocaleString('pt-BR',{minimumFractionDigits:dec||0,maximumFractionDigits:dec||0});
 }
+function vdParseGmd(v){ if(v==null||v==='') return null; var x=parseFloat(String(v).replace(',','.')); return isNaN(x)?null:x; }
 
 function vdPreencherLotes(lista){
   var sel=document.getElementById('vdLoteSel');
@@ -2114,7 +2144,7 @@ async function vdCarregarData(){
     var url=BACKEND_URL+'?acao=pesagem_ler&data='+encodeURIComponent(data)+'&token='+encodeURIComponent(gplToken())+'&fazenda='+encodeURIComponent(state.fazenda||'');
     var r=await jsonp(url);
     if(r&&r.animais&&r.animais.length){
-      _vdAnimaisOriginal=r.animais.map(function(a){return{num:a.num||a.brinco||'',brinco:a.brinco||a.num||'',lote:a.lote||a.lot||'',peso:parseFloat(a.peso)||0,id:a.id||String(Math.random())};});
+      _vdAnimaisOriginal=r.animais.map(function(a){return{num:a.num||a.brinco||'',brinco:a.brinco||a.num||'',lote:a.lote||a.lot||'',peso:parseFloat(a.peso)||0,gmd:vdParseGmd(a.gmd),id:a.id||String(Math.random())};});
       _vdAnimais=_vdAnimaisOriginal.slice();
       vdPreencherLotes(_vdAnimaisOriginal);
       if(stEl) stEl.textContent=_vdAnimais.length+' animais carregados — '+vdFmtData(new Date(data+'T12:00:00'));
@@ -2183,6 +2213,7 @@ function renderVenda(){
   }
 
   var pesoTotal=0,arrobasTotal=0,valorTotal=0;
+  var gmdSoma=0,gmdCont=0;
   var rowsApp='',rowsPDF='';
   animais.forEach(function(t){
     var brinco=t.num||t.brinco||'?';
@@ -2191,19 +2222,26 @@ function renderVenda(){
     var arr=peso/30;
     var val=precoArr>0?arr*precoArr:0;
     pesoTotal+=peso; arrobasTotal+=arr; valorTotal+=val;
+    var gmdv=vdParseGmd(t.gmd);
+    if(gmdv!=null&&gmdv>=0&&gmdv<=2){ gmdSoma+=gmdv; gmdCont++; }
+    var gmdTxt=(gmdv!=null)?vdN(gmdv,3):'-';
+    var gmdCor=(gmdv!=null&&gmdv<0)?'#c0392b':'#1b2c1b';
     rowsApp+='<tr>'+
       '<td><b>'+esc(brinco)+'</b>'+(lote?'<br><span style="font-size:10px;color:var(--muted)">'+esc(lote)+'</span>':'')+'</td>'+
       '<td class="r">'+vdN(peso,0)+' kg</td>'+
+      '<td class="r" style="color:'+gmdCor+';font-weight:700">'+gmdTxt+'</td>'+
       '<td class="r">'+vdN(arr,2)+'</td>'+
       '<td class="r">'+(val>0?'R$ '+vdN(val,2):'—')+'</td></tr>';
     rowsPDF+='<tr style="border-bottom:1px solid #e8f0e8">'+
       '<td style="padding:5px 8px">'+esc(brinco)+(lote?' <span style="color:#888;font-size:10px">('+esc(lote)+')</span>':'')+'</td>'+
       '<td style="text-align:right;padding:5px 8px">'+vdN(peso,0)+' kg</td>'+
+      '<td style="text-align:right;padding:5px 8px;font-weight:700;color:'+gmdCor+'">'+gmdTxt+'</td>'+
       '<td style="text-align:right;padding:5px 8px">'+vdN(arr,2)+'</td>'+
       '<td style="text-align:right;padding:5px 8px">'+(val>0?'R$ '+vdN(val,2):'—')+'</td></tr>';
   });
   var pesoMedio=n?pesoTotal/n:0;
   var valorCab=n&&valorTotal>0?valorTotal/n:0;
+  var gmdLote=gmdCont?gmdSoma/gmdCont:null;
 
   // Hero
   var heroHtml='';
@@ -2222,6 +2260,7 @@ function renderVenda(){
     '<div class="vd-kpi"><div class="k">Peso total</div><div class="v">'+vdN(pesoTotal,0)+'<span style="font-size:12px"> kg</span></div></div>'+
     '<div class="vd-kpi"><div class="k">Total arrobas</div><div class="v">'+vdN(arrobasTotal,1)+'<span style="font-size:12px"> @</span></div></div>'+
     '<div class="vd-kpi"><div class="k">Média @/cab</div><div class="v">'+vdN(n?arrobasTotal/n:0,2)+'<span style="font-size:12px"> @</span></div></div>'+
+    '<div class="vd-kpi" style="border-left-color:#1565C0"><div class="k">GMD do lote</div><div class="v" style="color:#1565C0">'+(gmdLote!=null?vdN(gmdLote,3):'-')+'<span style="font-size:12px"> kg/d</span></div>'+(gmdLote!=null?'<div style="font-size:10px;color:var(--muted)">média de '+gmdCont+' animais</div>':'')+'</div>'+
     '<div class="vd-kpi"><div class="k">Valor total</div><div class="v" style="font-size:'+(valorTotal>0?'15':'13')+'px">'+(valorTotal>0?'R$ '+vdN(valorTotal,2):'<span style="color:var(--muted)">preencha R$/@</span>')+'</div></div>'+
     '<div class="vd-kpi"><div class="k">Valor / cabeça</div><div class="v" style="font-size:15px">'+(valorCab>0?'R$ '+vdN(valorCab,2):'—')+'</div></div>'+
     '</div>';
@@ -2242,11 +2281,12 @@ function renderVenda(){
   var tbl='<div class="card" style="margin:0 0 10px;padding:12px">'+
     '<div style="font-size:12px;font-weight:800;color:var(--v1);margin-bottom:8px">Relatório individual ('+n+' animais)</div>'+
     '<div class="vd-table-wrap"><table class="vd-table">'+
-    '<thead><tr><th>Brinco</th><th style="text-align:right">Peso (kg)</th><th style="text-align:right">@ a pé</th><th style="text-align:right">Valor</th></tr></thead>'+
+    '<thead><tr><th>Brinco</th><th style="text-align:right">Peso (kg)</th><th style="text-align:right">GMD</th><th style="text-align:right">@ a pé</th><th style="text-align:right">Valor</th></tr></thead>'+
     '<tbody>'+rowsApp+'</tbody>'+
     '<tfoot><tr>'+
     '<td>TOTAL ('+n+')</td>'+
     '<td class="r">'+vdN(pesoTotal,0)+' kg</td>'+
+    '<td class="r" style="color:#1565C0">'+(gmdLote!=null?vdN(gmdLote,3):'-')+'</td>'+
     '<td class="r">'+vdN(arrobasTotal,2)+'</td>'+
     '<td class="r">'+(valorTotal>0?'R$ '+vdN(valorTotal,2):'—')+'</td>'+
     '</tr></tfoot></table></div></div>';
@@ -2270,6 +2310,7 @@ function renderVenda(){
     '<div style="border:1px solid #cfe6cf;border-left:4px solid #4CAF50;border-radius:8px;padding:7px 10px"><div style="font-size:9px;font-weight:700;color:#5f6b60;text-transform:uppercase">Peso Total</div><div style="font-size:18px;font-weight:800;color:#1B5E20;line-height:1.2">'+vdN(pesoTotal,0)+' kg</div></div>'+
     '<div style="border:1px solid #cfe6cf;border-left:4px solid #2E7D32;border-radius:8px;padding:7px 10px"><div style="font-size:9px;font-weight:700;color:#5f6b60;text-transform:uppercase">Total Arrobas</div><div style="font-size:18px;font-weight:800;color:#1B5E20;line-height:1.2">'+vdN(arrobasTotal,2)+' @</div></div>'+
     '<div style="border:1px solid #cfe6cf;border-left:4px solid #2E7D32;border-radius:8px;padding:7px 10px"><div style="font-size:9px;font-weight:700;color:#5f6b60;text-transform:uppercase">Média @/Cab</div><div style="font-size:18px;font-weight:800;color:#1B5E20;line-height:1.2">'+vdN(n?arrobasTotal/n:0,2)+' @</div></div>'+
+    '<div style="border:1px solid #bcd4ef;border-left:4px solid #1565C0;border-radius:8px;padding:7px 10px"><div style="font-size:9px;font-weight:700;color:#5f6b60;text-transform:uppercase">GMD do Lote</div><div style="font-size:18px;font-weight:800;color:#1565C0;line-height:1.2">'+(gmdLote!=null?vdN(gmdLote,3)+' kg/d':'-')+'</div></div>'+
     (valorTotal>0?
       '<div style="border:1px solid #cfe6cf;border-left:4px solid #1B5E20;border-radius:8px;padding:7px 10px"><div style="font-size:9px;font-weight:700;color:#5f6b60;text-transform:uppercase">Valor Total</div><div style="font-size:18px;font-weight:800;color:#1B5E20;line-height:1.2">R$ '+vdN(valorTotal,2)+'</div></div>'+
       '<div style="border:1px solid #cfe6cf;border-left:4px solid #1B5E20;border-radius:8px;padding:7px 10px"><div style="font-size:9px;font-weight:700;color:#5f6b60;text-transform:uppercase">Valor / Cab</div><div style="font-size:18px;font-weight:800;color:#1B5E20;line-height:1.2">R$ '+vdN(valorCab,2)+'</div></div>'
@@ -2285,10 +2326,15 @@ function renderVenda(){
       '<div style="font-size:11px;font-weight:700;color:#2E7D32">PAGAMENTO EM '+prazo+' DIAS CORRIDOS'+(ajustou?'<br><span style="font-size:10px;color:#5f6b60;font-weight:600">Ajustado — próximo dia útil</span>':'')+'</div>'+
       '<div style="font-size:20px;font-weight:800;color:#1B5E20">'+dataStr+'</div></div>':'')+
     '<div style="font-size:11px;font-weight:800;color:#1B5E20;margin:10px 0 6px;border-top:1px solid #e8f0e8;padding-top:8px">Relatório individual por animal</div>'+
+    (gmdLote!=null?
+      '<div style="background:#E3F2FD;border-radius:8px;padding:10px 14px;margin:0 0 10px;display:flex;justify-content:space-between;align-items:center;page-break-inside:avoid">'+
+      '<div style="font-size:11px;font-weight:700;color:#1565C0">DESEMPENHO DO LOTE — GMD medio<br><span style="font-size:10px;color:#5f6b60;font-weight:600">media de '+gmdCont+' animais</span></div>'+
+      '<div style="font-size:22px;font-weight:800;color:#1565C0">'+vdN(gmdLote,3)+' kg/dia</div></div>':'')+
     '<table style="width:100%;border-collapse:collapse;font-size:11px;page-break-inside:auto">'+
     '<thead><tr style="background:#E8F5E9">'+
     '<th style="text-align:left;padding:5px 8px;border-bottom:2px solid #cfe6cf;color:#1B5E20">Brinco</th>'+
     '<th style="text-align:right;padding:5px 8px;border-bottom:2px solid #cfe6cf;color:#1B5E20">Peso vivo (kg)</th>'+
+    '<th style="text-align:right;padding:5px 8px;border-bottom:2px solid #cfe6cf;color:#1B5E20">GMD</th>'+
     '<th style="text-align:right;padding:5px 8px;border-bottom:2px solid #cfe6cf;color:#1B5E20">@ a pé</th>'+
     '<th style="text-align:right;padding:5px 8px;border-bottom:2px solid #cfe6cf;color:#1B5E20">Valor (R$)</th>'+
     '</tr></thead>'+
@@ -2296,6 +2342,7 @@ function renderVenda(){
     '<tfoot><tr style="background:#E8F5E9;font-weight:800">'+
     '<td style="padding:5px 8px;color:#1B5E20">TOTAL ('+n+' cabeças)</td>'+
     '<td style="text-align:right;padding:5px 8px">'+vdN(pesoTotal,0)+' kg</td>'+
+    '<td style="text-align:right;padding:5px 8px;color:#1565C0">'+(gmdLote!=null?vdN(gmdLote,3):'-')+'</td>'+
     '<td style="text-align:right;padding:5px 8px">'+vdN(arrobasTotal,2)+'</td>'+
     '<td style="text-align:right;padding:5px 8px">'+(valorTotal>0?'R$ '+vdN(valorTotal,2):'—')+'</td>'+
     '</tr></tfoot></table>';

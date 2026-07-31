@@ -357,6 +357,17 @@ input:focus,select:focus{outline:2px solid var(--v3); border-color:var(--v3)}
     <span id="resumeTxt"></span>
   </div>
 
+  <div id="pesgBar" style="display:flex;gap:8px;margin:10px 16px 0">
+    <div id="pesgFazWrap" style="flex:1;display:none">
+      <label style="font-size:11px;font-weight:700;color:var(--muted);display:block;margin-bottom:3px">Fazenda</label>
+      <select id="pesgFazSel" onchange="pesgTrocarFazenda()" style="width:100%;padding:9px 10px;border:1px solid var(--line);border-radius:10px;font-size:14px;background:#fff;color:var(--text);-webkit-appearance:none;appearance:none"></select>
+    </div>
+    <div style="flex:1.3">
+      <label style="font-size:11px;font-weight:700;color:var(--muted);display:block;margin-bottom:3px">Pesagem</label>
+      <select id="pesgDataSel" onchange="pesgEscolherData()" style="width:100%;padding:9px 10px;border:1px solid var(--v2);border-radius:10px;font-size:14px;font-weight:700;background:#fff;color:var(--v1);-webkit-appearance:none;appearance:none"></select>
+    </div>
+  </div>
+
   <!-- ============ PESAR ============ -->
   <div class="screen on" id="scr-pesar">
     <div class="card stripe" id="pesarLoteCard" style="display:none">
@@ -1308,6 +1319,62 @@ async function carregarListaFazendas(){
     sel.innerHTML=opts;
   }catch(e){}
 }
+
+// ===== Seletor de PESAGEM no topo (Fazenda + Data) — manda em tudo =====
+var _pesgDatas=[];
+async function pesgInit(){
+  var fazWrap=document.getElementById('pesgFazWrap');
+  if(!gplFazendaLock()){                 // consultor: pode trocar de fazenda
+    if(fazWrap) fazWrap.style.display='block';
+    await pesgCarregarFazendas();
+  } else {                               // cliente: travado na fazenda dele
+    if(fazWrap) fazWrap.style.display='none';
+  }
+  await pesgCarregarDatas();
+}
+async function pesgCarregarFazendas(){
+  try{
+    var r=await jsonp(BACKEND_URL+"?acao=fazendas&token="+encodeURIComponent(gplToken()));
+    var s=document.getElementById('pesgFazSel'); if(!s||!r||!r.fazendas) return;
+    var cur=state.fazenda||'';
+    s.innerHTML=r.fazendas.map(function(f){return '<option value="'+esc(f)+'"'+(f===cur?' selected':'')+'>'+esc(f)+'</option>';}).join('');
+  }catch(e){}
+}
+async function pesgCarregarDatas(){
+  try{
+    var r=await jsonp(BACKEND_URL+"?acao=pesagem_datas&token="+encodeURIComponent(gplToken())+"&fazenda="+encodeURIComponent(state.fazenda||''));
+    var s=document.getElementById('pesgDataSel'); if(!s) return;
+    _pesgDatas=(r&&r.datas)?r.datas:[];
+    var hoje=todayISO();
+    var opts='<option value="__hoje__">Hoje '+isoToBR(hoje)+' · nova pesagem</option>';
+    _pesgDatas.forEach(function(d){
+      if(d.data===hoje) return;
+      opts+='<option value="'+d.data+'">'+isoToBR(d.data)+' · '+d.qtd+' animais</option>';
+    });
+    s.innerHTML=opts;
+    s.value=(state.data && state.data!==hoje)?state.data:'__hoje__';
+  }catch(e){}
+}
+function pesgTrocarFazenda(){
+  var s=document.getElementById('pesgFazSel'); if(!s) return;
+  trocarFazenda(s.value);                // função existente: limpa e puxa dados da fazenda
+  setTimeout(pesgCarregarDatas, 900);
+}
+async function pesgEscolherData(){
+  var ds=document.getElementById('pesgDataSel'); if(!ds) return;
+  var v=ds.value;
+  sel=null;                              // limpa animal selecionado
+  if(v==='__hoje__'){
+    state.today=[]; state.data=todayISO(); diaCompleto=false; state.syncDirty=false; save();
+    renderConfig(); renderHoje(); renderFooter(); renderFaltantes(); renderPesarResumo();
+    carregarDiaNuvem(true); carregarRefNuvem(true);
+  } else {
+    state.data=v; state.syncDirty=false; save();
+    await carregarDiaNuvem(true);        // carrega os animais daquela data
+    await carregarRefNuvem(true);        // referência por animal (antes daquela data)
+    renderConfig(); renderHoje(); renderFooter(); renderFaltantes(); renderPesarResumo();
+  }
+}
 async function trocarFazenda(nome){
   nome=String(nome||"").trim();
   if(!nome) return;
@@ -2113,6 +2180,7 @@ window.onload=function(){
     }
     if(!state.ref.loaded || state.ref.fonte==="nuvem") carregarRefNuvem(true);
   }
+  pesgInit();
 };
 
 // ============ PDF VENDA (print nativo — sem html2canvas) ============

@@ -401,10 +401,20 @@ function renderGestorLista(){
 function excluirFazendaGestor(i){
   var fazendas = getClientesFazendas();
   if(!confirm('Excluir fazenda "'+fazendas[i].nome+'"?')) return;
+  var removida = fazendas[i];
   fazendas.splice(i,1);
   saveClientesFazendas(fazendas);
+  excluirFazendaBackend(removida);
   renderGestorLista();
   notif('🗑 Fazenda excluída');
+}
+/* Apaga a fazenda também da planilha (senão volta ao reabrir) */
+function excluirFazendaBackend(faz){
+  try{
+    if(!faz || !faz.id || typeof GPL_TRACK_URL==='undefined' || !GPL_TRACK_URL) return;
+    var u = GPL_TRACK_URL + '?acao=fazenda_excluir&id=' + encodeURIComponent(faz.id) + '&_=' + Date.now();
+    var img = new Image(); img.src = u;
+  }catch(e){}
 }
 
 /* Modal Link */

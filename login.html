@@ -109,8 +109,9 @@ body::before{
     </div>
     <div class="blocked-screen" id="blocked-screen">
       <div class="icon">🔒</div>
-      <h3>Acesso Bloqueado</h3>
-      <p>Este acesso está temporariamente bloqueado.<br>Entre em contato com seu consultor.</p>
+      <h3 id="blocked-title">Acesso indisponível</h3>
+      <p id="blocked-text">Seu acesso está inativo ou o prazo terminou. Fale com a Gestão Pecuária Lucrativa para reativar.</p>
+      <a id="blocked-wpp" href="https://wa.me/5563991082453" target="_blank" style="display:inline-block;margin-top:14px;background:#25D366;color:#fff;text-decoration:none;font-weight:800;font-size:.82rem;padding:11px 20px;border-radius:10px">Falar no WhatsApp</a>
     </div>
   </div>
 
@@ -231,6 +232,52 @@ function sha1(str){
   return tohex(H[0])+tohex(H[1])+tohex(H[2])+tohex(H[3])+tohex(H[4]);
 }
 
+var GPL_TRACK_URL = "https://script.google.com/macros/s/AKfycbyjWp9UnWpnKYhzV2o2y48MwkJhu_ynr5baIHXAm4QpUVmk2BKu5LoBvOUOCmHPrw/exec";
+
+// Registra um evento (via imagem — contorna CORS)
+function gplPing(evento, detalhe){
+  try{
+    var faz = (CONFIG && CONFIG.fazenda) ? CONFIG.fazenda : '';
+    var u = GPL_TRACK_URL + '?fazenda='+encodeURIComponent(faz)
+      + '&evento='+encodeURIComponent(evento||'')
+      + '&ferramenta='+encodeURIComponent('Portal')
+      + '&detalhe='+encodeURIComponent(detalhe||'')
+      + '&_='+Date.now();
+    var img=new Image(); img.src=u;
+  }catch(e){}
+}
+
+// Mostra a tela de bloqueio com mensagem conforme o motivo
+function mostrarBloqueio(motivo){
+  document.getElementById('normal-screen').style.display='none';
+  document.getElementById('blocked-screen').style.display='block';
+  var t=document.getElementById('blocked-title');
+  var p=document.getElementById('blocked-text');
+  if(motivo==='expirada'){
+    t.textContent='Prazo de acesso encerrado';
+    p.innerHTML='O prazo do seu acesso terminou. Fale com a Gestão Pecuária Lucrativa para renovar e liberar as ferramentas novamente.';
+  } else if(motivo==='inativa'){
+    t.textContent='Acesso inativo';
+    p.innerHTML='Seu acesso está inativo no momento. Fale com a Gestão Pecuária Lucrativa para reativar.';
+  } else {
+    t.textContent='Acesso indisponível';
+    p.innerHTML='Seu acesso está inativo ou o prazo terminou. Fale com a Gestão Pecuária Lucrativa para reativar.';
+  }
+}
+
+// Consulta a planilha se a fazenda está liberada (ativo + validade). Chama cb(resultado) ou cb(null) se sem internet.
+function verificarNaPlanilha(pin, cb){
+  var faz = (CONFIG && CONFIG.fazenda) ? CONFIG.fazenda : '';
+  var cbName = 'gplVer'+Date.now();
+  var timeout = setTimeout(function(){ limpa(); cb(null); }, 6000);
+  function limpa(){ try{ delete window[cbName]; }catch(e){} var s=document.getElementById(cbName); if(s) s.remove(); clearTimeout(timeout); }
+  window[cbName] = function(res){ limpa(); cb(res); };
+  var url = GPL_TRACK_URL + '?acao=verificar&nome='+encodeURIComponent(faz)+'&pin='+encodeURIComponent(pin)+'&callback='+cbName+'&_='+Date.now();
+  var s=document.createElement('script'); s.id=cbName; s.src=url;
+  s.onerror=function(){ limpa(); cb(null); };
+  document.head.appendChild(s);
+}
+
 var tentativas=0;
 function verificarPIN(){
   if(!CONFIG){return;}
@@ -238,14 +285,27 @@ function verificarPIN(){
   if(pin.length<4)return;
   var hash=sha1(pin);
   if(hash===CONFIG.pinHash){
-    // Salva sessão
-    sessionStorage.setItem('gpl_auth', JSON.stringify({
-      fazenda: CONFIG.fazenda,
-      ferramentas: CONFIG.ferramentas||[],
-      ts: Date.now()
-    }));
-    // Redireciona para portal do cliente
-    window.location.href='cliente.html';
+    // PIN local correto. Agora confere na planilha (ativo + validade).
+    var msgV=document.getElementById('error-msg');
+    msgV.style.display='block'; msgV.style.color='#666'; msgV.textContent='Verificando acesso...';
+    verificarNaPlanilha(pin, function(res){
+      msgV.style.display='none'; msgV.style.color='';
+      if(res && res.ok===false){
+        // Bloqueado pela planilha (inativo ou expirado)
+        gplPing('bloqueado', res.motivo||'');
+        mostrarBloqueio(res.motivo);
+        return;
+      }
+      // res.ok===true (liberado) OU res===null (sem internet -> entra e revalida depois)
+      gplPing('login', res? 'PIN correto' : 'offline');
+      var ferr = (res && res.ferramentas && res.ferramentas.length) ? res.ferramentas : (CONFIG.ferramentas||[]);
+      sessionStorage.setItem('gpl_auth', JSON.stringify({
+        fazenda: CONFIG.fazenda,
+        ferramentas: ferr,
+        ts: Date.now()
+      }));
+      window.location.href='cliente.html';
+    });
   }else{
     tentativas++;
     digits.forEach(function(id){

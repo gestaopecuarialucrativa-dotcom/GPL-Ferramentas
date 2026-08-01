@@ -500,10 +500,37 @@ function enviarLinkWpp(){
 
 function escHtml(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
-renderGestorLista();
+/* Puxa as fazendas da PLANILHA (fonte da verdade) ao abrir — resolve PC ≠ celular e fazenda sumindo */
+function carregarFazendasDaPlanilha(){
+  try{
+    if(typeof GPL_TRACK_URL==='undefined' || !GPL_TRACK_URL) { renderGestorLista(); return; }
+    var url = GPL_TRACK_URL + '?acao=fazendas_listar&_=' + Date.now();
+    fetch(url).then(function(r){ return r.json(); }).then(function(res){
+      if(res && res.ok && Array.isArray(res.fazendas)){
+        var arr = res.fazendas.map(function(f){
+          return {
+            id: f.id, nome: f.nome, prop: f.prop,
+            pin: f.pin,
+            pinHash: (typeof sha1Gestor==='function' && f.pin) ? sha1Gestor(f.pin) : (f.pinHash||''),
+            ferramentas: f.ferramentas||[],
+            ativo: (f.ativo!==false),
+            validade: f.validade||'',
+            criadoEm: f.criadoEm||''
+          };
+        });
+        saveClientesFazendas(arr);
+      }
+      renderGestorLista();
+    }).catch(function(e){
+      /* sem internet: mostra o cache local */
+      renderGestorLista();
+    });
+  }catch(e){ renderGestorLista(); }
+}
 
 // ── RELATÓRIO DE ACESSOS ──
 var GPL_TRACK_URL = "https://script.google.com/macros/s/AKfycbyjWp9UnWpnKYhzV2o2y48MwkJhu_ynr5baIHXAm4QpUVmk2BKu5LoBvOUOCmHPrw/exec";
+carregarFazendasDaPlanilha();
 function abrirModalAcessos(i){
   var faz = getClientesFazendas()[i];
   if(!faz) return;

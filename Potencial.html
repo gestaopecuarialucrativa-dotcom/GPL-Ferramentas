@@ -214,12 +214,15 @@ const F={
   areaProd:{label:'Área produtiva',unit:'ha',val:1200,hint:'área produtiva pecuária'},
   valorHa:{label:'Valor do ha',unit:'R$/ha',val:30000,hint:'valor de mercado do ha hoje'},
   meta:{label:'Meta de resultado',unit:'%',val:4,step:0.5,hint:'% sobre o valor da terra/ano'},
-  margem:{label:'Margem sobre a venda',unit:'%',val:28,step:1,hint:'potencial do sistema produtivo'},
+  margem:{label:'Margem sobre a venda',unit:'%',val:28,step:1,hint:'% que sobra do faturamento após pagar todos os custos. Cria excelência: 35-40%. Ciclo completo: 28-32%. Recria/engorda: 16-22%'},
   valorVenda:{label:'Valor médio de venda',unit:'R$/cab',val:5000,hint:'conforme sua região'},
   desmame:{label:'Taxa de desmame',unit:'%',val:80,step:1,hint:'realidade ou benchmarking'},
   partMatriz:{label:'Participação das matrizes',unit:'%',val:70,step:1,hint:'geralmente ~55-70%'},
-  pesoMedio:{label:'Peso médio',unit:'kg/cab',val:330,hint:'(peso entrada + saída)/2'},
-  valorArroba:{label:'Valor da arroba',unit:'R$/@',val:330,hint:'valor da @ na sua região'},
+  pesoMedio:{label:'Peso médio do rebanho',unit:'kg/cab',val:330,hint:'peso médio para cálculo de lotação e valor do rebanho'},
+  taxaDescarte:{label:'Taxa de descarte de matrizes',unit:'%',val:17,step:1,hint:'vacas vazias + velhas descartadas por ano (~15-20%)'},
+  pesoVacaDescarte:{label:'Peso médio da vaca descarte',unit:'kg',val:400,hint:'peso médio da vaca na hora da venda'},
+  valorArrobaVaca:{label:'Arroba da vaca descarte',unit:'R$/@',val:320,hint:'arroba da vaca gorda — menor que a do boi (~10% deságio)'},
+  valorArroba:{label:'Arroba de referência',unit:'R$/@',val:344,hint:'cria/CC: arroba do bezerro (para valorar rebanho). Recria/engorda: arroba do boi gordo'},
   lotUA:{label:'Lotação de referência',unit:'UA/ha',val:1.0,step:0.1,hint:'capacidade de suporte do pasto'},
   repos:{label:'Desembolso reposição',unit:'R$/cab',val:3500,hint:'valor de compra do bezerro/garrote'},
   pesoEntrada:{label:'Peso de entrada',unit:'kg',val:210,hint:'peso na compra'},
@@ -240,7 +243,7 @@ function fieldsFor(sys,posse){
   let list=[];
   if(posse==='proprio') list=['areaTotal','areaProd','valorHa','meta','margem','valorVenda','valorArroba'];
   else list=['areaProd','arrModo','arrArrobas','arrReais','arrCabAno','arrCabMes','valorArroba','margem','valorVenda','rebDriver','lotUA','rebInformado'];
-  if(sys==='cc'||sys==='cria') list.push('desmame','partMatriz','pesoMedio');
+  if(sys==='cc'||sys==='cria') list.push('desmame','partMatriz','pesoMedio','taxaDescarte','pesoVacaDescarte','valorArrobaVaca');
   if(sys==='re') list.push('repos','pesoEntrada','pesoAbate','gmd');
   return list;
 }
@@ -275,6 +278,19 @@ function renderInputs(){
     (grpA.includes(id)?cA:cB).appendChild(div);
   });
   box.appendChild(cA);box.appendChild(cB);
+  // Label dinâmico da arroba por sistema
+  const elArr=box.querySelector('#valorArroba');
+  if(elArr){
+    const lbl=elArr.closest('.field').querySelector('label');
+    const hnt=elArr.closest('.field').querySelector('small.hint');
+    if(state.sys==='cria'||state.sys==='cc'){
+      lbl.innerHTML='Arroba do bezerro <small>(R$/@)</small>';
+      if(hnt) hnt.textContent='usado para valorar o patrimônio do rebanho de cria';
+    } else {
+      lbl.innerHTML='Arroba do boi gordo <small>(R$/@)</small>';
+      if(hnt) hnt.textContent='referência CEPEA — usado para valorar o rebanho e calcular arrendamento em @';
+    }
+  }
   box.querySelectorAll('input,select').forEach(el=>el.addEventListener('input',()=>{
     if(el.id==='arrModo'){F.arrModo.val=el.value;renderInputs();}
     if(el.id==='rebDriver'){F.rebDriver.val=el.value;renderInputs();}
@@ -295,9 +311,33 @@ function compute(){
   function rebanhoArrend(pm){ if(gsel('rebDriver')==='cab')return g('rebInformado'); return pm?(areaProd*g('lotUA')*450)/pm:0; }
   if(sys==='cc'||sys==='cria'){
     pesoMedio=g('pesoMedio');const desmame=g('desmame')/100,part=g('partMatriz')/100;
-    fatPerHead=part*desmame*valorVenda;
-    if(posse==='proprio'){faturamento=resultadoEsp/margem;vendas=faturamento/valorVenda;matrizes=vendas/desmame;rebanho=matrizes/part;}
-    else{rebanho=rebanhoArrend(pesoMedio);matrizes=rebanho*part;vendas=matrizes*desmame;faturamento=vendas*valorVenda;resultadoEsp=faturamento*margem;}
+    const taxaDesc=g('taxaDescarte')/100,pesoVD=g('pesoVacaDescarte'),valArrobaVaca=g('valorArrobaVaca');
+    // faturamento por matriz: bezerro + descarte proporcional
+    const receitaDescartePorMatriz=taxaDesc*(pesoVD/30)*valArrobaVaca;
+    const valorVendaEfetivo=valorVenda+receitaDescartePorMatriz/desmame; // valor médio ponderado por bezerro vendido
+    fatPerHead=part*desmame*valorVendaEfetivo;
+    if(posse==='proprio'){
+      // faturamento = bezerros + descarte; trabalhamos com o valorVendaEfetivo
+      faturamento=resultadoEsp/margem;
+      vendas=faturamento/valorVendaEfetivo;
+      matrizes=vendas/desmame;
+      rebanho=matrizes/part;
+    } else {
+      rebanho=rebanhoArrend(pesoMedio);
+      matrizes=rebanho*part;
+      vendas=matrizes*desmame;
+      faturamento=vendas*valorVendaEfetivo;
+      resultadoEsp=faturamento*margem;
+    }
+    // guardar receitas separadas para exibir
+    R._cria={
+      receitaBezerro:vendas*valorVenda,
+      vacasDescarte:matrizes*taxaDesc,
+      receitaDescarte:matrizes*taxaDesc*(pesoVD/30)*valArrobaVaca,
+      valorArrobaVaca:valArrobaVaca,
+      pesoVD:pesoVD,
+      taxaDesc:taxaDesc
+    };
     valorRebanho=(pesoMedio/30)*valorArroba*rebanho;
   }
   if(sys==='re'){
@@ -379,6 +419,11 @@ function renderResults(R){
   if(posse==='arrendamento') add('Desembolso operacional',brl(c.desembolso-c.custoArrend),'desembolso − arrendamento');
   add('Vendas necessárias/ano',num(c.vendas,0)+' cab','faturamento / valor médio');
   if(sys!=='re') add('Matrizes necessárias',num(c.matrizes,0)+' cab','vendas / taxa desmame');
+  if((sys==='cc'||sys==='cria')&&R._cria){
+    add('Vacas descarte/ano',num(R._cria.vacasDescarte,0)+' cab','matrizes × taxa descarte ('+pct(R._cria.taxaDesc)+')');
+    add('Receita bezerros/ano',brl(R._cria.receitaBezerro),'vendas × valor médio de venda');
+    add('Receita descarte/ano',brl(R._cria.receitaDescarte),num(R._cria.pesoVD,0)+'kg/30 × R$'+num(R._cria.valorArrobaVaca,0)+'/@ × vacas');
+  }
   add('Rebanho médio',num(c.rebanho,0)+' cab',posse==='arrendamento'?(gsel('rebDriver')==='cab'?'informado por você':'área × lotação'):'derivado da meta');
   if(posse==='arrendamento'&&c.tipoCusto==='ha'&&isFinite(c.rebMin)) add('Rebanho mínimo p/ dar certo',num(c.rebMin,0)+' cab','arrend. / sobra por cabeça');
   add('Lotação cabeça/ha',num(lotCab,2)+' cab/ha','rebanho / área produtiva');
@@ -420,8 +465,8 @@ document.querySelectorAll('.posse button').forEach(b=>b.addEventListener('click'
 
 function applyDefaults(){
   const d={
-    cc:{areaTotal:1500,areaProd:1200,valorHa:30000,meta:4,margem:28,valorVenda:5000,desmame:80,partMatriz:70,pesoMedio:330,valorArroba:330},
-    cria:{areaTotal:17000,areaProd:10000,valorHa:4000,meta:4,margem:30,valorVenda:3500,desmame:60,partMatriz:55,pesoMedio:350,valorArroba:330},
+    cc:{areaTotal:1500,areaProd:1200,valorHa:30000,meta:4,margem:28,valorVenda:5000,desmame:80,partMatriz:70,pesoMedio:330,valorArroba:344,taxaDescarte:17,pesoVacaDescarte:400,valorArrobaVaca:320},
+    cria:{areaTotal:17000,areaProd:10000,valorHa:4000,meta:4,margem:35,valorVenda:3500,desmame:65,partMatriz:55,pesoMedio:350,valorArroba:526,taxaDescarte:17,pesoVacaDescarte:400,valorArrobaVaca:320},
     re:{areaTotal:1500,areaProd:1200,valorHa:40000,meta:4,margem:20,valorVenda:6800,repos:3500,pesoEntrada:210,pesoAbate:560,gmd:0.5,valorArroba:330}
   }[state.sys];
   Object.keys(d).forEach(k=>{if(F[k])F[k].val=d[k];});

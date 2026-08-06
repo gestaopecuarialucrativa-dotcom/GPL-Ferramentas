@@ -1316,19 +1316,27 @@ async function pesgInit(){
   await pesgCarregarDatas();
 }
 async function pesgCarregarFazendas(){
+  var s=document.getElementById('pesgFazSel'); if(!s) return;
+  var cur=state.fazenda||'';
+  // fallback imediato: pelo menos a fazenda atual (nunca fica vazio)
+  if(cur) s.innerHTML='<option value="'+esc(cur)+'" selected>'+esc(cur)+'</option>';
   try{
     var r=await jsonp(BACKEND_URL+"?acao=fazendas&token="+encodeURIComponent(gplToken()));
-    var s=document.getElementById('pesgFazSel'); if(!s||!r||!r.fazendas) return;
-    var cur=state.fazenda||'';
-    s.innerHTML=r.fazendas.map(function(f){return '<option value="'+esc(f)+'"'+(f===cur?' selected':'')+'>'+esc(f)+'</option>';}).join('');
+    if(!r||!r.fazendas||!r.fazendas.length) return;
+    var lista=r.fazendas.slice();
+    if(cur && lista.indexOf(cur)<0) lista.unshift(cur);
+    s.innerHTML=lista.map(function(f){return '<option value="'+esc(f)+'"'+(f===cur?' selected':'')+'>'+esc(f)+'</option>';}).join('');
   }catch(e){}
 }
 async function pesgCarregarDatas(){
+  var s=document.getElementById('pesgDataSel'); if(!s) return;
+  var hoje=todayISO();
+  // fallback imediato: "Hoje" sempre aparece, mesmo sem internet/backend
+  s.innerHTML='<option value="__hoje__">Hoje '+isoToBR(hoje)+' · nova pesagem</option>';
+  s.value='__hoje__';
   try{
     var r=await jsonp(BACKEND_URL+"?acao=pesagem_datas&token="+encodeURIComponent(gplToken())+"&fazenda="+encodeURIComponent(state.fazenda||''));
-    var s=document.getElementById('pesgDataSel'); if(!s) return;
     _pesgDatas=(r&&r.datas)?r.datas:[];
-    var hoje=todayISO();
     var opts='<option value="__hoje__">Hoje '+isoToBR(hoje)+' · nova pesagem</option>';
     _pesgDatas.forEach(function(d){
       if(d.data===hoje) return;

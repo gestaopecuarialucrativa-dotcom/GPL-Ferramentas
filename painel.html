@@ -106,7 +106,63 @@ body{margin:0;font-family:Arial,'Segoe UI',Roboto,system-ui,sans-serif;backgroun
 .topbar .wa svg{width:15px;height:15px}
 .topbar .ig svg{width:20px;height:20px;display:block}
 </style>
-<script>try{if(localStorage.getItem('gpl_client')){location.replace('cliente.html');}}catch(e){}</script>
+<script>
+(function(){
+  var _u; try{ _u=new URLSearchParams(location.search); }catch(e){ _u=null; }
+  var _forceLogin=_u?_u.has('login'):false;
+  var BK="https://script.google.com/macros/s/AKfycby4lOB4zXu2dCBoA-pda6U_do8v9GDvNuH0dFOY6u5kc7FP7gZdPKofZX5Dt-QgnT4V/exec";
+  function jsonp(url){return new Promise(function(res,rej){var cb="gpl_cb_"+Math.random().toString(36).slice(2);window[cb]=function(d){res(d);try{delete window[cb];}catch(e){}s.remove();};var s=document.createElement("script");s.src=url+(url.indexOf("?")<0?"?":"&")+"callback="+cb;s.onerror=function(){rej(new Error("net"));s.remove();};document.head.appendChild(s);});}
+  function authed(){ try{ return !!localStorage.getItem('gpl_consultor'); }catch(e){ return false; } }
+  window.gplSairConsultor=function(){ try{ localStorage.removeItem('gpl_consultor'); }catch(e){} location.reload(); };
+  if(authed()){
+    document.addEventListener("DOMContentLoaded",function(){
+      var f=document.querySelector(".side .sfoot");
+      if(f){ var a=document.createElement("a"); a.href="#"; a.textContent="Sair do painel"; a.style.cssText="display:inline-block;margin-top:8px;color:#ffe;opacity:.85;font-weight:700;text-decoration:underline;cursor:pointer"; a.onclick=function(e){e.preventDefault();gplSairConsultor();}; f.appendChild(a); }
+    });
+    return;
+  }
+  if(!_forceLogin){ try{ if(localStorage.getItem('gpl_client')){ location.replace('cliente.html'); return; } }catch(e){} }
+  document.documentElement.style.visibility="hidden";
+  document.addEventListener("DOMContentLoaded",function(){
+    document.documentElement.style.visibility="";
+    var sd=document.getElementById("side"); if(sd) sd.style.display="none";
+    var mn=document.querySelector(".main"); if(mn) mn.style.display="none";
+    var ov=document.createElement("div");
+    ov.id="consultorGate";
+    ov.style.cssText="position:fixed;inset:0;z-index:99999;background:linear-gradient(160deg,#1B5E20,#163d18);display:flex;align-items:center;justify-content:center;padding:20px";
+    ov.innerHTML='<div style="background:#fff;border-radius:16px;padding:26px 22px;max-width:340px;width:100%;text-align:center;font-family:Arial,sans-serif;box-shadow:0 10px 40px rgba(0,0,0,.3)">'+
+      '<div style="font-size:19px;font-weight:800;color:#1B5E20">Painel do Consultor</div>'+
+      '<div style="font-size:13px;color:#65796b;margin:6px 0 16px">Acesso restrito. Digite sua senha de consultor.</div>'+
+      '<input id="cgSenha" type="password" placeholder="Senha" autocomplete="current-password" style="width:100%;padding:12px;border:1px solid #e0e7e0;border-radius:10px;font-size:15px;box-sizing:border-box">'+
+      '<div id="cgMsg" style="font-size:12px;color:#c0392b;min-height:16px;margin:6px 0"></div>'+
+      '<button id="cgBtn" style="width:100%;padding:12px;background:#4CAF50;color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:800;cursor:pointer">Entrar</button>'+
+      '</div>';
+    document.body.appendChild(ov);
+    var inp=document.getElementById("cgSenha"), btn=document.getElementById("cgBtn"), msg=document.getElementById("cgMsg");
+    if(inp) inp.focus();
+    async function entrar(){
+      var sen=(inp.value||"").trim();
+      if(!sen){ msg.textContent="Digite a senha."; return; }
+      btn.disabled=true; btn.textContent="Verificando...";
+      try{
+        var r=await jsonp(BK+"?acao=login&senha="+encodeURIComponent(sen));
+        if(r&&r.ok&&(r.fazenda==="*"||String(r.fazenda).toUpperCase()==="TODAS")){
+          try{ localStorage.setItem("gpl_consultor", r.token||"ok"); }catch(e){}
+          location.reload();
+        } else if(r&&r.ok){
+          msg.textContent="Essa senha e de cliente, nao de consultor.";
+          btn.disabled=false; btn.textContent="Entrar";
+        } else {
+          msg.textContent=(r&&r.msg)?r.msg:"Senha invalida.";
+          btn.disabled=false; btn.textContent="Entrar";
+        }
+      }catch(e){ msg.textContent="Sem internet. Tente de novo."; btn.disabled=false; btn.textContent="Entrar"; }
+    }
+    if(btn) btn.onclick=entrar;
+    if(inp) inp.addEventListener("keydown",function(e){ if(e.key==="Enter") entrar(); });
+  });
+})();
+</script>
 </head>
 <body>
 

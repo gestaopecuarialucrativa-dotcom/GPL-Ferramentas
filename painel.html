@@ -110,8 +110,7 @@ body{margin:0;font-family:Arial,'Segoe UI',Roboto,system-ui,sans-serif;backgroun
 (function(){
   var _u; try{ _u=new URLSearchParams(location.search); }catch(e){ _u=null; }
   var _forceLogin=_u?_u.has('login'):false;
-  var BK="https://script.google.com/macros/s/AKfycby4lOB4zXu2dCBoA-pda6U_do8v9GDvNuH0dFOY6u5kc7FP7gZdPKofZX5Dt-QgnT4V/exec";
-  function jsonp(url){return new Promise(function(res,rej){var cb="gpl_cb_"+Math.random().toString(36).slice(2);window[cb]=function(d){res(d);try{delete window[cb];}catch(e){}s.remove();};var s=document.createElement("script");s.src=url+(url.indexOf("?")<0?"?":"&")+"callback="+cb;s.onerror=function(){rej(new Error("net"));s.remove();};document.head.appendChild(s);});}
+  var BK="https://script.google.com/macros/s/AKfycbyjWp9UnWpnKYhzV2o2y48MwkJhu_ynr5baIHXAm4QpUVmk2BKu5LoBvOUOCmHPrw/exec";
   function authed(){ try{ return !!localStorage.getItem('gpl_consultor'); }catch(e){ return false; } }
   window.gplSairConsultor=function(){ try{ localStorage.removeItem('gpl_consultor'); }catch(e){} location.reload(); };
   if(authed()){
@@ -145,15 +144,13 @@ body{margin:0;font-family:Arial,'Segoe UI',Roboto,system-ui,sans-serif;backgroun
       if(!sen){ msg.textContent="Digite a senha."; return; }
       btn.disabled=true; btn.textContent="Verificando...";
       try{
-        var r=await jsonp(BK+"?acao=login&senha="+encodeURIComponent(sen));
-        if(r&&r.ok&&(r.fazenda==="*"||String(r.fazenda).toUpperCase()==="TODAS")){
-          try{ localStorage.setItem("gpl_consultor", r.token||"ok"); }catch(e){}
+        var resp=await fetch(BK+"?acao=login_consultor&senha="+encodeURIComponent(sen));
+        var j=await resp.json();
+        if(j&&j.ok){
+          try{ localStorage.setItem("gpl_consultor","ok"); }catch(e){}
           location.reload();
-        } else if(r&&r.ok){
-          msg.textContent="Essa senha e de cliente, nao de consultor.";
-          btn.disabled=false; btn.textContent="Entrar";
         } else {
-          msg.textContent=(r&&r.msg)?r.msg:"Senha invalida.";
+          msg.textContent="Senha invalida.";
           btn.disabled=false; btn.textContent="Entrar";
         }
       }catch(e){ msg.textContent="Sem internet. Tente de novo."; btn.disabled=false; btn.textContent="Entrar"; }

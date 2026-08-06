@@ -1326,6 +1326,7 @@ async function pesgCarregarFazendas(){
     var lista=r.fazendas.slice();
     if(cur && lista.indexOf(cur)<0) lista.unshift(cur);
     s.innerHTML=lista.map(function(f){return '<option value="'+esc(f)+'"'+(f===cur?' selected':'')+'>'+esc(f)+'</option>';}).join('');
+    if(cur) s.value=cur;   // FORÇA mostrar a fazenda real carregada (nao a primeira da lista)
   }catch(e){}
 }
 async function pesgCarregarDatas(){

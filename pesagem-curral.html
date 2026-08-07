@@ -338,7 +338,7 @@ input:focus,select:focus{outline:2px solid var(--v3); border-color:var(--v3)}
 </style>
 </head>
 <body>
-<a class="inicio" href="index.html" onclick="if(history.length>1){history.back();return false}">
+<a class="inicio" href="#" onclick="gplVoltarInicio();return false">
   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg>
   Início
 </a>
@@ -674,6 +674,25 @@ const BACKEND_URL = "https://script.google.com/macros/s/AKfycby4lOB4zXu2dCBoA-pd
 function gplAuth(){ try{ var u=new URLSearchParams(location.search); var fz=u.get("fz"); if(fz) return {fazenda:fz, token:u.get("tk")||""}; return JSON.parse(sessionStorage.getItem("gpl_auth")||"null"); }catch(e){ return null; } }
 function gplToken(){ var a=gplAuth(); return (a&&a.token)?a.token:""; }
 function gplFazendaLock(){ try{ var u=new URLSearchParams(location.search); var fz=u.get("fz"); return fz?fz:null; }catch(e){ return null; } }
+function gplVoltarInicio(){
+  // Se já veio com token de consultor na URL ou sessão, vai direto
+  var a=gplAuth();
+  if(a && a.token && !gplFazendaLock()){
+    location.href='index.html'; return;
+  }
+  // Pede senha antes de ir pro painel
+  var senha=prompt('Senha do consultor:');
+  if(!senha) return;
+  var cb='_cb'+Date.now();
+  var s=document.createElement('script');
+  window[cb]=function(r){
+    delete window[cb]; if(s.parentNode) s.parentNode.removeChild(s);
+    if(r&&r.ok&&r.fazenda==='*'){ location.href='index.html'; }
+    else { alert('Senha incorreta.'); }
+  };
+  s.src=BACKEND_URL+'?acao=login&senha='+encodeURIComponent(senha)+'&callback='+cb;
+  document.head.appendChild(s);
+}
 
 const STORE_KEY = "pesagem_curral_state_v1";
 const HDR_ROW = 13;
@@ -1321,12 +1340,14 @@ async function pesgCarregarFazendas(){
   // fallback imediato: pelo menos a fazenda atual (nunca fica vazio)
   if(cur) s.innerHTML='<option value="'+esc(cur)+'" selected>'+esc(cur)+'</option>';
   try{
-    var r=await jsonp(BACKEND_URL+"?acao=fazendas_acessos&token="+encodeURIComponent(gplToken()));
+    var r=await jsonp(BACKEND_URL+"?acao=fazendas&token="+encodeURIComponent(gplToken()));
     if(!r||!r.fazendas||!r.fazendas.length) return;
     var lista=r.fazendas.slice();
-    if(cur && lista.indexOf(cur)<0) lista.unshift(cur);
-    s.innerHTML=lista.map(function(f){return '<option value="'+esc(f)+'"'+(f===cur?' selected':'')+'>'+esc(f)+'</option>';}).join('');
-    if(cur) s.value=cur;   // FORÇA mostrar a fazenda real carregada (nao a primeira da lista)
+    // se a fazenda salva não existe na planilha, cai pra primeira da lista
+    var fazSel = (cur && lista.indexOf(cur)>=0) ? cur : lista[0];
+    s.innerHTML=lista.map(function(f){return '<option value="'+esc(f)+'"'+(f===fazSel?' selected':'')+'>'+esc(f)+'</option>';}).join('');
+    s.value=fazSel;
+    if(fazSel !== cur){ state.fazenda=fazSel; save(); }
   }catch(e){}
 }
 async function pesgCarregarDatas(){

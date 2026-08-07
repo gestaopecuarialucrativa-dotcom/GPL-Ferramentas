@@ -1321,7 +1321,7 @@ async function pesgCarregarFazendas(){
   // fallback imediato: pelo menos a fazenda atual (nunca fica vazio)
   if(cur) s.innerHTML='<option value="'+esc(cur)+'" selected>'+esc(cur)+'</option>';
   try{
-    var r=await jsonp(BACKEND_URL+"?acao=fazendas&token="+encodeURIComponent(gplToken()));
+    var r=await jsonp(BACKEND_URL+"?acao=fazendas_acessos&token="+encodeURIComponent(gplToken()));
     if(!r||!r.fazendas||!r.fazendas.length) return;
     var lista=r.fazendas.slice();
     if(cur && lista.indexOf(cur)<0) lista.unshift(cur);
@@ -1336,7 +1336,9 @@ async function pesgCarregarDatas(){
   s.innerHTML='<option value="__hoje__">Hoje '+isoToBR(hoje)+' · nova pesagem</option>';
   s.value='__hoje__';
   try{
-    var r=await jsonp(BACKEND_URL+"?acao=pesagem_datas&token="+encodeURIComponent(gplToken())+"&fazenda="+encodeURIComponent(state.fazenda||''));
+    var _fazSel=document.getElementById('pesgFazSel');
+    var _fazVal=(_fazSel&&_fazSel.value)?_fazSel.value:(state.fazenda||'');
+    var r=await jsonp(BACKEND_URL+"?acao=pesagem_datas&token="+encodeURIComponent(gplToken())+"&fazenda="+encodeURIComponent(_fazVal));
     _pesgDatas=(r&&r.datas)?r.datas:[];
     var opts='<option value="__hoje__">Hoje '+isoToBR(hoje)+' · nova pesagem</option>';
     _pesgDatas.forEach(function(d){

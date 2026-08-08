@@ -894,6 +894,14 @@ function onNum(){
     w.innerHTML="\u26a0 N\u00ba <b>"+esc(jaHoje.brinco)+"</b> j\u00e1 pesado hoje: "+jaHoje.peso+"kg"+(jaHoje.obs?" \u00b7 <i>"+esc(jaHoje.obs)+"</i>":"")+". Confira a observa\u00e7\u00e3o para definir o n\u00famero certo.";
     w.style.display="block";
   }
+  if(_vendidosMap[base]){
+    var _vv=_vendidosMap[base];
+    var _dt=_vv.data?isoToBR(_vv.data):"";
+    var _wv=document.getElementById("numWarn");
+    var _mv="\u26a0 N\u00ba <b>"+esc(_vv.brinco||base)+"</b> consta como <b>VENDIDO</b>"+(_dt?" em "+_dt:"")+(_vv.comprador?" para "+esc(_vv.comprador):"")+". Confira se o n\u00famero est\u00e1 certo.";
+    if(_wv.style.display==="block" && _wv.innerHTML){ _wv.innerHTML+="<br>"+_mv; }
+    else { _wv.innerHTML=_mv; _wv.style.display="block"; }
+  }
   const matches=state.ref.list.filter(a=>a.base===base || a.base.startsWith(base));
   const exact=state.ref.list.filter(a=>a.base===base);
   if(exact.length===1){ selectAnimal(exact[0], incerto); renderMatches([]); }

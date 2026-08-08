@@ -514,6 +514,14 @@ input:focus,select:focus{outline:2px solid var(--v3); border-color:var(--v3)}
     </div>
 
     <div class="card stripe">
+      <h2><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16"/><path d="M4 12h16"/><path d="M4 18h10"/></svg> Categoria dos lotes</h2>
+      <p class="hint">Escolha a categoria de cada lote (Vaca, Reprodutor, Bezerro mamando). Fica salvo na planilha e vale pra todas as pesagens desta fazenda — aparece como "Lote 8 · Vaca".</p>
+      <div id="lotesEditor"></div>
+      <button class="btn btn-primary" style="margin-top:10px" onclick="salvarLotesCategoria()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg> Salvar categorias na planilha</button>
+      <div class="status-line" id="lotesCatStatus"></div>
+    </div>
+
+    <div class="card stripe">
       <h2><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M8 11l4 4 4-4"/><path d="M4 15v4a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-4"/></svg> Exportar e salvar</h2>
       <button class="btn btn-primary" onclick="openFinalizar()" style="background:var(--v1)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg> Finalizar pesagem do dia</button>
       <button class="btn btn-ghost" style="margin-top:10px" onclick="exportXlsx()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M8 11l4 4 4-4"/><path d="M4 15v4a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-4"/></svg> Exportar planilha (.xlsx)</button>
@@ -923,7 +931,7 @@ function renderMatches(list, incerto){
   if(!list.length){ box.innerHTML=""; return; }
   box.innerHTML=list.slice(0,6).map((a,i)=>`
     <div class="match" onclick="pickMatch(${i}, ${incerto?1:0})">
-      <div><div class="b">${esc(a.brinco)}</div><div class="m">Lote ${esc(a.lote||"?")} · anterior ${a.pesoAnterior!=null?a.pesoAnterior+"kg":"—"} ${a.dataAnterior?"("+isoToBR(a.dataAnterior)+")":""}</div></div>
+      <div><div class="b">${esc(a.brinco)}</div><div class="m">${a.lote?loteLabel(a.lote):"Lote ?"} · anterior ${a.pesoAnterior!=null?a.pesoAnterior+"kg":"—"} ${a.dataAnterior?"("+isoToBR(a.dataAnterior)+")":""}</div></div>
     </div>`).join("");
   window._matchCache=list;
 }
@@ -955,7 +963,7 @@ function renderDetail(){
 }
 function loteOptions(cur){
   let o=`<option value="">Lote?</option>`;
-  for(let i=1;i<=N_LOTES;i++) o+=`<option value="${i}" ${String(cur)==String(i)?"selected":""}>Lote ${i}</option>`;
+  for(let i=1;i<=N_LOTES;i++) o+=`<option value="${i}" ${String(cur)==String(i)?"selected":""}>${loteLabel(i)}</option>`;
   return o;
 }
 function toggleNovo(){
@@ -974,6 +982,60 @@ function tryBalanca(){
 }
 
 var _vendidosMap = {};
+var _loteCat = {};
+const LOTE_CATEGORIAS = ["Vaca","Reprodutor","Bezerro mamando"];
+function loteLabel(n){
+  if(n===''||n==null) return "Lote ?";
+  var c=_loteCat[String(n)];
+  return "Lote "+n+(c?" · "+c:"");
+}
+async function carregarLotesCategoria(){
+  try{
+    var _fs=document.getElementById('pesgFazSel');
+    var faz=(_fs&&_fs.value)?_fs.value:(state.fazenda||gplFazendaLock()||'');
+    if(!faz){ _loteCat={}; renderLotesEditor(); return; }
+    var r=await jsonp(BACKEND_URL+"?acao=lotes_ler&token="+encodeURIComponent(gplToken())+"&fazenda="+encodeURIComponent(faz));
+    _loteCat=(r&&r.categorias)?r.categorias:{};
+    renderLotesEditor();
+    if(typeof renderResumoLotes==='function') renderResumoLotes();
+    if(typeof renderList==='function') renderList();
+    if(typeof renderFooter==='function') renderFooter();
+  }catch(e){ /* silencioso: nunca bloqueia a pesagem */ }
+}
+function renderLotesEditor(){
+  var el=document.getElementById('lotesEditor'); if(!el) return;
+  function opts(cur){
+    var o='<option value="">— sem categoria —</option>';
+    LOTE_CATEGORIAS.forEach(function(c){ o+='<option value="'+esc(c)+'"'+(c===cur?' selected':'')+'>'+esc(c)+'</option>'; });
+    return o;
+  }
+  var h='';
+  for(var i=1;i<=N_LOTES;i++){
+    h+='<div class="row2" style="align-items:center;gap:10px;margin-bottom:6px"><div style="font-weight:700;color:var(--ink);min-width:60px">Lote '+i+'</div><select id="loteCat'+i+'">'+opts(_loteCat[String(i)]||'')+'</select></div>';
+  }
+  el.innerHTML=h;
+}
+async function salvarLotesCategoria(){
+  var faz=state.fazenda||gplFazendaLock()||'';
+  if(!faz){ alert('Selecione ou informe a fazenda primeiro.'); return; }
+  var map={};
+  for(var i=1;i<=N_LOTES;i++){ var s=document.getElementById('loteCat'+i); if(s&&s.value) map[String(i)]=s.value; }
+  var st=document.getElementById('lotesCatStatus');
+  if(st) st.textContent='Salvando na planilha...';
+  try{
+    var res=await fetch(BACKEND_URL,{method:'POST',body:JSON.stringify({action:'lotes_salvar',data:{token:gplToken(),fazenda:faz,categorias:map}})});
+    var j=null; try{j=JSON.parse(await res.text());}catch(e){}
+    if(j&&j.ok){
+      _loteCat=map;
+      if(st) st.innerHTML='<span style="color:var(--v1);font-weight:700">Categorias salvas na planilha ('+(j.salvos||0)+').</span>';
+      if(typeof renderResumoLotes==='function') renderResumoLotes();
+      if(typeof renderList==='function') renderList();
+      if(typeof renderFooter==='function') renderFooter();
+    } else {
+      if(st) st.textContent='Não consegui salvar: '+(j&&j.msg?j.msg:'erro');
+    }
+  }catch(e){ if(st) st.textContent='Sem conexão pra salvar agora.'; }
+}
 async function carregarVendidos(){
   try{
     var _fs=document.getElementById('pesgFazSel');
@@ -1094,7 +1156,7 @@ function renderPesarResumo(){
   const st=loteStats(); let html="";
   for(let i=1;i<=N_LOTES;i++){ const s=st[i]; if(!s.qtd) continue;
     const media=s.peso/s.qtd, gmd=s.gmdN?s.gmdSum/s.gmdN:null;
-    html+='<div class="pr-row"><span class="pr-lote">Lote '+i+'</span>'+
+    html+='<div class="pr-row"><span class="pr-lote">'+loteLabel(i)+'</span>'+
           '<span class="pr-info">'+s.qtd+' cab \u00b7 '+media.toFixed(0)+'kg ('+(media/AR_DIV).toFixed(1)+'@)</span>'+
           '<span class="pill '+(gmd!=null?"pill-green":"pill-grey")+'">GMD '+(gmd!=null?gmd.toFixed(3):"\u2014")+'</span></div>';
   }
@@ -1105,7 +1167,7 @@ function renderResumoLotes(){
   const st=loteStats(); let html="";
   for(let i=1;i<=N_LOTES;i++){ const s=st[i]; if(!s.qtd) continue;
     const media=s.peso/s.qtd, gmd=s.gmdN?s.gmdSum/s.gmdN:null;
-    html+=`<div class="item"><div class="b">Lote ${i}</div>
+    html+=`<div class="item"><div class="b">${loteLabel(i)}</div>
       <div class="m">${s.qtd} animais · média ${media.toFixed(0)}kg (${(media/AR_DIV).toFixed(1)}@)</div>
       <span class="pill ${gmd!=null?'pill-green':'pill-grey'}">GMD ${gmd!=null?gmd.toFixed(3):'—'}</span></div>`;
   }
@@ -1353,6 +1415,7 @@ async function pesgInit(){
   }
   await pesgCarregarDatas();
   carregarVendidos();
+  carregarLotesCategoria();
 }
 async function pesgCarregarFazendas(){
   var s=document.getElementById('pesgFazSel'); if(!s) return;
@@ -1424,6 +1487,7 @@ async function trocarFazenda(nome){
   await carregarDiaNuvem(false);
   await carregarRefNuvem(true);
   carregarVendidos();
+  carregarLotesCategoria();
 }
 async function carregarNuvemPesagem(){
   const el=document.getElementById("syncStatus");
@@ -1464,7 +1528,7 @@ function renderFaltantes(){
       return String(x.base).localeCompare(String(y.base),'pt',{numeric:true,sensitivity:'base'});
     });
     const totalRef=state.ref.list.filter(a=>(a.lote||"?")===L).length;
-    html+=`<div style="margin-top:10px"><div style="font-weight:800;color:var(--v1)">Lote ${esc(L)} — faltam ${arr.length} de ${totalRef}</div>`;
+    html+=`<div style="margin-top:10px"><div style="font-weight:800;color:var(--v1)">${loteLabel(L)} — faltam ${arr.length} de ${totalRef}</div>`;
     if(arr.length){ html+='<div class="lote-tags">'+arr.map(a=>`<span class="pill pill-grey">${esc(a.brinco)}</span>`).join("")+'</div>'; }
     else{ html+='<span class="pill pill-green" style="margin-top:6px">Lote completo ✓</span>'; }
     html+='</div>';
@@ -1483,7 +1547,7 @@ function pesarPreencherLoteSel(){
   var lotes=[];
   state.ref.list.forEach(function(a){ var L=String(a.lote||''); if(L&&lotes.indexOf(L)<0) lotes.push(L); });
   lotes.sort(function(a,b){ return (parseInt(a)||99)-(parseInt(b)||99); });
-  sel.innerHTML='<option value="">Todos os lotes</option>'+lotes.map(function(L){ return '<option value="'+esc(L)+'"'+(L===_pesarLote?' selected':'')+'>Lote '+esc(L)+'</option>'; }).join('');
+  sel.innerHTML='<option value="">Todos os lotes</option>'+lotes.map(function(L){ return '<option value="'+esc(L)+'"'+(L===_pesarLote?' selected':'')+'>'+esc(loteLabel(L))+'</option>'; }).join('');
   card.style.display='block';
   renderPesarLoteInfo();
 }
@@ -1718,7 +1782,7 @@ function renderRelatorio(){
 
     html+=`<div class="rel-card">
       <div class="rel-card-head">
-        <div class="rel-lote-title">Lote ${L}</div>
+        <div class="rel-lote-title">${loteLabel(L)}</div>
         <div class="rel-lote-count">${s.qtd} animais pesados</div>
       </div>
 
@@ -1949,7 +2013,7 @@ function shareRelatorio(){
     const diasMedio=s.diasN?s.diasSum/s.diasN:null;
     const cls=gmdClassify(gmd);
 
-    txt+=`*Lote ${i}* — ${s.qtd} animais\n`;
+    txt+=`*${loteLabel(i)}* — ${s.qtd} animais\n`;
     txt+=`Peso médio: ${media.toFixed(0)} kg (${ar}@)\n`;
     if(gmd!=null) txt+=`GMD: ${gmd.toFixed(3)} kg/dia\n`;
     if(gmd!=null&&diasMedio!=null) txt+=`Ganho no período: +${(gmd*diasMedio).toFixed(1)} kg/animal\n`;
@@ -2114,7 +2178,7 @@ function openFinalizar(){
   let lotes="";
   for(let i=1;i<=N_LOTES;i++){ const s=st[i]; if(!s.qtd) continue;
     const media=s.peso/s.qtd, gmd=s.gmdN?s.gmdSum/s.gmdN:null;
-    lotes+='<div class="fin-lote"><span><b>Lote '+i+'</b> · '+s.qtd+' cab</span><span>'+media.toFixed(0)+'kg ('+(media/AR_DIV).toFixed(1)+'@) · GMD '+(gmd!=null?gmd.toFixed(3):"—")+'</span></div>';
+    lotes+='<div class="fin-lote"><span><b>'+loteLabel(i)+'</b> · '+s.qtd+' cab</span><span>'+media.toFixed(0)+'kg ('+(media/AR_DIV).toFixed(1)+'@) · GMD '+(gmd!=null?gmd.toFixed(3):"—")+'</span></div>';
   }
   const semLote=state.today.filter(t=>!t.lote).length;
   const revisar=state.today.filter(t=>t.incerto).length;

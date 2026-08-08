@@ -965,6 +965,24 @@ function tryBalanca(){
   alert("Balança S3 Tru-Test usa Bluetooth Classic (SPP) — incompatível com navegador. Digite o peso manualmente.");
 }
 
+var _vendidosMap = {};
+async function carregarVendidos(){
+  try{
+    var _fs=document.getElementById('pesgFazSel');
+    var faz=(_fs&&_fs.value)?_fs.value:(state.fazenda||gplFazendaLock()||'');
+    if(!faz){ _vendidosMap={}; return; }
+    var r=await jsonp(BACKEND_URL+"?acao=venda_animais&token="+encodeURIComponent(gplToken())+"&fazenda="+encodeURIComponent(faz));
+    var map={};
+    if(r && r.vendidos && r.vendidos.length){
+      r.vendidos.forEach(function(v){
+        var b=baseBrinco(String(v.brinco||''));
+        if(!b) return;
+        map[b]={data:v.data||'', comprador:v.comprador||'', brinco:v.brinco||''};
+      });
+    }
+    _vendidosMap=map;
+  }catch(e){ /* falha silenciosa: nunca bloqueia a pesagem */ }
+}
 function registrar(){
   const peso=parseNum(document.getElementById("pesoIn").value);
   if(peso==null){ alert("Digite o peso primeiro."); document.getElementById("pesoIn").focus(); return; }
@@ -980,6 +998,17 @@ function registrar(){
       return;
     }
   }
+  // aviso: brinco que consta como VENDIDO (cruza com a planilha via _vendidosMap)
+  var obsVendido="";
+  if(baseNew && _vendidosMap[baseNew]){
+    var vv=_vendidosMap[baseNew];
+    var dtxt=vv.data?isoToBR(vv.data):"";
+    if(!confirm("ATEN\u00c7\u00c3O: o animal "+(vv.brinco||baseNew)+" consta como VENDIDO"+(dtxt?" em "+dtxt:"")+(vv.comprador?" para "+vv.comprador:"")+".\n\nTem certeza que o n\u00famero est\u00e1 certo?\n\nOK = registrar assim (anoto na observa\u00e7\u00e3o)   |   Cancelar = corrigir o n\u00famero")){
+      var _numEl=document.getElementById("numIn"); if(_numEl){ _numEl.focus(); _numEl.select(); }
+      return;
+    }
+    obsVendido="VENDIDO"+(dtxt?" "+dtxt:"")+(vv.comprador?" \u00b7 "+vv.comprador:"");
+  }
   const loteSel=document.getElementById("loteSel");
   const lote = loteSel ? loteSel.value : (s.lote||"");
   if(!lote){ alert("Selecione o LOTE antes de registrar."); if(loteSel) loteSel.focus(); return; }
@@ -991,6 +1020,7 @@ function registrar(){
   }
   let obs=(window._obsNova||"").trim();
   if(s.incerto){ obs=(obs?obs+" · ":"")+"revisar depois"; }
+  if(obsVendido){ obs=(obs?obs+" · ":"")+obsVendido; }
 
   // ===== VALIDACOES antes de salvar (se cancelar, NAO salva) =====
   const pesoInEl=document.getElementById("pesoIn");
@@ -1314,6 +1344,7 @@ async function pesgInit(){
     if(fazWrap) fazWrap.style.display='none';
   }
   await pesgCarregarDatas();
+  carregarVendidos();
 }
 async function pesgCarregarFazendas(){
   var s=document.getElementById('pesgFazSel'); if(!s) return;
@@ -1384,6 +1415,7 @@ async function trocarFazenda(nome){
   renderConfig(); renderHoje(); renderFooter(); renderFaltantes(); renderPesarResumo();
   await carregarDiaNuvem(false);
   await carregarRefNuvem(true);
+  carregarVendidos();
 }
 async function carregarNuvemPesagem(){
   const el=document.getElementById("syncStatus");
@@ -2260,7 +2292,12 @@ async function vdCarregarData(){
   var curData=state.data||todayISO();
   // usa state.today se: data é hoje OU data é a data da sessão restaurada
   if(data===todayISO()||data===curData){
-    _vdAnimaisOriginal=(state.today||[]).slice();
+    _vdAnimaisOriginal=(function(list){
+      var seen={}, out=[];
+      list.forEach(function(a){ var k=String(a.brinco||a.num||'').trim().toLowerCase(); if(!k) return; seen[k]=a; });
+      Object.keys(seen).forEach(function(k){ out.push(seen[k]); });
+      return out;
+    })((state.today||[]).slice());
     _vdAnimais=_vdAnimaisOriginal.slice();
     vdPreencherLotes(_vdAnimaisOriginal);
     var label=data===todayISO()?'hoje':'sessão '+vdFmtData(new Date(curData+'T12:00:00'));
@@ -2272,7 +2309,12 @@ async function vdCarregarData(){
     var url=BACKEND_URL+'?acao=pesagem_ler&data='+encodeURIComponent(data)+'&token='+encodeURIComponent(gplToken())+'&fazenda='+encodeURIComponent(state.fazenda||'');
     var r=await jsonp(url);
     if(r&&r.animais&&r.animais.length){
-      _vdAnimaisOriginal=r.animais.map(function(a){return{num:a.num||a.brinco||'',brinco:a.brinco||a.num||'',lote:a.lote||a.lot||'',peso:parseFloat(a.peso)||0,gmd:vdParseGmd(a.gmd),dias:vdParseGmd(a.dias),id:a.id||String(Math.random())};});
+      _vdAnimaisOriginal=(function(list){
+        var seen={}, out=[];
+        list.forEach(function(a){ var k=String(a.num||a.brinco||'').trim().toLowerCase(); if(!k) return; seen[k]=a; });
+        Object.keys(seen).forEach(function(k){ out.push(seen[k]); });
+        return out;
+      })(r.animais.map(function(a){return{num:a.num||a.brinco||'',brinco:a.brinco||a.num||'',lote:a.lote||a.lot||'',peso:parseFloat(a.peso)||0,gmd:vdParseGmd(a.gmd),dias:vdParseGmd(a.dias),id:a.id||String(Math.random())};}));
       _vdAnimais=_vdAnimaisOriginal.slice();
       vdPreencherLotes(_vdAnimaisOriginal);
       if(stEl) stEl.textContent=_vdAnimais.length+' animais carregados — '+vdFmtData(new Date(data+'T12:00:00'));
@@ -2290,7 +2332,12 @@ async function vdCarregarData(){
 function renderVenda(){
   // Inicializa com sessão atual se vazio
   if(!_vdAnimais.length&&(state.today||[]).length){
-    _vdAnimaisOriginal=(state.today||[]).slice();
+    _vdAnimaisOriginal=(function(list){
+      var seen={}, out=[];
+      list.forEach(function(a){ var k=String(a.brinco||a.num||'').trim().toLowerCase(); if(!k) return; seen[k]=a; });
+      Object.keys(seen).forEach(function(k){ out.push(seen[k]); });
+      return out;
+    })((state.today||[]).slice());
     _vdAnimais=_vdAnimaisOriginal.slice();
     _vdDataSel=todayISO();  // sempre data real de hoje, não state.data
     vdPreencherLotes(_vdAnimaisOriginal);

@@ -145,6 +145,11 @@ table.venda tr.total td{border-top:2px solid var(--v2); font-weight:800; color:v
 <script>
 "use strict";
 const AR_DIV=30, UA_DIV=450, N_LOTES=10;
+const LOTES_NOME={11:"Vaca",12:"Reprodutor",13:"Bezerro mamando"};
+const CATEG_LOTES=[11,12,13];   // não são engorda/abate
+function isEngorda(L){ return CATEG_LOTES.indexOf(Number(L))<0; }
+function loteLabel(L){ return LOTES_NOME[Number(L)] || ("Lote "+L); }
+function loteTag(L){ return LOTES_NOME[Number(L)] || ("L"+L); }
 const STORE_KEY="pesagem_curral_state_v1";
 const HDR_ROW=13, DATA_ROW=14;
 const BACKEND_URL="https://script.google.com/macros/s/AKfycby4lOB4zXu2dCBoA-pda6U_do8v9GDvNuH0dFOY6u5kc7FP7gZdPKofZX5Dt-QgnT4V/exec";
@@ -401,13 +406,15 @@ function render(){
   }
   const lotes=lotesAtivos();
   const stats=lotes.map(statsLote);
+  const statsEng=stats.filter(s=>isEngorda(s.L));
+  const statsCat=stats.filter(s=>!isEngorda(s.L));
 
   // KPIs gerais
   const todosP=dados.animais.map(a=>a.peso);
   const pesoMed=media(todosP), pesoTot=todosP.reduce((a,b)=>a+b,0);
   const gmdsAll=dados.animais.filter(a=>a.gmd!=null).map(a=>a.gmd);
   const gmdMed=gmdsAll.length? media(gmdsAll):null;
-  const prontos=dados.animais.filter(a=>a.peso>=meta).length;
+  const prontos=dados.animais.filter(a=>isEngorda(a.lote) && a.peso>=meta).length;
   let html="";
   html+='<div class="kpis">'+
     kpi("Animais", dados.animais.length, lotes.length+" lotes")+
@@ -422,16 +429,16 @@ function render(){
   html+='<div class="card"><h2>Comparativo entre lotes</h2>';
   html+='<div class="comp3">';
   html+='<div class="comp-col"><div class="hist-cap">GMD (kg/cab/dia)<br>meta 0,35</div>'+
-    svgBars(stats.map(s=>({label:"L"+s.L, value:s.gmd||0, color:(s.gmd>=0.5?"#2E7D32":s.gmd>=0.35?"#4CAF50":s.gmd>=0.18?"#c9820a":"#c0392b")})),{dec:3,target:0.35})+'</div>';
+    svgBars(statsEng.map(s=>({label:loteTag(s.L), value:s.gmd||0, color:(s.gmd>=0.5?"#2E7D32":s.gmd>=0.35?"#4CAF50":s.gmd>=0.18?"#c9820a":"#c0392b")})),{dec:3,target:0.35})+'</div>';
   html+='<div class="comp-col"><div class="hist-cap">Peso médio (@)<br>meta '+fmt(meta/AR_DIV,1)+'@</div>'+
-    svgBars(stats.map(s=>({label:"L"+s.L, value:s.media/AR_DIV, color:"#2E7D32"})),{dec:1,target:meta/AR_DIV,unit:"@"})+'</div>';
+    svgBars(statsEng.map(s=>({label:loteTag(s.L), value:s.media/AR_DIV, color:"#2E7D32"})),{dec:1,target:meta/AR_DIV,unit:"@"})+'</div>';
   html+='<div class="comp-col"><div class="hist-cap">Uniformidade (%)<br>meta 70%</div>'+
-    svgBars(stats.map(s=>({label:"L"+s.L, value:s.unif, color:(s.unif>=70?"#2E7D32":s.unif>=50?"#c9820a":"#c0392b")})),{dec:0,target:70,unit:"%"})+'</div>';
+    svgBars(statsEng.map(s=>({label:loteTag(s.L), value:s.unif, color:(s.unif>=70?"#2E7D32":s.unif>=50?"#c9820a":"#c0392b")})),{dec:0,target:70,unit:"%"})+'</div>';
   html+='</div>';
   html+='</div>';
 
   // Card por lote
-  stats.forEach(s=>{
+  statsEng.forEach(s=>{
     const cu=classUnif(s.unif), cg=classGmd(s.gmd);
     let proj="";
     if(s.media>=meta){ proj='<span class="tag t-ok">✓ Lote no ponto de abate</span>'; }
@@ -450,7 +457,7 @@ function render(){
         '<div class="cell"><div class="k">GMD</div><div class="v">'+(s.gmd!=null?fmt(s.gmd,3):"—")+'</div><div class="u">kg/dia</div></div></div>';
     }
     html+='<div class="card">'+
-      '<div class="lote-head"><span class="lote-nome">Lote '+s.L+'</span><span class="lote-qtd">'+s.n+' animais</span></div>'+
+      '<div class="lote-head"><span class="lote-nome">'+loteLabel(s.L)+'</span><span class="lote-qtd">'+s.n+' animais</span></div>'+
       '<div class="grid">'+
         cellHtml("Peso médio", fmt(s.media,0), fmt(s.media/AR_DIV,1)+" @")+
         cellHtml("Menor / Maior", fmt(s.min,0)+" / "+fmt(s.max,0), "kg")+
@@ -467,6 +474,17 @@ function render(){
       proj+comp+
     '</div>';
   });
+
+  // Categorias fora do abate (Vaca / Reprodutor / Bezerro mamando) — só informação
+  if(statsCat.length){
+    html+='<div class="card"><h2>Categorias (fora do abate)</h2>';
+    html+='<div class="cap">Vaca, reprodutor e bezerro mamando não entram em prontos p/ abate nem na projeção de venda por peso. Aqui vai só a média de cada categoria, pra referência.</div>';
+    html+='<div class="grid">';
+    statsCat.forEach(s=>{
+      html+=cellHtml(loteLabel(s.L), fmt(s.media,0)+" kg", s.n+" cab · "+fmt(s.media/AR_DIV,1)+" @ méd");
+    });
+    html+='</div></div>';
+  }
 
   // Ranking maior/menor
   const ordP=dados.animais.slice().sort((a,b)=>b.peso-a.peso);
@@ -491,7 +509,7 @@ function render(){
     html+='<div class="cap">GMD baixo ou negativo — vale conferir saúde/manejo destes '+atencao.length+' animais.</div>';
     atencao.forEach(a=>{
       const gcls=a.gmd<0?"t-bad":"t-warn";
-      html+='<div class="rank"><span class="b">'+esc(a.brinco)+' <span style="font-weight:400;color:var(--muted)">L'+a.lote+'</span></span>'+
+      html+='<div class="rank"><span class="b">'+esc(a.brinco)+' <span style="font-weight:400;color:var(--muted)">'+loteTag(a.lote)+'</span></span>'+
         '<span><span class="tag '+gcls+'" style="padding:2px 8px">GMD '+fmt(a.gmd,3)+'</span> '+fmt(a.peso,0)+'kg'+(a.obs?' · '+esc(a.obs):'')+'</span></div>';
     });
   } else {
@@ -517,7 +535,7 @@ function render(){
     '</select></div>';
   html+='<table class="venda"><tr><th>Nº</th><th>Lote</th><th>Peso</th><th>@</th><th>GMD</th><th>Obs</th></tr>';
   todos.forEach(a=>{
-    html+='<tr><td>'+esc(a.brinco)+'</td><td>'+a.lote+'</td><td>'+fmt(a.peso,0)+'</td><td>'+fmt(a.peso/AR_DIV,1)+'</td><td>'+(a.gmd!=null?fmt(a.gmd,3):"—")+'</td><td style="text-align:left;font-size:11px;color:var(--muted)">'+esc(a.obs||"")+'</td></tr>';
+    html+='<tr><td>'+esc(a.brinco)+'</td><td>'+loteTag(a.lote)+'</td><td>'+fmt(a.peso,0)+'</td><td>'+fmt(a.peso/AR_DIV,1)+'</td><td>'+(a.gmd!=null?fmt(a.gmd,3):"—")+'</td><td style="text-align:left;font-size:11px;color:var(--muted)">'+esc(a.obs||"")+'</td></tr>';
   });
   html+='</table></div>';
 
@@ -526,13 +544,13 @@ function render(){
   html+='<div class="cap">Prontos = animais que já atingiram a meta de '+meta+' kg.'+(pArr>0?' Valor pela arroba a R$ '+fmt(pArr,2)+'.':' Preencha "R$/arroba" acima para ver os valores.')+'</div>';
   html+='<table class="venda"><tr><th>Lote</th><th>Animais</th><th>Prontos</th><th>@ prontos</th><th>@ do lote</th>'+(pArr>0?'<th>R$ prontos</th><th>R$ lote</th>':'')+'</tr>';
   let tN=0,tPr=0,tArPr=0,tAr=0,tVpr=0,tV=0;
-  stats.forEach(s=>{
+  statsEng.forEach(s=>{
     const prts=s.arr.filter(a=>a.peso>=meta);
     const arPr=prts.reduce((x,a)=>x+a.peso/AR_DIV,0);
     const arLote=s.arr.reduce((x,a)=>x+a.peso/AR_DIV,0);
     const vPr=arPr*pArr, vLote=arLote*pArr;
     tN+=s.n; tPr+=prts.length; tArPr+=arPr; tAr+=arLote; tVpr+=vPr; tV+=vLote;
-    html+='<tr><td>Lote '+s.L+'</td><td>'+s.n+'</td><td>'+prts.length+'</td><td>'+fmt(arPr,1)+'</td><td>'+fmt(arLote,1)+'</td>'+
+    html+='<tr><td>'+loteLabel(s.L)+'</td><td>'+s.n+'</td><td>'+prts.length+'</td><td>'+fmt(arPr,1)+'</td><td>'+fmt(arLote,1)+'</td>'+
       (pArr>0?'<td>R$ '+fmt(vPr,0)+'</td><td>R$ '+fmt(vLote,0)+'</td>':'')+'</tr>';
   });
   html+='<tr class="total"><td>TOTAL</td><td>'+tN+'</td><td>'+tPr+'</td><td>'+fmt(tArPr,1)+'</td><td>'+fmt(tAr,1)+'</td>'+
@@ -543,7 +561,7 @@ function render(){
 }
 function kpi(k,v,u){ return '<div class="kpi"><div class="k">'+k+'</div><div class="v">'+v+'</div><div class="u">'+u+'</div></div>'; }
 function cellHtml(k,v,u){ return '<div class="cell"><div class="k">'+k+'</div><div class="v">'+v+'</div><div class="u">'+u+'</div></div>'; }
-function rankRow(a){ return '<div class="rank"><span class="b">'+esc(a.brinco)+' <span style="font-weight:400;color:var(--muted)">L'+a.lote+'</span></span><span>'+fmt(a.peso,0)+' kg ('+fmt(a.peso/AR_DIV,1)+'@)</span></div>'; }
+function rankRow(a){ return '<div class="rank"><span class="b">'+esc(a.brinco)+' <span style="font-weight:400;color:var(--muted)">'+loteTag(a.lote)+'</span></span><span>'+fmt(a.peso,0)+' kg ('+fmt(a.peso/AR_DIV,1)+'@)</span></div>'; }
 
 /* ---------- WhatsApp ---------- */
 function gerarPDF(){
@@ -588,14 +606,15 @@ function shareWhats(){
   t+="Animais: "+dados.animais.length+" · Arrobas: "+fmt(pesoTot/AR_DIV,0)+"@\n\n";
   lotes.forEach(s=>{
     const cu=classUnif(s.unif);
-    t+="*Lote "+s.L+"* — "+s.n+" animais\n";
+    t+="*"+loteLabel(s.L)+"* — "+s.n+" animais\n";
     t+="Peso médio: "+fmt(s.media,0)+"kg ("+fmt(s.media/AR_DIV,1)+"@)\n";
     t+="Menor/Maior: "+fmt(s.min,0)+"/"+fmt(s.max,0)+"kg · Amplitude "+fmt(s.amplitude,0)+"kg\n";
     t+="Uniformidade: "+fmt(s.unif,0)+"% ("+cu.t+")\n";
     if(s.gmd!=null) t+="GMD: "+fmt(s.gmd,3)+" kg/dia\n";
-    if(s.media<meta && s.gmd>0){ const dias=Math.round((meta-s.media)/s.gmd); const dp=dados.data?addDays(dados.data,dias):""; t+="Previsão de venda: "+(dp?isoToBR(dp):"—")+" (~"+dias+" dias)\n"; }
+    if(!isEngorda(s.L)){ t+="(categoria — fora do abate/venda)\n"; }
+    else if(s.media<meta && s.gmd>0){ const dias=Math.round((meta-s.media)/s.gmd); const dp=dados.data?addDays(dados.data,dias):""; t+="Previsão de venda: "+(dp?isoToBR(dp):"—")+" (~"+dias+" dias)\n"; }
     else if(s.media>=meta) t+="✓ No ponto de abate\n";
-    if(pArr>0){ const arLote=s.arr.reduce((x,a)=>x+a.peso/AR_DIV,0); t+="Valor do lote: R$ "+fmt(arLote*pArr,0)+"\n"; }
+    if(isEngorda(s.L) && pArr>0){ const arLote=s.arr.reduce((x,a)=>x+a.peso/AR_DIV,0); t+="Valor do lote: R$ "+fmt(arLote*pArr,0)+"\n"; }
     t+="\n";
   });
   t+="_GPL Gestão Pecuária Lucrativa_";

@@ -129,6 +129,7 @@ table.venda tr.total td{border-top:2px solid var(--v2); font-weight:800; color:v
     </button>
     <span class="field">Meta abate (kg) <input id="metaIn" inputmode="decimal" placeholder="480"></span>
     <span class="field">R$/arroba <input id="arrobaIn" inputmode="decimal" placeholder="320"></span>
+    <span class="field">GMD esperado (só p/ quem não tem GMD) <input id="gmdEspIn" inputmode="decimal" placeholder="ex: 0,500"></span>
     <button class="btn btn-ghost" onclick="window.print()">
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><path d="M6 14h12v8H6z"/></svg>
       PDF
@@ -158,7 +159,7 @@ function gplToken(){ var a=gplAuth(); return (a&&a.token)?a.token:""; }
 function gplFazendaLock(){ var a=gplAuth(); return (a&&a.fazenda)?a.fazenda:null; }
 
 
-let dados={ fazenda:"", data:"", animais:[], metaPeso:480, precoArroba:0 };
+let dados={ fazenda:"", data:"", animais:[], metaPeso:480, precoArroba:0, gmdEsperado:0 };
 let ordemLista="lote";
 
 /* ---------- utils ---------- */
@@ -392,9 +393,11 @@ function ordemOpt(v,t){ return '<option value="'+v+'"'+(ordemLista===v?" selecte
 /* ---------- render ---------- */
 function render(){
   const meta=parseNum(dados.metaPeso)||480;
+  const gmdEsp=parseNum(dados.gmdEsperado)||0;
   const pArr=parseNum(dados.precoArroba)||0;
   document.getElementById("metaIn").value=dados.metaPeso||"";
   document.getElementById("arrobaIn").value=dados.precoArroba||"";
+  var _ge=document.getElementById("gmdEspIn"); if(_ge && document.activeElement!==_ge) _ge.value=dados.gmdEsperado||"";
   const partes=[]; if(dados.fazenda) partes.push(dados.fazenda); if(dados.data) partes.push(isoToBR(dados.data));
   document.getElementById("topSub").textContent="GPL · "+(partes.join(" · ")||"Gestão Pecuária Lucrativa");
   document.getElementById("hdrInfo").textContent = dados.animais.length? (partes.join(" · ")) : "";
@@ -447,6 +450,12 @@ function render(){
       proj='<div class="grid" style="margin-top:8px"><div class="cell"><div class="k">Faltam</div><div class="v">'+fmt(faltaKg,0)+'</div><div class="u">kg/cab</div></div>'+
            '<div class="cell"><div class="k">Dias p/ meta</div><div class="v">'+diasR+'</div><div class="u">no ritmo atual</div></div>'+
            '<div class="cell" style="grid-column:span 2"><div class="k">Previsão de venda ('+meta+'kg)</div><div class="v">'+(dataP?isoToBR(dataP):"—")+'</div><div class="u">'+(dataP?mesAno(dataP):"")+'</div></div></div>';
+    } else if(gmdEsp>0){
+      const faltaKg=meta-s.media, diasR=Math.round(faltaKg/gmdEsp), dataP=dados.data?addDays(dados.data,diasR):"";
+      proj='<span class="tag t-grey" style="margin-bottom:6px;display:inline-block">Estimativa · GMD esperado '+fmt(gmdEsp,3)+' kg/dia (sem GMD medido)</span>'+
+           '<div class="grid"><div class="cell"><div class="k">Faltam</div><div class="v">'+fmt(faltaKg,0)+'</div><div class="u">kg/cab</div></div>'+
+           '<div class="cell"><div class="k">Dias p/ meta</div><div class="v">'+diasR+'</div><div class="u">no GMD esperado</div></div>'+
+           '<div class="cell" style="grid-column:span 2"><div class="k">Previsão de venda ('+meta+'kg) · estimada</div><div class="v">'+(dataP?isoToBR(dataP):"—")+'</div><div class="u">'+(dataP?mesAno(dataP):"")+'</div></div></div>';
     } else { proj='<span class="tag t-grey">Sem GMD para projetar venda</span>'; }
     let comp="";
     if(s.pesoAntMed!=null){ const ganho=s.media-s.pesoAntMed;
@@ -598,6 +607,7 @@ function gerarPDF(){
 function shareWhats(){
   if(!dados.animais.length){ alert("Sem dados para compartilhar."); return; }
   const meta=parseNum(dados.metaPeso)||480, pArr=parseNum(dados.precoArroba)||0;
+  const gmdEsp=parseNum(dados.gmdEsperado)||0;
   const lotes=lotesAtivos().map(statsLote);
   let t="*ANÁLISE DE REBANHO — GPL*\n";
   if(dados.fazenda) t+="Fazenda: *"+dados.fazenda+"*\n";
@@ -613,6 +623,7 @@ function shareWhats(){
     if(s.gmd!=null) t+="GMD: "+fmt(s.gmd,3)+" kg/dia\n";
     if(!isEngorda(s.L)){ t+="(categoria — fora do abate/venda)\n"; }
     else if(s.media<meta && s.gmd>0){ const dias=Math.round((meta-s.media)/s.gmd); const dp=dados.data?addDays(dados.data,dias):""; t+="Previsão de venda: "+(dp?isoToBR(dp):"—")+" (~"+dias+" dias)\n"; }
+    else if(s.media<meta && gmdEsp>0){ const dias=Math.round((meta-s.media)/gmdEsp); const dp=dados.data?addDays(dados.data,dias):""; t+="Previsão de venda (estimada, GMD esperado "+fmt(gmdEsp,3)+"): "+(dp?isoToBR(dp):"—")+" (~"+dias+" dias)\n"; }
     else if(s.media>=meta) t+="✓ No ponto de abate\n";
     if(isEngorda(s.L) && pArr>0){ const arLote=s.arr.reduce((x,a)=>x+a.peso/AR_DIV,0); t+="Valor do lote: R$ "+fmt(arLote*pArr,0)+"\n"; }
     t+="\n";
@@ -624,6 +635,7 @@ function shareWhats(){
 /* ---------- init ---------- */
 document.getElementById("metaIn").addEventListener("input", e=>{ dados.metaPeso=parseNum(e.target.value)||480; render(); });
 document.getElementById("arrobaIn").addEventListener("input", e=>{ dados.precoArroba=parseNum(e.target.value)||0; render(); });
+document.getElementById("gmdEspIn").addEventListener("input", e=>{ dados.gmdEsperado=parseNum(e.target.value)||0; render(); });
 carregarNuvem();  // ao abrir, puxa direto da planilha (nuvem). Se falhar, usa o local.
 </script>
 </body>

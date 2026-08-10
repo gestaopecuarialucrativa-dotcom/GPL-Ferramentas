@@ -60,17 +60,15 @@
 </head>
 <body>
 
-<!-- LOGIN -->
+<!-- SEM ACESSO (aberto fora do link do cliente) -->
 <div id="loginScreen" class="login">
   <div style="margin-bottom:14px">
     <svg width="46" height="46" viewBox="0 0 24 24" fill="none" stroke="#1B5E20" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"/><path d="M5 21V10l7-5 7 5v11"/><path d="M9 21v-6h6v6"/></svg>
   </div>
   <div class="card">
     <h2 style="text-align:center">Painel do Cliente</h2>
-    <p class="cap" style="text-align:center">Acompanhe a pesagem da sua fazenda. Digite sua senha.</p>
-    <input id="senhaIn" type="password" inputmode="numeric" placeholder="Senha" style="width:100%;padding:12px;border:1px solid var(--bord);border-radius:10px;font-size:16px;text-align:center" onkeydown="if(event.key==='Enter')entrar()">
+    <p class="cap" style="text-align:center">Abra este painel pelo seu link de acesso (o mesmo do PIN). Ele carrega automaticamente a sua fazenda.</p>
     <div class="err" id="loginErr"></div>
-    <button class="btn" onclick="entrar()">Entrar</button>
   </div>
   <div class="foot">gestaopecuarialucrativa.com.br · Rogério Avelino</div>
 </div>
@@ -130,23 +128,21 @@ function jsonp(url){
   });
 }
 
-/* ---------- login ---------- */
-async function entrar(){
-  const senha=document.getElementById("senhaIn").value.trim();
-  const err=document.getElementById("loginErr");
-  err.textContent="";
-  if(!senha){ err.textContent="Digite a senha."; return; }
-  err.textContent="Entrando…";
+/* ---------- acesso: vem do link do cliente (sem senha) ---------- */
+function fazendaDaURL(){
   try{
-    const r=await jsonp(BACKEND_URL+"?acao=login&senha="+encodeURIComponent(senha));
-    if(!r||!r.ok){ err.textContent=(r&&r.msg)?r.msg:"Senha inválida."; return; }
-    auth={token:r.token||"", fazenda:r.fazenda||"", cliente:r.cliente||""};
-    try{ sessionStorage.setItem("gpl_cli_auth", JSON.stringify(auth)); }catch(e){}
-    err.textContent="";
-    abrirDash();
-  }catch(e){ err.textContent="Sem conexão. Tenta de novo."; }
+    var u=new URLSearchParams(location.search);
+    var fz=u.get("fz");
+    if(fz) return {fazenda:fz, token:u.get("tk")||""};
+    var d=u.get("d");
+    if(d){
+      var cfg=JSON.parse(decodeURIComponent(escape(atob(decodeURIComponent(d)))));
+      if(cfg && cfg.fazenda) return {fazenda:cfg.fazenda, token:cfg.token||""};
+    }
+  }catch(e){}
+  return null;
 }
-function sair(){ try{ sessionStorage.removeItem("gpl_cli_auth"); }catch(e){} auth=null; location.reload(); }
+function sair(){ location.href="cliente.html"; }
 
 function abrirDash(){
   document.getElementById("loginScreen").style.display="none";
@@ -292,14 +288,9 @@ function setGmd(v){ const n=parseNum(v); gmdEsp=(n&&n>0)?n:0; render(); }
 
 /* ---------- boot ---------- */
 (function(){
-  // 1) Aberto pelo login.html / link com a fazenda na URL (?fz=Fazenda&tk=token opcional)
-  try{
-    var u=new URLSearchParams(location.search);
-    var fz=u.get("fz");
-    if(fz){ auth={token:u.get("tk")||"", fazenda:fz, cliente:""}; abrirDash(); return; }
-  }catch(e){}
-  // 2) Sessão já logada por senha
-  try{ const a=JSON.parse(sessionStorage.getItem("gpl_cli_auth")||"null"); if(a&&a.token!=null){ auth=a; abrirDash(); return; } }catch(e){}
+  var f=fazendaDaURL();
+  if(f){ auth={token:f.token||"", fazenda:f.fazenda, cliente:""}; abrirDash(); }
+  // sem fazenda na URL -> fica a tela "abra pelo seu link" (sem senha)
 })();
 </script>
 </body>

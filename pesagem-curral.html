@@ -936,15 +936,21 @@ function renderDetail(){
   let gmd=null;
   if(peso!=null && sel.pesoAnterior!=null && dias && dias>0) gmd=(peso-sel.pesoAnterior)/dias;
   const loteSelect = `<select id="loteSel">${loteOptions(sel.lote||_pesarLote)}</select>`;
+  const temReg = (sel.pesoAnterior!=null);
+  const regBanner = temReg ? `<div style="margin:0 0 10px;padding:11px 13px;border-radius:12px;background:#E8F5E9;border-left:5px solid #2E7D32;display:flex;align-items:center;gap:11px">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#2E7D32" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="flex:none"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+      <div><div style="font-weight:800;color:#1B5E20;font-size:15px">Tem registro · peso anterior ${sel.pesoAnterior} kg</div>${sel.obsAnterior?`<div style="font-size:13px;color:#2E7D32;font-weight:700;margin-top:2px">Obs anterior: ${esc(sel.obsAnterior)}</div>`:''}</div>
+    </div>` : '';
   box.innerHTML=`
     <div class="detail">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
         <div class="b" style="font-size:18px;font-weight:800;color:var(--v1)">${esc(sel.brinco)}</div>
         ${sel.incerto?'<span class="pill pill-warn">Incerto — revisar depois</span>':'<span class="pill pill-green">Identificado</span>'}
       </div>
+      ${regBanner}
       <div class="grid">
         <div><div class="k">Lote</div>${loteSelect}</div>
-        <div><div class="k">Peso anterior</div><div class="val">${sel.pesoAnterior!=null?sel.pesoAnterior+" kg":"—"}</div></div>
+        <div${temReg?' style="background:#E8F5E9;border-radius:10px;padding:6px 8px;margin:-6px -8px"':''}><div class="k">Peso anterior</div><div class="val"${temReg?' style="color:#1B5E20;font-weight:800"':''}>${sel.pesoAnterior!=null?sel.pesoAnterior+" kg":"—"}</div></div>
         <div><div class="k">Dias desde a última</div><div class="val">${dias!=null?dias:"—"}</div></div>
         <div><div class="k">GMD individual</div><div class="val gmd-big">${gmd!=null?gmd.toFixed(3)+" kg/d":"—"}</div></div>
       </div>

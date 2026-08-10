@@ -200,34 +200,65 @@ function classUnif(u){ if(u>=70) return {t:"Homogêneo",cls:"t-ok"}; if(u>=50) r
 
 /* ---------- render ---------- */
 function render(){
-  const meta=metaSaida, ge=gmdEsp;
-  const lotes=lotesAtivos().map(statsLote);
-  const eng=lotes.filter(s=>isEngorda(s.L));
-  const cat=lotes.filter(s=>!isEngorda(s.L));
+  const meta=metaSaida;
   const nAnim=dados.animais.length;
   const pesoTot=dados.animais.reduce((x,a)=>x+a.peso,0);
   const pMed=nAnim?pesoTot/nAnim:0;
   const arrobas=pesoTot/AR_DIV;
-  const ua=pesoTot/UA_DIV;
-  const prontos=dados.animais.filter(a=>isEngorda(a.lote) && a.peso>=meta).length;
+  const lotes=lotesAtivos().map(statsLote);
   document.getElementById("topSub").textContent=(dados.fazenda||"")+" · "+isoToBR(dados.data);
 
   let h='';
-  // KPIs
   h+='<div class="kpis">';
   h+=kpi("Animais", fmt(nAnim), lotes.length+" lotes");
   h+=kpi("Peso médio", fmt(pMed,0), fmt(pMed/AR_DIV,1)+" @");
   h+=kpi("Arrobas totais", fmt(arrobas,0), "@ no curral");
-  h+=kpi("Prontos p/ saída", fmt(prontos), "≥ "+fmt(meta)+" kg");
+  h+='<div class="kpi"><div class="k">Prontos p/ saída</div><div class="v" id="kpiProntos">—</div><div class="u" id="kpiProntosU">—</div></div>';
   h+='</div>';
 
-  // projeção que o cliente controla
+  // Projeção — campos FIXOS (não são redesenhados a cada tecla)
   h+='<div class="card"><h2>Projeção de saída</h2>'+
      '<div class="cap">Ajuste pra simular. Onde já tem GMD medido, usamos ele. Onde não tem, usamos o GMD esperado que você digitar.</div>'+
      '<div class="grid">'+
-     '<label class="field">Peso de saída (kg)<input inputmode="decimal" value="'+meta+'" oninput="setMeta(this.value)"></label>'+
-     '<label class="field">GMD esperado (kg/dia)<input inputmode="decimal" placeholder="ex: 0,500" value="'+(ge||"")+'" oninput="setGmd(this.value)"></label>'+
+     '<label class="field">Peso de saída (kg)<input id="inMeta" inputmode="decimal" value="'+meta+'" oninput="setMeta(this.value)"></label>'+
+     '<label class="field">GMD esperado (kg/dia)<input id="inGmd" inputmode="decimal" placeholder="ex: 0,500" value="'+(gmdEsp||"")+'" oninput="setGmd(this.value)"></label>'+
      '</div></div>';
+
+  h+='<div id="dyn"></div>';
+  document.getElementById("conteudo").innerHTML=h;
+  renderDyn();
+}
+function kpi(k,v,u){ return '<div class="kpi"><div class="k">'+k+'</div><div class="v">'+v+'</div><div class="u">'+u+'</div></div>'; }
+
+// tudo que depende de peso de saída / GMD esperado vive aqui (redesenha sem tocar nos campos)
+function renderDyn(){
+  const meta=metaSaida, ge=gmdEsp;
+  const lotes=lotesAtivos().map(statsLote);
+  const eng=lotes.filter(s=>isEngorda(s.L));
+  const cat=lotes.filter(s=>!isEngorda(s.L));
+
+  // KPI prontos (atualiza sem redesenhar tudo)
+  const prontos=dados.animais.filter(a=>isEngorda(a.lote) && a.peso>=meta).length;
+  var kp=document.getElementById("kpiProntos"), kpu=document.getElementById("kpiProntosU");
+  if(kp) kp.textContent=fmt(prontos); if(kpu) kpu.textContent="≥ "+fmt(meta)+" kg";
+
+  let h='';
+
+  // Próximas saídas (ordenado por data) — responde "onde vai sair a previsão"
+  const comData=eng.map(s=>({s, p:prevLote(s,meta,ge)})).filter(x=>x.p.status==="ready"||x.p.status==="proj");
+  h+='<div class="card"><h2>Próximas saídas</h2>';
+  if(!comData.length){ h+='<div class="cap">Nenhum lote com previsão ainda. Digite um GMD esperado acima pra estimar a saída dos lotes sem GMD medido.</div>'; }
+  else{
+    comData.sort((a,b)=>{ if(a.p.status==="ready"&&b.p.status!=="ready") return -1; if(b.p.status==="ready"&&a.p.status!=="ready") return 1; return (a.p.dias||0)-(b.p.dias||0); });
+    comData.forEach(x=>{
+      const ready=x.p.status==="ready";
+      h+='<div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-top:1px solid var(--bord)">'+
+         (ready?truckSvg():'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#65766a" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>')+
+         '<div style="flex:1"><b style="color:var(--v1)">'+loteLabel(x.s.L)+'</b> <span class="muted">'+x.s.n+' cab</span>'+(x.p.est?' <span class="tag t-grey" style="font-size:10px">estimado</span>':'')+'</div>'+
+         '<div style="text-align:right">'+(ready?'<b style="color:var(--v1)">Na carreta!</b>':'<b>'+(x.p.dataP?isoToBR(x.p.dataP):"—")+'</b><div class="muted" style="font-size:11px">~'+x.p.dias+' dias</div>')+'</div></div>';
+    });
+  }
+  h+='</div>';
 
   // cards por lote de engorda
   h+='<h2 style="margin:16px 4px 0">Lotes de engorda</h2>';
@@ -244,21 +275,35 @@ function render(){
     });
     h+='</div>';
   }
-  document.getElementById("conteudo").innerHTML=h;
+  document.getElementById("dyn").innerHTML=h;
 }
-function kpi(k,v,u){ return '<div class="kpi"><div class="k">'+k+'</div><div class="v">'+v+'</div><div class="u">'+u+'</div></div>'; }
+
+function truckSvg(){ return '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#2E7D32" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M2 7h11v8H2z"/><path d="M13 10h4l3 3v2h-7z"/><path d="M3 7V5h8v2"/><circle cx="6" cy="18" r="1.7"/><circle cx="17" cy="18" r="1.7"/></svg>'; }
+
+function prevLote(s, meta, ge){
+  if(s.media>=meta) return {status:"ready"};
+  if(s.gmd && s.gmd>0){ const d=Math.round((meta-s.media)/s.gmd); return {status:"proj", dias:d, dataP:dados.data?addDays(dados.data,d):"", est:false}; }
+  if(ge>0){ const d=Math.round((meta-s.media)/ge); return {status:"proj", dias:d, dataP:dados.data?addDays(dados.data,d):"", est:true}; }
+  return {status:"none"};
+}
 
 function loteCard(s, meta, ge){
   const cu=classUnif(s.unif);
   const aberto=abertos[s.L]?" aberto":"";
-  // previsão
-  let prev='';
-  if(s.media>=meta){ prev='<span class="tag t-ok">No ponto de saída</span>'; }
-  else if(s.gmd && s.gmd>0){ const d=Math.round((meta-s.media)/s.gmd), dp=dados.data?addDays(dados.data,d):""; prev='<div class="prev"><div class="muted" style="font-weight:700">Previsão de saída ('+fmt(meta)+'kg) · GMD medido '+fmt(s.gmd,3)+'</div><div class="d">'+(dp?isoToBR(dp):"—")+'</div><div class="muted">faltam '+fmt(meta-s.media,0)+'kg · ~'+d+' dias</div></div>'; }
-  else if(ge>0){ const d=Math.round((meta-s.media)/ge), dp=dados.data?addDays(dados.data,d):""; prev='<div class="prev"><div class="muted" style="font-weight:700">Previsão ESTIMADA · GMD esperado '+fmt(ge,3)+'</div><div class="d">'+(dp?isoToBR(dp):"—")+'</div><div class="muted">faltam '+fmt(meta-s.media,0)+'kg · ~'+d+' dias</div></div>'; }
-  else { prev='<span class="tag t-grey">Sem GMD — digite um GMD esperado acima pra estimar</span>'; }
+  const p=prevLote(s,meta,ge);
+  // barra de progresso até a saída
+  const pct=meta>0? Math.min(100, Math.round(s.media/meta*100)) : 0;
+  const cor=pct>=100?"#2E7D32":pct>=80?"#4CAF50":pct>=50?"#9ccc65":"#c9a227";
+  let linha, prev;
+  if(p.status==="ready"){ linha=truckSvg()+' <b style="color:var(--v1)">No ponto de saída — pronto!</b>'; prev='<span class="tag t-ok">No ponto de saída</span>'; }
+  else if(p.status==="proj"){ linha=(p.est?"Estimado: ":"Sai em ")+(p.dataP?isoToBR(p.dataP):"—")+' <span class="muted">(~'+p.dias+' dias · faltam '+fmt(meta-s.media,0)+'kg)</span>';
+    prev='<div class="prev"><div class="muted" style="font-weight:700">Previsão de saída ('+fmt(meta)+'kg) · '+(p.est?"GMD esperado "+fmt(ge,3):"GMD medido "+fmt(s.gmd,3))+'</div><div class="d">'+(p.dataP?isoToBR(p.dataP):"—")+'</div><div class="muted">faltam '+fmt(meta-s.media,0)+'kg · ~'+p.dias+' dias</div></div>'; }
+  else { linha='<span class="muted">Sem GMD — digite um GMD esperado acima</span>'; prev='<span class="tag t-grey">Sem GMD — digite um GMD esperado acima pra estimar</span>'; }
 
-  // tabela de animais (drill-down)
+  const barra='<div style="padding:0 14px 12px">'+
+    '<div style="height:9px;background:#e8efe8;border-radius:99px;overflow:hidden"><div style="height:100%;width:'+pct+'%;background:'+cor+';border-radius:99px"></div></div>'+
+    '<div style="font-size:12px;margin-top:5px;display:flex;justify-content:space-between;align-items:center;gap:8px"><span>'+linha+'</span><span class="muted" style="font-weight:700;flex:none">'+pct+'% de '+fmt(meta)+'kg</span></div></div>';
+
   let tab='<table><thead><tr><th class="l">Nº</th><th>Peso</th><th>@</th><th>GMD</th><th class="l">Obs</th></tr></thead><tbody>';
   s.arr.slice().sort((a,b)=>a.peso-b.peso).forEach(a=>{
     tab+='<tr><td class="l">'+esc(a.brinco)+'</td><td>'+fmt(a.peso,0)+'</td><td>'+fmt(a.peso/AR_DIV,1)+'</td><td>'+(a.gmd!=null?fmt(a.gmd,3):"—")+'</td><td class="l muted">'+esc(a.obs||"")+'</td></tr>';
@@ -267,9 +312,10 @@ function loteCard(s, meta, ge){
 
   return '<div class="lote'+aberto+'" id="lote'+s.L+'">'+
     '<div class="lote-head" onclick="toggleLote('+s.L+')">'+
-      '<div><span class="lote-nome">'+loteLabel(s.L)+'</span> <span class="lote-qtd">'+s.n+' animais</span></div>'+
+      '<div><span class="lote-nome">'+loteLabel(s.L)+'</span> <span class="lote-qtd">'+s.n+' animais · '+fmt(s.media,0)+'kg</span></div>'+
       '<svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>'+
     '</div>'+
+    barra+
     '<div class="lote-body">'+
       '<div class="grid">'+
         '<div class="cell"><div class="k">Peso médio</div><div class="v">'+fmt(s.media,0)+'</div><div class="u">'+fmt(s.media/AR_DIV,1)+' @</div></div>'+
@@ -278,13 +324,13 @@ function loteCard(s, meta, ge){
         '<div class="cell"><div class="k">Uniformidade</div><div class="v">'+fmt(s.unif,0)+'%</div><div class="u"><span class="tag '+cu.cls+'">'+cu.t+'</span></div></div>'+
       '</div>'+
       prev+
-      '<div class="muted" style="font-weight:700;margin-top:12px">Animais do lote (toque no lote pra fechar)</div>'+
+      '<div class="muted" style="font-weight:700;margin-top:12px">Animais do lote (toque no título pra fechar)</div>'+
       tab+
     '</div></div>';
 }
 function toggleLote(L){ abertos[L]=!abertos[L]; const el=document.getElementById("lote"+L); if(el) el.classList.toggle("aberto"); }
-function setMeta(v){ const n=parseNum(v); metaSaida=(n&&n>0)?n:480; render(); }
-function setGmd(v){ const n=parseNum(v); gmdEsp=(n&&n>0)?n:0; render(); }
+function setMeta(v){ const n=parseNum(v); metaSaida=(n&&n>0)?n:480; renderDyn(); }
+function setGmd(v){ const n=parseNum(v); gmdEsp=(n&&n>0)?n:0; renderDyn(); }
 
 /* ---------- boot ---------- */
 (function(){

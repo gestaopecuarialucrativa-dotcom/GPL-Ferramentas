@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Painel do Cliente — GPL</title>
+<style>
+  :root{
+    --v1:#1B5E20; --v2:#2E7D32; --v3:#4CAF50;
+    --bg:#eef2ec; --card:#fff; --ink:#1b2c1b; --muted:#65766a; --bord:#e0e7e0; --warn:#FF6F00;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:Arial,'Segoe UI',Roboto,system-ui,sans-serif;-webkit-text-size-adjust:100%}
+  .wrap{max-width:480px;margin:0 auto;padding:0 12px 40px}
+  .topbar{background:var(--v1);color:#fff;padding:14px 16px;border-radius:0 0 14px 14px;display:flex;align-items:center;gap:12px}
+  .topbar .logo{width:34px;height:34px;flex:none}
+  .topbar h1{font-size:16px;margin:0;line-height:1.15}
+  .topbar .sub{font-size:12px;opacity:.85;margin-top:2px}
+  .card{background:var(--card);border-radius:14px;border:1px solid var(--bord);border-left:4px solid var(--v2);padding:14px;margin-top:12px}
+  h2{font-size:15px;color:var(--v1);margin:0 0 8px}
+  .cap{font-size:12px;color:var(--muted);margin:2px 0 8px}
+  .kpis{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+  .kpi{background:var(--card);border:1px solid var(--bord);border-left:4px solid var(--v2);border-radius:14px;padding:12px}
+  .kpi .k{font-size:11px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.02em}
+  .kpi .v{font-size:26px;font-weight:800;color:var(--v1);line-height:1.1;margin-top:2px}
+  .kpi .u{font-size:11px;color:var(--muted)}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .cell{background:#f5f9f4;border-radius:10px;padding:8px 10px}
+  .cell .k{font-size:11px;color:var(--muted);font-weight:700}
+  .cell .v{font-size:16px;font-weight:800;color:var(--ink)}
+  .cell .u{font-size:10px;color:var(--muted)}
+  .lote{background:var(--card);border:1px solid var(--bord);border-left:4px solid var(--v2);border-radius:14px;margin-top:10px;overflow:hidden}
+  .lote-head{display:flex;justify-content:space-between;align-items:center;padding:13px 14px;cursor:pointer;gap:8px}
+  .lote-nome{font-size:16px;font-weight:800;color:var(--v1)}
+  .lote-qtd{font-size:12px;color:var(--muted);font-weight:700}
+  .lote-body{padding:0 14px 14px;display:none}
+  .lote.aberto .lote-body{display:block}
+  .lote.aberto .chev{transform:rotate(180deg)}
+  .chev{transition:transform .18s;color:var(--muted)}
+  .tag{display:inline-block;font-size:11px;font-weight:800;padding:3px 9px;border-radius:999px}
+  .t-ok{background:#E8F5E9;color:var(--v1)} .t-warn{background:#FFF3E0;color:#8a4b00} .t-bad{background:#fdecea;color:#b3261e} .t-grey{background:#eef1ee;color:var(--muted)}
+  table{width:100%;border-collapse:collapse;font-size:12px;margin-top:8px}
+  th,td{padding:6px 4px;text-align:center;border-bottom:1px solid var(--bord)}
+  th{color:var(--muted);font-size:10px;text-transform:uppercase;font-weight:800}
+  td.l{text-align:left}
+  .field{display:block;font-size:12px;color:var(--muted);font-weight:700;margin-top:8px}
+  .field input{width:100%;margin-top:4px;padding:10px 12px;border:1px solid var(--bord);border-radius:10px;font-size:15px;color:var(--ink);background:#fff}
+  .field input:focus{outline:none;border-color:var(--v3)}
+  .btn{display:block;width:100%;background:var(--v3);color:#fff;border:none;border-radius:12px;padding:13px;font-size:15px;font-weight:800;cursor:pointer;margin-top:12px}
+  .login{max-width:340px;margin:16vh auto 0;text-align:center}
+  .login .card{border-left:none;text-align:left}
+  .err{color:#b3261e;font-size:13px;font-weight:700;text-align:center;margin-top:8px;min-height:18px}
+  .muted{color:var(--muted);font-size:12px}
+  .prev{background:#f0f7f0;border-radius:10px;padding:10px 12px;margin-top:10px}
+  .prev .d{font-size:18px;font-weight:800;color:var(--v1)}
+  .foot{text-align:center;font-size:11px;color:var(--muted);margin-top:20px;line-height:1.5}
+  .loading{text-align:center;color:var(--muted);padding:30px 0}
+  select.dsel{padding:9px 10px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:#fff;color:var(--ink)}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="loginScreen" class="login">
+  <div style="margin-bottom:14px">
+    <svg width="46" height="46" viewBox="0 0 24 24" fill="none" stroke="#1B5E20" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"/><path d="M5 21V10l7-5 7 5v11"/><path d="M9 21v-6h6v6"/></svg>
+  </div>
+  <div class="card">
+    <h2 style="text-align:center">Painel do Cliente</h2>
+    <p class="cap" style="text-align:center">Acompanhe a pesagem da sua fazenda. Digite sua senha.</p>
+    <input id="senhaIn" type="password" inputmode="numeric" placeholder="Senha" style="width:100%;padding:12px;border:1px solid var(--bord);border-radius:10px;font-size:16px;text-align:center" onkeydown="if(event.key==='Enter')entrar()">
+    <div class="err" id="loginErr"></div>
+    <button class="btn" onclick="entrar()">Entrar</button>
+  </div>
+  <div class="foot">gestaopecuarialucrativa.com.br · Rogério Avelino</div>
+</div>
+
+<!-- DASHBOARD -->
+<div id="dash" style="display:none">
+  <div class="topbar">
+    <svg class="logo" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"/><path d="M5 21V10l7-5 7 5v11"/><path d="M9 21v-6h6v6"/></svg>
+    <div style="flex:1">
+      <h1>Painel do Cliente</h1>
+      <div class="sub" id="topSub">—</div>
+    </div>
+    <svg onclick="sair()" style="cursor:pointer" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg>
+  </div>
+  <div class="wrap">
+    <div id="dateBar" style="margin-top:12px"></div>
+    <div id="conteudo"><div class="loading">Carregando…</div></div>
+    <div class="foot">Este painel é só para acompanhamento. Os números vêm direto da planilha da pesagem.<br>Rogério Avelino — Consultor · (63) 99108-2453</div>
+  </div>
+</div>
+
+<script>
+const BACKEND_URL="https://script.google.com/macros/s/AKfycby4lOB4zXu2dCBoA-pda6U_do8v9GDvNuH0dFOY6u5kc7FP7gZdPKofZX5Dt-QgnT4V/exec";
+const AR_DIV=30, UA_DIV=450;
+const LOTES_NOME={11:"Vaca",12:"Reprodutor",13:"Bezerro mamando"};
+const CATEG_LOTES=[11,12,13];
+function isEngorda(L){ return CATEG_LOTES.indexOf(Number(L))<0; }
+function loteLabel(L){ return LOTES_NOME[Number(L)] || ("Lote "+L); }
+
+let auth=null;            // {token, fazenda, cliente}
+let dados={fazenda:"",data:"",animais:[]};
+let datas=[];            // lista de datas disponíveis
+let metaSaida=480;       // peso de saída (kg) — cliente edita
+let gmdEsp=0;            // GMD esperado — cliente edita
+let abertos={};          // lotes expandidos
+
+/* ---------- helpers ---------- */
+function esc(s){ return String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
+function fmt(n,dec){ if(n==null||isNaN(n)) return "—"; const d=dec==null?0:dec; return Number(n).toLocaleString("pt-BR",{minimumFractionDigits:d,maximumFractionDigits:d}); }
+function media(a){ return a.length? a.reduce((x,y)=>x+y,0)/a.length : 0; }
+function desvioPad(a){ if(a.length<2) return 0; const m=media(a); return Math.sqrt(a.reduce((x,y)=>x+(y-m)*(y-m),0)/(a.length-1)); }
+function isoToBR(iso){ if(!iso) return "—"; const p=String(iso).split("-"); if(p.length<3) return iso; return p[2].slice(0,2)+"/"+p[1]+"/"+p[0]; }
+function addDays(iso,n){ const d=new Date(iso+"T12:00:00"); if(isNaN(d)) return ""; d.setDate(d.getDate()+Math.round(n)); return d.toISOString().slice(0,10); }
+function mesAno(iso){ const M=["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"]; const p=String(iso).split("-"); if(p.length<2) return ""; return M[parseInt(p[1],10)-1]+"/"+p[0]; }
+function parseNum(v){ if(v==null||v==="") return null; const f=parseFloat(String(v).replace(/\s/g,"").replace(",",".")); return isNaN(f)?null:f; }
+
+function jsonp(url){
+  return new Promise(function(res,rej){
+    const cb="__gpl_cb_"+Date.now()+"_"+Math.floor(Math.random()*10000);
+    const s=document.createElement("script");
+    const t=setTimeout(function(){ cleanup(); rej(new Error("timeout")); }, 22000);
+    function cleanup(){ try{ delete window[cb]; }catch(e){ window[cb]=undefined; } if(s.parentNode) s.parentNode.removeChild(s); }
+    window[cb]=function(data){ clearTimeout(t); cleanup(); res(data); };
+    s.onerror=function(){ clearTimeout(t); cleanup(); rej(new Error("rede")); };
+    s.src=url+(url.indexOf("?")<0?"?":"&")+"callback="+cb+"&t="+Date.now();
+    document.head.appendChild(s);
+  });
+}
+
+/* ---------- login ---------- */
+async function entrar(){
+  const senha=document.getElementById("senhaIn").value.trim();
+  const err=document.getElementById("loginErr");
+  err.textContent="";
+  if(!senha){ err.textContent="Digite a senha."; return; }
+  err.textContent="Entrando…";
+  try{
+    const r=await jsonp(BACKEND_URL+"?acao=login&senha="+encodeURIComponent(senha));
+    if(!r||!r.ok){ err.textContent=(r&&r.msg)?r.msg:"Senha inválida."; return; }
+    auth={token:r.token||"", fazenda:r.fazenda||"", cliente:r.cliente||""};
+    try{ sessionStorage.setItem("gpl_cli_auth", JSON.stringify(auth)); }catch(e){}
+    err.textContent="";
+    abrirDash();
+  }catch(e){ err.textContent="Sem conexão. Tenta de novo."; }
+}
+function sair(){ try{ sessionStorage.removeItem("gpl_cli_auth"); }catch(e){} auth=null; location.reload(); }
+
+function abrirDash(){
+  document.getElementById("loginScreen").style.display="none";
+  document.getElementById("dash").style.display="block";
+  document.getElementById("topSub").textContent=auth.fazenda||"";
+  carregarDatas();
+}
+
+/* ---------- dados ---------- */
+async function carregarDatas(){
+  try{
+    const faz=(auth.fazenda==="*"||!auth.fazenda)?"":auth.fazenda;
+    const r=await jsonp(BACKEND_URL+"?acao=pesagem_datas&token="+encodeURIComponent(auth.token)+"&fazenda="+encodeURIComponent(faz));
+    datas=(r&&r.datas)?r.datas:[];
+    if(!datas.length){ document.getElementById("conteudo").innerHTML='<div class="card"><p class="cap">Ainda não há pesagem registrada para esta fazenda.</p></div>'; document.getElementById("dateBar").innerHTML=""; return; }
+    renderDateBar();
+    carregarDia(datas[0].data);
+  }catch(e){ document.getElementById("conteudo").innerHTML='<div class="card"><p class="cap">Não consegui carregar. Confira a internet e recarregue.</p></div>'; }
+}
+function renderDateBar(){
+  const el=document.getElementById("dateBar");
+  let o='';
+  datas.forEach(d=>{ o+='<option value="'+esc(d.data)+'">'+isoToBR(d.data)+' · '+d.qtd+' animais</option>'; });
+  el.innerHTML='<span class="muted" style="font-weight:700">Pesagem: </span><select class="dsel" id="dsel" onchange="carregarDia(this.value)">'+o+'</select>';
+}
+async function carregarDia(data){
+  document.getElementById("conteudo").innerHTML='<div class="loading">Carregando pesagem de '+isoToBR(data)+'…</div>';
+  try{
+    const faz=(auth.fazenda==="*"||!auth.fazenda)?"":auth.fazenda;
+    const r=await jsonp(BACKEND_URL+"?acao=pesagem_ler&token="+encodeURIComponent(auth.token)+"&fazenda="+encodeURIComponent(faz)+"&data="+encodeURIComponent(data));
+    dados.fazenda=r.fazenda||auth.fazenda||""; dados.data=r.data||data;
+    dados.animais=(r.animais||[]).map(a=>({
+      brinco:String(a.brinco||""), peso:parseFloat(a.peso)||0, lote:a.lote,
+      gmd:(a.gmd!=null?Number(a.gmd):null), dias:(a.dias!=null?Number(a.dias):null),
+      pesoAnterior:(a.peso_anterior!=null?Number(a.peso_anterior):null), obs:a.obs||""
+    })).filter(a=>a.peso>0 && a.lote!=null && a.lote!=="");
+    render();
+  }catch(e){ document.getElementById("conteudo").innerHTML='<div class="card"><p class="cap">Erro ao carregar essa data.</p></div>'; }
+}
+
+/* ---------- estatística (igual à análise do consultor) ---------- */
+function lotesAtivos(){ const s=new Set(); dados.animais.forEach(a=>s.add(Number(a.lote))); return Array.from(s).sort((a,b)=>a-b); }
+function statsLote(L){
+  const arr=dados.animais.filter(a=>Number(a.lote)===Number(L));
+  const pesos=arr.map(a=>a.peso);
+  const m=media(pesos);
+  const min=pesos.length?Math.min.apply(null,pesos):0, max=pesos.length?Math.max.apply(null,pesos):0;
+  const dentro=pesos.filter(p=>Math.abs(p-m)<=0.10*m).length;
+  const unif=pesos.length? dentro/pesos.length*100 : 0;
+  const gmds=arr.filter(a=>a.gmd!=null).map(a=>a.gmd);
+  const gmd=gmds.length? media(gmds):null;
+  return {L, n:arr.length, arr, media:m, min, max, amplitude:max-min, unif, gmd};
+}
+function classUnif(u){ if(u>=70) return {t:"Homogêneo",cls:"t-ok"}; if(u>=50) return {t:"Desuniforme",cls:"t-warn"}; return {t:"Reagrupar",cls:"t-bad"}; }
+
+/* ---------- render ---------- */
+function render(){
+  const meta=metaSaida, ge=gmdEsp;
+  const lotes=lotesAtivos().map(statsLote);
+  const eng=lotes.filter(s=>isEngorda(s.L));
+  const cat=lotes.filter(s=>!isEngorda(s.L));
+  const nAnim=dados.animais.length;
+  const pesoTot=dados.animais.reduce((x,a)=>x+a.peso,0);
+  const pMed=nAnim?pesoTot/nAnim:0;
+  const arrobas=pesoTot/AR_DIV;
+  const ua=pesoTot/UA_DIV;
+  const prontos=dados.animais.filter(a=>isEngorda(a.lote) && a.peso>=meta).length;
+  document.getElementById("topSub").textContent=(dados.fazenda||"")+" · "+isoToBR(dados.data);
+
+  let h='';
+  // KPIs
+  h+='<div class="kpis">';
+  h+=kpi("Animais", fmt(nAnim), lotes.length+" lotes");
+  h+=kpi("Peso médio", fmt(pMed,0), fmt(pMed/AR_DIV,1)+" @");
+  h+=kpi("Arrobas totais", fmt(arrobas,0), "@ no curral");
+  h+=kpi("Prontos p/ saída", fmt(prontos), "≥ "+fmt(meta)+" kg");
+  h+='</div>';
+
+  // projeção que o cliente controla
+  h+='<div class="card"><h2>Projeção de saída</h2>'+
+     '<div class="cap">Ajuste pra simular. Onde já tem GMD medido, usamos ele. Onde não tem, usamos o GMD esperado que você digitar.</div>'+
+     '<div class="grid">'+
+     '<label class="field">Peso de saída (kg)<input inputmode="decimal" value="'+meta+'" oninput="setMeta(this.value)"></label>'+
+     '<label class="field">GMD esperado (kg/dia)<input inputmode="decimal" placeholder="ex: 0,500" value="'+(ge||"")+'" oninput="setGmd(this.value)"></label>'+
+     '</div></div>';
+
+  // cards por lote de engorda
+  h+='<h2 style="margin:16px 4px 0">Lotes de engorda</h2>';
+  eng.forEach(s=>{ h+=loteCard(s, meta, ge); });
+
+  // categorias
+  if(cat.length){
+    h+='<div class="card" style="margin-top:14px"><h2>Categorias (fora do abate)</h2>'+
+       '<div class="cap">Vaca, reprodutor e bezerro mamando não entram na conta de saída. Aqui é só a média de cada um.</div>';
+    cat.forEach(s=>{
+      h+='<div style="display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-top:1px solid var(--bord)">'+
+         '<div><b style="color:var(--v1)">'+loteLabel(s.L)+'</b> <span class="muted">'+s.n+' cab</span></div>'+
+         '<div style="font-weight:800">'+fmt(s.media,0)+' kg <span class="muted" style="font-weight:400">('+fmt(s.media/AR_DIV,1)+'@)</span></div></div>';
+    });
+    h+='</div>';
+  }
+  document.getElementById("conteudo").innerHTML=h;
+}
+function kpi(k,v,u){ return '<div class="kpi"><div class="k">'+k+'</div><div class="v">'+v+'</div><div class="u">'+u+'</div></div>'; }
+
+function loteCard(s, meta, ge){
+  const cu=classUnif(s.unif);
+  const aberto=abertos[s.L]?" aberto":"";
+  // previsão
+  let prev='';
+  if(s.media>=meta){ prev='<span class="tag t-ok">No ponto de saída</span>'; }
+  else if(s.gmd && s.gmd>0){ const d=Math.round((meta-s.media)/s.gmd), dp=dados.data?addDays(dados.data,d):""; prev='<div class="prev"><div class="muted" style="font-weight:700">Previsão de saída ('+fmt(meta)+'kg) · GMD medido '+fmt(s.gmd,3)+'</div><div class="d">'+(dp?isoToBR(dp):"—")+'</div><div class="muted">faltam '+fmt(meta-s.media,0)+'kg · ~'+d+' dias</div></div>'; }
+  else if(ge>0){ const d=Math.round((meta-s.media)/ge), dp=dados.data?addDays(dados.data,d):""; prev='<div class="prev"><div class="muted" style="font-weight:700">Previsão ESTIMADA · GMD esperado '+fmt(ge,3)+'</div><div class="d">'+(dp?isoToBR(dp):"—")+'</div><div class="muted">faltam '+fmt(meta-s.media,0)+'kg · ~'+d+' dias</div></div>'; }
+  else { prev='<span class="tag t-grey">Sem GMD — digite um GMD esperado acima pra estimar</span>'; }
+
+  // tabela de animais (drill-down)
+  let tab='<table><thead><tr><th class="l">Nº</th><th>Peso</th><th>@</th><th>GMD</th><th class="l">Obs</th></tr></thead><tbody>';
+  s.arr.slice().sort((a,b)=>a.peso-b.peso).forEach(a=>{
+    tab+='<tr><td class="l">'+esc(a.brinco)+'</td><td>'+fmt(a.peso,0)+'</td><td>'+fmt(a.peso/AR_DIV,1)+'</td><td>'+(a.gmd!=null?fmt(a.gmd,3):"—")+'</td><td class="l muted">'+esc(a.obs||"")+'</td></tr>';
+  });
+  tab+='</tbody></table>';
+
+  return '<div class="lote'+aberto+'" id="lote'+s.L+'">'+
+    '<div class="lote-head" onclick="toggleLote('+s.L+')">'+
+      '<div><span class="lote-nome">'+loteLabel(s.L)+'</span> <span class="lote-qtd">'+s.n+' animais</span></div>'+
+      '<svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>'+
+    '</div>'+
+    '<div class="lote-body">'+
+      '<div class="grid">'+
+        '<div class="cell"><div class="k">Peso médio</div><div class="v">'+fmt(s.media,0)+'</div><div class="u">'+fmt(s.media/AR_DIV,1)+' @</div></div>'+
+        '<div class="cell"><div class="k">Menor / Maior</div><div class="v">'+fmt(s.min,0)+' / '+fmt(s.max,0)+'</div><div class="u">amplitude '+fmt(s.amplitude,0)+'kg</div></div>'+
+        '<div class="cell"><div class="k">GMD do lote</div><div class="v">'+(s.gmd!=null?fmt(s.gmd,3):"—")+'</div><div class="u">kg/dia</div></div>'+
+        '<div class="cell"><div class="k">Uniformidade</div><div class="v">'+fmt(s.unif,0)+'%</div><div class="u"><span class="tag '+cu.cls+'">'+cu.t+'</span></div></div>'+
+      '</div>'+
+      prev+
+      '<div class="muted" style="font-weight:700;margin-top:12px">Animais do lote (toque no lote pra fechar)</div>'+
+      tab+
+    '</div></div>';
+}
+function toggleLote(L){ abertos[L]=!abertos[L]; const el=document.getElementById("lote"+L); if(el) el.classList.toggle("aberto"); }
+function setMeta(v){ const n=parseNum(v); metaSaida=(n&&n>0)?n:480; render(); }
+function setGmd(v){ const n=parseNum(v); gmdEsp=(n&&n>0)?n:0; render(); }
+
+/* ---------- boot ---------- */
+(function(){
+  // 1) Aberto pelo login.html / link com a fazenda na URL (?fz=Fazenda&tk=token opcional)
+  try{
+    var u=new URLSearchParams(location.search);
+    var fz=u.get("fz");
+    if(fz){ auth={token:u.get("tk")||"", fazenda:fz, cliente:""}; abrirDash(); return; }
+  }catch(e){}
+  // 2) Sessão já logada por senha
+  try{ const a=JSON.parse(sessionStorage.getItem("gpl_cli_auth")||"null"); if(a&&a.token!=null){ auth=a; abrirDash(); return; } }catch(e){}
+})();
+</script>
+</body>
+</html>

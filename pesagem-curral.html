@@ -517,6 +517,7 @@ input:focus,select:focus{outline:2px solid var(--v3); border-color:var(--v3)}
       <h2><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M8 11l4 4 4-4"/><path d="M4 15v4a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-4"/></svg> Exportar e salvar</h2>
       <button class="btn btn-primary" onclick="openFinalizar()" style="background:var(--v1)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg> Finalizar pesagem do dia</button>
       <button class="btn btn-ghost" style="margin-top:10px" onclick="exportXlsx()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M8 11l4 4 4-4"/><path d="M4 15v4a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-4"/></svg> Exportar planilha (.xlsx)</button>
+      <button class="btn btn-ghost" style="margin-top:10px;border-color:var(--v2);color:var(--v2)" onclick="abrirConsolidado()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M9 3v18"/></svg> Exportar lote consolidado (.xlsx)</button>
       <button class="btn btn-ghost" style="margin-top:10px" onclick="syncSheets()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12a8 8 0 0 1 14-5l2 2"/><path d="M20 4v5h-5"/><path d="M20 12a8 8 0 0 1-14 5l-2-2"/><path d="M4 20v-5h5"/></svg> Sincronizar Google Sheets</button>
       <label style="display:flex; align-items:center; gap:8px; margin-top:12px; font-weight:700; color:var(--ink); cursor:pointer">
         <input type="checkbox" id="autoSyncChk" style="width:auto; margin:0" checked> Salvar automático (com internet)
@@ -1002,6 +1003,183 @@ async function carregarVendidos(){
     _vendidosMap=map;
   }catch(e){ /* falha silenciosa: nunca bloqueia a pesagem */ }
 }
+/* ============================================================
+   EXPORTAR LOTE CONSOLIDADO
+   ============================================================ */
+var _consDatas = [];      // datas disponíveis {data, qtd}
+var _consAnimais = {};    // cache: data -> animais[]
+
+async function abrirConsolidado(){
+  const el=document.getElementById('modalConsolidado');
+  el.style.display='flex';
+  document.getElementById('consStatus').textContent='Buscando pesagens…';
+  try{
+    var faz=state.fazenda||gplFazendaLock()||'';
+    var r=await jsonp(BACKEND_URL+"?acao=pesagem_datas&token="+encodeURIComponent(gplToken())+"&fazenda="+encodeURIComponent(faz));
+    _consDatas=(r&&r.datas)?r.datas:[];
+    if(!_consDatas.length){ document.getElementById('consStatus').textContent='Nenhuma pesagem encontrada pra esta fazenda.'; return; }
+    var html='';
+    _consDatas.forEach(function(d){
+      html+='<label style="display:flex;align-items:center;gap:8px;padding:7px 0;border-top:1px solid #f0f4f0;font-size:13px;cursor:pointer">'+
+        '<input type="checkbox" class="consChk" value="'+esc(d.data)+'" checked> '+isoToBR(d.data)+' · <b>'+d.qtd+' animais</b></label>';
+    });
+    document.getElementById('consChecks').innerHTML=html;
+    document.getElementById('consStatus').textContent='';
+    // estado do radio
+    var modo=document.querySelector('input[name="consMode"]:checked');
+    toggleConsMode(modo?modo.value:'auto');
+  }catch(e){ document.getElementById('consStatus').textContent='Sem conexão — verifique a internet.'; }
+}
+function fecharConsolidado(){ document.getElementById('modalConsolidado').style.display='none'; }
+function toggleConsMode(v){
+  document.getElementById('consDataList').style.display=(v==='manual')?'block':'none';
+}
+function isoToBR_l(iso){ if(!iso) return ""; var p=String(iso).split('-'); if(p.length<3) return iso; return p[2].slice(0,2)+'/'+p[1]+'/'+p[0]; }
+
+async function gerarConsolidadoXlsx(){
+  var st=document.getElementById('consStatus');
+  var faz=state.fazenda||gplFazendaLock()||'';
+  var modo=document.querySelector('input[name="consMode"]:checked');
+  var modoVal=modo?modo.value:'auto';
+  var datasEscolhidas=[];
+  if(modoVal==='auto'){
+    datasEscolhidas=_consDatas.map(function(d){return d.data;});
+  } else {
+    document.querySelectorAll('.consChk:checked').forEach(function(cb){ datasEscolhidas.push(cb.value); });
+    if(!datasEscolhidas.length){ st.textContent='Selecione pelo menos uma data.'; return; }
+  }
+  st.textContent='Baixando pesagens…';
+
+  // busca cada data que ainda não está em cache
+  try{
+    for(var i=0;i<datasEscolhidas.length;i++){
+      var d=datasEscolhidas[i];
+      if(_consAnimais[d]) continue;
+      var r=await jsonp(BACKEND_URL+"?acao=pesagem_ler&token="+encodeURIComponent(gplToken())+"&fazenda="+encodeURIComponent(faz)+"&data="+encodeURIComponent(d));
+      _consAnimais[d]=(r&&r.animais)?r.animais:[];
+    }
+  }catch(e){ st.textContent='Erro ao baixar os dados. Tente novamente.'; return; }
+
+  st.textContent='Consolidando…';
+
+  // DEDUP: para cada brinco, fica com o registro da data mais recente
+  var mapaUltimo={};
+  datasEscolhidas.slice().sort().forEach(function(d){
+    (_consAnimais[d]||[]).forEach(function(a){
+      var b=String(a.brinco||'').trim();
+      if(!b||a.peso==null||a.peso===''||a.lote==null||a.lote==='') return;
+      mapaUltimo[b]={
+        brinco:b,
+        peso:Number(a.peso),
+        lote:a.lote,
+        obs:a.obs||'',
+        data:d   // data mais recente (sort crescente -> o último sobrescreve)
+      };
+    });
+  });
+  var animais=Object.values(mapaUltimo);
+  if(!animais.length){ st.textContent='Nenhum animal nos dados selecionados.'; return; }
+
+  // Ordena por lote, depois brinco numérico
+  animais.sort(function(a,b){
+    var la=parseInt(a.lote,10)||99, lb=parseInt(b.lote,10)||99;
+    if(la!==lb) return la-lb;
+    var na=parseInt(a.brinco,10), nb=parseInt(b.brinco,10);
+    if(!isNaN(na)&&!isNaN(nb)) return na-nb;
+    return String(a.brinco).localeCompare(String(b.brinco));
+  });
+
+  // Monta datas_str pro cabeçalho
+  var datasStr=datasEscolhidas.map(isoToBR_l).join(' + ');
+  var dataArq=datasEscolhidas[datasEscolhidas.length-1]?datasEscolhidas[datasEscolhidas.length-1].replace(/-/g,''):'';
+
+  st.textContent='Gerando arquivo…';
+  gerarXlsxConsolidadoDownload(faz, datasStr, animais, dataArq);
+  st.textContent='';
+  fecharConsolidado();
+}
+
+function gerarXlsxConsolidadoDownload(fazenda, datasStr, animais, dataArq){
+  // ---- monta o array de arrays (mesma estrutura do template) ----
+  var DATA_ROW = 14;    // dados começam na linha 14 (índice 13)
+  var MAX_ROWS = Math.max(animais.length + 50, 500);
+  var DR_C = 'C'+DATA_ROW+':C'+(DATA_ROW+MAX_ROWS);
+  var DR_B = 'B'+DATA_ROW+':B'+(DATA_ROW+MAX_ROWS);
+
+  // cabeçalho fixo (linhas 1-13)
+  var A = [];
+  for(var i=0;i<DATA_ROW+MAX_ROWS;i++) A.push(new Array(13).fill(null));
+  // linha 1
+  A[0][2]='PLANILHA DE PESAGEM DE GADO';
+  // linha 2
+  A[1][2]='Fazenda:'; A[1][3]=fazenda;
+  // linha 3
+  A[2][2]='Data(s):'; A[2][3]=datasStr; A[2][4]='Responsável:'; A[2][6]='Rogério Avelino';
+  // linha 4
+  A[3][0]='RESUMO AUTOMÁTICO POR LOTE  —  atualiza conforme você digita';
+  // linha 5 - cabeçalhos lote
+  A[4][0]='LOTE';
+  for(var i=1;i<=10;i++) A[4][i]='LOTE '+i;
+  A[4][11]='TOTAL\nGERAL';
+  // linhas 6-11 - fórmulas (SheetJS aceita fórmulas como {f:...})
+  var rowLabels=['Qtd Animais','Peso Total (kg)','Média Peso (kg)','Média Arrobas (@)','UA  (÷ 450)','% do Total'];
+  var loteCols=['B','C','D','E','F','G','H','I','J','K'];
+  function mkForm(row,col,lote){
+    var r=row+1;
+    var lc=col;
+    if(row===5) return 'COUNTIF('+DR_C+','+lote+')';
+    if(row===6) return 'IFERROR(SUMIF('+DR_C+','+lote+','+DR_B+'),"")';
+    if(row===7) return 'IFERROR(AVERAGEIF('+DR_C+','+lote+','+DR_B+'),"")';
+    if(row===8) return 'IFERROR('+lc+'8/30,"")';
+    if(row===9) return 'IFERROR('+lc+'7/450,"")';
+    if(row===10) return 'IFERROR('+lc+'6/L6,"")';
+    return '';
+  }
+  // linha 12 instrução
+  A[11][0]='  ✏️  A = Nº Animal / Brinco   |   B = Peso (kg)   |   C = Nº do Lote   |   D = Observação   |   E = Data Pesagem';
+  // linha 13 cabeçalho dados
+  A[12][0]='Nº Animal / Brinco'; A[12][1]='Peso (kg)'; A[12][2]='Lote (1 a 10)'; A[12][3]='Observação'; A[12][4]='Data Pesagem';
+
+  // dados
+  animais.forEach(function(a, idx){
+    var r=DATA_ROW-1+idx;
+    A[r][0]=a.brinco;
+    A[r][1]=Number(a.peso);
+    A[r][2]=isNaN(parseInt(a.lote,10))?a.lote:parseInt(a.lote,10);
+    A[r][3]=a.obs||'';
+    A[r][4]=a.data||'';
+  });
+
+  var ws=XLSX.utils.aoa_to_sheet(A);
+
+  // injeta fórmulas do resumo por lote
+  for(var ri=5;ri<=10;ri++){
+    A[ri][0]=rowLabels[ri-5];
+    loteCols.forEach(function(col,ci){
+      var lote=ci+1;
+      var cellAddr=col+(ri+1);
+      ws[cellAddr]={t:'n', f:mkForm(ri,col,lote)};
+    });
+    // total geral
+    if(ri===5) ws['L6']={t:'n', f:'B6+C6+D6+E6+F6+G6+H6+I6+J6+K6'};
+    if(ri===6) ws['L7']={t:'n', f:'IFERROR(B7,0)+IFERROR(C7,0)+IFERROR(D7,0)+IFERROR(E7,0)+IFERROR(F7,0)+IFERROR(G7,0)+IFERROR(H7,0)+IFERROR(I7,0)+IFERROR(J7,0)+IFERROR(K7,0)'};
+    if(ri===7) ws['L8']={t:'n', f:'IFERROR(L7/L6,"")'};
+    if(ri===8) ws['L9']={t:'n', f:'IFERROR(L8/30,"")'};
+    if(ri===9) ws['L10']={t:'n', f:'IFERROR(L7/450,"")'};
+    if(ri===10) ws['L11']={t:'s', v:'100%'};
+  }
+
+  // ajusta ref do sheet
+  ws['!ref']='A1:'+'M'+(DATA_ROW+animais.length+1);
+  // larguras
+  ws['!cols']=[{wch:22},{wch:12},{wch:14},{wch:30},{wch:14}];
+
+  var wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Pesagem');
+  var nome='Consolidado_'+fazenda.replace(/\s+/g,'_')+'_'+dataArq+'.xlsx';
+  XLSX.writeFile(wb, nome);
+}
+
 function registrar(){
   const peso=parseNum(document.getElementById("pesoIn").value);
   if(peso==null){ alert("Digite o peso primeiro."); document.getElementById("pesoIn").focus(); return; }
@@ -2671,5 +2849,27 @@ function vdsToggle(btn){
 
 </script>
 <div id="vdPrintArea"></div>
+<!-- Modal: Exportar Lote Consolidado -->
+<div id="modalConsolidado" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.45);align-items:flex-end;justify-content:center">
+  <div style="background:#fff;border-radius:20px 20px 0 0;width:100%;max-width:480px;padding:20px 16px 32px;max-height:85vh;overflow-y:auto">
+    <div style="font-size:16px;font-weight:800;color:#1B5E20;margin-bottom:4px">Exportar lote consolidado</div>
+    <div style="font-size:13px;color:#65766a;margin-bottom:14px">Escolha as pesagens pra combinar. Cada animal entra com seu <b>último peso</b> (dedup por brinco). Uma linha por animal, coluna com a data da pesagem.</div>
+    <div style="margin-bottom:10px">
+      <label style="display:flex;align-items:center;gap:8px;font-weight:700;font-size:13px;color:#1b2c1b;margin-bottom:8px;cursor:pointer">
+        <input type="radio" name="consMode" value="auto" checked onchange="toggleConsMode(this.value)"> Automático — última pesagem de cada animal (todas as datas)
+      </label>
+      <label style="display:flex;align-items:center;gap:8px;font-weight:700;font-size:13px;color:#1b2c1b;cursor:pointer">
+        <input type="radio" name="consMode" value="manual" onchange="toggleConsMode(this.value)"> Manual — escolho as datas
+      </label>
+    </div>
+    <div id="consDataList" style="display:none;margin-bottom:10px;border:1px solid #e0e7e0;border-radius:10px;overflow:hidden">
+      <div style="font-size:11px;font-weight:700;color:#65766a;padding:8px 12px 4px">Selecione as pesagens:</div>
+      <div id="consChecks" style="padding:0 12px 8px"></div>
+    </div>
+    <div id="consStatus" style="font-size:12px;color:#65766a;min-height:16px;margin-bottom:10px"></div>
+    <button class="btn btn-primary" onclick="gerarConsolidadoXlsx()">Gerar e baixar .xlsx</button>
+    <button class="btn btn-ghost" style="margin-top:8px" onclick="fecharConsolidado()">Cancelar</button>
+  </div>
+</div>
 </body>
 </html>

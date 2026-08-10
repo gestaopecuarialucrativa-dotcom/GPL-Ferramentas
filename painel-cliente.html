@@ -160,16 +160,37 @@ async function carregarDatas(){
     if(!datas.length){ document.getElementById("conteudo").innerHTML='<div class="card"><p class="cap">Ainda não há pesagem registrada para esta fazenda.</p></div>'; document.getElementById("dateBar").innerHTML=""; return; }
     renderDateBar();
     carregarDia(datas[0].data);
+    iniciarAutoRefresh();
   }catch(e){ document.getElementById("conteudo").innerHTML='<div class="card"><p class="cap">Não consegui carregar. Confira a internet e recarregue.</p></div>'; }
 }
 function renderDateBar(){
   const el=document.getElementById("dateBar");
   let o='';
   datas.forEach(d=>{ o+='<option value="'+esc(d.data)+'">'+isoToBR(d.data)+' · '+d.qtd+' animais</option>'; });
-  el.innerHTML='<span class="muted" style="font-weight:700">Pesagem: </span><select class="dsel" id="dsel" onchange="carregarDia(this.value)">'+o+'</select>';
+  el.innerHTML='<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">'+
+    '<span class="muted" style="font-weight:700">Pesagem: </span>'+
+    '<select class="dsel" id="dsel" onchange="carregarDia(this.value)">'+o+'</select>'+
+    '<button id="btnAtualizar" onclick="atualizarAgora()" style="border:1px solid var(--v3);background:#fff;color:var(--v2);font-weight:700;border-radius:10px;padding:8px 12px;font-size:13px;cursor:pointer;display:flex;align-items:center;gap:6px"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12a8 8 0 0 1 14-5l2 2"/><path d="M20 4v5h-5"/><path d="M20 12a8 8 0 0 1-14 5l-2-2"/><path d="M4 20v-5h5"/></svg>Atualizar</button>'+
+    '<span class="muted" id="atualizadoEm" style="font-size:11px;flex:none"></span></div>';
 }
-async function carregarDia(data){
-  document.getElementById("conteudo").innerHTML='<div class="loading">Carregando pesagem de '+isoToBR(data)+'…</div>';
+function _dataAtual(){ var sel=document.getElementById("dsel"); return sel?sel.value:(dados.data||(datas[0]&&datas[0].data)||""); }
+function atualizarAgora(){
+  var b=document.getElementById("btnAtualizar"); if(b) b.style.opacity="0.5";
+  var d=_dataAtual();
+  if(d) carregarDia(d, true).then(function(){ if(b) b.style.opacity="1"; });
+}
+let _autoTimer=null;
+function iniciarAutoRefresh(){
+  if(_autoTimer) clearInterval(_autoTimer);
+  _autoTimer=setInterval(function(){
+    var ae=document.activeElement;
+    if(ae && (ae.id==="inMeta"||ae.id==="inGmd")) return;   // não atrapalha quem está digitando
+    var d=_dataAtual();
+    if(d) carregarDia(d, true);
+  }, 45000);
+}
+async function carregarDia(data, silent){
+  if(!silent) document.getElementById("conteudo").innerHTML='<div class="loading">Carregando pesagem de '+isoToBR(data)+'…</div>';
   try{
     const faz=(auth.fazenda==="*"||!auth.fazenda)?"":auth.fazenda;
     const r=await jsonp(BACKEND_URL+"?acao=pesagem_ler&token="+encodeURIComponent(auth.token)+"&fazenda="+encodeURIComponent(faz)+"&data="+encodeURIComponent(data));
@@ -180,7 +201,8 @@ async function carregarDia(data){
       pesoAnterior:(a.peso_anterior!=null?Number(a.peso_anterior):null), obs:a.obs||""
     })).filter(a=>a.peso>0 && a.lote!=null && a.lote!=="");
     render();
-  }catch(e){ document.getElementById("conteudo").innerHTML='<div class="card"><p class="cap">Erro ao carregar essa data.</p></div>'; }
+    var ae=document.getElementById("atualizadoEm"); if(ae){ var n=new Date(); ae.textContent="atualizado "+String(n.getHours()).padStart(2,"0")+":"+String(n.getMinutes()).padStart(2,"0"); }
+  }catch(e){ if(!silent) document.getElementById("conteudo").innerHTML='<div class="card"><p class="cap">Erro ao carregar essa data.</p></div>'; }
 }
 
 /* ---------- estatística (igual à análise do consultor) ---------- */

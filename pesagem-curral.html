@@ -896,8 +896,8 @@ function onNum(){
     w.innerHTML="\u26a0 N\u00ba <b>"+esc(jaHoje.brinco)+"</b> j\u00e1 pesado hoje: "+jaHoje.peso+"kg"+(jaHoje.obs?" \u00b7 <i>"+esc(jaHoje.obs)+"</i>":"")+". Confira a observa\u00e7\u00e3o para definir o n\u00famero certo.";
     w.style.display="block";
   }
-  if(_vendidosMap[base]){
-    var _vv=_vendidosMap[base];
+  if(_vendidoPorBase(base)){
+    var _vv=_vendidoPorBase(base);
     var _dt=_vv.data?isoToBR(_vv.data):"";
     var _wv=document.getElementById("numWarn");
     var _mv="\u26a0 N\u00ba <b>"+esc(_vv.brinco||base)+"</b> consta como <b>VENDIDO</b>"+(_dt?" em "+_dt:"")+(_vv.comprador?" para "+esc(_vv.comprador):"")+". Confira se o n\u00famero est\u00e1 certo.";
@@ -982,6 +982,13 @@ function tryBalanca(){
 }
 
 var _vendidosMap = {};
+function _vendidoPorBase(base){
+  // busca no mapa pelo campo .base (brinco sem letras do final)
+  if(!base) return null;
+  var vals=Object.values(_vendidosMap);
+  for(var i=0;i<vals.length;i++){ if(vals[i].base===base) return vals[i]; }
+  return null;
+}
 const LOTES_NOME = {"11":"Vaca","12":"Reprodutor","13":"Bezerro mamando"};
 function loteLabel(n){
   if(n===''||n==null) return "Lote ?";
@@ -998,7 +1005,9 @@ async function carregarVendidos(){
       r.vendidos.forEach(function(v){
         var b=baseBrinco(String(v.brinco||''));
         if(!b) return;
-        map[b]={data:v.data||'', comprador:v.comprador||'', brinco:v.brinco||''};
+        // chave = brinco EXATO (111x e 111 são animais diferentes)
+        // guarda a base pra casar na digitação (onNum)
+        map[b]={data:v.data||'', comprador:v.comprador||'', brinco:b, base:baseBrinco(b)};
       });
     }
     _vendidosMap=map;
@@ -1199,8 +1208,8 @@ function registrar(){
   }
   // aviso: brinco que consta como VENDIDO (cruza com a planilha via _vendidosMap)
   var obsVendido="";
-  if(baseNew && _vendidosMap[baseNew]){
-    var vv=_vendidosMap[baseNew];
+  if(baseNew && _vendidoPorBase(baseNew)){
+    var vv=_vendidoPorBase(baseNew);
     var dtxt=vv.data?isoToBR(vv.data):"";
     if(!confirm("ATEN\u00c7\u00c3O: o animal "+(vv.brinco||baseNew)+" consta como VENDIDO"+(dtxt?" em "+dtxt:"")+(vv.comprador?" para "+vv.comprador:"")+".\n\nTem certeza que o n\u00famero est\u00e1 certo?\n\nOK = registrar assim (anoto na observa\u00e7\u00e3o)   |   Cancelar = corrigir o n\u00famero")){
       var _numEl=document.getElementById("numIn"); if(_numEl){ _numEl.focus(); _numEl.select(); }

@@ -565,7 +565,7 @@ var S = {
   pin: '1234',
   pinConsultor: '9999',
   cfgGS: '',
-  cfgNome: 'Catireiro',
+  cfgNome: 'Raniery',
   compras: [],
   vendas: [],
   pessoas: [],
@@ -813,7 +813,7 @@ function excluirReg(){
 /* ── Config ── */
 function salvarCfg(){
   S.cfgGS=(gel('cfg-url').value||'').trim();
-  S.cfgNome=(gel('cfg-nome').value||'').trim()||'Catireiro';
+  S.cfgNome=(gel('cfg-nome').value||'').trim()||'Raniery';
   var pc=(gel('cfg-pin-c').value||'').trim();
   var pr=(gel('cfg-pin-r').value||'').trim();
   if(pc.length===4)S.pin=pc;
@@ -874,7 +874,7 @@ function gerarRelatorio(){
 
 /* ── HTML base PDF ── */
 function pdfBase(titulo,periodoStr,corpo){
-  var nome=S.cfgNome||'Catireiro';
+  var nome=S.cfgNome||'Raniery';
   var hoje=new Date().toLocaleDateString('pt-BR');
   return'<!doctype html><html><head><meta charset="utf-8"><style>body{font-family:Arial,sans-serif;font-size:13px;color:#1b2c1b;margin:0;padding:20px}table{width:100%;border-collapse:collapse;margin-bottom:20px;font-size:12px}th{background:#1B5E20;color:#fff;padding:8px 10px;text-align:left;font-size:11px;font-weight:700}td{padding:7px 10px;border-bottom:1px solid #eef2ec}tr:nth-child(even) td{background:#f9fdf9}.box{background:#e8f5e9;border:1.5px solid #a5d6a7;border-radius:10px;padding:14px;margin-bottom:16px}.box-r{display:flex;justify-content:space-between;margin-bottom:6px;font-size:13px}.tit{color:#1B5E20;font-size:15px;font-weight:900}.neg{color:#B71C1C}@media print{body{padding:10px}}</style></head><body>'
     +'<div style="display:flex;justify-content:space-between;align-items:center;border-bottom:3px solid #1B5E20;padding-bottom:12px;margin-bottom:16px">'

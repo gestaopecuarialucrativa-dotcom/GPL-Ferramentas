@@ -564,7 +564,7 @@ var TD = new Date().toISOString().split('T')[0];
 var S = {
   pin: '1234',
   pinConsultor: '9999',
-  cfgGS: '',
+  cfgGS: 'https://script.google.com/macros/s/AKfycbyyLVjylYvjW9HK0tUt4Ugs0eBHRavGRPUprniYDyOsWwBmnZ1PaSmO5KEv99cDvayi7A/exec',
   cfgNome: 'Raniery',
   compras: [],
   vendas: [],
@@ -603,8 +603,15 @@ function logout(){S.isConsultor=false;gel('app-screen').style.display='none';gel
 function iniciarApp(){
   showEl('consultor-bar',S.isConsultor);
   v('cfg-url',S.cfgGS||'');v('cfg-nome',S.cfgNome||'');
-  rHome();rCompras();rVendas();rPessoas();atualizarDatalist();
-  if(S.cfgGS)syncNuvem();
+  // Sempre busca da planilha primeiro se tiver conexão
+  if(S.cfgGS){
+    toast('Carregando dados da planilha...',3000);
+    syncNuvem(function(){
+      rHome();rCompras();rVendas();rPessoas();atualizarDatalist();
+    });
+  } else {
+    rHome();rCompras();rVendas();rPessoas();atualizarDatalist();
+  }
 }
 
 /* ── Tabs ── */
@@ -667,16 +674,42 @@ function salvarCompra(){
   if(!cab||!vt){showEl('err-compra',true);setTimeout(function(){showEl('err-compra',false);},3000);return;}
   var r={id:Date.now(),dt:gel('c-data').value||TD,forn:(gel('c-forn').value||'').trim(),cab:cab,mod:modC,arr:n('c-arr'),valarr:n('c-valarr'),valtotal:vt,frete:n('c-frete'),comissao:n('c-comissao'),obs:(gel('c-obs').value||'').trim()};
   r.custoTotal=vt+r.frete+r.comissao;
-  S.compras.unshift(r);salvarLocal();enviarNuvem('compra',r);
-  showEl('ok-compra',true);setTimeout(function(){fecharModal('modal-compra');rCompras();rHome();},1400);
+  // Salva na planilha primeiro
+  var dot=gel('sync-dot');dot.className='sdot sy';
+  enviarNuvemComConfirm('compra',r,function(ok){
+    if(ok){
+      S.compras.unshift(r);salvarLocal();
+      dot.className='sdot on';
+      showEl('ok-compra',true);
+      setTimeout(function(){fecharModal('modal-compra');rCompras();rHome();},1400);
+    } else {
+      // Sem internet: salva local e marca pendente
+      S.compras.unshift(r);r._pendente=true;salvarLocal();
+      dot.className='sdot off';
+      showEl('ok-compra',true);
+      setTimeout(function(){fecharModal('modal-compra');rCompras();rHome();toast('Salvo localmente — sincronizará quando tiver internet',3500);},1400);
+    }
+  });
 }
 function salvarVenda(){
   var cab=n('v-cab'),vt=n('v-valtotal');
   if(!cab||!vt){showEl('err-venda',true);setTimeout(function(){showEl('err-venda',false);},3000);return;}
   var r={id:Date.now(),dt:gel('v-data').value||TD,comp:(gel('v-comp').value||'').trim(),cab:cab,refugo:n('v-refugo'),mod:modV,arr:n('v-arr'),valarr:n('v-valarr'),valtotal:vt,frete:n('v-frete'),comissao:n('v-comissao'),obs:(gel('v-obs').value||'').trim()};
   r.recebidoLiq=vt-r.frete-r.comissao;
-  S.vendas.unshift(r);salvarLocal();enviarNuvem('venda',r);
-  showEl('ok-venda',true);setTimeout(function(){fecharModal('modal-venda');rVendas();rHome();},1400);
+  var dot=gel('sync-dot');dot.className='sdot sy';
+  enviarNuvemComConfirm('venda',r,function(ok){
+    if(ok){
+      S.vendas.unshift(r);salvarLocal();
+      dot.className='sdot on';
+      showEl('ok-venda',true);
+      setTimeout(function(){fecharModal('modal-venda');rVendas();rHome();},1400);
+    } else {
+      S.vendas.unshift(r);r._pendente=true;salvarLocal();
+      dot.className='sdot off';
+      showEl('ok-venda',true);
+      setTimeout(function(){fecharModal('modal-venda');rVendas();rHome();toast('Salvo localmente — sincronizará quando tiver internet',3500);},1400);
+    }
+  });
 }
 function salvarPessoa(){
   var nome=(gel('p-nome').value||'').trim();if(!nome)return;
@@ -993,28 +1026,88 @@ function enviarNuvem(tipo,reg){
   var dados=encodeURIComponent(JSON.stringify({tipo:tipo,reg:reg,subtipo:tipo==='excluir'?reg.subtipo:undefined,id:tipo==='excluir'?reg.id:undefined}));
   chamarGS('salvar',{data:dados},function(r){dot.className=r&&r.ok?'sdot on':'sdot off';});
 }
-function syncNuvem(){
-  if(!S.cfgGS){toast('Configure a URL do Apps Script primeiro');return;}
+function enviarNuvemComConfirm(tipo,reg,cb){
+  if(!S.cfgGS){if(cb)cb(false);return;}
+  var dados=encodeURIComponent(JSON.stringify({tipo:tipo,reg:reg}));
+  chamarGS('salvar',{data:dados},function(r){if(cb)cb(r&&r.ok);});
+}
+function sincronizarPendentes(){
+  if(!S.cfgGS) return;
+  var pendentesC=S.compras.filter(function(r){return r._pendente;});
+  var pendentesV=S.vendas.filter(function(r){return r._pendente;});
+  if(!pendentesC.length&&!pendentesV.length) return;
+  pendentesC.forEach(function(r){
+    var dados=encodeURIComponent(JSON.stringify({tipo:'compra',reg:r}));
+    chamarGS('salvar',{data:dados},function(ok){if(ok){r._pendente=false;salvarLocal();}});
+  });
+  pendentesV.forEach(function(r){
+    var dados=encodeURIComponent(JSON.stringify({tipo:'venda',reg:r}));
+    chamarGS('salvar',{data:dados},function(ok){if(ok){r._pendente=false;salvarLocal();}});
+  });
+}
+function syncNuvem(cb){
+  if(!S.cfgGS){toast('Configure a URL do Apps Script primeiro');if(cb)cb();return;}
   var dot=gel('sync-dot');dot.className='sdot sy';
   chamarGS('ler',{},function(d){
-    if(!d||!d.ok){dot.className='sdot off';toast('Erro na sincronização');return;}
+    if(!d||!d.ok){
+      dot.className='sdot off';
+      toast('Sem conexão — dados locais');
+      if(cb)cb();
+      return;
+    }
+    // Planilha é a fonte da verdade — substitui tudo
+    S.compras=[];S.vendas=[];S.pessoas=[];
     if(d.compras&&d.compras.length){
-      S.compras=d.compras.map(function(r){return{id:Number(r.ID||r.id),dt:r.Data||r.dt,forn:r.Fornecedor||r.forn,cab:Number(r['Cabeças']||r.cab),mod:r.Modalidade||r.mod,arr:Number(r.Arrobas||r.arr)||0,valarr:Number(r.ValorArroba||r.valarr)||0,valtotal:Number(r.ValorTotal||r.valtotal)||0,frete:Number(r.Frete||r.frete)||0,comissao:Number(r.Comissao||r.comissao)||0,custoTotal:Number(r.CustoTotal||r.custoTotal)||0,obs:r.Observacao||r.obs||''};});
+      S.compras=d.compras.map(function(r){return{
+        id:Number(r.ID||r.id),
+        dt:String(r.Data||r.dt||'').split('T')[0],
+        forn:r.Fornecedor||r.forn||'',
+        cab:Number(r['Cabeças']||r.cab)||0,
+        mod:r.Modalidade||r.mod||'perna',
+        arr:Number(r.Arrobas||r.arr)||0,
+        valarr:Number(r.ValorArroba||r.valarr)||0,
+        valtotal:Number(r.ValorTotal||r.valtotal)||0,
+        frete:Number(r.Frete||r.frete)||0,
+        comissao:Number(r.Comissao||r.comissao)||0,
+        custoTotal:Number(r.CustoTotal||r.custoTotal)||0,
+        obs:r.Observacao||r.obs||''
+      };});
     }
     if(d.vendas&&d.vendas.length){
-      S.vendas=d.vendas.map(function(r){return{id:Number(r.ID||r.id),dt:r.Data||r.dt,comp:r.Comprador||r.comp,cab:Number(r['Cabeças']||r.cab),refugo:Number(r.Refugo||r.refugo)||0,mod:r.Modalidade||r.mod,arr:Number(r.Arrobas||r.arr)||0,valarr:Number(r.ValorArroba||r.valarr)||0,valtotal:Number(r.ValorTotal||r.valtotal)||0,frete:Number(r.Frete||r.frete)||0,comissao:Number(r.Comissao||r.comissao)||0,recebidoLiq:Number(r.RecebidoLiq||r.recebidoLiq)||0,obs:r.Observacao||r.obs||''};});
+      S.vendas=d.vendas.map(function(r){return{
+        id:Number(r.ID||r.id),
+        dt:String(r.Data||r.dt||'').split('T')[0],
+        comp:r.Comprador||r.comp||'',
+        cab:Number(r['Cabeças']||r.cab)||0,
+        refugo:Number(r.Refugo||r.refugo)||0,
+        mod:r.Modalidade||r.mod||'perna',
+        arr:Number(r.Arrobas||r.arr)||0,
+        valarr:Number(r.ValorArroba||r.valarr)||0,
+        valtotal:Number(r.ValorTotal||r.valtotal)||0,
+        frete:Number(r.Frete||r.frete)||0,
+        comissao:Number(r.Comissao||r.comissao)||0,
+        recebidoLiq:Number(r.RecebidoLiq||r.recebidoLiq)||0,
+        obs:r.Observacao||r.obs||''
+      };});
     }
     if(d.pessoas&&d.pessoas.length){
-      S.pessoas=d.pessoas.map(function(r){return{nome:r.Nome||r.nome,tel:r.Telefone||r.tel||'',cidade:r.Cidade||r.cidade||''};});
+      S.pessoas=d.pessoas.map(function(r){return{
+        nome:r.Nome||r.nome||'',
+        tel:r.Telefone||r.tel||'',
+        cidade:r.Cidade||r.cidade||''
+      };});
     }
     if(d.config){
-      if(d.config.pinCliente)S.pin=d.config.pinCliente;
-      if(d.config.pinConsultor)S.pinConsultor=d.config.pinConsultor;
+      if(d.config.pinCliente)S.pin=String(d.config.pinCliente);
+      if(d.config.pinConsultor)S.pinConsultor=String(d.config.pinConsultor);
       if(d.config.nomeEmpresa)S.cfgNome=d.config.nomeEmpresa;
+      if(d.config.cfgGS)S.cfgGS=d.config.cfgGS;
     }
-    salvarLocal();dot.className='sdot on';
-    rHome();rCompras();rVendas();rPessoas();atualizarDatalist();
-    toast('Sincronizado!');
+    salvarLocal();
+    dot.className='sdot on';
+    toast('Dados atualizados!');
+    if(cb)cb();
+    else{rHome();rCompras();rVendas();rPessoas();atualizarDatalist();}
   });
 }
 
@@ -1023,8 +1116,12 @@ carregarLocal();
 ['modal-compra','modal-venda','modal-det'].forEach(function(mid){
   var el=gel(mid);if(el)el.addEventListener('click',function(e){if(e.target===el)fecharModal(mid);});
 });
-// Mostrar FAB compras por padrão
 var fc=gel('fab-c');if(fc)fc.classList.add('vis');
+// Sincronizar pendentes ao voltar online
+window.addEventListener('online',function(){
+  toast('Conexão restaurada — sincronizando...',2500);
+  setTimeout(function(){sincronizarPendentes();syncNuvem();},1500);
+});
 </script>
 </body>
 </html>

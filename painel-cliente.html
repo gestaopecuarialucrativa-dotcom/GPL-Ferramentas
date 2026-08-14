@@ -95,15 +95,19 @@
   </div>
   <div class="wrap">
     <div class="tabs">
-      <div class="tab ativo" id="tabHoje" onclick="mudarAba('hoje')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:5px"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18"/><path d="M9 4v5"/><path d="M15 4v5"/></svg>Hoje</div>
-      <div class="tab" id="tabLotes" onclick="mudarAba('lotes')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:5px"><path d="M3 3v18h18"/><path d="M7 16l4-4 4 4 4-5"/></svg>Lotes</div>
+      <div class="tab ativo" id="tabHoje" onclick="mudarAba('hoje')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:4px"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Hoje</div>
+      <div class="tab" id="tabLotes" onclick="mudarAba('lotes')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:4px"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18"/><path d="M9 4v5"/><path d="M15 4v5"/></svg>Lotes</div>
+      <div class="tab" id="tabFormacao" onclick="mudarAba('formacao')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:4px"><path d="M3 3v18h18"/><path d="M7 16l4-4 4 4 4-5"/></svg>Formação</div>
     </div>
     <div id="telaHoje">
       <div id="conteudoHoje"><div class="loading">Carregando…</div></div>
     </div>
     <div id="telaLotes" style="display:none">
       <div id="dateBar" style="margin-top:12px"></div>
-      <div id="conteudo"><div class="loading">Carregando…</div></div>
+      <div id="conteudoLotes"><div class="loading">Carregando…</div></div>
+    </div>
+    <div id="telaFormacao" style="display:none">
+      <div id="conteudoFormacao"></div>
     </div>
     <div class="foot">Atualiza automaticamente · Rogério Avelino — Consultor · (63) 99108-2453</div>
   </div>
@@ -173,18 +177,174 @@ function abrirDash(){
 /* ---------- abas ---------- */
 var _abaAtual='hoje';
 var _abertosHoje={};
+var _abertosLotes={};
+var _abertosForm={};
+var _formDatasEsc={};   // datas selecionadas na aba Formação
+var _formAnimais={};    // cache data->animais
+var _formMetaSaida=480;
+var _formGmd=0;
+
 function mudarAba(aba){
   _abaAtual=aba;
-  document.getElementById('tabHoje').className='tab'+(aba==='hoje'?' ativo':'');
-  document.getElementById('tabLotes').className='tab'+(aba==='lotes'?' ativo':'');
-  document.getElementById('telaHoje').style.display=aba==='hoje'?'block':'none';
-  document.getElementById('telaLotes').style.display=aba==='lotes'?'block':'none';
+  ['hoje','lotes','formacao'].forEach(function(a){
+    document.getElementById('tab'+a.charAt(0).toUpperCase()+a.slice(1)).className='tab'+(aba===a?' ativo':'');
+    document.getElementById('tela'+a.charAt(0).toUpperCase()+a.slice(1)).style.display=aba===a?'block':'none';
+  });
   if(aba==='lotes'){
-    // monta o dateBar se ainda não foi montado
     if(datas.length) renderDateBar();
-    if(dados.animais.length) render();
+    if(dados.animais.length) renderLotes();
   }
+  if(aba==='formacao') renderFormacaoShell();
 }
+
+/* ---- aba Lotes: só a data selecionada, sem projeção ---- */
+function renderLotes(){
+  var el=document.getElementById('conteudoLotes'); if(!el) return;
+  var lotes=lotesAtivos().map(statsLote);
+  var eng=lotes.filter(function(s){return isEngorda(s.L);});
+  var cat=lotes.filter(function(s){return !isEngorda(s.L);});
+  var h='';
+  eng.forEach(function(s){
+    var cu=classUnif(s.unif);
+    var aberto=_abertosLotes[s.L]?' aberto':'';
+    var tab='<table><thead><tr><th class="l">Nº</th><th>Peso</th><th>@</th><th>GMD</th><th class="l">Obs</th></tr></thead><tbody>';
+    s.arr.slice().sort(function(a,b){return a.peso-b.peso;}).forEach(function(a){
+      tab+='<tr><td class="l">'+esc(a.brinco)+'</td><td>'+fmt(a.peso,0)+'</td><td>'+fmt(a.peso/AR_DIV,1)+'</td><td>'+(a.gmd!=null?fmt(a.gmd,3):'—')+'</td><td class="l muted">'+esc(a.obs||'')+'</td></tr>';
+    });
+    tab+='</tbody></table>';
+    h+='<div class="hoje-card'+aberto+'" id="lt'+s.L+'">';
+    h+='<div class="hoje-head" onclick="toggleLotes('+s.L+')">';
+    h+='<div><span class="hoje-nome">'+loteLabel(s.L)+'</span></div>';
+    h+='<div class="hoje-meta">'+s.n+' animais<br>'+fmt(s.media,0)+' kg · '+fmt(s.media/AR_DIV,1)+' @'+(s.gmd!=null?' · GMD '+fmt(s.gmd,3):'')+'</div>';
+    h+='<svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>';
+    h+='</div>';
+    h+='<div class="hoje-body">';
+    h+='<div class="grid" style="margin-bottom:10px">';
+    h+='<div class="cell"><div class="k">Menor / Maior</div><div class="v">'+fmt(s.min,0)+'/'+fmt(s.max,0)+'</div><div class="u">kg</div></div>';
+    h+='<div class="cell"><div class="k">Uniformidade</div><div class="v">'+fmt(s.unif,0)+'%</div><div class="u"><span class="tag '+cu.cls+'">'+cu.t+'</span></div></div>';
+    h+='</div>'+tab+'</div></div>';
+  });
+  if(cat.length){
+    h+='<div class="card" style="margin-top:14px"><h2>Categorias</h2>';
+    cat.forEach(function(s){
+      h+='<div style="display:flex;justify-content:space-between;padding:9px 0;border-top:1px solid var(--bord)">'+
+         '<b style="color:var(--v1)">'+loteLabel(s.L)+'</b> <span class="muted">'+s.n+' cab · '+fmt(s.media,0)+' kg · '+fmt(s.media/AR_DIV,1)+' @</span></div>';
+    });
+    h+='</div>';
+  }
+  el.innerHTML=h;
+}
+function toggleLotes(L){ _abertosLotes[L]=!_abertosLotes[L]; var el=document.getElementById('lt'+L); if(el) el.classList.toggle('aberto'); }
+
+/* ---- aba Formação: escolhe datas, consolida, projeta saída ---- */
+function renderFormacaoShell(){
+  var el=document.getElementById('conteudoFormacao'); if(!el) return;
+  if(!datas.length){ el.innerHTML='<div class="card" style="margin-top:12px"><p class="cap">Nenhuma pesagem disponível.</p></div>'; return; }
+  var h='<div class="card" style="margin-top:12px"><h2>Formação de lotes</h2>';
+  h+='<div class="cap">Selecione as pesagens que quer combinar. Cada animal entra com seu último peso (dedup por brinco).</div>';
+  h+='<div id="formChecks">';
+  datas.forEach(function(d){
+    var chk=_formDatasEsc[d.data]!==false;
+    h+='<label style="display:flex;align-items:center;gap:8px;padding:8px 0;border-top:1px solid var(--bord);cursor:pointer;font-size:13px">'+
+       '<input type="checkbox" '+(chk?'checked':'')+' onchange="_formToggleData(\''+d.data+'\',this.checked)"> '+
+       '<span>'+isoToBR(d.data)+'</span> <span class="muted">'+d.qtd+' animais</span></label>';
+  });
+  h+='</div>';
+  h+='<div class="grid" style="margin-top:10px">';
+  h+='<label class="field">Peso de saída (kg)<input id="formMeta" inputmode="decimal" value="'+_formMetaSaida+'" oninput="_formSetMeta(this.value)"></label>';
+  h+='<label class="field">GMD esperado (kg/dia)<input id="formGmd" inputmode="decimal" placeholder="ex: 0,500" value="'+(_formGmd||'')+'" oninput="_formSetGmd(this.value)"></label>';
+  h+='</div>';
+  h+='<button class="btn" style="margin-top:12px" onclick="formarLotes()">Formar lotes</button>';
+  h+='</div>';
+  h+='<div id="formResultado"></div>';
+  el.innerHTML=h;
+  // seleciona todas por padrão se ainda não tem seleção
+  if(!Object.keys(_formDatasEsc).length){ datas.forEach(function(d){ _formDatasEsc[d.data]=true; }); renderFormacaoShell(); }
+}
+function _formToggleData(data, chk){ _formDatasEsc[data]=chk; }
+function _formSetMeta(v){ var n=parseNum(v); _formMetaSaida=(n&&n>0)?n:480; }
+function _formSetGmd(v){ var n=parseNum(v); _formGmd=(n&&n>0)?n:0; }
+
+async function formarLotes(){
+  var btn=document.querySelector('#conteudoFormacao button');
+  if(btn) btn.textContent='Carregando…';
+  var datasEsc=Object.keys(_formDatasEsc).filter(function(d){return _formDatasEsc[d];}).sort();
+  if(!datasEsc.length){ alert('Selecione ao menos uma pesagem.'); if(btn) btn.textContent='Formar lotes'; return; }
+  var faz=(auth.fazenda==='*'||!auth.fazenda)?'':auth.fazenda;
+  // busca as que não estão em cache
+  for(var i=0;i<datasEsc.length;i++){
+    var d=datasEsc[i];
+    if(_formAnimais[d]) continue;
+    try{
+      var r=await jsonp(BACKEND_URL+"?acao=pesagem_ler&token="+encodeURIComponent(auth.token)+"&fazenda="+encodeURIComponent(faz)+"&data="+encodeURIComponent(d));
+      _formAnimais[d]=(r&&r.animais)?r.animais:[];
+    }catch(e){ _formAnimais[d]=[]; }
+  }
+  // dedup: último peso por brinco
+  var mapaUlt={};
+  datasEsc.forEach(function(d){
+    (_formAnimais[d]||[]).forEach(function(a){
+      var b=String(a.brinco||'').trim();
+      if(!b||a.peso==null||a.lote==null) return;
+      mapaUlt[b]={brinco:b,peso:Number(a.peso),lote:a.lote,gmd:(a.gmd!=null?Number(a.gmd):null),obs:a.obs||'',data:d};
+    });
+  });
+  var animais=Object.values(mapaUlt);
+  if(!animais.length){ document.getElementById('formResultado').innerHTML='<div class="card" style="margin-top:10px"><p class="cap">Nenhum animal nas datas selecionadas.</p></div>'; if(btn) btn.textContent='Formar lotes'; return; }
+  // agrupa por lote
+  var grupos={};
+  animais.forEach(function(a){
+    var L=String(a.lote);
+    if(!grupos[L]) grupos[L]={L:L,animais:[]};
+    grupos[L].animais.push(a);
+  });
+  var meta=_formMetaSaida, ge=_formGmd;
+  var datasStr=datasEsc.map(isoToBR).join(' + ');
+  var h='<h2 style="margin:16px 4px 4px">Lotes formados · '+datasStr+'</h2>';
+  var loteKeys=Object.keys(grupos).sort(function(a,b){ return (parseInt(a,10)||999)-(parseInt(b,10)||999); });
+  loteKeys.forEach(function(L){
+    var g=grupos[L];
+    var pesos=g.animais.map(function(a){return a.peso;});
+    var soma=pesos.reduce(function(x,y){return x+y;},0);
+    var med=pesos.length?soma/pesos.length:0;
+    var ua=soma/UA_DIV;
+    var gmds=g.animais.filter(function(a){return a.gmd!=null;}).map(function(a){return a.gmd;});
+    var gmdMed=gmds.length?gmds.reduce(function(x,y){return x+y;},0)/gmds.length:null;
+    // previsão de saída
+    var prev='';
+    var gmdBase=gmdMed||ge;
+    var ehEst=!gmdMed&&ge>0;
+    if(isEngorda(L)){
+      if(med>=meta){ prev='<span class="tag t-ok" style="margin-top:8px;display:inline-block">Na carreta — pronto!</span>'; }
+      else if(gmdBase>0){
+        var dias=Math.round((meta-med)/gmdBase);
+        var dataRef=datasEsc[datasEsc.length-1];
+        var dataP=dataRef?addDays(dataRef,dias):'';
+        prev='<div class="prev" style="margin-top:8px">'+
+          '<div class="muted" style="font-weight:700">Previsão de saída ('+fmt(meta)+'kg)'+(ehEst?' · estimado GMD '+fmt(ge,3):'')+'</div>'+
+          '<div class="d">'+(dataP?isoToBR(dataP):'—')+'</div>'+
+          '<div class="muted">faltam '+fmt(meta-med,0)+' kg · ~'+dias+' dias</div></div>';
+      } else { prev='<div class="muted" style="margin-top:6px;font-size:12px">Digite um GMD esperado acima pra estimar a saída</div>'; }
+    }
+    var aberto=_abertosForm[L]?' aberto':'';
+    var tab='<table><thead><tr><th class="l">Nº</th><th>Peso</th><th>@</th><th>GMD</th><th class="l">Data</th></tr></thead><tbody>';
+    g.animais.slice().sort(function(a,b){return a.peso-b.peso;}).forEach(function(a){
+      tab+='<tr><td class="l">'+esc(a.brinco)+'</td><td>'+fmt(a.peso,0)+'</td><td>'+fmt(a.peso/AR_DIV,1)+'</td><td>'+(a.gmd!=null?fmt(a.gmd,3):'—')+'</td><td class="l muted">'+isoToBR(a.data)+'</td></tr>';
+    });
+    tab+='</tbody></table>';
+    h+='<div class="hoje-card'+aberto+'" id="frm'+L+'">';
+    h+='<div class="hoje-head" onclick="toggleForm(\''+L+'\')">';
+    h+='<div><span class="hoje-nome">'+loteLabel(L)+'</span></div>';
+    h+='<div class="hoje-meta">'+g.animais.length+' animais<br>'+fmt(med,0)+' kg · '+fmt(med/AR_DIV,1)+' @ · UA '+fmt(ua,1)+(gmdMed!=null?' · GMD '+fmt(gmdMed,3):'')+'</div>';
+    h+='<svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>';
+    h+='</div>';
+    h+='<div class="hoje-body">'+prev+tab+'</div>';
+    h+='</div>';
+  });
+  document.getElementById('formResultado').innerHTML=h;
+  if(btn) btn.textContent='Formar lotes';
+}
+function toggleForm(L){ _abertosForm[L]=!_abertosForm[L]; var el=document.getElementById('frm'+L); if(el) el.classList.toggle('aberto'); }
 
 /* ---------- aba Hoje: cards por lote em tempo real ---------- */
 function renderHoje(){
@@ -254,11 +414,11 @@ async function carregarDatas(){
     const faz=(auth.fazenda==="*"||!auth.fazenda)?"":auth.fazenda;
     const r=await jsonp(BACKEND_URL+"?acao=pesagem_datas&token="+encodeURIComponent(auth.token)+"&fazenda="+encodeURIComponent(faz));
     datas=(r&&r.datas)?r.datas:[];
-    if(!datas.length){ document.getElementById("conteudo").innerHTML='<div class="card"><p class="cap">Ainda não há pesagem registrada para esta fazenda.</p></div>'; document.getElementById("dateBar").innerHTML=""; return; }
+    if(!datas.length){ document.getElementById("conteudoLotes").innerHTML='<div class="card"><p class="cap">Ainda não há pesagem registrada para esta fazenda.</p></div>'; document.getElementById("dateBar").innerHTML=""; return; }
     renderDateBar();
     carregarDia(datas[0].data);
     iniciarAutoRefresh();
-  }catch(e){ document.getElementById("conteudo").innerHTML='<div class="card"><p class="cap">Não consegui carregar. Confira a internet e recarregue.</p></div>'; }
+  }catch(e){ document.getElementById("conteudoLotes").innerHTML='<div class="card"><p class="cap">Não consegui carregar. Confira a internet e recarregue.</p></div>'; }
 }
 function renderDateBar(){
   const el=document.getElementById("dateBar");
@@ -292,7 +452,7 @@ function iniciarAutoRefresh(){
   }, 45000);
 }
 async function carregarDia(data, silent){
-  if(!silent) document.getElementById("conteudo").innerHTML='<div class="loading">Carregando pesagem de '+isoToBR(data)+'…</div>';
+  if(!silent) document.getElementById("conteudoLotes").innerHTML='<div class="loading">Carregando pesagem de '+isoToBR(data)+'…</div>';
   try{
     const faz=(auth.fazenda==="*"||!auth.fazenda)?"":auth.fazenda;
     const r=await jsonp(BACKEND_URL+"?acao=pesagem_ler&token="+encodeURIComponent(auth.token)+"&fazenda="+encodeURIComponent(faz)+"&data="+encodeURIComponent(data));
@@ -304,8 +464,9 @@ async function carregarDia(data, silent){
     })).filter(a=>a.peso>0 && a.lote!=null && a.lote!=="");
     render();
     renderHoje();
+    renderLotes();
     var ae=document.getElementById("atualizadoEm"); if(ae){ var n=new Date(); ae.textContent="atualizado "+String(n.getHours()).padStart(2,"0")+":"+String(n.getMinutes()).padStart(2,"0"); }
-  }catch(e){ if(!silent) document.getElementById("conteudo").innerHTML='<div class="card"><p class="cap">Erro ao carregar essa data.</p></div>'; }
+  }catch(e){ if(!silent) document.getElementById("conteudoLotes").innerHTML='<div class="card"><p class="cap">Erro ao carregar essa data.</p></div>'; }
 }
 
 /* ---------- estatística (igual à análise do consultor) ---------- */
@@ -350,7 +511,7 @@ function render(){
      '</div></div>';
 
   h+='<div id="dyn"></div>';
-  document.getElementById("conteudo").innerHTML=h;
+  document.getElementById("conteudoLotes").innerHTML=h;
   renderDyn();
 }
 function kpi(k,v,u){ return '<div class="kpi"><div class="k">'+k+'</div><div class="v">'+v+'</div><div class="u">'+u+'</div></div>'; }

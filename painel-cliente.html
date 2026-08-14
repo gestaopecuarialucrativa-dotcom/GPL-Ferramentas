@@ -95,14 +95,14 @@
   </div>
   <div class="wrap">
     <div class="tabs">
-      <div class="tab ativo" id="tabHoje" onclick="mudarAba('hoje')">📋 Hoje</div>
-      <div class="tab" id="tabLotes" onclick="mudarAba('lotes')">📊 Lotes</div>
+      <div class="tab ativo" id="tabHoje" onclick="mudarAba('hoje')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:5px"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18"/><path d="M9 4v5"/><path d="M15 4v5"/></svg>Hoje</div>
+      <div class="tab" id="tabLotes" onclick="mudarAba('lotes')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:5px"><path d="M3 3v18h18"/><path d="M7 16l4-4 4 4 4-5"/></svg>Lotes</div>
     </div>
     <div id="telaHoje">
-      <div id="dateBar" style="margin-top:12px"></div>
       <div id="conteudoHoje"><div class="loading">Carregando…</div></div>
     </div>
     <div id="telaLotes" style="display:none">
+      <div id="dateBar" style="margin-top:12px"></div>
       <div id="conteudo"><div class="loading">Carregando…</div></div>
     </div>
     <div class="foot">Atualiza automaticamente · Rogério Avelino — Consultor · (63) 99108-2453</div>
@@ -179,15 +179,32 @@ function mudarAba(aba){
   document.getElementById('tabLotes').className='tab'+(aba==='lotes'?' ativo':'');
   document.getElementById('telaHoje').style.display=aba==='hoje'?'block':'none';
   document.getElementById('telaLotes').style.display=aba==='lotes'?'block':'none';
-  if(aba==='lotes' && dados.animais.length) render();
+  if(aba==='lotes'){
+    // monta o dateBar se ainda não foi montado
+    if(datas.length) renderDateBar();
+    if(dados.animais.length) render();
+  }
 }
 
 /* ---------- aba Hoje: cards por lote em tempo real ---------- */
 function renderHoje(){
-  var hoje=dados.data;
   var el=document.getElementById('conteudoHoje'); if(!el) return;
+  // descobre se a data carregada é hoje
+  var hoje=new Date().toISOString().slice(0,10);
+  var dataCarregada=dados.data||'';
+  var ehHoje=dataCarregada===hoje;
+  var banner='';
+  if(ehHoje){
+    banner='<div style="display:flex;align-items:center;gap:8px;padding:10px 12px;background:#E8F5E9;border-radius:12px;margin-top:10px;border-left:4px solid #2E7D32">'+
+      '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1B5E20" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>'+
+      '<span style="font-size:13px;font-weight:700;color:#1B5E20">Pesando hoje — atualiza automaticamente</span></div>';
+  } else if(dataCarregada){
+    banner='<div style="display:flex;align-items:center;gap:8px;padding:10px 12px;background:#eef2ec;border-radius:12px;margin-top:10px;border-left:4px solid #65766a">'+
+      '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#65766a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18"/><path d="M9 4v5"/><path d="M15 4v5"/></svg>'+
+      '<span style="font-size:13px;font-weight:700;color:#65766a">Pesagem de '+isoToBR(dataCarregada)+' — histórico</span></div>';
+  }
   if(!dados.animais.length){
-    el.innerHTML='<div class="card"><p class="cap">Nenhum animal pesado ainda nesta sessão.</p></div>'; return;
+    el.innerHTML=banner+'<div class="card" style="margin-top:10px"><p class="cap">Nenhum animal pesado '+(ehHoje?'ainda nesta sessão':'nesta data')+'.</p></div>'; return;
   }
   // agrupa por lote
   var grupos={};
@@ -201,7 +218,7 @@ function renderHoje(){
     var na=parseInt(a,10)||999, nb=parseInt(b,10)||999; return na-nb;
   });
   var total=dados.animais.length;
-  var h='<div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px 0 4px">';
+  var h=banner+'<div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px">';
   h+='<span style="font-size:13px;font-weight:700;color:var(--muted)">'+total+' pesados · '+loteKeys.length+' lotes</span>';
   h+='<span class="muted" id="atualizadoEm2" style="font-size:11px"></span></div>';
   // copia o horário do outro span
@@ -264,9 +281,14 @@ function iniciarAutoRefresh(){
   if(_autoTimer) clearInterval(_autoTimer);
   _autoTimer=setInterval(function(){
     var ae=document.activeElement;
-    if(ae && (ae.id==="inMeta"||ae.id==="inGmd")) return;   // não atrapalha quem está digitando
-    var d=_dataAtual();
-    if(d) carregarDia(d, true);
+    if(ae && (ae.id==="inMeta"||ae.id==="inGmd")) return;
+    // Hoje: sempre a data mais recente
+    if(_abaAtual==='hoje'){
+      if(datas.length) carregarDia(datas[0].data, true);
+    } else {
+      var d=_dataAtual();
+      if(d) carregarDia(d, true);
+    }
   }, 45000);
 }
 async function carregarDia(data, silent){

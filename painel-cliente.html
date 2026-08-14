@@ -54,6 +54,16 @@
   .prev{background:#f0f7f0;border-radius:10px;padding:10px 12px;margin-top:10px}
   .prev .d{font-size:18px;font-weight:800;color:var(--v1)}
   .foot{text-align:center;font-size:11px;color:var(--muted);margin-top:20px;line-height:1.5}
+  .tabs{display:flex;background:rgba(0,0,0,.18);border-radius:10px;padding:3px;margin:10px 0 0}
+  .tab{flex:1;padding:9px;text-align:center;font-size:13px;font-weight:700;color:rgba(255,255,255,.7);border-radius:8px;cursor:pointer;transition:all .15s}
+  .tab.ativo{background:#fff;color:var(--v1)}
+  .hoje-card{background:var(--card);border:1px solid var(--bord);border-left:4px solid var(--v2);border-radius:14px;margin-top:10px;overflow:hidden}
+  .hoje-head{display:flex;justify-content:space-between;align-items:center;padding:14px;cursor:pointer;gap:10px}
+  .hoje-nome{font-size:17px;font-weight:800;color:var(--v1)}
+  .hoje-meta{font-size:13px;color:var(--muted);text-align:right;line-height:1.4}
+  .hoje-body{padding:0 14px 14px;display:none}
+  .hoje-card.aberto .hoje-body{display:block}
+  .hoje-card.aberto .chev{transform:rotate(180deg)}
   .loading{text-align:center;color:var(--muted);padding:30px 0}
   select.dsel{padding:9px 10px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:#fff;color:var(--ink)}
 </style>
@@ -84,9 +94,18 @@
     <svg onclick="sair()" style="cursor:pointer" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg>
   </div>
   <div class="wrap">
-    <div id="dateBar" style="margin-top:12px"></div>
-    <div id="conteudo"><div class="loading">Carregando…</div></div>
-    <div class="foot">Este painel é só para acompanhamento. Os números vêm direto da planilha da pesagem.<br>Rogério Avelino — Consultor · (63) 99108-2453</div>
+    <div class="tabs">
+      <div class="tab ativo" id="tabHoje" onclick="mudarAba('hoje')">📋 Hoje</div>
+      <div class="tab" id="tabLotes" onclick="mudarAba('lotes')">📊 Lotes</div>
+    </div>
+    <div id="telaHoje">
+      <div id="dateBar" style="margin-top:12px"></div>
+      <div id="conteudoHoje"><div class="loading">Carregando…</div></div>
+    </div>
+    <div id="telaLotes" style="display:none">
+      <div id="conteudo"><div class="loading">Carregando…</div></div>
+    </div>
+    <div class="foot">Atualiza automaticamente · Rogério Avelino — Consultor · (63) 99108-2453</div>
   </div>
 </div>
 
@@ -151,6 +170,67 @@ function abrirDash(){
   carregarDatas();
 }
 
+/* ---------- abas ---------- */
+var _abaAtual='hoje';
+var _abertosHoje={};
+function mudarAba(aba){
+  _abaAtual=aba;
+  document.getElementById('tabHoje').className='tab'+(aba==='hoje'?' ativo':'');
+  document.getElementById('tabLotes').className='tab'+(aba==='lotes'?' ativo':'');
+  document.getElementById('telaHoje').style.display=aba==='hoje'?'block':'none';
+  document.getElementById('telaLotes').style.display=aba==='lotes'?'block':'none';
+  if(aba==='lotes' && dados.animais.length) render();
+}
+
+/* ---------- aba Hoje: cards por lote em tempo real ---------- */
+function renderHoje(){
+  var hoje=dados.data;
+  var el=document.getElementById('conteudoHoje'); if(!el) return;
+  if(!dados.animais.length){
+    el.innerHTML='<div class="card"><p class="cap">Nenhum animal pesado ainda nesta sessão.</p></div>'; return;
+  }
+  // agrupa por lote
+  var grupos={};
+  dados.animais.forEach(function(a){
+    var L=String(a.lote||'?');
+    if(!grupos[L]) grupos[L]={L:L, animais:[]};
+    grupos[L].animais.push(a);
+  });
+  // ordena lotes numericamente
+  var loteKeys=Object.keys(grupos).sort(function(a,b){
+    var na=parseInt(a,10)||999, nb=parseInt(b,10)||999; return na-nb;
+  });
+  var total=dados.animais.length;
+  var h='<div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px 0 4px">';
+  h+='<span style="font-size:13px;font-weight:700;color:var(--muted)">'+total+' pesados · '+loteKeys.length+' lotes</span>';
+  h+='<span class="muted" id="atualizadoEm2" style="font-size:11px"></span></div>';
+  // copia o horário do outro span
+  var ae=document.getElementById('atualizadoEm'); if(ae) setTimeout(function(){ var ae2=document.getElementById('atualizadoEm2'); if(ae2) ae2.textContent=ae.textContent; },50);
+  loteKeys.forEach(function(L){
+    var g=grupos[L];
+    var pesos=g.animais.map(function(a){return a.peso;});
+    var soma=pesos.reduce(function(x,y){return x+y;},0);
+    var med=pesos.length?soma/pesos.length:0;
+    var aberto=_abertosHoje[L]?' aberto':'';
+    // tabela animais
+    var tab='<table><thead><tr><th class="l">Nº</th><th>Peso</th><th>@</th><th class="l">Obs</th></tr></thead><tbody>';
+    g.animais.slice().sort(function(a,b){return a.peso-b.peso;}).forEach(function(a){
+      tab+='<tr><td class="l">'+esc(a.brinco)+'</td><td>'+fmt(a.peso,0)+'</td><td>'+fmt(a.peso/AR_DIV,1)+'</td><td class="l muted">'+esc(a.obs||'')+'</td></tr>';
+    });
+    tab+='</tbody></table>';
+    h+='<div class="hoje-card'+aberto+'" id="hj'+L+'">';
+    h+='<div class="hoje-head" onclick="toggleHoje(\''+L+'\')">';
+    h+='<div><span class="hoje-nome">'+loteLabel(L)+'</span></div>';
+    h+='<div class="hoje-meta">'+g.animais.length+' animais<br>'+fmt(med,0)+' kg · '+fmt(med/AR_DIV,1)+' @</div>';
+    h+='<svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>';
+    h+='</div>';
+    h+='<div class="hoje-body">'+tab+'</div>';
+    h+='</div>';
+  });
+  el.innerHTML=h;
+}
+function toggleHoje(L){ _abertosHoje[L]=!_abertosHoje[L]; var el=document.getElementById('hj'+L); if(el) el.classList.toggle('aberto'); }
+
 /* ---------- dados ---------- */
 async function carregarDatas(){
   try{
@@ -201,6 +281,7 @@ async function carregarDia(data, silent){
       pesoAnterior:(a.peso_anterior!=null?Number(a.peso_anterior):null), obs:a.obs||""
     })).filter(a=>a.peso>0 && a.lote!=null && a.lote!=="");
     render();
+    renderHoje();
     var ae=document.getElementById("atualizadoEm"); if(ae){ var n=new Date(); ae.textContent="atualizado "+String(n.getHours()).padStart(2,"0")+":"+String(n.getMinutes()).padStart(2,"0"); }
   }catch(e){ if(!silent) document.getElementById("conteudo").innerHTML='<div class="card"><p class="cap">Erro ao carregar essa data.</p></div>'; }
 }

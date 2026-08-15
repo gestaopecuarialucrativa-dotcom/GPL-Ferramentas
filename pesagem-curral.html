@@ -588,7 +588,7 @@ input:focus,select:focus{outline:2px solid var(--v3); border-color:var(--v3)}
 <!-- Footer counters -->
 <div class="footer" id="footer">
   <div><span class="n" id="fTotal">0</span> <span class="lbl">pesados</span></div>
-  <div><span class="lbl">GMD lote</span> <span class="n" id="fGmd">—</span></div>
+  <div><span class="lbl">GMD lote</span> <span class="n" id="fGmd">—</span><br><span style="font-size:10px;color:var(--muted)" id="fGmdSub"></span></div>
   <div><span class="lbl">Faltam</span> <span class="n" id="fFalt">—</span></div>
 </div>
 
@@ -1735,6 +1735,9 @@ function renderFooter(){
   const st=loteStats(); let gs=0, gn=0;
   for(let i=1;i<=N_LOTES;i++){ gs+=st[i].gmdSum; gn+=st[i].gmdN; }
   document.getElementById("fGmd").textContent = gn? (gs/gn).toFixed(3) : "—";
+  // mostra quantos animais entram no GMD
+  var fGmdSub=document.getElementById("fGmdSub");
+  if(fGmdSub) fGmdSub.textContent = gn? "("+gn+" c/ GMD)" : "";
   if(state.ref.loaded){
     const pesados=new Set(state.today.filter(t=>!t.incerto).map(t=>t.base));
     const falt=state.ref.list.filter(a=>!pesados.has(a.base)).length;

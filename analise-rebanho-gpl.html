@@ -146,8 +146,8 @@ table.venda tr.total td{border-top:2px solid var(--v2); font-weight:800; color:v
 <script>
 "use strict";
 const AR_DIV=30, UA_DIV=450, N_LOTES=10;
-const LOTES_NOME={11:"Vaca",12:"Reprodutor",13:"Bezerro mamando"};
-const CATEG_LOTES=[11,12,13];   // não são engorda/abate
+const LOTES_NOME={11:"Vaca",12:"Reprodutor",13:"Bezerro mamando",14:"Compra"};
+const CATEG_LOTES=[11,12,13,14];   // não são engorda/abate
 function isEngorda(L){ return CATEG_LOTES.indexOf(Number(L))<0; }
 function loteLabel(L){ return LOTES_NOME[Number(L)] || ("Lote "+L); }
 function loteTag(L){ return LOTES_NOME[Number(L)] || ("L"+L); }
@@ -211,26 +211,106 @@ function jsonp(url){
     document.head.appendChild(s);
   });
 }
+var _anDatas=[];        // datas disponíveis na planilha
+var _anAnimaisCache={}; // cache: data -> animais
+var _anDatasEsc={};     // datas selecionadas pelo usuário
+
 async function carregarNuvem(){
   const box=document.getElementById("content");
-  box.innerHTML='<div class="empty">Carregando da planilha...</div>';
+  box.innerHTML='<div class="empty">Buscando pesagens disponíveis...</div>';
   try{
-    const r=await jsonp(BACKEND_URL+"?acao=pesagem_ler&token="+encodeURIComponent(gplToken())+(gplFazendaLock()?"&fazenda="+encodeURIComponent(gplFazendaLock()):""));
-    if(!r || !r.ok){ box.innerHTML='<div class="empty">Não consegui ler a planilha. Confira o backend.</div>'; return; }
-    if(!r.animais || !r.animais.length){ box.innerHTML='<div class="empty">A planilha não tem pesagem registrada ainda.</div>'; return; }
-    dados.fazenda=r.fazenda||"";
-    dados.data=r.data||"";
-    dados.animais=r.animais.map(a=>({
-      brinco:String(a.brinco||""), base:String(a.brinco||"").replace(/x+$/i,""),
-      peso:parseNum(a.peso), lote:parseInt(a.lote,10)||null,
-      pesoAnterior:parseNum(a.peso_anterior), gmd:parseNum(a.gmd), dias:parseNum(a.dias),
-      obs:a.obs||"", novo:!!a.is_novo, incerto:!!a.is_revisar
-    })).filter(a=>a.peso!=null && a.lote);
-    render();
+    const faz=gplFazendaLock()||"";
+    const r=await jsonp(BACKEND_URL+"?acao=pesagem_datas&token="+encodeURIComponent(gplToken())+(faz?"&fazenda="+encodeURIComponent(faz):""));
+    if(!r||!r.ok||!r.datas||!r.datas.length){
+      box.innerHTML='<div class="empty">Nenhuma pesagem encontrada na planilha.</div>'; return;
+    }
+    _anDatas=r.datas;
+    // seleciona todas por padrão
+    if(!Object.keys(_anDatasEsc).length){ _anDatas.forEach(d=>{ _anDatasEsc[d.data]=true; }); }
+    mostrarModalDatas();
   }catch(e){
     if(carregarLocal()){ render(); }
-    else box.innerHTML='<div class="empty">Sem internet e sem dados neste aparelho. Conecte à internet, ou use "Importar .xlsx".</div>';
+    else box.innerHTML='<div class="empty">Sem internet. Use "Importar .xlsx" ou reconecte.</div>';
   }
+}
+
+function mostrarModalDatas(){
+  const m=document.getElementById("modalDatas");
+  if(!m){ _abrirModalDatasInline(); return; }
+  m.style.display="flex";
+  _renderChecksDatas();
+}
+
+function _abrirModalDatasInline(){
+  // cria o modal se não existir
+  const div=document.createElement("div");
+  div.id="modalDatas";
+  div.style.cssText="display:flex;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.45);align-items:flex-end;justify-content:center";
+  div.innerHTML=`<div style="background:#fff;border-radius:20px 20px 0 0;width:100%;max-width:640px;max-height:85vh;overflow-y:auto">
+    <div style="background:#1B5E20;border-radius:20px 20px 0 0;padding:16px;display:flex;align-items:center;gap:10px">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18"/><path d="M9 4v5"/><path d="M15 4v5"/></svg>
+      <div style="font-size:15px;font-weight:800;color:#fff">Escolher pesagens para análise</div>
+    </div>
+    <div style="padding:16px">
+      <p style="font-size:13px;color:#65766a;margin:0 0 12px">Selecione as pesagens que quer combinar. Cada animal entra com seu <b>último peso</b>.</p>
+      <div id="modalDatasChecks" style="border:1px solid #e0e7e0;border-radius:12px;overflow:hidden;margin-bottom:12px"></div>
+      <div id="modalDatasStatus" style="font-size:12px;color:#65766a;min-height:16px;margin-bottom:12px"></div>
+      <button class="btn btn-primary" onclick="confirmarDatas()">Carregar e analisar</button>
+      <button class="btn btn-ghost" style="margin-top:8px" onclick="document.getElementById('modalDatas').style.display='none'">Cancelar</button>
+    </div>
+  </div>`;
+  document.body.appendChild(div);
+  _renderChecksDatas();
+}
+
+function _renderChecksDatas(){
+  const el=document.getElementById("modalDatasChecks"); if(!el) return;
+  let h='<div style="font-size:11px;font-weight:700;color:#65766a;padding:10px 14px 4px;text-transform:uppercase;letter-spacing:.04em">Pesagens disponíveis</div>';
+  _anDatas.forEach(d=>{
+    const chk=_anDatasEsc[d.data]!==false;
+    h+=`<label style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-top:1px solid #f0f4f0;cursor:pointer;font-size:13px">
+      <input type="checkbox" ${chk?"checked":""} onchange="_anToggle('${d.data}',this.checked)" style="accent-color:#1B5E20;width:16px;height:16px">
+      <span><b>${isoToBR(d.data)}</b> <span style="color:#65766a">· ${d.qtd} animais</span></span></label>`;
+  });
+  el.innerHTML=h;
+}
+function _anToggle(data,chk){ _anDatasEsc[data]=chk; }
+
+async function confirmarDatas(){
+  const st=document.getElementById("modalDatasStatus");
+  const datasEsc=Object.keys(_anDatasEsc).filter(d=>_anDatasEsc[d]).sort();
+  if(!datasEsc.length){ if(st) st.textContent="Selecione ao menos uma pesagem."; return; }
+  if(st) st.textContent="Carregando...";
+  const faz=gplFazendaLock()||"";
+  for(let i=0;i<datasEsc.length;i++){
+    const d=datasEsc[i];
+    if(_anAnimaisCache[d]) continue;
+    try{
+      const r=await jsonp(BACKEND_URL+"?acao=pesagem_ler&token="+encodeURIComponent(gplToken())+(faz?"&fazenda="+encodeURIComponent(faz):"")+`&data=${encodeURIComponent(d)}`);
+      _anAnimaisCache[d]=(r&&r.animais)?r.animais:[];
+    }catch(e){ _anAnimaisCache[d]=[]; }
+  }
+  // dedup: último peso por brinco
+  const mapaUlt={};
+  datasEsc.forEach(d=>{
+    (_anAnimaisCache[d]||[]).forEach(a=>{
+      const b=String(a.brinco||"").trim();
+      if(!b||a.peso==null||a.lote==null) return;
+      mapaUlt[b]={brinco:b,base:b.replace(/x+$/i,""),peso:parseNum(a.peso),lote:parseInt(a.lote,10)||null,
+        pesoAnterior:parseNum(a.peso_anterior),gmd:parseNum(a.gmd),dias:parseNum(a.dias),
+        obs:a.obs||"",novo:!!a.is_novo,incerto:!!a.is_revisar,data:d};
+    });
+  });
+  const animais=Object.values(mapaUlt).filter(a=>a.peso!=null&&a.lote);
+  if(!animais.length){ if(st) st.textContent="Nenhum animal nas datas selecionadas."; return; }
+  dados.fazenda=(_anAnimaisCache[datasEsc[0]]&&_anAnimaisCache[datasEsc[0]][0])?
+    (await jsonp(BACKEND_URL+"?acao=pesagem_ler&token="+encodeURIComponent(gplToken())+`&data=${encodeURIComponent(datasEsc[0])}`+(faz?"&fazenda="+encodeURIComponent(faz):"")).then(r=>r.fazenda||"").catch(()=>"")) : "";
+  dados.fazenda=dados.fazenda||faz||"";
+  dados.data=datasEsc[datasEsc.length-1];
+  dados.animais=animais;
+  document.getElementById("modalDatas").style.display="none";
+  render();
+  salvarLocal();
 }
 
 function importFile(input){

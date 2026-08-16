@@ -116,8 +116,8 @@
 <script>
 const BACKEND_URL="https://script.google.com/macros/s/AKfycby4lOB4zXu2dCBoA-pda6U_do8v9GDvNuH0dFOY6u5kc7FP7gZdPKofZX5Dt-QgnT4V/exec";
 const AR_DIV=30, UA_DIV=450;
-const LOTES_NOME={11:"Vaca",12:"Reprodutor",13:"Bezerro mamando"};
-const CATEG_LOTES=[11,12,13];
+const LOTES_NOME={11:"Vaca",12:"Reprodutor",13:"Bezerro mamando",14:"Compra"};
+const CATEG_LOTES=[11,12,13,14];
 function isEngorda(L){ return CATEG_LOTES.indexOf(Number(L))<0; }
 function loteLabel(L){ return LOTES_NOME[Number(L)] || ("Lote "+L); }
 

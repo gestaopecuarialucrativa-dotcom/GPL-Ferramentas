@@ -605,14 +605,14 @@ function iniciarApp(){
   showEl('card-conexao',S.isConsultor);
   showEl('card-pins',S.isConsultor);
   v('cfg-url',S.cfgGS||'');v('cfg-nome',S.cfgNome||'');
-  // Sempre busca da planilha primeiro se tiver conexão
+  // Abertura rapida: desenha JA com o que esta salvo no aparelho
+  rHome();rCompras();rVendas();rPessoas();atualizarDatalist();
+  // Depois, se tiver conexao, sincroniza em segundo plano e atualiza a tela
   if(S.cfgGS){
-    toast('Carregando dados da planilha...',3000);
+    toast('Atualizando...',2000);
     syncNuvem(function(){
       rHome();rCompras();rVendas();rPessoas();atualizarDatalist();
     });
-  } else {
-    rHome();rCompras();rVendas();rPessoas();atualizarDatalist();
   }
 }
 
@@ -833,8 +833,8 @@ function verDet(tipo,regId){
   var icone=tipo==='compra'?'<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#2E7D32" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/></svg>':'<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#2E7D32" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>';
   gel('det-tit').innerHTML=icone+' '+(tipo==='compra'?'Compra':'Venda')+'<span class="modal-close" onclick="fecharModal(\x27modal-det\x27)">&times;</span>';
   gel('det-body').innerHTML=linhas.filter(Boolean).map(function(r){return'<div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid #eef2ec"><span style="font-size:12px;color:#65766a">'+r[0]+'</span><span style="font-size:13px;font-weight:'+(r[2]?'900':'700')+';color:'+(r[2]?'#1B5E20':'#1b2c1b')+'">'+r[1]+'</span></div>';}).join('');
-  // Excluir: só consultor ou próprio
-  showEl('det-excluir-btn',S.isConsultor||true);
+  // Excluir: cliente e consultor podem apagar os proprios registros
+  showEl('det-excluir-btn',true);
   abrirModal('modal-det');
 }
 function excluirReg(){

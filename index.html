@@ -311,7 +311,7 @@ select:focus,input:focus{outline:2px solid #2d7a1f;border-color:#2d7a1f}
 <div class="sdot" id="sdot"></div>
 <div class="upill" onclick="doLogout()">⏻ <span id="un"></span></div>
 </div>
-<div id="ver-banner" style="display:none;background:#FF6F00;color:#fff;text-align:center;font-size:10px;padding:3px;font-weight:700">BUILD 18/08/2026 v6.70 ✅</div>
+<div id="ver-banner" style="display:none;background:#FF6F00;color:#fff;text-align:center;font-size:10px;padding:3px;font-weight:700">BUILD 18/08/2026 v6.71 ✅</div>
 <div class="tabs" id="tabs" style="display:none"></div>
 
 <!-- HOME -->
@@ -4180,27 +4180,32 @@ function _nomeLoteEspecial(num){
 }
 function _pesagemImportar(lista, data){
   if(!S.PESAGEM)S.PESAGEM={};
-  var grupos={};
+  // Agrupa por LOTE + DATA (cada data do mesmo lote vira uma entrada separada).
+  // Antes agrupava só por lote com uma data única → perdia a data real dos animais.
+  var grupos={}; // lote → { data → [animais] }
   lista.forEach(function(a){
     var lote=String(a.lote).trim(); if(!lote||a.brinco==null||a.peso==null)return;
-    if(!grupos[lote])grupos[lote]=[];
-    grupos[lote].push({brinco:String(a.brinco).trim(), peso:a.peso, obs:a.obs||'', data:a.data||''});
+    var dtA=(a.data && String(a.data).trim()) ? String(a.data).trim() : (data||'');
+    if(!grupos[lote])grupos[lote]={};
+    if(!grupos[lote][dtA])grupos[lote][dtA]=[];
+    grupos[lote][dtA].push({brinco:String(a.brinco).trim(), peso:a.peso, obs:a.obs||'', data:dtA});
   });
   var lotesAfetados=Object.keys(grupos);
   lotesAfetados.forEach(function(lote){
     var atual=S.PESAGEM[lote]||{};
     var hist=atual.historico||[];
-    // se a última pesagem salva (data/animais) ainda não está no histórico, leva ela pra lá
+    // se a última pesagem salva ainda não está no histórico, leva ela pra lá
     if(atual.data && !hist.some(function(h){return h.data===atual.data;})){
       hist.push({data:atual.data, animais:atual.animais||[]});
     }
-    // remove do histórico uma entrada com a MESMA data que está importando (substitui)
-    hist=hist.filter(function(h){return h.data!==(data||'');});
-    // adiciona a nova data ao histórico
-    hist.push({data:data||'', animais:grupos[lote]});
+    // para cada DATA importada desse lote: substitui a entrada dessa data e adiciona
+    Object.keys(grupos[lote]).forEach(function(dt){
+      hist=hist.filter(function(h){return h.data!==dt;}); // remove mesma data (substitui)
+      hist.push({data:dt, animais:grupos[lote][dt]});
+    });
     // ordena histórico por data crescente
     hist.sort(function(a,b){return (a.data||'')<(b.data||'')?-1:((a.data||'')>(b.data||'')?1:0);});
-    // a "última pesagem" (data/animais) = a mais recente do histórico
+    // a "última pesagem" = a mais recente do histórico
     var maisRecente=hist[hist.length-1];
     S.PESAGEM[lote]={data:maisRecente.data, animais:maisRecente.animais, historico:hist};
   });

@@ -389,6 +389,16 @@ input[readonly]{background:#f5f5f5;color:#65766a}
     <div class="ok-msg" id="ok-cfg">Configurações salvas!</div>
   </div>
 
+  <div class="card" id="card-acessos" style="display:none">
+    <div style="font-size:14px;font-weight:800;color:#1B5E20;margin-bottom:6px;display:flex;align-items:center;gap:7px">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2E7D32" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 14"/></svg>
+      Acessos do cliente
+    </div>
+    <div id="acessos-ultimo" style="font-size:12px;color:#65766a;margin-bottom:10px">—</div>
+    <div id="acessos-lista"></div>
+    <button class="xbtn" onclick="carregarAcessos()" style="margin-top:10px">Atualizar acessos</button>
+  </div>
+
   <div class="card">
     <div style="font-size:13px;font-weight:800;color:#1B5E20;margin-bottom:10px">Cadastro de pessoas</div>
     <div class="fg"><div class="lbl">Nome</div><input type="text" id="p-nome" placeholder="Fornecedor ou comprador"></div>
@@ -594,7 +604,7 @@ function checkPin(){
   var ok=false;
   if(_modoConsultor&&_pin===S.pinConsultor){S.isConsultor=true;ok=true;}
   else if(!_modoConsultor&&_pin===S.pin){S.isConsultor=false;ok=true;}
-  if(ok){gel('login-screen').style.display='none';gel('app-screen').style.display='block';pinReset();iniciarApp();}
+  if(ok){gel('login-screen').style.display='none';gel('app-screen').style.display='block';pinReset();iniciarApp();registrarAcesso();}
   else{for(var i=0;i<4;i++)gel('pd'+i).classList.add('e');gel('pin-err').textContent='PIN incorreto';setTimeout(pinReset,800);}
 }
 function logout(){S.isConsultor=false;gel('app-screen').style.display='none';gel('login-screen').style.display='block';pinReset();_modoConsultor=false;gel('login-modo-label').textContent='PIN de acesso';gel('pin-mode-btn').textContent='Entrar como consultor';}
@@ -604,6 +614,7 @@ function iniciarApp(){
   showEl('consultor-bar',S.isConsultor);
   showEl('card-conexao',S.isConsultor);
   showEl('card-pins',S.isConsultor);
+  showEl('card-acessos',S.isConsultor);
   v('cfg-url',S.cfgGS||'');v('cfg-nome',S.cfgNome||'');
   // Abertura rapida: desenha JA com o que esta salvo no aparelho
   rHome();rCompras();rVendas();rPessoas();atualizarDatalist();
@@ -613,6 +624,7 @@ function iniciarApp(){
     syncNuvem(function(){
       rHome();rCompras();rVendas();rPessoas();atualizarDatalist();
     });
+    if(S.isConsultor) carregarAcessos();
   }
 }
 
@@ -1010,6 +1022,35 @@ function relFluxo(cF,vF,ps){
 }
 
 /* ── Nuvem ── */
+function registrarAcesso(){
+  if(!S.cfgGS)return;
+  var reg={dataHora:new Date().toLocaleString('pt-BR'),quem:S.isConsultor?'consultor':'cliente'};
+  var dados=encodeURIComponent(JSON.stringify({tipo:'acesso',reg:reg}));
+  chamarGS('salvar',{data:dados},function(){});
+}
+function carregarAcessos(){
+  if(!S.cfgGS)return;
+  var u=gel('acessos-ultimo');if(u)u.textContent='Carregando...';
+  chamarGS('acessos',{},function(d){
+    if(!d||!d.ok||!d.acessos){if(u)u.textContent='Nao foi possivel carregar os acessos.';return;}
+    rAcessos(d.acessos);
+  });
+}
+function rAcessos(lista){
+  function escA(s){return String(s==null?'':s).replace(/[&<>]/g,function(c){return c==='&'?'&amp;':c==='<'?'&lt;':'&gt;';});}
+  var ult=gel('acessos-ultimo'),box=gel('acessos-lista');
+  if(!ult||!box)return;
+  if(!lista.length){ult.textContent='Nenhum acesso registrado ainda.';box.innerHTML='';return;}
+  var u=lista[0];
+  ult.innerHTML='Ultimo acesso: <b>'+escA(u.DataHora||u.dataHora||'')+'</b> ('+escA(u.Quem||u.quem||'')+')';
+  var h='';
+  lista.slice(0,20).forEach(function(a){
+    h+='<div style="display:flex;justify-content:space-between;padding:7px 0;border-top:1px solid #e0e7e0;font-size:12px">'
+      +'<span>'+escA(a.DataHora||a.dataHora||'')+'</span>'
+      +'<span style="color:#65766a">'+escA(a.Quem||a.quem||'')+'</span></div>';
+  });
+  box.innerHTML=h;
+}
 function chamarGS(acao,params,cb){
   if(!S.cfgGS)return;
   var cbN='_gcb_'+Date.now()+'_'+Math.random().toString(36).slice(2);

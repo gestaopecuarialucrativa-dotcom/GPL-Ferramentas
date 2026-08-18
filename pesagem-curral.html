@@ -682,7 +682,7 @@ const HDR_ROW = 13;
 const DATA_ROW = 14;
 const AR_DIV = 30;
 const UA_DIV = 450;
-const N_LOTES = 14;   // 1-10 numéricos + 11 Vaca, 12 Reprodutor, 13 Bezerro mamando, 14 Compra
+const N_LOTES = 15;   // 1-10 numéricos + 11 Vaca, 12 Reprodutor, 13 Bezerro mamando, 14 Enfermaria, 15 Compra
 const FAZENDA_URL_DEFAULT = "https://script.google.com/macros/s/AKfycbwc2lHSKdDzTsXxd-77mpxh0khrRNSB4BWt1XODEe7cOPq0h1sxkT4L5rc6TNgHdiZrMA/exec";
 
 let state = {
@@ -989,7 +989,7 @@ function _vendidoPorBase(base){
   for(var i=0;i<vals.length;i++){ if(vals[i].base===base) return vals[i]; }
   return null;
 }
-const LOTES_NOME = {"11":"Vaca","12":"Reprodutor","13":"Bezerro mamando","14":"Compra"};
+const LOTES_NOME = {"11":"Vaca","12":"Reprodutor","13":"Bezerro mamando","14":"Enfermaria","15":"Compra"};
 function loteLabel(n){
   if(n===''||n==null) return "Lote ?";
   return LOTES_NOME[String(n)] || ("Lote "+n);
@@ -2218,8 +2218,8 @@ function buildAOA(){
   A[2][4]="Data:"; A[2][5]=isoToBR(state.data); A[2][6]="Responsável:"; A[2][7]=state.responsavel||"";
   A[3][0]="RESUMO AUTOMÁTICO POR LOTE  —  atualiza conforme você digita";
   A[4][0]='LOTE';
-  for(var i=1;i<=14;i++) A[4][i]=LOTES_NOME[String(i)]?'LOTE '+LOTES_NOME[String(i)]:'LOTE '+i;   // nomes nos lotes especiais
-  A[4][15]='TOTAL\nGERAL';
+  for(var i=1;i<=15;i++) A[4][i]=LOTES_NOME[String(i)]?'LOTE '+LOTES_NOME[String(i)]:'LOTE '+i;
+  A[4][16]='TOTAL\nGERAL';
   A[5][0]="Qtd Animais"; A[6][0]="Peso Total (kg)"; A[7][0]="Média Peso (kg)";
   A[8][0]="Média Arrobas (@)"; A[9][0]="UA  (÷ 450)"; A[10][0]="% do Total";
   A[11][0]="  PREENCHA:  A = Nº Animal / Brinco   |   B = Peso (kg)   |   C = Nº do Lote (1, 2, 3...)   |   D = Observação";

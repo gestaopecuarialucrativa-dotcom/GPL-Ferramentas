@@ -146,8 +146,8 @@ table.venda tr.total td{border-top:2px solid var(--v2); font-weight:800; color:v
 <script>
 "use strict";
 const AR_DIV=30, UA_DIV=450, N_LOTES=10;
-const LOTES_NOME={11:"Vaca",12:"Reprodutor",13:"Bezerro mamando",14:"Compra"};
-const CATEG_LOTES=[11,12,13,14];   // não são engorda/abate
+const LOTES_NOME={11:"Vaca",12:"Reprodutor",13:"Bezerro mamando",14:"Enfermaria",15:"Compra"};
+const CATEG_LOTES=[11,12,13,14,15];   // não são engorda/abate
 function isEngorda(L){ return CATEG_LOTES.indexOf(Number(L))<0; }
 function loteLabel(L){ return LOTES_NOME[Number(L)] || ("Lote "+L); }
 function loteTag(L){ return LOTES_NOME[Number(L)] || ("L"+L); }

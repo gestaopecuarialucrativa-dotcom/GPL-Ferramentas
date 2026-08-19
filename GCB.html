@@ -836,8 +836,11 @@ function rHome(){
   var receb=vF.reduce(function(a,r){return a+(r.recebidoLiq||0);},0);
   var cabC=cF.reduce(function(a,r){return a+r.cab;},0);
   var cabV=vF.reduce(function(a,r){return a+r.cab;},0);
-  var cPC=cabC>0?invest/cabC:0;
-  var lucro=receb-(cPC*cabV);
+  // Custo Medio Ponderado Movel: usa historico completo como base do custo de saida
+  var totalInvestHist=S.compras.reduce(function(a,r){return a+(r.custoTotal||0);},0);
+  var totalCabHist=S.compras.reduce(function(a,r){return a+r.cab;},0);
+  var cpcMedio=totalCabHist>0?totalInvestHist/totalCabHist:0;
+  var lucro=receb-(cpcMedio*cabV);
   var margem=receb>0?(lucro/receb*100).toFixed(1):null;
   gel('d-invest').textContent=R$(invest);gel('d-invest-s').textContent=cF.length+' compra'+(cF.length!==1?'s':'');
   gel('d-receb').textContent=R$(receb);gel('d-receb-s').textContent=vF.length+' venda'+(vF.length!==1?'s':'');
@@ -995,8 +998,11 @@ function relResumo(cF,vF,ps){
   var receb=vF.reduce(function(a,r){return a+(r.recebidoLiq||0);},0);
   var cabC=cF.reduce(function(a,r){return a+r.cab;},0);
   var cabV=vF.reduce(function(a,r){return a+r.cab;},0);
-  var cPC=cabC>0?invest/cabC:0;
-  var lucro=receb-(cPC*cabV);
+  // Custo Medio Ponderado Movel: usa historico completo
+  var totalInvestHist=S.compras.reduce(function(a,r){return a+(r.custoTotal||0);},0);
+  var totalCabHist=S.compras.reduce(function(a,r){return a+r.cab;},0);
+  var cpcMedio=totalCabHist>0?totalInvestHist/totalCabHist:0;
+  var lucro=receb-(cpcMedio*cabV);
   var margem=receb>0?(lucro/receb*100).toFixed(1):'—';
   var corpo='<div class="box">'
     +'<div class="box-r"><span>Total investido (compras)</span><span class="neg" style="font-weight:800">'+R$(invest)+'</span></div>'

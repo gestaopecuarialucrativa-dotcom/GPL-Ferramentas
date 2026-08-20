@@ -71,12 +71,14 @@ input[readonly]{background:#f5f5f5;color:#65766a}
 .pill-roxo{background:#f3e5f5;color:#6A1B9A;border:1px solid #ce93d8}
 
 /* DASH */
-.dash-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px}
-.dash-card{background:#fff;border:0.5px solid #e0e7e0;border-radius:12px;padding:10px 12px}
-.dc-hd{display:flex;align-items:center;gap:6px;margin-bottom:2px}
-.dc-l{font-size:10px;color:#65766a;font-weight:500}
-.dc-v{font-size:16px;font-weight:800;color:#1a2c1a}
-.dc-s{font-size:10px;color:#a0aaa0;margin-top:1px}
+.dash-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+.dash-card{background:#fff;border:1px solid #e0e7e0;border-radius:14px;padding:14px;text-align:center}
+.dash-card.destaque{background:linear-gradient(135deg,#1B5E20,#2E7D32);border-color:#1B5E20}
+.dash-card.destaque .dc-l{color:rgba(255,255,255,.8)}
+.dash-card.destaque .dc-v{color:#fff}
+.dc-l{font-size:11px;color:#65766a;font-weight:700;margin-bottom:4px}
+.dc-v{font-size:18px;font-weight:900;color:#1B5E20}
+.dc-s{font-size:11px;color:#65766a;margin-top:2px}
 
 /* LISTA NEGÓCIOS */
 .neg-row{display:flex;align-items:flex-start;justify-content:space-between;padding:11px 0;border-bottom:1px solid #eef2ec}
@@ -248,37 +250,28 @@ input[readonly]{background:#f5f5f5;color:#65766a}
   </div>
   <div class="dash-grid">
     <div class="dash-card">
-      <div class="dc-hd"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#65766a" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l2 3 4-8 2 5h6"/></svg><span class="dc-l">Investido</span></div>
+      <div class="dc-l">Investido</div>
       <div class="dc-v" id="d-invest">R$ 0</div>
       <div class="dc-s" id="d-invest-s">0 compras</div>
     </div>
     <div class="dash-card">
-      <div class="dc-hd"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#2E7D32" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M8 11l4 4 4-4"/><path d="M5 20h14"/></svg><span class="dc-l">Recebido</span></div>
-      <div class="dc-v" id="d-receb" style="color:#1B5E20">R$ 0</div>
+      <div class="dc-l">Recebido</div>
+      <div class="dc-v" id="d-receb">R$ 0</div>
       <div class="dc-s" id="d-receb-s">0 vendas</div>
     </div>
-    <div class="dash-card">
-      <div class="dc-hd"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#2E7D32" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 18l5-6 4 3 6-8"/><path d="M15 7h4v4"/></svg><span class="dc-l">Lucro líquido</span></div>
-      <div class="dc-v" id="d-lucro" style="color:#1B5E20">R$ 0</div>
+    <div class="dash-card destaque" style="grid-column:1/-1">
+      <div class="dc-l">Lucro líquido</div>
+      <div class="dc-v" id="d-lucro">R$ 0</div>
       <div class="dc-s" id="d-margem">Margem: —</div>
-    </div>
-    <div class="dash-card">
-      <div class="dc-hd"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#FF6F00" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 6c-1 .3-1.6 1.3-1 2.2M19 6c1 .3 1.6 1.3 1 2.2"/><path d="M6.5 8.2C5.9 10 6 12 7.2 13.5c1.1 1.4 2.8 2.1 4.8 2.1s3.7-.7 4.8-2.1c1.2-1.5 1.2-3.5.5-5.3"/><path d="M9 13.6c.3 1.2 1.5 2.1 3 2.1s2.7-.9 3-2.1"/><circle cx="10" cy="11" r=".6" fill="#FF6F00" stroke="none"/><circle cx="14" cy="11" r=".6" fill="#FF6F00" stroke="none"/></svg><span class="dc-l">Estoque</span></div>
-      <div class="dc-v" id="d-emao-kpi" style="color:#1B5E20">0 cab.</div>
-      <div class="dc-s">em mão</div>
     </div>
   </div>
   <div class="card">
     <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
-      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#1B5E20" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 6c-1 .3-1.6 1.3-1 2.2M19 6c1 .3 1.6 1.3 1 2.2"/><path d="M6.5 8.2C5.9 10 6 12 7.2 13.5c1.1 1.4 2.8 2.1 4.8 2.1s3.7-.7 4.8-2.1c1.2-1.5 1.2-3.5.5-5.3"/><path d="M9 13.6c.3 1.2 1.5 2.1 3 2.1s2.7-.9 3-2.1"/><circle cx="10" cy="11" r=".6" fill="#1B5E20" stroke="none"/><circle cx="14" cy="11" r=".6" fill="#1B5E20" stroke="none"/></svg>
-      <span style="font-size:13px;font-weight:800;color:#1B5E20">Estoque</span>
-      <span class="pill pill-verde" id="d-emao-pill">0 cab.</span>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2E7D32" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+      <span style="font-size:13px;font-weight:800;color:#1B5E20">Gado em mão</span>
+      <span class="pill pill-laranja" id="d-emao-pill">0 cab.</span>
     </div>
     <div id="d-emao-lista"></div>
-    <button class="xbtn" style="margin-top:10px;border-color:#FF6F00;color:#E65100;display:flex;align-items:center;justify-content:center;gap:6px" onclick="abrirModalMorte()">
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#E65100" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-      Registrar baixa por morte
-    </button>
   </div>
   <div class="card">
     <div style="font-size:13px;font-weight:800;color:#1B5E20;margin-bottom:10px;display:flex;align-items:center;gap:6px">
@@ -541,46 +534,6 @@ input[readonly]{background:#f5f5f5;color:#65766a}
 </div>
 </div>
 
-<!-- MODAL MORTE -->
-<div class="modal" id="modal-morte">
-<div class="modal-box">
-  <div class="modal-handle"></div>
-  <div class="modal-tit">
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#E65100" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-    Registrar baixa por morte
-    <span class="modal-close" onclick="fecharModal('modal-morte')">&times;</span>
-  </div>
-  <div class="fg"><div class="lbl">Data</div><input type="date" id="m-data"></div>
-  <div class="fg">
-    <div class="lbl">De qual compra (lote)</div>
-    <select id="m-compra" onchange="calcMorte()">
-      <option value="">Selecione a compra...</option>
-    </select>
-  </div>
-  <div style="background:#fff3e0;border-radius:10px;padding:10px 12px;margin-bottom:12px;font-size:12px;color:#65766a" id="m-info-lote" style="display:none">—</div>
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">
-    <div>
-      <div class="lbl">Nº de cabeças</div>
-      <input type="number" id="m-cab" placeholder="0" min="1" step="1" oninput="calcMorte()">
-    </div>
-    <div>
-      <div class="lbl">Valor/cabeça (R$)</div>
-      <input type="number" id="m-vpc" placeholder="auto" step="0.01" oninput="calcMorte()">
-    </div>
-  </div>
-  <div class="fg"><div class="lbl">Motivo (opcional)</div><input type="text" id="m-motivo" placeholder="acidente, doença..."></div>
-  <div style="background:#fff3e0;border:1px solid #FFB300;border-radius:10px;padding:12px;display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
-    <span style="font-size:12px;color:#65766a">Prejuízo calculado</span>
-    <span style="font-size:18px;font-weight:900;color:#E65100" id="m-prejuizo">R$ 0,00</span>
-  </div>
-  <button class="sbtn" style="background:#E65100" onclick="salvarMorte()">
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-    Confirmar baixa
-  </button>
-  <button class="xbtn" onclick="fecharModal('modal-morte')" style="margin-top:6px">Cancelar</button>
-</div>
-</div>
-
 <!-- MODAL DETALHE -->
 <div class="modal" id="modal-det">
 <div class="modal-box">
@@ -626,13 +579,12 @@ var S = {
   compras: [],
   vendas: [],
   pessoas: [],
-  mortes: [],
   isConsultor: false
 };
 
 /* ── Utils ── */
-function salvarLocal(){try{var d=JSON.parse(localStorage.getItem(STORE)||'{}');Object.assign(d,{pin:S.pin,pinConsultor:S.pinConsultor,cfgGS:S.cfgGS,cfgNome:S.cfgNome,compras:S.compras,vendas:S.vendas,pessoas:S.pessoas,mortes:S.mortes});localStorage.setItem(STORE,JSON.stringify(d));}catch(e){}}
-function carregarLocal(){try{var d=JSON.parse(localStorage.getItem(STORE)||'{}');if(d.pin)S.pin=d.pin;if(d.pinConsultor)S.pinConsultor=d.pinConsultor;if(d.cfgGS)S.cfgGS=d.cfgGS;if(d.cfgNome)S.cfgNome=d.cfgNome;if(d.compras)S.compras=d.compras;if(d.vendas)S.vendas=d.vendas;if(d.pessoas)S.pessoas=d.pessoas;if(d.mortes)S.mortes=d.mortes;}catch(e){}}
+function salvarLocal(){try{var d=JSON.parse(localStorage.getItem(STORE)||'{}');Object.assign(d,{pin:S.pin,pinConsultor:S.pinConsultor,cfgGS:S.cfgGS,cfgNome:S.cfgNome,compras:S.compras,vendas:S.vendas,pessoas:S.pessoas});localStorage.setItem(STORE,JSON.stringify(d));}catch(e){}}
+function carregarLocal(){try{var d=JSON.parse(localStorage.getItem(STORE)||'{}');if(d.pin)S.pin=d.pin;if(d.pinConsultor)S.pinConsultor=d.pinConsultor;if(d.cfgGS)S.cfgGS=d.cfgGS;if(d.cfgNome)S.cfgNome=d.cfgNome;if(d.compras)S.compras=d.compras;if(d.vendas)S.vendas=d.vendas;if(d.pessoas)S.pessoas=d.pessoas;}catch(e){}}
 function R$(v){return'R$ '+(v||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});}
 function fmtD(iso){if(!iso)return'—';var p=String(iso).split('-');return p[2]+'/'+p[1]+'/'+p[0];}
 function n(id){return parseFloat(document.getElementById(id).value)||0;}
@@ -839,43 +791,19 @@ function rHome(){
   var receb=vF.reduce(function(a,r){return a+(r.recebidoLiq||0);},0);
   var cabC=cF.reduce(function(a,r){return a+r.cab;},0);
   var cabV=vF.reduce(function(a,r){return a+r.cab;},0);
-  // Custo Medio Ponderado Movel: usa historico completo como base do custo de saida
-  var totalInvestHist=S.compras.reduce(function(a,r){return a+(r.custoTotal||0);},0);
-  var totalCabHist=S.compras.reduce(function(a,r){return a+r.cab;},0);
-  var cpcMedio=totalCabHist>0?totalInvestHist/totalCabHist:0;
-  var lucro=receb-(cpcMedio*cabV);
+  var cPC=cabC>0?invest/cabC:0;
+  var lucro=receb-(cPC*cabV);
   var margem=receb>0?(lucro/receb*100).toFixed(1):null;
   gel('d-invest').textContent=R$(invest);gel('d-invest-s').textContent=cF.length+' compra'+(cF.length!==1?'s':'');
   gel('d-receb').textContent=R$(receb);gel('d-receb-s').textContent=vF.length+' venda'+(vF.length!==1?'s':'');
   gel('d-lucro').textContent=R$(lucro);gel('d-margem').textContent=margem?'Margem: '+margem+'%':'Margem: —';
-  // Gado em mão (descontando mortes)
+  // Gado em mão
   var totC=S.compras.reduce(function(a,r){return a+r.cab;},0);
   var totV=S.vendas.reduce(function(a,r){return a+r.cab;},0);
-  var totM=S.mortes.reduce(function(a,r){return a+(r.cab||0);},0);
-  var emMao=Math.max(0,totC-totV-totM);
+  var emMao=Math.max(0,totC-totV);
   gel('d-emao-pill').textContent=emMao+' cab.';
-  gel('d-emao-kpi').textContent=emMao+' cab.';
-  if(totC>0){
-    var html='';
-    S.compras.slice(0,5).forEach(function(c){
-      var mortesLote=S.mortes.filter(function(m){return m.compraId===c.id;}).reduce(function(a,m){return a+(m.cab||0);},0);
-      var vendLote=Math.min(c.cab,totV);totV=Math.max(0,totV-c.cab);
-      var saldo=Math.max(0,c.cab-vendLote-mortesLote);
-      var cpc=c.cab>0?c.custoTotal/c.cab:0;
-      var infoMorte=mortesLote>0?'<span style="color:#E65100;font-size:11px"> · '+mortesLote+' mort'+((mortesLote>1)?'es':'e')+'</span>':'';
-      var diasNaFazenda=Math.floor((new Date()-new Date(c.dt+'T00:00:00'))/(1000*60*60*24));
-      var corDias=diasNaFazenda>30?'#E65100':'#1B5E20';
-      var sombraDias=diasNaFazenda>30?'0 2px 5px rgba(230,81,0,.3)':'0 2px 5px rgba(27,94,32,.22)';
-      var alertaDias=diasNaFazenda>30?'<span style="font-size:10px;background:#fff3e0;color:#b34e00;padding:2px 7px;border-radius:8px;font-weight:700;margin-left:4px">⚠ parado</span>':'';
-      var infoDiasRow='<div style="display:flex;align-items:center;gap:8px;border-top:1px solid #eef2ec;padding-top:8px;margin-top:6px">'
-        +'<div style="background:'+corDias+';color:#fff;border-radius:8px;padding:5px 13px;font-size:13px;font-weight:800;box-shadow:'+sombraDias+'">'+diasNaFazenda+' dia'+(diasNaFazenda!==1?'s':'')+'</div>'
-        +'<span style="font-size:11px;color:#65766a">na fazenda</span>'
-        +alertaDias+'</div>';
-      html+='<div class="neg-row" style="flex-direction:column;align-items:stretch"><div style="display:flex;align-items:flex-start;justify-content:space-between"><div><div class="neg-l">'+(c.forn||'—')+'</div>'
-        +'<div class="neg-s">'+fmtD(c.dt)+' · '+R$(c.custoTotal)+' · '+R$(cpc)+'/cab'+infoMorte+'</div></div>'
-        +(saldo>0?'<div class="pill pill-laranja">'+saldo+' cab.</div>':'<div class="pill pill-verde">vendido</div>')
-        +'</div>'+infoDiasRow+'</div>';
-    });
+  if(emMao>0){
+    var html='';S.compras.slice(0,5).forEach(function(r){html+='<div class="neg-row"><div><div class="neg-l">'+(r.forn||'—')+'</div><div class="neg-s">'+fmtD(r.dt)+' · '+r.cab+' cab. · custo '+R$(r.custoTotal)+'</div></div><div class="pill pill-laranja">'+r.cab+' cab.</div></div>';});
     gel('d-emao-lista').innerHTML=html;
   } else gel('d-emao-lista').innerHTML=emptyHtml('Nenhum gado em mão','');
   // Últimas
@@ -886,8 +814,7 @@ function rHome(){
   if(!ult.length){gel('d-ultimas').innerHTML=emptyHtml('Sem movimentações','');return;}
   gel('d-ultimas').innerHTML=ult.map(function(r){
     var isV=r.tipo==='V';
-    var pillStyle=isV?'class="pill pill-verde" style="font-size:10px"':'style="font-size:10px;background:#eef1f4;color:#5a6b7a;border-radius:20px;padding:2px 8px;font-weight:700"';
-    return'<div class="neg-row"><div><div style="display:flex;align-items:center;gap:5px"><span '+pillStyle+'>'+(isV?'Venda':'Compra')+'</span><span class="neg-l">'+r.label+'</span></div><div class="neg-s">'+fmtD(r.dt)+'</div></div><div class="neg-v" style="color:'+(isV?'#1B5E20':'#1a2c1a')+'">'+r.val+'</div></div>';
+    return'<div class="neg-row"><div><div style="display:flex;align-items:center;gap:5px"><span class="pill '+(isV?'pill-verde':'pill-laranja')+'" style="font-size:10px">'+(isV?'Venda':'Compra')+'</span><span class="neg-l">'+r.label+'</span></div><div class="neg-s">'+fmtD(r.dt)+'</div></div><div class="neg-v '+(isV?'':'neg')+'">'+r.val+'</div></div>';
   }).join('');
 }
 
@@ -1009,11 +936,8 @@ function relResumo(cF,vF,ps){
   var receb=vF.reduce(function(a,r){return a+(r.recebidoLiq||0);},0);
   var cabC=cF.reduce(function(a,r){return a+r.cab;},0);
   var cabV=vF.reduce(function(a,r){return a+r.cab;},0);
-  // Custo Medio Ponderado Movel: usa historico completo
-  var totalInvestHist=S.compras.reduce(function(a,r){return a+(r.custoTotal||0);},0);
-  var totalCabHist=S.compras.reduce(function(a,r){return a+r.cab;},0);
-  var cpcMedio=totalCabHist>0?totalInvestHist/totalCabHist:0;
-  var lucro=receb-(cpcMedio*cabV);
+  var cPC=cabC>0?invest/cabC:0;
+  var lucro=receb-(cPC*cabV);
   var margem=receb>0?(lucro/receb*100).toFixed(1):'—';
   var corpo='<div class="box">'
     +'<div class="box-r"><span>Total investido (compras)</span><span class="neg" style="font-weight:800">'+R$(invest)+'</span></div>'
@@ -1098,80 +1022,6 @@ function relFluxo(cF,vF,ps){
 }
 
 /* ── Nuvem ── */
-/* ── Mortalidade ── */
-function abrirModalMorte(){
-  v('m-data',TD);
-  gel('m-cab').value='';
-  gel('m-motivo').value='';
-  gel('m-prejuizo').textContent='R$ 0,00';
-  gel('m-info-lote').textContent='—';
-  // Popula select com compras que têm saldo em mão
-  var sel=gel('m-compra');
-  sel.innerHTML='<option value="">Selecione a compra...</option>';
-  var vendR=S.vendas.reduce(function(a,r){return a+(r.cab||0);},0);
-  S.compras.forEach(function(c){
-    var mortesLote=S.mortes.filter(function(m){return m.compraId===c.id;}).reduce(function(a,m){return a+(m.cab||0);},0);
-    var consumido=Math.min(c.cab,vendR);vendR=Math.max(0,vendR-c.cab);
-    var saldo=Math.max(0,c.cab-consumido-mortesLote);
-    if(saldo>0){
-      var cpc=c.cab>0?(c.custoTotal/c.cab):0;
-      var opt=document.createElement('option');
-      opt.value=c.id;
-      opt.textContent=(c.forn||'—')+' · '+fmtD(c.dt)+' · '+saldo+' cab. · '+R$(cpc)+'/cab';
-      opt.dataset.cpc=cpc.toFixed(2);
-      opt.dataset.saldo=saldo;
-      sel.appendChild(opt);
-    }
-  });
-  calcMorte();
-  abrirModal('modal-morte');
-}
-function calcMorte(){
-  var sel=gel('m-compra');
-  var opt=sel.options[sel.selectedIndex];
-  var cpc=opt&&opt.dataset.cpc?parseFloat(opt.dataset.cpc):0;
-  var saldo=opt&&opt.dataset.saldo?parseInt(opt.dataset.saldo):0;
-  if(cpc>0&&saldo>0){
-    gel('m-info-lote').textContent='Custo/cabeça: '+R$(cpc)+' · Saldo disponível: '+saldo+' cab.';
-  } else {
-    gel('m-info-lote').textContent='—';
-  }
-  // Se campo vpc estiver vazio, pré-preenche com cpc do lote
-  var vpcEl=gel('m-vpc');
-  if(cpc>0&&!vpcEl.value) vpcEl.placeholder=cpc.toFixed(2);
-  var vpc=parseFloat(vpcEl.value)||cpc;
-  var cab=parseInt(gel('m-cab').value)||0;
-  var prej=vpc*cab;
-  gel('m-prejuizo').textContent=R$(prej);
-}
-function salvarMorte(){
-  var sel=gel('m-compra');
-  var compraId=parseInt(sel.value);
-  var cab=parseInt(gel('m-cab').value)||0;
-  var dt=gel('m-data').value||TD;
-  var motivo=gel('m-motivo').value.trim();
-  if(!compraId){toast('Selecione a compra');return;}
-  if(cab<1){toast('Informe o nº de cabeças');return;}
-  var opt=sel.options[sel.selectedIndex];
-  var cpc=opt&&opt.dataset.cpc?parseFloat(opt.dataset.cpc):0;
-  var saldo=opt&&opt.dataset.saldo?parseInt(opt.dataset.saldo):0;
-  if(cab>saldo){toast('Mais cabeças do que o saldo do lote ('+saldo+')');return;}
-  var vpcEl=gel('m-vpc');
-  var vpc=parseFloat(vpcEl.value)||cpc;
-  var prej=vpc*cab;
-  var reg={id:Date.now(),compraId:compraId,dt:dt,cab:cab,vpc:vpc,prejuizo:prej,motivo:motivo};
-  S.mortes.unshift(reg);
-  salvarLocal();
-  // Sincroniza com a planilha
-  var dados=encodeURIComponent(JSON.stringify({tipo:'morte',reg:reg}));
-  chamarGS('salvar',{data:dados},function(r){
-    gel('sync-dot').className=r&&r.ok?'sdot on':'sdot off';
-  });
-  fecharModal('modal-morte');
-  rHome();
-  toast('Baixa por morte registrada — prejuízo '+R$(prej));
-}
-
 function registrarAcesso(){
   if(!S.cfgGS)return;
   var reg={dataHora:new Date().toLocaleString('pt-BR'),quem:S.isConsultor?'consultor':'cliente'};
@@ -1249,7 +1099,7 @@ function syncNuvem(cb){
       return;
     }
     // Planilha é a fonte da verdade — substitui tudo
-    S.compras=[];S.vendas=[];S.pessoas=[];S.mortes=[];
+    S.compras=[];S.vendas=[];S.pessoas=[];
     if(d.compras&&d.compras.length){
       S.compras=d.compras.map(function(r){return{
         id:Number(r.ID||r.id),
@@ -1290,17 +1140,6 @@ function syncNuvem(cb){
         cidade:r.Cidade||r.cidade||''
       };});
     }
-    if(d.mortes&&d.mortes.length){
-      S.mortes=d.mortes.map(function(r){return{
-        id:Number(r.ID||r.id)||0,
-        compraId:Number(r.CompraId||r.compraId)||0,
-        dt:String(r.Data||r.dt||'').split('T')[0],
-        cab:Number(r['Cabeças']||r.cab)||0,
-        vpc:Number(r.ValorPorCab||r.vpc)||0,
-        prejuizo:Number(r.Prejuizo||r.prejuizo)||0,
-        motivo:r.Motivo||r.motivo||''
-      };});
-    }
     if(d.config){
       if(d.config.pinCliente)S.pin=String(d.config.pinCliente);
       if(d.config.pinConsultor)S.pinConsultor=String(d.config.pinConsultor);
@@ -1317,7 +1156,7 @@ function syncNuvem(cb){
 
 /* ── Boot ── */
 carregarLocal();
-['modal-compra','modal-venda','modal-det','modal-morte'].forEach(function(mid){
+['modal-compra','modal-venda','modal-det'].forEach(function(mid){
   var el=gel(mid);if(el)el.addEventListener('click',function(e){if(e.target===el)fecharModal(mid);});
 });
 var fc=gel('fab-c');if(fc)fc.classList.add('vis');

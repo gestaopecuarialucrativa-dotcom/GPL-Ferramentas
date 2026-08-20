@@ -42,6 +42,48 @@ tr.zero{opacity:.5}
   .print-brand .pb-frase{font-style:italic;color:#2E7D32;font-weight:600;font-size:12px;margin-top:4px}
   .print-foot{margin-top:14px;border-top:1px solid #cfe0cf;padding-top:6px;text-align:center;font-size:10px;color:#5f6b60}
 }
+
+
+/* === IMPORTAÇÃO EXCEL === */
+.import-drop{border:2px dashed var(--v3);border-radius:12px;padding:24px;text-align:center;cursor:pointer;transition:background .2s;margin-bottom:10px}
+.import-drop:hover,.import-drop.drag{background:var(--v7);border-color:var(--v2)}
+.import-drop svg{display:block;margin:0 auto 8px}
+.import-drop p{margin:0;font-size:13px;color:var(--muted);font-weight:600}
+.import-drop input[type=file]{display:none}
+#tabelaImport{width:100%;border-collapse:collapse;font-size:13px;margin-top:10px}
+#tabelaImport th{font-size:11px;color:var(--muted);text-transform:uppercase;font-weight:700;padding:6px 8px;border-bottom:2px solid var(--v2);text-align:left}
+#tabelaImport td{padding:6px 8px;border-bottom:1px solid var(--line)}
+#tabelaImport td:nth-child(2),#tabelaImport td:nth-child(3){text-align:right}
+#tabelaImport select{padding:5px 6px;border:1px solid var(--line);border-radius:7px;font-family:inherit;font-size:12px;font-weight:700;width:100%;background:#fff}
+.lote-avulso-tag{display:inline-block;background:#fff3e0;color:#E65100;border-radius:6px;padding:2px 8px;font-size:11px;font-weight:800}
+.import-ok{color:var(--v2);font-weight:800;font-size:13px;margin-top:8px}
+
+/* === CALCULADORA LOTE AVULSO === */
+.tabs{display:flex;gap:0;margin-bottom:0;border-radius:10px 10px 0 0;overflow:hidden}
+.tab-btn{flex:1;padding:10px 8px;background:#e8f0e8;border:none;font-family:inherit;font-size:13px;font-weight:700;color:var(--v1);cursor:pointer;border-bottom:3px solid transparent}
+.tab-btn.ativo{background:#fff;border-bottom:3px solid var(--v2);color:var(--v2)}
+.tab-panel{display:none}.tab-panel.ativo{display:block}
+.planilha-avulsa{width:100%;border-collapse:collapse;font-size:13px}
+.planilha-avulsa th{font-size:11px;color:var(--muted);text-transform:uppercase;font-weight:700;padding:6px 6px;border-bottom:2px solid var(--v2);text-align:left}
+.planilha-avulsa td{padding:3px 4px;border-bottom:1px solid var(--line)}
+.planilha-avulsa td input{width:100%;padding:5px 6px;border:1px solid var(--line);border-radius:6px;font-family:inherit;font-size:13px;font-weight:600}
+.planilha-avulsa td.col-animal input{width:90px}
+.planilha-avulsa td.col-peso input{width:80px;text-align:right}
+.planilha-avulsa td.col-sexo{text-align:center}
+.planilha-avulsa td.col-sexo label{display:inline-flex;align-items:center;gap:3px;font-size:12px;font-weight:600;cursor:pointer;padding:4px 6px;border-radius:6px;border:1px solid var(--line);margin:0 2px}
+.planilha-avulsa td.col-sexo label.m-sel{background:#e3f2fd;border-color:#1976D2;color:#1976D2}
+.planilha-avulsa td.col-sexo label.f-sel{background:#fce4ec;border-color:#C2185B;color:#C2185B}
+.planilha-avulsa td.col-del{text-align:center}
+.planilha-avulsa td.col-del button{background:none;border:none;color:#ccc;font-size:16px;cursor:pointer;padding:2px 6px;border-radius:4px}
+.planilha-avulsa td.col-del button:hover{color:#e53935;background:#ffeaea}
+.resumo-avulso{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
+.resumo-box{flex:1;min-width:120px;background:var(--v7);border-radius:10px;padding:10px 12px;text-align:center}
+.resumo-box .rb-label{font-size:10px;color:var(--muted);font-weight:700;text-transform:uppercase}
+.resumo-box .rb-val{font-size:22px;font-weight:800;color:var(--v1)}
+.resumo-box .rb-sub{font-size:11px;color:var(--muted)}
+.resumo-box.macho{background:#e3f2fd}.resumo-box.macho .rb-val{color:#1565C0}
+.resumo-box.femea{background:#fce4ec}.resumo-box.femea .rb-val{color:#880E4F}
+
 </style>
 </head>
 <body>
@@ -89,6 +131,79 @@ tr.zero{opacity:.5}
     <div class="hint">Digite no Inttegra a <b>Qtd</b> e o <b>Peso do mês</b> de cada categoria. A média ponderada e o total conferem com o sistema.</div>
     <div style="margin-top:12px" class="no-print">
       <button class="btn" onclick="window.print()">🖨 Gerar PDF</button>
+    </div>
+  </div>
+
+
+  <!-- ===== ABA CALCULADORA DE LOTE AVULSO ===== -->
+  <div class="card no-print" id="card-avulso">
+    <div class="tabs">
+      <button class="tab-btn ativo" onclick="trocarAba('efetivo')">📋 Efetivo do Mês</button>
+      <button class="tab-btn" onclick="trocarAba('avulso')">🧮 Calculadora de Lote</button>
+      <button class="tab-btn" onclick="trocarAba('import')">📥 Importar Excel</button>
+    </div>
+
+    <!-- Painel Efetivo (vazio aqui, conteúdo real já existe acima) -->
+    <div id="tab-efetivo" class="tab-panel ativo" style="padding-top:8px">
+      <div class="hint" style="text-align:center;color:var(--v2);font-weight:700">↑ Use os cards acima para preencher o efetivo do mês</div>
+    </div>
+
+    <!-- Painel Avulso -->
+    <div id="tab-avulso" class="tab-panel" style="padding-top:8px">
+      <h2 style="margin-bottom:6px">Calculadora de Lote Avulso</h2>
+      <div class="hint" style="margin-bottom:10px">Use para lotes especiais (Vaca, Reprodutor, Bezerro mamando, Enfermaria, Compra). Digite animal e peso — o resultado não entra no efetivo principal.</div>
+
+      <div style="overflow-x:auto">
+      <table class="planilha-avulsa" id="tabAvulsa">
+        <thead>
+          <tr>
+            <th style="width:100px">Nº Animal</th>
+            <th style="width:90px">Peso (kg)</th>
+            <th style="width:110px;text-align:center">Sexo</th>
+            <th style="width:30px"></th>
+          </tr>
+        </thead>
+        <tbody id="tbodyAvulso"></tbody>
+      </table>
+      </div>
+
+      <div style="margin-top:8px">
+        <button class="btn btn-ghost" onclick="addLinhaAvulso()" style="font-size:13px;padding:7px 14px">+ Adicionar linha</button>
+        <button class="btn btn-ghost" onclick="limparAvulso()" style="font-size:13px;padding:7px 14px;margin-left:8px;color:#999">Limpar tudo</button>
+      </div>
+
+      <div class="resumo-avulso" id="resumoAvulso">
+        <div class="resumo-box macho">
+          <div class="rb-label">♂ Machos</div>
+          <div class="rb-val" id="avQtdM">0</div>
+          <div class="rb-sub">animais</div>
+        </div>
+        <div class="resumo-box macho">
+          <div class="rb-label">♂ Média</div>
+          <div class="rb-val" id="avMedM">—</div>
+          <div class="rb-sub">kg/cab</div>
+        </div>
+        <div class="resumo-box femea">
+          <div class="rb-label">♀ Fêmeas</div>
+          <div class="rb-val" id="avQtdF">0</div>
+          <div class="rb-sub">animais</div>
+        </div>
+        <div class="resumo-box femea">
+          <div class="rb-label">♀ Média</div>
+          <div class="rb-val" id="avMedF">—</div>
+          <div class="rb-sub">kg/cab</div>
+        </div>
+        <div class="resumo-box">
+          <div class="rb-label">Total</div>
+          <div class="rb-val" id="avQtdT">0</div>
+          <div class="rb-sub">animais</div>
+        </div>
+        <div class="resumo-box">
+          <div class="rb-label">Média Geral</div>
+          <div class="rb-val" id="avMedT">—</div>
+          <div class="rb-sub">kg/cab</div>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -173,6 +288,323 @@ function initCatSelect(){
   document.getElementById("mes").value=mm+"/"+d.getFullYear();
   initCatSelect(); render();
 })();
+
+
+/* ===== CALCULADORA LOTE AVULSO ===== */
+var linhasAvulso = [];
+var idAvulso = 0;
+
+/* trocarAba movida para importação */
+
+function addLinhaAvulso(animal, peso, sexo) {
+  var id = ++idAvulso;
+  linhasAvulso.push({id:id, animal:animal||'', peso:peso||'', sexo:sexo||'M'});
+  renderAvulso();
+  // focar no novo campo animal
+  setTimeout(function(){
+    var inp = document.getElementById('av-a-'+id);
+    if(inp) inp.focus();
+  },50);
+}
+
+function delLinhaAvulso(id) {
+  linhasAvulso = linhasAvulso.filter(function(l){ return l.id !== id; });
+  renderAvulso();
+}
+
+function atualizarAvulso(id, campo, val) {
+  var l = linhasAvulso.find(function(x){ return x.id===id; });
+  if(!l) return;
+  l[campo] = val;
+  calcAvulso();
+}
+
+function renderAvulso() {
+  var tb = document.getElementById('tbodyAvulso');
+  tb.innerHTML = '';
+  linhasAvulso.forEach(function(l) {
+    var tr = document.createElement('tr');
+    tr.innerHTML =
+      '<td class="col-animal"><input id="av-a-'+l.id+'" value="'+esc(l.animal)+'" placeholder="Brinco/Nº" onchange="atualizarAvulso('+l.id+',\'animal\',this.value)"></td>' +
+      '<td class="col-peso"><input id="av-p-'+l.id+'" inputmode="decimal" value="'+esc(l.peso)+'" placeholder="0" '+
+        'onchange="atualizarAvulso('+l.id+',\'peso\',this.value)" '+
+        'onkeydown="avPesoKey(event,'+l.id+')"></td>' +
+      '<td class="col-sexo">' +
+        '<label id="lbM-'+l.id+'" class="'+(l.sexo==='M'?'m-sel':'')+'">'+
+          '<input type="radio" name="sx-'+l.id+'" value="M" '+(l.sexo==='M'?'checked':'')+' onchange="atualizarAvulso('+l.id+',\'sexo\',\'M\')"> M'+
+        '</label>'+
+        '<label id="lbF-'+l.id+'" class="'+(l.sexo==='F'?'f-sel':'')+'">'+
+          '<input type="radio" name="sx-'+l.id+'" value="F" '+(l.sexo==='F'?'checked':'')+' onchange="atualizarAvulso('+l.id+',\'sexo\',\'F\')"> F'+
+        '</label>'+
+      '</td>' +
+      '<td class="col-del"><button onclick="delLinhaAvulso('+l.id+')">✕</button></td>';
+    tb.appendChild(tr);
+  });
+  // estilizar labels de radio
+  linhasAvulso.forEach(function(l){
+    var lbM = document.getElementById('lbM-'+l.id);
+    var lbF = document.getElementById('lbF-'+l.id);
+    if(lbM) lbM.className = l.sexo==='M' ? 'm-sel' : '';
+    if(lbF) lbF.className = l.sexo==='F' ? 'f-sel' : '';
+  });
+  calcAvulso();
+}
+
+function avPesoKey(e, id) {
+  // Enter na coluna peso → adiciona nova linha
+  if(e.key === 'Enter') {
+    e.preventDefault();
+    addLinhaAvulso();
+  }
+}
+
+function calcAvulso() {
+  var machos = linhasAvulso.filter(function(l){ return l.sexo==='M' && num(l.peso)>0; });
+  var femeas = linhasAvulso.filter(function(l){ return l.sexo==='F' && num(l.peso)>0; });
+  var todos  = linhasAvulso.filter(function(l){ return num(l.peso)>0; });
+
+  var somaM = machos.reduce(function(s,l){ return s+num(l.peso); },0);
+  var somaF = femeas.reduce(function(s,l){ return s+num(l.peso); },0);
+  var somaT = todos.reduce(function(s,l){ return s+num(l.peso); },0);
+
+  document.getElementById('avQtdM').textContent = machos.length;
+  document.getElementById('avMedM').textContent = machos.length>0 ? br(somaM/machos.length,1) : '—';
+  document.getElementById('avQtdF').textContent = femeas.length;
+  document.getElementById('avMedF').textContent = femeas.length>0 ? br(somaF/femeas.length,1) : '—';
+  document.getElementById('avQtdT').textContent = todos.length;
+  document.getElementById('avMedT').textContent = todos.length>0  ? br(somaT/todos.length,1)  : '—';
+
+  // atualizar estilos dos radios após change
+  linhasAvulso.forEach(function(l){
+    var lbM = document.getElementById('lbM-'+l.id);
+    var lbF = document.getElementById('lbF-'+l.id);
+    if(lbM) lbM.className = l.sexo==='M' ? 'm-sel' : '';
+    if(lbF) lbF.className = l.sexo==='F' ? 'f-sel' : '';
+  });
+}
+
+function limparAvulso() {
+  if(linhasAvulso.length && !confirm('Limpar todas as linhas?')) return;
+  linhasAvulso = [];
+  idAvulso = 0;
+  renderAvulso();
+}
+
+// iniciar com 5 linhas vazias
+(function iniciarAvulso(){
+  for(var i=0;i<5;i++) addLinhaAvulso();
+})();
+
+
+/* ===== IMPORTAÇÃO EXCEL / CSV ===== */
+var importLotes = []; // [{lote, n, soma, media}]
+
+function trocarAba(aba) {
+  var abas = ['efetivo','avulso','import'];
+  abas.forEach(function(a, i) {
+    var btn = document.querySelectorAll('.tab-btn')[i];
+    var pan = document.getElementById('tab-'+a);
+    if(btn) btn.classList.toggle('ativo', a===aba);
+    if(pan) pan.classList.toggle('ativo', a===aba);
+  });
+}
+
+function importDrop(e) {
+  e.preventDefault();
+  document.getElementById('importDrop').classList.remove('drag');
+  var f = e.dataTransfer.files[0];
+  if(f) importArquivo(f);
+}
+
+function importArquivo(file) {
+  if(!file) return;
+  var ext = file.name.split('.').pop().toLowerCase();
+  if(ext === 'csv') {
+    var reader = new FileReader();
+    reader.onload = function(e){ parseCSV(e.target.result); };
+    reader.readAsText(file, 'UTF-8');
+  } else {
+    // xlsx/xls — usar SheetJS via CDN
+    if(typeof XLSX === 'undefined') {
+      var s = document.createElement('script');
+      s.src = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
+      s.onload = function(){ lerXLSX(file); };
+      document.head.appendChild(s);
+    } else {
+      lerXLSX(file);
+    }
+  }
+}
+
+function lerXLSX(file) {
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      var wb = XLSX.read(e.target.result, {type:'array'});
+      var ws = wb.Sheets[wb.SheetNames[0]];
+      var rows = XLSX.utils.sheet_to_json(ws, {header:1, defval:''});
+      processarLinhas(rows);
+    } catch(err) {
+      alert('Erro ao ler o arquivo: ' + err.message);
+    }
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+function parseCSV(txt) {
+  var linhas = txt.split(/\r?\n/).map(function(l){ return l.split(/[,;\t]/); });
+  processarLinhas(linhas);
+}
+
+function processarLinhas(rows) {
+  // Detectar cabeçalho: procurar linha com "peso" e "lote"
+  var headerIdx = -1;
+  var colPeso = -1, colLote = -1;
+  for(var r=0; r<Math.min(rows.length,15); r++) {
+    var row = rows[r].map(function(c){ return String(c).toLowerCase().trim(); });
+    var pi = row.findIndex(function(c){ return c.includes('peso'); });
+    var li = row.findIndex(function(c){ return c.includes('lote'); });
+    if(pi>=0 && li>=0) { headerIdx=r; colPeso=pi; colLote=li; break; }
+  }
+  if(headerIdx < 0) {
+    // tentar heurística: col 0=animal, col 1=peso, col 2=lote (padrão da planilha GPL)
+    // buscar primeira linha onde col1 e col2 são numéricos
+    for(var r=0; r<Math.min(rows.length,20); r++) {
+      var row = rows[r];
+      if(row.length >= 3 && !isNaN(parseFloat(row[1])) && !isNaN(parseFloat(row[2]))) {
+        headerIdx = r-1; colPeso=1; colLote=2; break;
+      }
+    }
+    if(headerIdx < 0) { alert('Não encontrei colunas de Peso e Lote. Verifique o arquivo.'); return; }
+  }
+
+  // Agregar por lote
+  var agg = {}; // lote -> {n, soma}
+  for(var r=headerIdx+1; r<rows.length; r++) {
+    var row = rows[r];
+    var p = parseFloat(String(row[colPeso]).replace(',','.'));
+    var l = parseInt(String(row[colLote]).replace(/[^0-9]/g,''));
+    if(isNaN(p) || isNaN(l) || p<=0) continue;
+    if(!agg[l]) agg[l] = {n:0, soma:0};
+    agg[l].n++;
+    agg[l].soma += p;
+  }
+
+  if(Object.keys(agg).length === 0) { alert('Nenhum dado encontrado. Verifique o arquivo.'); return; }
+
+  importLotes = Object.keys(agg).sort(function(a,b){return a-b;}).map(function(l){
+    return { lote: parseInt(l), n: agg[l].n, soma: agg[l].soma, media: agg[l].soma/agg[l].n };
+  });
+
+  renderImport();
+}
+
+function renderImport() {
+  var tb = document.getElementById('tbodyImport');
+  tb.innerHTML = '';
+  var AVULSO = [11,12,13,14,15];
+  var opcoesInttegra = CATS.map(function(c,i){ return {i:i, n:c.n}; });
+
+  importLotes.forEach(function(l) {
+    var tr = document.createElement('tr');
+    var isAv = AVULSO.indexOf(l.lote) >= 0;
+    var catCell = isAv
+      ? '<span class="lote-avulso-tag">→ Avulso</span>'
+      : '<select id="imp-sel-'+l.lote+'">' +
+          '<option value="">— Escolha —</option>' +
+          opcoesInttegra.map(function(op){
+            // sugestão automática por peso médio
+            var sug = sugerirCategoria(l.media, l.lote);
+            var sel = sug===op.i ? ' selected' : '';
+            return '<option value="'+op.i+'"'+sel+'>'+op.n+'</option>';
+          }).join('') +
+        '</select>';
+    tr.innerHTML =
+      '<td><b>Lote '+l.lote+'</b></td>' +
+      '<td>'+l.n+'</td>' +
+      '<td>'+br(l.media,1)+' kg</td>' +
+      '<td>'+catCell+'</td>';
+    tb.appendChild(tr);
+  });
+
+  document.getElementById('importResultado').style.display = 'block';
+  document.getElementById('importMsg').style.display = 'none';
+}
+
+function sugerirCategoria(media, lote) {
+  // sugestão por peso médio
+  for(var i=0;i<CATS.length;i++){
+    var n = CATS[i].n;
+    if(media >= 300 && n.includes('13 A 24')) return i;
+    if(media < 300 && media >= 150 && n.includes('ATÉ 12') && n.includes('MACHO')) return i;
+    if(media >= 380 && n.includes('MATRIZES')) return i;
+  }
+  return -1;
+}
+
+function aplicarImport() {
+  var AVULSO = [11,12,13,14,15];
+  var erros = [];
+  var aplicados = 0;
+
+  // Limpar linhas avulsas existentes antes de adicionar
+  var avulsosParaAdicionar = [];
+
+  importLotes.forEach(function(l) {
+    if(AVULSO.indexOf(l.lote) >= 0) {
+      // vai para avulso — registrar para adicionar depois
+      avulsosParaAdicionar.push(l);
+      return;
+    }
+    var sel = document.getElementById('imp-sel-'+l.lote);
+    if(!sel || sel.value === '') { erros.push('Lote '+l.lote+': escolha a categoria'); return; }
+    var idx = parseInt(sel.value);
+    var c = CATS[idx];
+    if(!c) return;
+    // mistura: se já tem animais na categoria, faz média ponderada
+    if(c.q > 0 && c.pm > 0) {
+      var totalKg = c.q * c.pm + l.soma;
+      var totalN  = c.q + l.n;
+      c.pm = totalKg / totalN;
+      c.q  = totalN;
+    } else {
+      c.q  = l.n;
+      c.pm = l.media;
+    }
+    c.medido = true;
+    aplicados++;
+  });
+
+  if(erros.length) { alert(erros.join('\n')); return; }
+
+  render();
+
+  // Adicionar avulsos na calculadora
+  if(avulsosParaAdicionar.length) {
+    avulsosParaAdicionar.forEach(function(l) {
+      // cada animal do lote avulso — adicionar como linhas individuais
+      // mas não temos os individuais aqui, só a média
+      // então adicionar uma linha representativa por lote
+      addLinhaAvulso('Lote '+l.lote+' ('+l.n+' cab)', br(l.media,1), 'M');
+    });
+  }
+
+  var msg = 'Aplicado: '+aplicados+' categoria(s) atualizada(s) no efetivo.';
+  if(avulsosParaAdicionar.length) msg += ' '+avulsosParaAdicionar.length+' lote(s) enviado(s) para Avulso.';
+  var el = document.getElementById('importMsg');
+  el.textContent = '✓ ' + msg;
+  el.style.display = 'block';
+
+  // Ir para aba efetivo após 1.5s
+  setTimeout(function(){ trocarAba('efetivo'); }, 1500);
+}
+
+function limparImport() {
+  importLotes = [];
+  document.getElementById('importResultado').style.display = 'none';
+  document.getElementById('importFile').value = '';
+}
+
 </script>
 </body>
 </html>

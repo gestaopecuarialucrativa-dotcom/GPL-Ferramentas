@@ -35,7 +35,8 @@ h1,h2,h3{line-height:1.15;font-weight:800}
 .eyebrow{display:inline-block;font-size:12px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:var(--green-l)}
 
 /* NAV */
-.nav{position:absolute;top:0;left:0;right:0;z-index:10}
+.nav{position:fixed;top:0;left:0;right:0;z-index:20;transition:background .25s,box-shadow .25s}
+.nav.scrolled{background:var(--green);box-shadow:0 2px 14px rgba(0,0,0,.18)}
 .nav .cont{display:flex;align-items:center;justify-content:space-between;padding-top:18px;padding-bottom:18px}
 .nav .logo{height:42px;width:auto;filter:brightness(0) invert(1)}
 .nav .acc{font-size:13px;font-weight:700;color:rgba(255,255,255,.85);text-decoration:none;border:1px solid rgba(255,255,255,.3);padding:9px 16px;border-radius:10px}
@@ -78,6 +79,7 @@ h1,h2,h3{line-height:1.15;font-weight:800}
 .step .n{width:42px;height:42px;border-radius:12px;background:var(--green);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:19px;margin-bottom:14px}
 .step h3{font-size:17px;margin-bottom:8px;color:var(--green2)}
 .step p{font-size:14px;color:var(--mut)}
+.center .steps{text-align:left}
 
 /* FERRAMENTAS */
 .ferr-wrap{display:grid;grid-template-columns:1.3fr 1fr;gap:26px;align-items:start}
@@ -143,8 +145,8 @@ h1,h2,h3{line-height:1.15;font-weight:800}
     <h1>Seu pasto produz arrobas ou <span class="g">esconde prejuízos?</span> Saiba exatamente o lucro do seu lote antes mesmo de abrir a porteira para a venda.</h1>
     <p class="sub">Consultoria estratégica baseada em dados e chancelada pela Metodologia Inttegra — o padrão ouro de gestão pecuária no Brasil.</p>
     <div class="ctas">
-      <a class="btn btn-green" href="levantamento_form.html">Diagnóstico Completo →</a>
-      <a class="btn btn-greenout" href="levantamento_instagram.html">Diagnóstico Rápido</a>
+      <a class="btn btn-green" href="potencial.html">Potencial da Fazenda →</a>
+      <a class="btn btn-greenout" href="portfolio.html">Ver Portfólio</a>
     </div>
     <div class="wa-line"><a href="https://wa.me/5563991082453?text=Ol%C3%A1%20Rog%C3%A9rio!%20Vim%20pelo%20site%20e%20quero%20saber%20mais." target="_blank">ou fale direto no WhatsApp →</a></div>
     <div class="selo">✔ <b>Consultor Gama credenciado pela Inttegra</b> · Gestão por indicadores físicos e financeiros</div>
@@ -157,12 +159,12 @@ h1,h2,h3{line-height:1.15;font-weight:800}
     <h2>O perigo de gerenciar no escuro: você sabe o lucro real do seu lote hoje?</h2>
     <p class="lead">Tocar pecuária sem dados é aceitar a perda silenciosa. Muitos produtores focam apenas no volume de bois e esquecem de medir a eficiência do chão que sustenta o negócio. Se você não responde com exatidão a estas perguntas, está deixando dinheiro na mesa:</p>
     <div class="grid4">
-      <div class="dcard"><div class="ic">💰</div><p>Qual é o custo exato da sua arroba produzida neste momento?</p></div>
-      <div class="dcard"><div class="ic">📈</div><p>O seu Ganho Médio Diário (GMD) justifica o desembolso por cabeça/mês?</p></div>
-      <div class="dcard"><div class="ic">🌱</div><p>Qual a taxa de lotação ideal do seu pasto sem estourar a capacidade do sistema?</p></div>
-      <div class="dcard"><div class="ic">🚛</div><p>Você sabe o lucro real por hectare antes mesmo de colocar o gado no caminhão?</p></div>
+      <div class="dcard"><div class="ic"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#2E7D32" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v10M9.5 9.2c0-1 1-1.7 2.5-1.7s2.5.7 2.5 1.7-1 1.5-2.5 1.5-2.5.6-2.5 1.6 1 1.7 2.5 1.7 2.5-.7 2.5-1.7"/></svg></div><p>Qual é o custo exato da sua arroba produzida neste momento?</p></div>
+      <div class="dcard"><div class="ic"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#2E7D32" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 15l4-5 3 3 5-7"/><path d="M19 9V6M19 6h-3"/></svg></div><p>O seu Ganho Médio Diário (GMD) justifica o desembolso por cabeça/mês?</p></div>
+      <div class="dcard"><div class="ic"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#2E7D32" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21v-8"/><path d="M12 13c0-3 2-5 6-5 0 3-2 5-6 5z"/><path d="M12 15c0-3-2-5-6-5 0 3 2 5 6 5z"/></svg></div><p>Qual a taxa de lotação ideal do seu pasto sem estourar a capacidade do sistema?</p></div>
+      <div class="dcard"><div class="ic"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#2E7D32" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M2 6h11v9H2z"/><path d="M13 9h4l4 3v3h-8z"/><circle cx="6" cy="18" r="1.6"/><circle cx="17" cy="18" r="1.6"/></svg></div><p>Você sabe o lucro real por hectare antes mesmo de colocar o gado no caminhão?</p></div>
     </div>
-    <div class="quote">Parar de gerenciar no escuro não precisa ser complicado. <span class="g">Descubra onde a sua fazenda está deixando de ganhar dinheiro</span> com o nosso <a href="levantamento_instagram.html" style="color:#8BC34A">Diagnóstico Rápido</a>.</div>
+    <div class="quote">Parar de gerenciar no escuro não precisa ser complicado. <span class="g">Descubra onde a sua fazenda está deixando de ganhar dinheiro</span> calculando o <a href="potencial.html" style="color:#8BC34A">Potencial da sua Fazenda</a>.</div>
   </div>
 </section>
 
@@ -172,8 +174,6 @@ h1,h2,h3{line-height:1.15;font-weight:800}
     <span class="eyebrow">A Consultoria</span>
     <h2>Como funciona a Gestão Pecuária Lucrativa</h2>
     <p class="lead">Uma consultoria de campo e de mercado orientada a três etapas críticas:</p>
-  </div>
-  <div class="cont">
     <div class="steps">
       <div class="step"><div class="n">1</div><h3>Mapeamento no Escuro</h3><p><strong>(Onde está o dinheiro?)</strong> Analisamos seus números antigos e atuais para encontrar gargalos ocultos no pasto e nas contas.</p></div>
       <div class="step"><div class="n">2</div><h3>Calibragem de Precisão</h3><p>Ajustamos a lotação do pasto, o GMD e o desembolso cabeça/mês. Menos desperdício, mais arrobas.</p></div>
@@ -181,6 +181,7 @@ h1,h2,h3{line-height:1.15;font-weight:800}
     </div>
   </div>
 </section>
+<!-- fim solução -->
 
 <!-- SOBRE -->
 <section class="sec">
@@ -208,7 +209,7 @@ h1,h2,h3{line-height:1.15;font-weight:800}
   <div class="cont cta-final">
     <h2>Vamos desenhar o projeto do seu sucesso financeiro?</h2>
     <p class="lead">Fale diretamente com o consultor e agende uma sessão estratégica para avaliação inicial dos gargalos da sua propriedade.</p>
-    <a class="btn btn-wa" href="https://wa.me/5563991082453?text=Ol%C3%A1%20Rog%C3%A9rio!%20Quero%20agendar%20uma%20sess%C3%A3o%20estrat%C3%A9gica%20para%20avaliar%20minha%20fazenda." target="_blank">💬 Falar com o Consultor via WhatsApp</a>
+    <a class="btn btn-wa" href="https://wa.me/5563991082453?text=Ol%C3%A1%20Rog%C3%A9rio!%20Quero%20agendar%20uma%20sess%C3%A3o%20estrat%C3%A9gica%20para%20avaliar%20minha%20fazenda." target="_blank"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" style="vertical-align:-4px;margin-right:8px"><path d="M12 2a10 10 0 0 0-8.6 15L2 22l5.2-1.4A10 10 0 1 0 12 2zm0 18a8 8 0 0 1-4.1-1.1l-.3-.2-2.8.8.8-2.8-.2-.3A8 8 0 1 1 12 20zm4.5-6c-.2-.1-1.4-.7-1.7-.8s-.4-.1-.5.1-.6.8-.8 1-.3.2-.5.1a6.5 6.5 0 0 1-3.2-2.8c-.2-.4.2-.4.6-1.2.1-.1 0-.3 0-.4l-.7-1.7c-.2-.5-.4-.4-.5-.4h-.5a1 1 0 0 0-.7.3A2.8 2.8 0 0 0 6.8 10a5 5 0 0 0 1 2.5 11 11 0 0 0 4.3 3.8c1.6.6 1.7.4 2 .4a2.4 2.4 0 0 0 1.6-1.1 2 2 0 0 0 .1-1.1c0-.1-.2-.2-.4-.3z"/></svg>Falar com o Consultor via WhatsApp</a>
   </div>
 </section>
 
@@ -221,7 +222,18 @@ h1,h2,h3{line-height:1.15;font-weight:800}
   </div>
 </footer>
 
-<a class="wa-float" href="https://wa.me/5563991082453?text=Ol%C3%A1%20Rog%C3%A9rio!" target="_blank" aria-label="WhatsApp">💬</a>
+<a class="wa-float" href="https://wa.me/5563991082453?text=Ol%C3%A1%20Rog%C3%A9rio!" target="_blank" aria-label="Falar no WhatsApp"><svg width="30" height="30" viewBox="0 0 24 24" fill="#fff"><path d="M12 2a10 10 0 0 0-8.6 15L2 22l5.2-1.4A10 10 0 1 0 12 2zm0 18a8 8 0 0 1-4.1-1.1l-.3-.2-2.8.8.8-2.8-.2-.3A8 8 0 1 1 12 20zm4.5-6c-.2-.1-1.4-.7-1.7-.8s-.4-.1-.5.1-.6.8-.8 1-.3.2-.5.1a6.5 6.5 0 0 1-3.2-2.8c-.2-.4.2-.4.6-1.2.1-.1 0-.3 0-.4l-.7-1.7c-.2-.5-.4-.4-.5-.4h-.5a1 1 0 0 0-.7.3A2.8 2.8 0 0 0 6.8 10a5 5 0 0 0 1 2.5 11 11 0 0 0 4.3 3.8c1.6.6 1.7.4 2 .4a2.4 2.4 0 0 0 1.6-1.1 2 2 0 0 0 .1-1.1c0-.1-.2-.2-.4-.3z"/></svg></a>
 
+<script>
+(function(){
+  var nav=document.querySelector('.nav');
+  function onScroll(){
+    if(window.scrollY>40){nav.classList.add('scrolled');}
+    else{nav.classList.remove('scrolled');}
+  }
+  window.addEventListener('scroll',onScroll,{passive:true});
+  onScroll();
+})();
+</script>
 </body>
 </html>

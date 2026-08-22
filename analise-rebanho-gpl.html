@@ -546,8 +546,9 @@ function render(){
         '<div class="cell"><div class="k">GMD</div><div class="v">'+(s.gmd!=null?fmt(s.gmd,3):"—")+'</div><div class="u">kg/dia</div></div></div>';
     }
     html+='<div class="card">'+
-      '<div class="lote-head"><span class="lote-nome">'+loteLabel(s.L)+'</span><span class="lote-qtd">'+s.n+' animais</span></div>'+
+      '<div class="lote-head"><span class="lote-nome">'+loteLabel(s.L)+'</span></div>'+
       '<div class="grid">'+
+        cellHtml("Animais", fmt(s.n,0), "cabeças no lote")+
         cellHtml("Peso médio", fmt(s.media,0), fmt(s.media/AR_DIV,1)+" @")+
         cellHtml("Menor / Maior", fmt(s.min,0)+" / "+fmt(s.max,0), "kg")+
         cellHtml("Amplitude", fmt(s.amplitude,0), "kg (maior−menor)")+

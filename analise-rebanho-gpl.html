@@ -545,17 +545,25 @@ function render(){
           if(!ult||diff>JANELA) grupos.push([a]); else ult.push(a);
         });
 
-        // monta HTML das carradas
-        const svgTruck='<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#2E7D32" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="flex:none"><path d="M1 3h15v13H1z"/><path d="M16 8h4l3 3v5h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>';
-        let carr='<div style="margin-top:10px">';
-        if(ehEst) carr+='<div class="tag t-grey" style="display:inline-block;margin-bottom:8px">Estimativa · GMD esperado '+fmt(gmdEsp,3)+' kg/dia</div>';
+        // monta HTML das carradas — visual caprichado
+        const svgTruck='<span style="flex:none;width:34px;height:34px;display:inline-flex;align-items:center;justify-content:center;background:#E8F5E9;border-radius:9px"><svg viewBox="0 0 24 24" fill="none" stroke="#2E7D32" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:20px!important;height:20px!important;display:block"><path d="M1 4h13v11H1z"/><path d="M14 8h4l3 3v4h-7V8z"/><circle cx="5" cy="17.5" r="2"/><circle cx="17.5" cy="17.5" r="2"/></svg></span>';
+        const totalAnimais=itens.length;
+        let carr='<div style="margin-top:12px;background:#f6faf5;border:1px solid var(--line);border-radius:14px;padding:14px">';
+        carr+='<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">';
+        carr+='<div style="font-size:14px;font-weight:800;color:var(--v1)">Programação de saída</div>';
+        carr+='<div style="font-size:11px;color:var(--muted);font-weight:700">'+grupos.length+(grupos.length>1?' carradas':' carrada')+'</div></div>';
+        carr+='<div style="font-size:11px;color:var(--muted);margin-bottom:10px">'+(ehEst?'Estimativa · GMD esperado '+fmt(gmdEsp,3)+' kg/dia':'GMD medido '+fmt(s.gmd,3)+' kg/dia')+' · agrupado por proximidade de saída (10 dias)</div>';
         grupos.forEach(function(g,i){
           const ms=g.map(function(a){return new Date(a.data+"T12:00:00").getTime();});
           const dataMed=new Date(ms.reduce(function(x,y){return x+y;},0)/ms.length).toISOString().slice(0,10);
-          carr+='<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-top:1px solid var(--line)">';
+          const pct=Math.round(g.length/totalAnimais*100);
+          carr+='<div style="display:flex;align-items:center;gap:12px;background:#fff;border:1px solid var(--line);border-radius:12px;padding:11px 13px;margin-bottom:8px">';
           carr+=svgTruck;
-          carr+='<div style="flex:1"><b style="color:var(--v1)">'+(i+1)+'ª carrada</b> · <b>'+g.length+' animais</b></div>';
-          carr+='<div style="text-align:right;font-weight:800;color:var(--ink)">'+isoToBR(dataMed)+'<div style="font-size:11px;font-weight:400;color:var(--muted)">'+mesAno(dataMed)+'</div></div>';
+          carr+='<div style="flex:1;min-width:0">';
+          carr+='<div style="font-size:15px;font-weight:800;color:var(--ink)">'+g.length+' animais <span style="font-size:12px;font-weight:600;color:var(--muted)">('+pct+'% do lote)</span></div>';
+          carr+='<div style="font-size:11px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.03em">'+(i+1)+'ª carrada</div>';
+          carr+='</div>';
+          carr+='<div style="text-align:right;flex:none"><div style="font-size:16px;font-weight:800;color:var(--v1)">'+isoToBR(dataMed)+'</div><div style="font-size:11px;color:var(--muted)">'+mesAno(dataMed)+'</div></div>';
           carr+='</div>';
         });
         carr+='</div>';

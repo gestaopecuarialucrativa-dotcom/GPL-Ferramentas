@@ -525,35 +525,43 @@ function render(){
     const cu=classUnif(s.unif), cg=classGmd(s.gmd);
     let proj="";
     if(s.media>=meta){ proj='<span class="tag t-ok">✓ Lote no ponto de abate</span>'; }
-    else if(s.gmd && s.gmd>0){
-      // calcula por animal: cada um usa sua própria data de pesagem
-      const datas_saida=s.arr.map(function(a){
-        const baseA=a.data||dados.data; if(!baseA) return null;
-        const falta=meta-a.peso; if(falta<=0) return baseA; // já no ponto
-        const gmdA=(a.gmd&&a.gmd>0)?a.gmd:s.gmd; // gmd individual ou do lote
-        return addDays(baseA, Math.round(falta/gmdA));
-      }).filter(Boolean).sort();
-      const dataP=datas_saida.length?datas_saida[datas_saida.length-1]:""; // mais distante = lote pronto
-      const dataFirst=datas_saida.length?datas_saida[0]:"";
-      const diasR=dataP&&dados.data?Math.round((new Date(dataP+"T12:00:00")-new Date(dados.data+"T12:00:00"))/86400000):Math.round((meta-s.media)/s.gmd);
-      proj='<div class="grid" style="margin-top:8px">'+
-           '<div class="cell"><div class="k">Faltam (média)</div><div class="v">'+fmt(meta-s.media,0)+'</div><div class="u">kg/cab</div></div>'+
-           '<div class="cell"><div class="k">Primeiro pronto</div><div class="v">'+(dataFirst?isoToBR(dataFirst):"—")+'</div><div class="u">'+(dataFirst?mesAno(dataFirst):"")+'</div></div>'+
-           '<div class="cell" style="grid-column:span 2"><div class="k">Lote todo pronto ('+meta+'kg) · GMD medido '+fmt(s.gmd,3)+'</div><div class="v">'+(dataP?isoToBR(dataP):"—")+'</div><div class="u">'+(dataP?mesAno(dataP):"")+'</div></div></div>';
-    } else if(gmdEsp>0){
-      const datas_saida=s.arr.map(function(a){
-        const baseA=a.data||dados.data; if(!baseA) return null;
-        const falta=meta-a.peso; if(falta<=0) return baseA;
-        return addDays(baseA, Math.round(falta/gmdEsp));
-      }).filter(Boolean).sort();
-      const dataP=datas_saida.length?datas_saida[datas_saida.length-1]:"";
-      const dataFirst=datas_saida.length?datas_saida[0]:"";
-      proj='<div class="grid" style="margin-top:8px">'+
-           '<span class="tag t-grey" style="grid-column:span 4;margin-bottom:4px">Estimativa · GMD esperado '+fmt(gmdEsp,3)+' kg/dia (sem GMD medido)</span>'+
-           '<div class="cell"><div class="k">Faltam (média)</div><div class="v">'+fmt(meta-s.media,0)+'</div><div class="u">kg/cab</div></div>'+
-           '<div class="cell"><div class="k">Primeiro pronto</div><div class="v">'+(dataFirst?isoToBR(dataFirst):"—")+'</div><div class="u">'+(dataFirst?mesAno(dataFirst):"")+'</div></div>'+
-           '<div class="cell" style="grid-column:span 2"><div class="k">Lote todo pronto ('+meta+'kg) · estimado</div><div class="v">'+(dataP?isoToBR(dataP):"—")+'</div><div class="u">'+(dataP?mesAno(dataP):"")+'</div></div></div>';
-    } else { proj='<span class="tag t-grey">Sem GMD para projetar venda</span>'; }
+    else {
+      const gmdUsar=(s.gmd&&s.gmd>0)?s.gmd:gmdEsp;
+      const ehEst=!(s.gmd&&s.gmd>0)&&gmdEsp>0;
+      if(gmdUsar>0){
+        // data de saída por animal
+        const itens=s.arr.map(function(a){
+          const baseA=a.data||dados.data; if(!baseA) return null;
+          const falta=meta-a.peso; if(falta<=0) return {data:baseA,brinco:a.brinco};
+          const gA=(a.gmd&&a.gmd>0)?a.gmd:gmdUsar;
+          return {data:addDays(baseA,Math.round(falta/gA)),brinco:a.brinco};
+        }).filter(Boolean).sort(function(a,b){return a.data<b.data?-1:1;});
+
+        // agrupa por janela de 10 dias
+        const JANELA=10, grupos=[];
+        itens.forEach(function(a){
+          const ult=grupos[grupos.length-1];
+          const diff=ult?Math.round((new Date(a.data+"T12:00:00")-new Date(ult[0].data+"T12:00:00"))/86400000):999;
+          if(!ult||diff>JANELA) grupos.push([a]); else ult.push(a);
+        });
+
+        // monta HTML das carradas
+        const svgTruck='<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#2E7D32" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="flex:none"><path d="M1 3h15v13H1z"/><path d="M16 8h4l3 3v5h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>';
+        let carr='<div style="margin-top:10px">';
+        if(ehEst) carr+='<div class="tag t-grey" style="display:inline-block;margin-bottom:8px">Estimativa · GMD esperado '+fmt(gmdEsp,3)+' kg/dia</div>';
+        grupos.forEach(function(g,i){
+          const ms=g.map(function(a){return new Date(a.data+"T12:00:00").getTime();});
+          const dataMed=new Date(ms.reduce(function(x,y){return x+y;},0)/ms.length).toISOString().slice(0,10);
+          carr+='<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-top:1px solid var(--line)">';
+          carr+=svgTruck;
+          carr+='<div style="flex:1"><b style="color:var(--v1)">'+(i+1)+'ª carrada</b> · <b>'+g.length+' animais</b></div>';
+          carr+='<div style="text-align:right;font-weight:800;color:var(--ink)">'+isoToBR(dataMed)+'<div style="font-size:11px;font-weight:400;color:var(--muted)">'+mesAno(dataMed)+'</div></div>';
+          carr+='</div>';
+        });
+        carr+='</div>';
+        proj=carr;
+      } else { proj='<span class="tag t-grey">Sem GMD para projetar venda</span>'; }
+    }
     let comp="";
     if(s.pesoAntMed!=null){ const ganho=s.media-s.pesoAntMed;
       comp='<div class="hist-cap" style="margin-top:10px">Comparativo com a pesagem anterior</div>'+

@@ -526,16 +526,33 @@ function render(){
     let proj="";
     if(s.media>=meta){ proj='<span class="tag t-ok">✓ Lote no ponto de abate</span>'; }
     else if(s.gmd && s.gmd>0){
-      const faltaKg=meta-s.media, diasR=Math.round(faltaKg/s.gmd), dataP=dados.data?addDays(dados.data,diasR):"";
-      proj='<div class="grid" style="margin-top:8px"><div class="cell"><div class="k">Faltam</div><div class="v">'+fmt(faltaKg,0)+'</div><div class="u">kg/cab</div></div>'+
-           '<div class="cell"><div class="k">Dias p/ meta</div><div class="v">'+diasR+'</div><div class="u">no ritmo atual</div></div>'+
-           '<div class="cell" style="grid-column:span 2"><div class="k">Previsão de venda ('+meta+'kg)</div><div class="v">'+(dataP?isoToBR(dataP):"—")+'</div><div class="u">'+(dataP?mesAno(dataP):"")+'</div></div></div>';
+      // calcula por animal: cada um usa sua própria data de pesagem
+      const datas_saida=s.arr.map(function(a){
+        const baseA=a.data||dados.data; if(!baseA) return null;
+        const falta=meta-a.peso; if(falta<=0) return baseA; // já no ponto
+        const gmdA=(a.gmd&&a.gmd>0)?a.gmd:s.gmd; // gmd individual ou do lote
+        return addDays(baseA, Math.round(falta/gmdA));
+      }).filter(Boolean).sort();
+      const dataP=datas_saida.length?datas_saida[datas_saida.length-1]:""; // mais distante = lote pronto
+      const dataFirst=datas_saida.length?datas_saida[0]:"";
+      const diasR=dataP&&dados.data?Math.round((new Date(dataP+"T12:00:00")-new Date(dados.data+"T12:00:00"))/86400000):Math.round((meta-s.media)/s.gmd);
+      proj='<div class="grid" style="margin-top:8px">'+
+           '<div class="cell"><div class="k">Faltam (média)</div><div class="v">'+fmt(meta-s.media,0)+'</div><div class="u">kg/cab</div></div>'+
+           '<div class="cell"><div class="k">Primeiro pronto</div><div class="v">'+(dataFirst?isoToBR(dataFirst):"—")+'</div><div class="u">'+(dataFirst?mesAno(dataFirst):"")+'</div></div>'+
+           '<div class="cell" style="grid-column:span 2"><div class="k">Lote todo pronto ('+meta+'kg) · GMD medido '+fmt(s.gmd,3)+'</div><div class="v">'+(dataP?isoToBR(dataP):"—")+'</div><div class="u">'+(dataP?mesAno(dataP):"")+'</div></div></div>';
     } else if(gmdEsp>0){
-      const faltaKg=meta-s.media, diasR=Math.round(faltaKg/gmdEsp), dataP=dados.data?addDays(dados.data,diasR):"";
-      proj='<span class="tag t-grey" style="margin-bottom:6px;display:inline-block">Estimativa · GMD esperado '+fmt(gmdEsp,3)+' kg/dia (sem GMD medido)</span>'+
-           '<div class="grid"><div class="cell"><div class="k">Faltam</div><div class="v">'+fmt(faltaKg,0)+'</div><div class="u">kg/cab</div></div>'+
-           '<div class="cell"><div class="k">Dias p/ meta</div><div class="v">'+diasR+'</div><div class="u">no GMD esperado</div></div>'+
-           '<div class="cell" style="grid-column:span 2"><div class="k">Previsão de venda ('+meta+'kg) · estimada</div><div class="v">'+(dataP?isoToBR(dataP):"—")+'</div><div class="u">'+(dataP?mesAno(dataP):"")+'</div></div></div>';
+      const datas_saida=s.arr.map(function(a){
+        const baseA=a.data||dados.data; if(!baseA) return null;
+        const falta=meta-a.peso; if(falta<=0) return baseA;
+        return addDays(baseA, Math.round(falta/gmdEsp));
+      }).filter(Boolean).sort();
+      const dataP=datas_saida.length?datas_saida[datas_saida.length-1]:"";
+      const dataFirst=datas_saida.length?datas_saida[0]:"";
+      proj='<div class="grid" style="margin-top:8px">'+
+           '<span class="tag t-grey" style="grid-column:span 4;margin-bottom:4px">Estimativa · GMD esperado '+fmt(gmdEsp,3)+' kg/dia (sem GMD medido)</span>'+
+           '<div class="cell"><div class="k">Faltam (média)</div><div class="v">'+fmt(meta-s.media,0)+'</div><div class="u">kg/cab</div></div>'+
+           '<div class="cell"><div class="k">Primeiro pronto</div><div class="v">'+(dataFirst?isoToBR(dataFirst):"—")+'</div><div class="u">'+(dataFirst?mesAno(dataFirst):"")+'</div></div>'+
+           '<div class="cell" style="grid-column:span 2"><div class="k">Lote todo pronto ('+meta+'kg) · estimado</div><div class="v">'+(dataP?isoToBR(dataP):"—")+'</div><div class="u">'+(dataP?mesAno(dataP):"")+'</div></div></div>';
     } else { proj='<span class="tag t-grey">Sem GMD para projetar venda</span>'; }
     let comp="";
     if(s.pesoAntMed!=null){ const ganho=s.media-s.pesoAntMed;

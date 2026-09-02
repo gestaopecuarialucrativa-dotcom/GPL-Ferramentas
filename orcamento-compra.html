@@ -21,6 +21,18 @@ label.fl{display:block;font-size:12px;font-weight:700;color:var(--mut);margin-bo
 input.fi,select.fi{width:100%;border:1.5px solid var(--line);border-radius:10px;padding:10px 12px;font-size:15px;font-family:inherit;color:var(--tx);background:#fff;margin-bottom:10px;appearance:none;-moz-appearance:textfield}
 input.fi::-webkit-inner-spin-button,input.fi::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
 input.fi:focus,select.fi:focus{outline:none;border-color:var(--v3)}
+.fi-ro{width:100%;border:1.5px solid var(--v4);border-radius:10px;padding:10px 12px;font-size:14px;font-weight:800;color:var(--v);background:#f4f8f3;margin-bottom:10px;display:flex;align-items:center}
+.gmd-lbl{display:flex;align-items:center;gap:4px}
+.gmd-note{font-size:11px;color:var(--v2);background:#eef6ec;border-radius:8px;padding:5px 8px;margin:-2px 0 8px;display:flex;align-items:center;gap:5px}
+.dose-box{background:#fff;border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin:4px 0 10px}
+.dose-opts{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:6px}
+.dose-opt{border:1.5px solid var(--line);background:#fff;border-radius:10px;padding:8px;text-align:left;font-family:inherit;cursor:pointer}
+.dose-opt.on{border-color:var(--v3);background:#eef6ec}
+.do-sc{font-size:15px;font-weight:800;color:var(--tx)}
+.dose-opt.on .do-sc{color:var(--v)}
+.do-lbl{font-size:10px;color:var(--mut);text-transform:uppercase;font-weight:700;margin:1px 0}
+.do-info{font-size:11px;color:var(--mut)}
+.dose-opt.on .do-info{color:var(--v2)}
 .row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
 .row4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px}
@@ -118,7 +130,7 @@ input.fi:focus,select.fi:focus{outline:none;border-color:var(--v3)}
   </div>
 
   <!-- PERÍODO -->
-  <div class="sec-h no-print">📅 Período de compra</div>
+  <div class="sec-h no-print"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:5px"><rect x="3" y="5" width="18" height="16" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="8" y1="3" x2="8" y2="7"/><line x1="16" y1="3" x2="16" y2="7"/></svg>Período de compra</div>
   <div class="per-tabs no-print">
     <button class="per-tab" data-d="15" onclick="setPeriodo(this)">15 dias</button>
     <button class="per-tab on" data-d="30" onclick="setPeriodo(this)">30 dias</button>
@@ -127,7 +139,7 @@ input.fi:focus,select.fi:focus{outline:none;border-color:var(--v3)}
   </div>
 
   <!-- FAZENDA -->
-  <div class="sec-h no-print">🏡 Fazenda</div>
+  <div class="sec-h no-print"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:5px"><path d="M4 11 12 4l8 7"/><path d="M6 10v9a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1v-9"/><path d="M10 20v-5h4v5"/></svg>Fazenda</div>
   <div class="card no-print">
     <div class="row2">
       <div>
@@ -150,8 +162,8 @@ input.fi:focus,select.fi:focus{outline:none;border-color:var(--v3)}
 
   <!-- LOTES -->
   <div class="sec-h">
-    🐄 Lotes
-    <button class="btn-ghost no-print" onclick="tentarImportar()" style="margin-left:auto">⬇ Importar da pesagem</button>
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:5px"><path d="M11 2 20 11l-9 9-9-9V4a2 2 0 0 1 2-2z"/><circle cx="7.5" cy="7.5" r="1"/></svg>Lotes
+    <button class="btn-ghost no-print" onclick="tentarImportar()" style="margin-left:auto"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:4px"><path d="M12 3v12"/><path d="m7 11 5 5 5-5"/><path d="M5 21h14"/></svg>Importar da pesagem</button>
   </div>
   <div id="lotes-lista"></div>
   <div class="no-print" style="margin-bottom:12px">
@@ -160,7 +172,7 @@ input.fi:focus,select.fi:focus{outline:none;border-color:var(--v3)}
 
   <!-- RESUMO TELA -->
   <div id="resumo-box" style="display:none">
-    <div class="sec-h">📊 Resumo da compra</div>
+    <div class="sec-h"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:5px"><line x1="4" y1="20" x2="20" y2="20"/><rect x="6" y="12" width="3" height="8"/><rect x="11" y="8" width="3" height="12"/><rect x="16" y="4" width="3" height="16"/></svg>Resumo da compra</div>
     <div id="resumo-conteudo"></div>
   </div>
 
@@ -170,8 +182,8 @@ input.fi:focus,select.fi:focus{outline:none;border-color:var(--v3)}
 
 <div class="fab no-print">
   <div class="btn-row" style="margin-bottom:8px">
-    <button class="btn btn-out" onclick="gerarPDF()">🖨️ PDF / Imprimir</button>
-    <button class="btn btn-dark" onclick="calcularTudo()">📊 Ver Resumo</button>
+    <button class="btn btn-out" onclick="gerarPDF()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:5px"><path d="M6 9V3h12v6"/><rect x="4" y="9" width="16" height="8" rx="1"/><path d="M6 17v4h12v-4"/></svg>PDF / Imprimir</button>
+    <button class="btn btn-dark" onclick="calcularTudo()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:5px"><line x1="4" y1="20" x2="20" y2="20"/><rect x="6" y="12" width="3" height="8"/><rect x="11" y="8" width="3" height="12"/><rect x="16" y="4" width="3" height="16"/></svg>Ver Resumo</button>
   </div>
 </div>
 <div id="toast"></div>
@@ -183,6 +195,12 @@ var periodo=30;
 var lotes=[];
 var nxtId=1;
 
+var ICON_GMD='<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;flex:none"><polyline points="3 17 9 11 13 15 21 6"></polyline><polyline points="14 6 21 6 21 13"></polyline></svg>';
+var ICON_SCALE='<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;flex:none"><path d="M12 3v3"/><path d="M5 21h14"/><path d="M7 6h10l2.5 12a2 2 0 0 1-2 2.4H6.5a2 2 0 0 1-2-2.4z"/></svg>';
+var ICON_CHECK='<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;flex:none"><polyline points="20 6 9 17 4 12"></polyline></svg>';
+var ICON_TRASH='<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M6 7l1 13a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-13"/><path d="M9 7V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v3"/></svg>';
+var ICON_CHART='<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:5px"><line x1="4" y1="20" x2="20" y2="20"/><rect x="6" y="12" width="3" height="8"/><rect x="11" y="8" width="3" height="12"/><rect x="16" y="4" width="3" height="16"/></svg>';
+var ICON_WALLET='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:5px"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10h18"/><circle cx="16" cy="14.5" r="1.2"/></svg>';
 var PRODUTOS=[
   {v:"Proteinato 0,1%",pv:0.1},{v:"Proteinato 0,3%",pv:0.3},
   {v:"Sal Adensado",pv:null},{v:"__outro__",pv:null}
@@ -240,7 +258,7 @@ function tentarImportar(){
 /* ── MODELO ── */
 function novoLote(nome,animais,peso){
   var id=nxtId++;
-  return{id:id,num:"",nome:nome||"",animais:animais||0,peso:peso||0,
+  return{id:id,num:"",nome:nome||"",animais:animais||0,peso:peso||0,gmd:0,doseManual:0,
     produto:"Proteinato 0,1%",prodNome:"",pv:0.1,kgSaco:30,precoSaco:0};
 }
 function addLote(){lotes.push(novoLote());salvar();renderLotes();}
@@ -270,6 +288,45 @@ function setL(id,campo,val){
 function atualizarResultadoLote(id){
   var l=lotes.find(function(x){return x.id===id;});if(!l)return;
   var c=calcLote(l);
+  var temGmd=parseFloat(l.gmd)>0;
+  var pfEl=document.getElementById("pf-"+id);
+  if(pfEl)pfEl.textContent=temGmd?Math.round(c.pesoFinal)+" kg":"—";
+  var notaEl=document.getElementById("gmd-note-"+id);
+  if(notaEl)notaEl.style.display=temGmd?"flex":"none";
+
+  var doseManual=parseFloat(l.doseManual)||0;
+  var chao=Math.floor(c.doseTeoricaSc);
+  var teto=Math.ceil(c.doseTeoricaSc);
+  var temEscolha=chao!==teto;
+  var dtEl=document.getElementById("dt-"+id);
+  if(dtEl)dtEl.textContent="Dose diária teórica: "+c.doseTeoricaSc.toFixed(2)+" sc/dia";
+  var dt2El=document.getElementById("dt2-"+id);
+  if(dt2El)dt2El.textContent=doseSubtexto(l,c);
+  var optsEl=document.getElementById("dose-opts-"+id);
+  if(optsEl){
+    optsEl.style.display=temEscolha?"grid":"none";
+    var loEl=document.getElementById("opt-lo-"+id);
+    var hiEl=document.getElementById("opt-hi-"+id);
+    if(loEl){
+      var infoLo=doseInfo(l,chao);
+      loEl.setAttribute("onclick","escolherDose("+id+","+chao+")");
+      loEl.classList.toggle("on",doseManual>0&&doseManual===chao);
+      loEl.querySelector(".do-sc").textContent=chao+" sc";
+      loEl.querySelector(".do-info").textContent=infoLo.pv.toFixed(2)+"% · "+infoLo.kgCab.toFixed(2)+"kg/cab";
+    }
+    if(hiEl){
+      var infoHi=doseInfo(l,teto);
+      hiEl.setAttribute("onclick","escolherDose("+id+","+teto+")");
+      hiEl.classList.toggle("on",doseManual>0&&doseManual===teto);
+      hiEl.querySelector(".do-sc").textContent=teto+" sc";
+      hiEl.querySelector(".do-info").textContent=infoHi.pv.toFixed(2)+"% · "+infoHi.kgCab.toFixed(2)+"kg/cab";
+    }
+  }
+  var resetEl=document.getElementById("reset-dose-"+id);
+  if(resetEl)resetEl.style.display=doseManual>0?"block":"none";
+  var doseNotaEl=document.getElementById("dose-note-"+id);
+  if(doseNotaEl)doseNotaEl.style.display=doseManual>0?"flex":"none";
+
   var box=document.getElementById("res-"+id);if(!box)return;
   if(c.sacas>0){
     box.style.display="grid";
@@ -288,20 +345,89 @@ function atualizarResultadoLote(id){
   }else{box.style.display="none";}
 }
 function atualizarResultados(){lotes.forEach(function(l){atualizarResultadoLote(l.id);});}
+function escolherDose(id,sc){
+  var l=lotes.find(function(x){return x.id===id;});if(!l)return;
+  l.doseManual=(parseFloat(l.doseManual)===sc)?0:sc;
+  var dmEl=document.getElementById("dm-"+id);if(dmEl)dmEl.value=l.doseManual>0?l.doseManual:"";
+  salvar();atualizarResultadoLote(id);
+}
+function resetDose(id){
+  var l=lotes.find(function(x){return x.id===id;});if(!l)return;
+  l.doseManual=0;
+  var dmEl=document.getElementById("dm-"+id);if(dmEl)dmEl.value="";
+  salvar();atualizarResultadoLote(id);
+}
 
 /* ── CÁLCULO ── */
 function calcLote(l){
   var animais=parseFloat(l.animais)||0;
   var peso=parseFloat(l.peso)||0;
   var pv=parseFloat(l.pv)||0;
-  var cd=animais*peso*pv/100;
-  var kgTotal=cd*periodo;
-  var sacas=l.kgSaco>0?Math.ceil(kgTotal/l.kgSaco):0;
+  var gmd=parseFloat(l.gmd)||0;
+  var pesoMedio=peso+(gmd*periodo/2);
+  var pesoFinal=peso+(gmd*periodo);
+  var cd=animais*pesoMedio*pv/100;
+  var doseTeoricaSc=l.kgSaco>0?cd/l.kgSaco:0;
+  var doseManual=parseFloat(l.doseManual)||0;
+  var kgTotal,sacas;
+  if(doseManual>0){
+    sacas=Math.ceil(doseManual*periodo);
+    kgTotal=sacas*(parseFloat(l.kgSaco)||0);
+  }else{
+    kgTotal=cd*periodo;
+    sacas=l.kgSaco>0?Math.ceil(kgTotal/l.kgSaco):0;
+  }
   var custo=sacas*(parseFloat(l.precoSaco)||0);
   var custoDia=periodo>0?custo/periodo:0;
   var custoCab=(parseFloat(l.animais)||0)>0?custo/(parseFloat(l.animais)):0;
   var custoAniDia=(parseFloat(l.animais)||0)>0&&periodo>0?custo/(parseFloat(l.animais))/periodo:0;
-  return{cd:cd,kgTotal:kgTotal,sacas:sacas,custo:custo,custoDia:custoDia,custoCab:custoCab,custoAniDia:custoAniDia};
+  return{cd:cd,kgTotal:kgTotal,sacas:sacas,custo:custo,custoDia:custoDia,custoCab:custoCab,custoAniDia:custoAniDia,pesoMedio:pesoMedio,pesoFinal:pesoFinal,doseTeoricaSc:doseTeoricaSc};
+}
+function doseInfo(l,sacosDia){
+  var animais=parseFloat(l.animais)||0;
+  var kgSaco=parseFloat(l.kgSaco)||0;
+  var gmd=parseFloat(l.gmd)||0;
+  var pesoMedio=(parseFloat(l.peso)||0)+(gmd*periodo/2);
+  var kgCab=animais>0?(sacosDia*kgSaco)/animais:0;
+  var pv=pesoMedio>0?kgCab/pesoMedio*100:0;
+  return{kgCab:kgCab,pv:pv};
+}
+function doseSubtexto(l,c){
+  var animais=parseFloat(l.animais)||0;
+  var kgSaco=parseFloat(l.kgSaco)||0;
+  var kgCabDia=animais>0?c.cd/animais:0;
+  var diasPorSaco=(kgSaco>0&&c.cd>0)?kgSaco/c.cd:0;
+  var partes=[];
+  if(kgCabDia>0)partes.push(kgCabDia.toFixed(3)+' kg/cab/dia');
+  if(diasPorSaco>0)partes.push('1 saco dura ~'+diasPorSaco.toFixed(1)+' dias');
+  return partes.join(' · ');
+}
+function doseBlockHTML(l){
+  var c=calcLote(l);
+  var doseManual=parseFloat(l.doseManual)||0;
+  var chao=Math.floor(c.doseTeoricaSc);
+  var teto=Math.ceil(c.doseTeoricaSc);
+  var temEscolha=chao!==teto;
+  var infoLo=doseInfo(l,chao);
+  var infoHi=doseInfo(l,teto);
+  return'<div class="dose-box" id="dose-box-'+l.id+'">'
+    +'<div class="lbl" style="display:flex;align-items:center;gap:4px;margin-bottom:4px">'+ICON_SCALE+'<span id="dt-'+l.id+'">Dose diária teórica: '+c.doseTeoricaSc.toFixed(2)+' sc/dia</span></div>'
+    +'<div style="font-size:11px;color:var(--mut);margin-bottom:8px" id="dt2-'+l.id+'">'+doseSubtexto(l,c)+'</div>'
+    +'<div class="dose-opts" id="dose-opts-'+l.id+'" style="display:'+(temEscolha?"grid":"none")+'">'
+      +'<button type="button" class="dose-opt'+(doseManual>0&&doseManual===chao?' on':'')+'" id="opt-lo-'+l.id+'" onclick="escolherDose('+l.id+','+chao+')">'
+        +'<div class="do-sc">'+chao+' sc</div><div class="do-lbl">pra menos</div>'
+        +'<div class="do-info">'+infoLo.pv.toFixed(2)+'% · '+infoLo.kgCab.toFixed(2)+'kg/cab</div></button>'
+      +'<button type="button" class="dose-opt'+(doseManual>0&&doseManual===teto?' on':'')+'" id="opt-hi-'+l.id+'" onclick="escolherDose('+l.id+','+teto+')">'
+        +'<div class="do-sc">'+teto+' sc</div><div class="do-lbl">pra mais</div>'
+        +'<div class="do-info">'+infoHi.pv.toFixed(2)+'% · '+infoHi.kgCab.toFixed(2)+'kg/cab</div></button>'
+    +'</div>'
+    +'<div class="row2" style="margin-top:6px;align-items:end">'
+      +'<div><label class="fl">Ou eu digito a dose (sc/dia)</label>'
+      +'<input class="fi" style="margin-bottom:0" inputmode="decimal" id="dm-'+l.id+'" value="'+(doseManual>0?doseManual:"")+'" placeholder="'+c.doseTeoricaSc.toFixed(2)+'" oninput="setL('+l.id+',\'doseManual\',nv(this.value))"></div>'
+      +'<div><button type="button" class="btn-ghost" id="reset-dose-'+l.id+'" style="display:'+(doseManual>0?"block":"none")+';padding:9px 0;width:100%" onclick="resetDose('+l.id+')">Usar automático</button></div>'
+    +'</div>'
+    +'<div class="gmd-note" id="dose-note-'+l.id+'" style="display:'+(doseManual>0?"flex":"none")+'">'+ICON_CHECK+'Compra recalculada com a dose escolhida</div>'
+    +'</div>';
 }
 function classificar(pv){
   var v=parseFloat(pv)||0;
@@ -335,7 +461,7 @@ function cardHTML(l){
     +'<input class="fi" style="margin-bottom:0" inputmode="text" value="'+esc(l.nome)+'" placeholder="Ex: Lote 03" oninput="setL('+l.id+',\'nome\',this.value)"></div>'
     +'</div>'
     +'</div>'
-    +'<button class="btn-del no-print" onclick="remLote('+l.id+')" style="margin-left:8px">🗑</button>'
+    +'<button class="btn-del no-print" onclick="remLote('+l.id+')" style="margin-left:8px">'+ICON_TRASH+'</button>'
     +'</div>'
     +'<div class="row3" style="margin-top:8px">'
     +'<div><label class="fl">Animais</label>'
@@ -345,6 +471,13 @@ function cardHTML(l){
     +'<div><label class="fl">% PV/dia</label>'
     +'<input class="fi" inputmode="decimal" id="pv-'+l.id+'" value="'+(l.pv||"")+'" placeholder="0.1" oninput="setL('+l.id+',\'pv\',nv(this.value))"></div>'
     +'</div>'
+    +'<div class="row2">'
+    +'<div><label class="fl gmd-lbl">'+ICON_GMD+'GMD (kg/dia)</label>'
+    +'<input class="fi" inputmode="decimal" id="gmd-'+l.id+'" value="'+(l.gmd||"")+'" placeholder="0,000" oninput="setL('+l.id+',\'gmd\',nv(this.value))"></div>'
+    +'<div><label class="fl">Peso final estimado</label>'
+    +'<div class="fi-ro" id="pf-'+l.id+'">'+(parseFloat(l.gmd)>0?Math.round(c.pesoFinal)+" kg":"—")+'</div></div>'
+    +'</div>'
+    +'<div class="gmd-note" id="gmd-note-'+l.id+'" style="display:'+(parseFloat(l.gmd)>0?"flex":"none")+'">'+ICON_GMD+'Compra calculada pelo peso médio do período (considera o ganho de peso)</div>'
     +'<label class="fl" style="margin-top:4px">Produto</label>'
     +'<select class="fi" onchange="setL('+l.id+',\'produto\',this.value)">'+prodOpts+'</select>'
     +'<div id="outro-'+l.id+'" style="display:'+(l.produto==="__outro__"?"block":"none")+'">'
@@ -358,6 +491,7 @@ function cardHTML(l){
     +'<div><label class="fl">R$ por saco</label>'
     +'<input class="fi" inputmode="decimal" value="'+(l.precoSaco||"")+'" placeholder="0,00" oninput="setL('+l.id+',\'precoSaco\',nv(this.value))"></div>'
     +'</div>'
+    +doseBlockHTML(l)
     +'<div class="res-bar" id="res-'+l.id+'" style="display:'+resDisplay+'">'
     +'<div><div class="rb-lbl">'+periodo+'d · Sacas</div><div class="rb-val" id="res-sacas-'+l.id+'">'+(c.sacas||0)+'</div></div>'
     +'<div><div class="rb-lbl">Consumo/dia</div><div class="rb-val2" id="res-cd-'+l.id+'">'+(c.cd.toFixed(1))+'kg</div></div>'
@@ -381,7 +515,7 @@ function calcularTudo(){
     var c=calcLote(l);var nome=nomeProd(l);
     if(!prods[nome])prods[nome]={nome:nome,sacas:0,custo:0,lotes:[]};
     prods[nome].sacas+=c.sacas;prods[nome].custo+=c.custo;
-    prods[nome].lotes.push({label:(l.num?l.num+" · ":"")+l.nome,sacas:c.sacas,custo:c.custo,custoDia:c.custoDia,custoCab:c.custoCab,custoAniDia:c.custoAniDia,animais:l.animais});
+    prods[nome].lotes.push({label:(l.num?l.num+" · ":"")+l.nome,sacas:c.sacas,custo:c.custo,custoDia:c.custoDia,custoCab:c.custoCab,custoAniDia:c.custoAniDia,animais:l.animais,gmd:parseFloat(l.gmd)||0,pesoFinal:c.pesoFinal});
   });
   var html="";var total=0;
   Object.values(prods).forEach(function(p){
@@ -394,7 +528,9 @@ function calcularTudo(){
       +(p.custo>0?'<div class="rp-stat"><div class="lbl">Custo</div><div class="val">R$ '+fmt(p.custo)+'</div></div>':'<div class="rp-stat"></div>')
       +'</div>'
       +'<div class="rp-lotes">'+p.lotes.map(function(r){
-        return'<div class="rp-lote-row"><span class="nm">'+esc(r.label)+'</span>'
+        return'<div class="rp-lote-row"><span class="nm">'+esc(r.label)
+            +(r.gmd>0?'<br><span style="font-size:11px;color:var(--v2)">'+ICON_GMD+' peso final est. '+Math.round(r.pesoFinal)+' kg</span>':'')
+            +'</span>'
           +'<span class="vl">'+r.sacas+' sc'+(r.custo>0?' · R$ '+fmt(r.custo)+'<br>'
             +'<span style="font-size:11px;color:var(--mut)">'
             +(r.custoDia>0?'R$ '+fmt(r.custoDia)+'/dia · ':'')
@@ -402,13 +538,13 @@ function calcularTudo(){
             +'</span>':'')+'</span></div>';
       }).join("")+'</div></div>';
   });
-  if(total>0)html+='<div class="total-box"><div class="lbl">💰 Total geral</div><div class="val">R$ '+fmt(total)+'</div></div>';
+  if(total>0)html+='<div class="total-box"><div class="lbl">'+ICON_WALLET+'Total geral</div><div class="val">R$ '+fmt(total)+'</div></div>';
   // gráfico de barras por lote (só quando 2+ lotes com preço)
   var lotesComPreco=lotes.filter(function(l){return parseFloat(l.precoSaco)>0;});
   if(lotesComPreco.length>=2){
     var sorted=lotesComPreco.slice().sort(function(a,b){return calcLote(b).custo-calcLote(a).custo;});
     var maxC=calcLote(sorted[0]).custo;
-    var ghtml='<div class="sec-h" style="margin-top:20px">📊 Custo por lote (maior → menor)</div>';
+    var ghtml='<div class="sec-h" style="margin-top:20px">'+ICON_CHART+'Custo por lote (maior → menor)</div>';
     ghtml+='<div class="card" style="padding:12px">';
     sorted.forEach(function(l){
       var c=calcLote(l); var pct=maxC>0?Math.round(c.custo/maxC*100):0;
@@ -448,7 +584,7 @@ function gerarPDF(){
       +'<td>'+(esc(l.nome)||"—")+'</td>'
       +'<td>'+esc(nomeProd(l))+'</td>'
       +'<td style="text-align:center">'+(l.animais||0)+'</td>'
-      +'<td style="text-align:center">'+(l.peso||0)+'</td>'
+      +'<td style="text-align:center">'+(l.peso||0)+(parseFloat(l.gmd)>0?'<br><small style="color:#3b6d11">→ '+Math.round(c.pesoFinal)+'kg ('+periodo+'d)</small>':'')+'</td>'
       +'<td style="text-align:center">'+l.pv+'%</td>'
       +'<td style="text-align:center">'+c.cd.toFixed(1)+' kg/dia</td>'
       +'<td style="text-align:right" class="pdf-td-verde">'+c.sacas+' sc'
@@ -467,7 +603,7 @@ function gerarPDF(){
     var c=calcLote(l);var nome=nomeProd(l);
     if(!prods[nome])prods[nome]={nome:nome,sacas:0,custo:0,lotes:[]};
     prods[nome].sacas+=c.sacas;prods[nome].custo+=c.custo;total+=c.custo;
-    prods[nome].lotes.push({label:(l.num?l.num+" · ":"")+l.nome,sacas:c.sacas,custo:c.custo,custoDia:c.custoDia,custoCab:c.custoCab,custoAniDia:c.custoAniDia,animais:l.animais});
+    prods[nome].lotes.push({label:(l.num?l.num+" · ":"")+l.nome,sacas:c.sacas,custo:c.custo,custoDia:c.custoDia,custoCab:c.custoCab,custoAniDia:c.custoAniDia,animais:l.animais,gmd:parseFloat(l.gmd)||0,pesoFinal:c.pesoFinal});
   });
   var resumoHtml=Object.values(prods).map(function(p){
     return'<div class="pdf-prod-bloco">'
@@ -477,12 +613,52 @@ function gerarPDF(){
       }).join("")
       +'</div>';
   }).join("");
+  // ── Tabela de evolução por período (30/60/90d) para lotes com GMD
+  var lotesComGMD=lotes.filter(function(l){return parseFloat(l.gmd)>0;});
+  var evolHtml='';
+  if(lotesComGMD.length>0){
+    var periodos=[30,60,90];
+    evolHtml='<div class="pdf-resumo" style="margin-top:14px">'
+      +'<div class="pdf-resumo-title">Evolução do Lote com GMD</div>';
+    lotesComGMD.forEach(function(l){
+      var gmd=parseFloat(l.gmd);
+      var pi=parseFloat(l.peso)||0;
+      var animais=parseFloat(l.animais)||0;
+      var pv=parseFloat(l.pv)||0;
+      var kgSaco=parseFloat(l.kgSaco)||30;
+      evolHtml+='<div style="margin-bottom:10px">'
+        +'<div style="font-weight:800;font-size:11px;margin-bottom:4px;color:#1B5E20">'
+        +(l.num?l.num+' · ':'')+esc(l.nome||'Lote')+' — Peso inicial: '+pi+'kg · GMD: '+gmd.toFixed(2)+' kg/dia · '+animais+' animais'
+        +'</div>'
+        +'<table class="pdf-table" style="margin-bottom:0"><thead><tr>'
+        +'<th>Período</th><th>Peso inicial</th><th>Peso final</th><th>Peso médio</th><th>Cons./dia lote</th><th>Sacos ('+kgSaco+'kg)</th>'
+        +'</tr></thead><tbody>';
+      [30,60,90].forEach(function(d){
+        var pf=pi+(gmd*d);
+        var pm=pi+(gmd*d/2);
+        var cd=animais*pm*pv/100;
+        var sc=kgSaco>0?Math.ceil(cd*d/kgSaco):0;
+        evolHtml+='<tr>'
+          +'<td style="text-align:center;font-weight:700">'+d+'d</td>'
+          +'<td style="text-align:center">'+pi.toFixed(0)+' kg</td>'
+          +'<td style="text-align:center;color:#1B5E20;font-weight:800">'+pf.toFixed(0)+' kg</td>'
+          +'<td style="text-align:center">'+pm.toFixed(1)+' kg</td>'
+          +'<td style="text-align:center">'+cd.toFixed(2)+' kg</td>'
+          +'<td style="text-align:center;font-weight:700">'+sc+' sc</td>'
+          +'</tr>';
+      });
+      evolHtml+='</tbody></table></div>';
+    });
+    evolHtml+='<div style="font-size:9px;color:#888;margin-top:4px">Projeção independente do período de compra. Peso médio = peso inicial + (GMD × dias ÷ 2).</div></div>';
+  }
+
   document.getElementById("pdf-conteudo").innerHTML=
     '<table class="pdf-table"><thead><tr>'
     +'<th>Nº</th><th>Lote</th><th>Produto</th><th>Animais</th><th>Peso kg</th><th>% PV</th><th>Kg/dia</th><th>'+periodo+' dias</th>'
     +'</tr></thead><tbody>'+rows+'</tbody></table>'
     +'<div class="pdf-resumo"><div class="pdf-resumo-title">Resumo por Produto</div>'+resumoHtml+'</div>'
     +(total>0?'<div class="pdf-total"><span>TOTAL A COMPRAR</span><span>R$ '+fmt(total)+'</span></div>':"")
+    +evolHtml
     +'<div class="pdf-rodape">Sacos arredondados para cima. Consumo/dia = animais × peso médio × %PV ÷ 100. '
     +'GPL — Gestão Pecuária Lucrativa · Rogério Avelino · Gerado em '+dataFmt+'</div>';
   setTimeout(function(){window.print();},250);

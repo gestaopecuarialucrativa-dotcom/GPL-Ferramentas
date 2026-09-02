@@ -413,38 +413,25 @@ function cochoHTML(l){
   var gmd=parseFloat(l.gmd)||0;
   var pesoMedio=(parseFloat(l.peso)||0)+(gmd*periodo/2);
   var kgSaco=parseFloat(l.kgSaco)||0;
-  var pvFab=parseFloat(l.pvFab)||0;
+  var pv=parseFloat(l.pv)||0;
   var kgCocho=parseFloat(l.kgCocho)||0;
+  // % PV previsto (pelo campo principal do lote)
+  var pvPrevisto=pv;
+  // kg fornecido pela dose manual
   var kgFornecidoDia=doseManual*kgSaco;
-  var pvFornecido=(pesoMedio>0&&animais>0)?kgFornecidoDia/(animais*pesoMedio)*100:0;
   var html='<div style="margin-top:10px;border-top:1px dashed var(--line);padding-top:10px">';
-  html+='<div style="font-size:11px;font-weight:800;color:var(--mut);text-transform:uppercase;letter-spacing:.4px;margin-bottom:8px">Verificação de consumo</div>';
-  html+='<label class="fl">% PV indicado pelo fabricante</label>';
-  html+='<input class="fi" inputmode="decimal" placeholder="Ex: 0.30" value="'+(pvFab||'')+'" oninput="setL('+l.id+',' + "'" + 'pvFab' + "'" + ',nv(this.value))" style="margin-bottom:6px">';
-  if(pvFab>0){
-    var kgIdealDia=animais*pesoMedio*pvFab/100;
-    var diff=kgFornecidoDia-kgIdealDia;
-    var diffPct=kgIdealDia>0?diff/kgIdealDia*100:0;
-    var cor=Math.abs(diff)<0.5?'var(--v)':(diff>0?'#E65100':'#C62828');
-    var sinal=diff>=0?'+':'';
-    html+='<div style="background:#f4f8f3;border-radius:8px;padding:8px 10px;margin-bottom:8px;font-size:12px">';
-    html+='<div style="display:flex;justify-content:space-between;margin-bottom:3px"><span style="color:var(--mut)">Fabricante recomenda</span><span style="font-weight:800">'+kgIdealDia.toFixed(2)+' kg/dia</span></div>';
-    html+='<div style="display:flex;justify-content:space-between;margin-bottom:3px"><span style="color:var(--mut)">Você está fornecendo</span><span style="font-weight:800">'+kgFornecidoDia.toFixed(2)+' kg/dia · '+pvFornecido.toFixed(3)+'% PV</span></div>';
-    html+='<div style="display:flex;justify-content:space-between;border-top:1px solid var(--line);padding-top:4px;margin-top:2px"><span style="color:var(--mut)">Diferença</span><span style="font-weight:800;color:'+cor+'">'+sinal+diff.toFixed(2)+' kg/dia ('+sinal+diffPct.toFixed(1)+'%)</span></div>';
-    html+='</div>';
-  }
-  html+='<label class="fl">Consumo real no cocho (kg/dia do lote — opcional)</label>';
-  html+='<input class="fi" inputmode="decimal" placeholder="Deixe vazio se não souber" value="'+(kgCocho||'')+'" oninput="setL('+l.id+',' + "'" + 'kgCocho' + "'" + ',nv(this.value))" style="margin-bottom:6px">';
+  html+='<div style="font-size:11px;font-weight:800;color:var(--mut);text-transform:uppercase;letter-spacing:.4px;margin-bottom:8px">Consumo no cocho</div>';
+  html+='<label class="fl">Consumo real no cocho (kg/dia do lote)</label>';
+  html+='<input class="fi" inputmode="decimal" placeholder="Ex: 45" value="'+(kgCocho||'')+'" oninput="setL('+l.id+",'kgCocho',nv(this.value))"+'" style="margin-bottom:6px">';
   if(kgCocho>0){
     var pvCocho=(pesoMedio>0&&animais>0)?kgCocho/(animais*pesoMedio)*100:0;
-    var corC=pvFab>0?(Math.abs(pvCocho-pvFab)<0.05?'var(--v)':(pvCocho<pvFab?'#C62828':'#E65100')):'var(--v2)';
+    var diff=pvCocho-pvPrevisto;
+    var sinal=diff>=0?'+':'';
+    var cor=Math.abs(diff)<0.02?'var(--v)':(pvCocho>pvPrevisto?'#E65100':'#C62828');
     html+='<div style="background:#fff3e0;border:1px solid #FFB74D;border-radius:8px;padding:8px 10px;font-size:12px">';
-    html+='<div style="display:flex;justify-content:space-between;margin-bottom:3px"><span style="color:var(--mut)">Consumo cocho (lote)</span><span style="font-weight:800">'+kgCocho.toFixed(2)+' kg/dia</span></div>';
-    html+='<div style="display:flex;justify-content:space-between"><span style="color:var(--mut)">% PV real atingido</span><span style="font-weight:800;color:'+corC+'">'+pvCocho.toFixed(3)+'% PV</span></div>';
-    if(pvFab>0){
-      var dC=pvCocho-pvFab;var sC=dC>=0?'+':'';
-      html+='<div style="display:flex;justify-content:space-between;border-top:1px solid #FFD180;padding-top:4px;margin-top:4px"><span style="color:var(--mut)">vs. recomendação</span><span style="font-weight:800;color:'+corC+'">'+sC+dC.toFixed(3)+'% PV</span></div>';
-    }
+    html+='<div style="display:flex;justify-content:space-between;margin-bottom:3px"><span style="color:var(--mut)">Fornecido (dose)</span><span style="font-weight:800">'+kgFornecidoDia.toFixed(2)+' kg/dia · '+pvPrevisto.toFixed(3)+'% PV</span></div>';
+    html+='<div style="display:flex;justify-content:space-between;margin-bottom:3px"><span style="color:var(--mut)">Consumo no cocho</span><span style="font-weight:800">'+kgCocho.toFixed(2)+' kg/dia</span></div>';
+    html+='<div style="display:flex;justify-content:space-between;border-top:1px solid #FFD180;padding-top:4px;margin-top:2px"><span style="color:var(--mut)">% PV real no cocho</span><span style="font-weight:800;color:'+cor+'">'+pvCocho.toFixed(3)+'% PV ('+sinal+diff.toFixed(3)+'% vs previsto)</span></div>';
     html+='</div>';
   }
   html+='</div>';

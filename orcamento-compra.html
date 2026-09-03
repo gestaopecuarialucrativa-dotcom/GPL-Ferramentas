@@ -271,10 +271,18 @@ function setL(id,campo,val){
   l[campo]=val;
   if(campo==="produto"){
     var p=PRODUTOS.find(function(x){return x.v===val;});
-    if(p&&p.pv!==null)l.pv=p.pv;
+    if(p&&p.pv!==null){
+      // produto com % PV fixo — força valor e trava campo
+      l.pv=p.pv;
+      var pvEl=document.getElementById("pv-"+id);
+      if(pvEl){pvEl.value=l.pv;pvEl.readOnly=true;pvEl.style.background="#f4f8f3";pvEl.style.color="var(--mut)";}
+    }else{
+      // Sal Adensado ou Outro — limpa % PV e libera campo para digitar
+      l.pv="";
+      var pvEl=document.getElementById("pv-"+id);
+      if(pvEl){pvEl.value="";pvEl.readOnly=false;pvEl.style.background="";pvEl.style.color="";}
+    }
     if(val!=="__outro__")l.prodNome="";
-    // atualiza campo pv e outro campo no DOM sem re-render completo
-    var pvEl=document.getElementById("pv-"+id);if(pvEl)pvEl.value=l.pv;
     var outroWrap=document.getElementById("outro-"+id);
     if(outroWrap)outroWrap.style.display=val==="__outro__"?"block":"none";
     var classeEl=document.getElementById("classe-"+id);
@@ -327,9 +335,14 @@ function atualizarResultadoLote(id){
   var doseNotaEl=document.getElementById("dose-note-"+id);
   if(doseNotaEl)doseNotaEl.style.display=doseManual>0?"flex":"none";
 
-  // atualiza bloco de cocho/fabricante (re-render leve)
-  var cochoEl=document.getElementById("cocho-"+id);
-  if(cochoEl)cochoEl.innerHTML=cochoHTML(l);
+  // resultado do cocho: só atualiza o div interno, sem recriar o input
+  var cochoResEl=document.getElementById("cocho-res-"+id);
+  if(cochoResEl){cochoResEl.innerHTML=cochoResultHTML(l);}
+  else{
+    // div não existe ainda (dose acabou de ser ativada) — cria o bloco
+    var cochoEl=document.getElementById("cocho-"+id);
+    if(cochoEl)cochoEl.innerHTML=cochoHTML(l);
+  }
 
   var box=document.getElementById("res-"+id);if(!box)return;
   if(c.sacas>0){
@@ -406,7 +419,14 @@ function doseSubtexto(l,c){
   if(diasPorSaco>0)partes.push('1 saco dura ~'+diasPorSaco.toFixed(1)+' dias');
   return partes.join(' · ');
 }
-function cochoHTML(l){
+function atualizarCocho(id,val){
+  var l=lotes.find(function(x){return x.id===id;});if(!l)return;
+  l.kgCocho=parseFloat(String(val).replace(',','.'))||0;
+  salvar();
+  var el=document.getElementById('cocho-res-'+id);
+  if(el)el.innerHTML=cochoResultHTML(l);
+}
+function cochoResultHTML(l){
   var doseManual=parseFloat(l.doseManual)||0;
   if(doseManual<=0)return'';
   var animais=parseFloat(l.animais)||0;
@@ -415,27 +435,27 @@ function cochoHTML(l){
   var kgSaco=parseFloat(l.kgSaco)||0;
   var pv=parseFloat(l.pv)||0;
   var kgCocho=parseFloat(l.kgCocho)||0;
-  // % PV previsto (pelo campo principal do lote)
-  var pvPrevisto=pv;
-  // kg fornecido pela dose manual
   var kgFornecidoDia=doseManual*kgSaco;
-  var html='<div style="margin-top:10px;border-top:1px dashed var(--line);padding-top:10px">';
-  html+='<div style="font-size:11px;font-weight:800;color:var(--mut);text-transform:uppercase;letter-spacing:.4px;margin-bottom:8px">Consumo no cocho</div>';
-  html+='<label class="fl">Consumo real no cocho (kg/dia do lote)</label>';
-  html+='<input class="fi" inputmode="decimal" placeholder="Ex: 45" value="'+(kgCocho||'')+'" oninput="setL('+l.id+",'kgCocho',nv(this.value))"+'" style="margin-bottom:6px">';
-  if(kgCocho>0){
-    var pvCocho=(pesoMedio>0&&animais>0)?kgCocho/(animais*pesoMedio)*100:0;
-    var diff=pvCocho-pvPrevisto;
-    var sinal=diff>=0?'+':'';
-    var cor=Math.abs(diff)<0.02?'var(--v)':(pvCocho>pvPrevisto?'#E65100':'#C62828');
-    html+='<div style="background:#fff3e0;border:1px solid #FFB74D;border-radius:8px;padding:8px 10px;font-size:12px">';
-    html+='<div style="display:flex;justify-content:space-between;margin-bottom:3px"><span style="color:var(--mut)">Fornecido (dose)</span><span style="font-weight:800">'+kgFornecidoDia.toFixed(2)+' kg/dia · '+pvPrevisto.toFixed(3)+'% PV</span></div>';
-    html+='<div style="display:flex;justify-content:space-between;margin-bottom:3px"><span style="color:var(--mut)">Consumo no cocho</span><span style="font-weight:800">'+kgCocho.toFixed(2)+' kg/dia</span></div>';
-    html+='<div style="display:flex;justify-content:space-between;border-top:1px solid #FFD180;padding-top:4px;margin-top:2px"><span style="color:var(--mut)">% PV real no cocho</span><span style="font-weight:800;color:'+cor+'">'+pvCocho.toFixed(3)+'% PV ('+sinal+diff.toFixed(3)+'% vs previsto)</span></div>';
-    html+='</div>';
-  }
-  html+='</div>';
-  return html;
+  if(kgCocho<=0)return'';
+  var pvCocho=(pesoMedio>0&&animais>0)?kgCocho/(animais*pesoMedio)*100:0;
+  var diff=pvCocho-pv;
+  var sinal=diff>=0?'+':'';
+  var cor=Math.abs(diff)<0.02?'var(--v)':(pvCocho>pv?'#E65100':'#C62828');
+  return'<div style="background:#fff3e0;border:1px solid #FFB74D;border-radius:8px;padding:8px 10px;font-size:12px;margin-top:4px">'
+    +'<div style="display:flex;justify-content:space-between;margin-bottom:3px"><span style="color:var(--mut)">Fornecido (dose)</span><span style="font-weight:800">'+kgFornecidoDia.toFixed(2)+' kg/dia · '+pv.toFixed(3)+'% PV</span></div>'
+    +'<div style="display:flex;justify-content:space-between;margin-bottom:3px"><span style="color:var(--mut)">Consumo no cocho</span><span style="font-weight:800">'+kgCocho.toFixed(2)+' kg/dia</span></div>'
+    +'<div style="display:flex;justify-content:space-between;border-top:1px solid #FFD180;padding-top:4px;margin-top:2px"><span style="color:var(--mut)">% PV real no cocho</span><span style="font-weight:800;color:'+cor+'">'+pvCocho.toFixed(3)+'% PV ('+sinal+diff.toFixed(3)+'% vs previsto)</span></div>'
+    +'</div>';
+}
+function cochoHTML(l){
+  var doseManual=parseFloat(l.doseManual)||0;
+  if(doseManual<=0)return'';
+  return'<div style="margin-top:10px;border-top:1px dashed var(--line);padding-top:10px">'
+    +'<div style="font-size:11px;font-weight:800;color:var(--mut);text-transform:uppercase;letter-spacing:.4px;margin-bottom:8px">Consumo no cocho</div>'
+    +'<label class="fl">Consumo real no cocho (kg/dia do lote)</label>'
+    +'<input class="fi" inputmode="decimal" placeholder="Ex: 45" value="'+(parseFloat(l.kgCocho)||'')+'" oninput="atualizarCocho('+l.id+',this.value)" style="margin-bottom:2px" id="kgcocho-'+l.id+'">'
+    +'<div id="cocho-res-'+l.id+'">'+cochoResultHTML(l)+'</div>'
+    +'</div>';
 }
 function doseBlockHTML(l){
   var c=calcLote(l);
@@ -505,7 +525,7 @@ function cardHTML(l){
     +'<div><label class="fl">Peso médio (kg)</label>'
     +'<input class="fi" inputmode="decimal" value="'+(l.peso||"")+'" placeholder="0" oninput="setL('+l.id+',\'peso\',nv(this.value))"></div>'
     +'<div><label class="fl">% PV/dia</label>'
-    +'<input class="fi" inputmode="decimal" id="pv-'+l.id+'" value="'+(l.pv||"")+'" placeholder="0.1" oninput="setL('+l.id+',\'pv\',nv(this.value))"></div>'
+    +(function(){var _p=PRODUTOS.find(function(x){return x.v===l.produto;});var _fixo=_p&&_p.pv!==null;return '<input class="fi" inputmode="decimal" id="pv-'+l.id+'" value="'+(l.pv||'')+'" placeholder="0.1" oninput="setL('+l.id+',\'pv\',nv(this.value))"'+(_fixo?' readonly style="background:#f4f8f3;color:var(--mut)"':'')+'>'+(_fixo?'<div style="font-size:10px;color:var(--mut);margin-top:-6px;margin-bottom:6px">Definido pelo produto</div>':'')+'</div>';}())
     +'</div>'
     +'<div class="row2">'
     +'<div><label class="fl gmd-lbl">'+ICON_GMD+'GMD (kg/dia)</label>'

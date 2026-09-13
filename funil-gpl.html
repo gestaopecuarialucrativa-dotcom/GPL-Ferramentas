@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Funil da Consultoria • GPL</title>
+<style>
+  :root{
+    --v1:#1B5E20; --v2:#2E7D32; --v3:#4CAF50; --v4:#8BC34A;
+    --bg:#eef2ec; --card:#fff; --line:#e0e7e0;
+    --ink:#1b2a1b; --muted:#5a6b58; --danger:#c0392b; --warn:#e08a1e;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent}
+  body{margin:0; background:var(--bg); color:var(--ink);
+       font-family:Arial,'Segoe UI',Roboto,system-ui; padding-bottom:120px}
+  .wrap{max-width:480px; margin:0 auto}
+
+  /* topbar */
+  .top{background:var(--v1); color:#fff; padding:14px 16px; display:flex;
+       align-items:center; gap:10px; position:sticky; top:0; z-index:20}
+  .top .mark{width:26px;height:26px}
+  .top h1{font-size:17px; margin:0; font-weight:800; letter-spacing:.2px}
+  .top .sub{font-size:11px; opacity:.85; font-weight:400}
+  .gear{margin-left:auto; background:rgba(255,255,255,.14); border:none;
+        color:#fff; width:36px;height:36px;border-radius:10px; display:grid;
+        place-items:center; cursor:pointer}
+
+  .home{position:fixed; top:10px; left:10px; z-index:30; background:#fff;
+        border:1px solid var(--line); color:var(--v2); font-weight:800;
+        font-size:12px; padding:7px 12px; border-radius:999px;
+        box-shadow:0 2px 6px rgba(0,0,0,.12); text-decoration:none; display:none}
+
+  /* banner de config */
+  .banner{background:#fff6e0; border:1px solid #e6c34a; color:#7a5b12;
+          margin:12px; padding:12px 14px; border-radius:12px; font-size:13px; display:none}
+  .banner b{color:#5a4a1a}
+
+  /* filtro estagios */
+  .filters{display:flex; gap:8px; overflow-x:auto; padding:12px 16px 4px;
+           -webkit-overflow-scrolling:touch; scrollbar-width:none}
+  .filters::-webkit-scrollbar{display:none}
+  .fpill{flex:0 0 auto; border:1px solid var(--line); background:#fff;
+         color:var(--v2); font-weight:700; font-size:12.5px; padding:8px 13px;
+         border-radius:999px; cursor:pointer; white-space:nowrap}
+  .fpill .n{display:inline-block; min-width:18px; text-align:center;
+            margin-left:5px; background:#eef6ec; color:var(--v2);
+            border-radius:999px; font-size:11px; padding:1px 6px}
+  .fpill.on{background:var(--v3); color:#fff; border-color:var(--v3)}
+  .fpill.on .n{background:rgba(255,255,255,.25); color:#fff}
+
+  /* lista */
+  .list{padding:8px 16px}
+  .empty{text-align:center; color:var(--muted); font-size:13.5px; padding:40px 20px}
+
+  .card{background:var(--card); border:1px solid var(--line);
+        border-left:4px solid var(--v2); border-radius:14px; padding:13px 14px;
+        margin-bottom:11px; box-shadow:0 1px 3px rgba(0,0,0,.05)}
+  .card.won{border-left-color:var(--v4)}
+  .card.lost{border-left-color:#b5bdb2; opacity:.85}
+  .c-top{display:flex; align-items:flex-start; gap:9px}
+  .c-top .pin{flex:0 0 auto; margin-top:2px}
+  .c-name{font-size:15.5px; font-weight:800; color:var(--v1); line-height:1.2}
+  .c-sub{font-size:12.5px; color:var(--muted); margin-top:2px}
+  .stpill{display:inline-block; font-size:11px; font-weight:700; padding:3px 9px;
+          border-radius:999px; margin-top:8px; background:#e6f2e0; color:var(--v2)}
+  .stpill.won{background:#e4f5d8; color:#4e7d1a}
+  .stpill.lost{background:#eceeeb; color:#77807a}
+
+  .c-line{display:flex; align-items:center; gap:7px; font-size:12.7px;
+          margin-top:9px; color:var(--ink)}
+  .c-line svg{flex:0 0 auto}
+  .ret-red{color:var(--danger); font-weight:700}
+  .ret-green{color:var(--v2); font-weight:700}
+  .ret-gray{color:var(--muted)}
+
+  .c-foot{display:flex; align-items:center; gap:8px; margin-top:12px; flex-wrap:wrap}
+  .badge{font-size:10.5px; color:var(--muted); background:#f1f4f0;
+         border-radius:999px; padding:3px 9px}
+  .badge.linha{background:#eef6ff; color:#2b5c8a}
+  .spacer{flex:1}
+  .ico-btn{width:34px;height:34px;border-radius:9px; border:1px solid var(--line);
+           background:#fff; display:grid; place-items:center; cursor:pointer}
+  .ico-btn.wa{background:#e9f8ee; border-color:#bfe6cd}
+  .mv{display:flex; gap:6px; margin-top:11px}
+  .mv button{flex:1; border:1px solid var(--line); background:#fafcf9;
+             color:var(--v2); font-weight:700; font-size:12px; padding:8px;
+             border-radius:9px; cursor:pointer}
+  .mv button:disabled{opacity:.35; cursor:default}
+
+  /* resumo */
+  .resumo{margin:6px 16px 0; background:var(--v1); color:#fff;
+          border-radius:14px; padding:14px 15px}
+  .resumo h3{margin:0 0 4px; font-size:13px; font-weight:800}
+  .resumo .big{font-size:12px; color:#c9e3c2; margin-bottom:10px}
+  .rgrid{display:grid; grid-template-columns:1fr 1fr; gap:6px 12px; font-size:12px}
+  .rgrid .k{color:#c9e3c2}
+  .rgrid .v{font-weight:800; float:right}
+
+  /* FAB */
+  .fab{position:fixed; left:50%; transform:translateX(-50%); bottom:22px;
+       z-index:25; background:var(--v3); color:#fff; border:none; font-weight:800;
+       font-size:15px; padding:14px 22px; border-radius:999px;
+       box-shadow:0 6px 18px rgba(27,94,32,.35); cursor:pointer;
+       display:flex; align-items:center; gap:8px}
+
+  /* modal */
+  .ov{position:fixed; inset:0; background:rgba(20,30,20,.5); z-index:40;
+      display:none; align-items:flex-end; justify-content:center}
+  .ov.show{display:flex}
+  .sheet{background:#fff; width:100%; max-width:480px; border-radius:18px 18px 0 0;
+         max-height:92vh; overflow-y:auto; padding:18px 16px 28px}
+  .sheet h2{margin:2px 0 14px; font-size:17px; color:var(--v1)}
+  .fld{margin-bottom:12px}
+  .fld label{display:block; font-size:12px; font-weight:700; color:var(--muted); margin-bottom:5px}
+  .fld input,.fld select,.fld textarea{width:100%; border:1px solid var(--line);
+        border-radius:11px; padding:11px 12px; font-size:15px; font-family:inherit;
+        background:#fff; color:var(--ink)}
+  .fld textarea{min-height:64px; resize:vertical}
+  .row2{display:grid; grid-template-columns:1fr 1fr; gap:10px}
+  .actions{display:flex; gap:10px; margin-top:8px}
+  .btn{flex:1; border:none; border-radius:12px; padding:13px; font-size:15px;
+       font-weight:800; cursor:pointer}
+  .btn.primary{background:var(--v3); color:#fff}
+  .btn.ghost{background:#f1f4f0; color:var(--muted)}
+  .btn.dang{background:#fff; color:var(--danger); border:1px solid #f0cfc9}
+  .hint{font-size:11.5px; color:var(--muted); margin-top:-6px; margin-bottom:12px}
+
+  .toast{position:fixed; bottom:96px; left:50%; transform:translateX(-50%);
+         background:#1b2a1b; color:#fff; font-size:13px; padding:10px 16px;
+         border-radius:999px; z-index:60; opacity:0; transition:opacity .2s;
+         pointer-events:none; white-space:nowrap}
+  .toast.show{opacity:.96}
+  .loading{text-align:center; color:var(--muted); font-size:13px; padding:30px}
+</style>
+</head>
+<body>
+<a class="home" id="home" href="#">‹ Início</a>
+
+<div class="wrap">
+  <div class="top">
+    <svg class="mark" viewBox="0 0 24 24" fill="none" stroke="#8BC34A" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M12 20c-4-1-7-4-7-9 4 0 7 3 7 9z"/>
+      <path d="M12 20c4-1 7-4 7-9-4 0-7 3-7 9z"/>
+      <path d="M12 20v-9"/>
+    </svg>
+    <div>
+      <h1>Funil da Consultoria</h1>
+      <div class="sub">Gestão Pecuária Lucrativa</div>
+    </div>
+    <button class="gear" id="gear" aria-label="Configurações">
+      <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="3"/>
+        <path d="M19.4 15a1.6 1.6 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.6 1.6 0 0 0-1.8-.3 1.6 1.6 0 0 0-1 1.5V21a2 2 0 0 1-4 0v-.1a1.6 1.6 0 0 0-1-1.5 1.6 1.6 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.6 1.6 0 0 0 .3-1.8 1.6 1.6 0 0 0-1.5-1H3a2 2 0 0 1 0-4h.1a1.6 1.6 0 0 0 1.5-1 1.6 1.6 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.6 1.6 0 0 0 1.8.3H9a1.6 1.6 0 0 0 1-1.5V3a2 2 0 0 1 4 0v.1a1.6 1.6 0 0 0 1 1.5 1.6 1.6 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.6 1.6 0 0 0-.3 1.8V9a1.6 1.6 0 0 0 1.5 1H21a2 2 0 0 1 0 4h-.1a1.6 1.6 0 0 0-1.5 1z"/>
+      </svg>
+    </button>
+  </div>
+
+  <div class="banner" id="banner">
+    <b>Falta ligar na nuvem.</b> Cole a URL do seu Apps Script em <b>const API</b>, no topo do arquivo, pra salvar de verdade. Sem isso, nada é gravado.
+  </div>
+
+  <div class="filters" id="filters"></div>
+  <div class="list" id="list"><div class="loading">carregando…</div></div>
+  <div class="resumo" id="resumo" style="display:none"></div>
+</div>
+
+<button class="fab" id="add">
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+  Novo lead
+</button>
+
+<!-- modal editor -->
+<div class="ov" id="ov">
+  <div class="sheet">
+    <h2 id="mtitle">Novo lead</h2>
+    <div class="fld">
+      <label>Fazenda</label>
+      <input id="f_fazenda" placeholder="Ex.: Fazenda Boa Vista">
+    </div>
+    <div class="row2">
+      <div class="fld"><label>Produtor</label><input id="f_produtor" placeholder="Nome"></div>
+      <div class="fld"><label>Telefone (WhatsApp)</label><input id="f_telefone" inputmode="tel" placeholder="(99) 9....."></div>
+    </div>
+    <div class="row2">
+      <div class="fld"><label>Cidade</label><input id="f_cidade" placeholder="Ex.: Balsas"></div>
+      <div class="fld"><label>UF</label>
+        <select id="f_uf">
+          <option value="">—</option>
+          <option>MA</option><option>TO</option><option>PA</option><option>MT</option>
+          <option>PI</option><option>BA</option><option>GO</option><option>Outro</option>
+        </select>
+      </div>
+    </div>
+    <div class="row2">
+      <div class="fld"><label>Estágio</label><select id="f_estagio"></select></div>
+      <div class="fld"><label>Linha (WhatsApp)</label><select id="f_linha"></select></div>
+    </div>
+    <div class="row2">
+      <div class="fld"><label>Origem</label>
+        <select id="f_origem">
+          <option>Meta Ads</option><option>Indicação</option><option>Instagram</option>
+          <option>WhatsApp</option><option>Evento</option><option>Outro</option>
+        </select>
+      </div>
+      <div class="fld"><label>Valor estimado (R$)</label><input id="f_valor" inputmode="decimal" placeholder="opcional"></div>
+    </div>
+    <div class="fld"><label>Próximo passo</label><input id="f_proximo" placeholder="Ex.: retornar ligação / enviar proposta"></div>
+    <div class="fld"><label>Data de retorno</label><input id="f_retorno" type="date"></div>
+    <div class="fld"><label>Observações</label><textarea id="f_obs" placeholder="Anotações da conversa, tamanho do rebanho, dor do produtor…"></textarea></div>
+    <div class="actions">
+      <button class="btn ghost" id="cancel">Cancelar</button>
+      <button class="btn primary" id="save">Salvar</button>
+    </div>
+    <div class="actions" id="delrow" style="display:none; margin-top:10px">
+      <button class="btn dang" id="del">Excluir este lead</button>
+    </div>
+  </div>
+</div>
+
+<!-- modal config linhas -->
+<div class="ov" id="ovcfg">
+  <div class="sheet">
+    <h2>Seus dois números</h2>
+    <div class="hint">Dê um nome fácil pra cada linha (ex.: o nome do número, a região ou "comercial / pessoal"). Isso vira a etiqueta e o filtro dos cards.</div>
+    <div class="fld"><label>Linha 1</label><input id="c_l1" placeholder="Ex.: Comercial (63) 9910..."></div>
+    <div class="fld"><label>Linha 2</label><input id="c_l2" placeholder="Ex.: Campo (99) ...."></div>
+    <div class="actions">
+      <button class="btn ghost" id="ccancel">Fechar</button>
+      <button class="btn primary" id="csave">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- modal confirma exclusão -->
+<div class="ov" id="ovdel">
+  <div class="sheet">
+    <h2>Excluir lead?</h2>
+    <div class="hint" id="delname"></div>
+    <div class="actions">
+      <button class="btn ghost" id="dcancel">Não</button>
+      <button class="btn dang" id="dyes">Sim, excluir</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ============================================================
+   CONFIG — cole aqui a URL /exec do seu Apps Script (App da Web)
+   ============================================================ */
+var API  = ''; // ex.: 'https://script.google.com/macros/s/AKfy..../exec'
+var HOME = 'https://gestaopecuarialucrativa.com.br'; // botão Início (opcional)
+
+/* ---------- estado ---------- */
+var STAGES = ['Novo lead','Qualificado','Visita','Proposta','Fechado','Perdido'];
+var state = { leads: [], cfg: {linha1:'Linha 1', linha2:'Linha 2'}, filter: 'Novo lead', editId: null };
+
+/* ---------- helpers ---------- */
+function $(id){ return document.getElementById(id); }
+function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, function(c){
+  return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+
+function toast(msg){
+  var t=$('toast'); t.textContent=msg; t.classList.add('show');
+  clearTimeout(t._t); t._t=setTimeout(function(){ t.classList.remove('show'); }, 2200);
+}
+
+function jsonp(action, params){
+  return new Promise(function(resolve, reject){
+    if(!API){ reject(new Error('API não configurada')); return; }
+    var cb='cb_'+Date.now()+'_'+Math.floor(Math.random()*100000);
+    var s=document.createElement('script');
+    var p=Object.assign({action:action, callback:cb}, params||{});
+    var qs=Object.keys(p).map(function(k){ return encodeURIComponent(k)+'='+encodeURIComponent(p[k]); }).join('&');
+    var t=setTimeout(function(){ cleanup(); reject(new Error('tempo esgotado')); }, 20000);
+    function cleanup(){ try{ delete window[cb]; }catch(e){ window[cb]=undefined; } s.remove(); clearTimeout(t); }
+    window[cb]=function(data){ cleanup(); resolve(data); };
+    s.onerror=function(){ cleanup(); reject(new Error('falha de rede')); };
+    s.src=API+'?'+qs;
+    document.body.appendChild(s);
+  });
+}
+
+/* datas: ISO interno, dd/MM exibição */
+function todayISO(){ var d=new Date(); return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate()); }
+function pad(n){ return (n<10?'0':'')+n; }
+function fmtBR(iso){ if(!iso) return ''; var p=String(iso).slice(0,10).split('-'); return p.length===3? p[2]+'/'+p[1] : iso; }
+function retClass(iso){
+  if(!iso) return 'ret-gray';
+  var d=String(iso).slice(0,10);
+  if(d < todayISO()) return 'ret-red';
+  if(d === todayISO()) return 'ret-red';
+  return 'ret-green';
+}
+function retLabel(iso){
+  if(!iso) return 'Sem retorno marcado';
+  var d=String(iso).slice(0,10);
+  if(d===todayISO()) return 'Retornar: HOJE';
+  if(d<todayISO()) return 'Retorno atrasado: '+fmtBR(iso);
+  return 'Retornar: '+fmtBR(iso);
+}
+
+function stClass(st){ if(st==='Fechado') return 'won'; if(st==='Perdido') return 'lost'; return ''; }
+function linhaNome(v){
+  if(v==='linha1') return state.cfg.linha1||'Linha 1';
+  if(v==='linha2') return state.cfg.linha2||'Linha 2';
+  return v||'';
+}
+function waLink(tel){
+  var d=String(tel||'').replace(/\D/g,'');
+  if(!d) return '';
+  if(d.length<=11) d='55'+d;
+  return 'https://wa.me/'+d;
+}
+
+/* ---------- ícones ---------- */
+function icoPin(){ return '<svg class="pin" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2E7D32" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="2.6"/></svg>'; }
+function icoClock(cls){ return '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" class="'+cls+'"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>'; }
+function icoStep(){ return '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#2E7D32" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>'; }
+function icoWa(){ return '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2E7D32" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.5 8.5 0 0 1-12.6 7.4L3 21l2.2-5.3A8.5 8.5 0 1 1 21 11.5z"/><path d="M8.5 9.2c.2 1.8 1 3.3 2.3 4.5 1 .9 2.1 1.5 3.3 1.8.5.1 1-.1 1.2-.6l.3-.7c.1-.3 0-.6-.3-.8l-1.3-.7c-.3-.1-.6-.1-.8.2l-.3.4c-.9-.4-1.6-1.1-2-2l.4-.3c.3-.2.3-.5.2-.8l-.6-1.3c-.2-.3-.5-.4-.8-.3l-.7.3c-.5.2-.7.7-.6 1.2z"/></svg>'; }
+function icoEdit(){ return '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#5a6b58" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>'; }
+
+/* ---------- render ---------- */
+function counts(){
+  var c={}; STAGES.forEach(function(s){ c[s]=0; });
+  state.leads.forEach(function(l){ if(c[l.estagio]!=null) c[l.estagio]++; });
+  return c;
+}
+
+function renderFilters(){
+  var c=counts(); var box=$('filters'); var html='';
+  html+=fpill('Todos', state.leads.length, state.filter==='Todos');
+  STAGES.forEach(function(s){ html+=fpill(s, c[s], state.filter===s); });
+  box.innerHTML=html;
+  Array.prototype.forEach.call(box.querySelectorAll('.fpill'), function(el){
+    el.addEventListener('click', function(){ state.filter=el.getAttribute('data-s'); renderFilters(); renderList(); });
+  });
+}
+function fpill(label, n, on){
+  return '<button class="fpill'+(on?' on':'')+'" data-s="'+esc(label)+'">'+esc(label)+'<span class="n">'+n+'</span></button>';
+}
+
+function renderList(){
+  var box=$('list');
+  var rows = state.filter==='Todos' ? state.leads.slice() : state.leads.filter(function(l){ return l.estagio===state.filter; });
+  rows.sort(function(a,b){
+    var ra=a.retorno? String(a.retorno).slice(0,10) : '9999';
+    var rb=b.retorno? String(b.retorno).slice(0,10) : '9999';
+    return ra<rb?-1:ra>rb?1:0;
+  });
+  if(!rows.length){ box.innerHTML='<div class="empty">Nenhum lead aqui ainda.<br>Toque em <b>Novo lead</b> pra começar.</div>'; return; }
+  box.innerHTML = rows.map(cardHTML).join('');
+  Array.prototype.forEach.call(box.querySelectorAll('[data-edit]'), function(el){
+    el.addEventListener('click', function(){ openEditor(el.getAttribute('data-edit')); });
+  });
+  Array.prototype.forEach.call(box.querySelectorAll('[data-mv]'), function(el){
+    el.addEventListener('click', function(e){ e.stopPropagation(); moveStage(el.getAttribute('data-id'), parseInt(el.getAttribute('data-mv'),10)); });
+  });
+}
+
+function cardHTML(l){
+  var cls=stClass(l.estagio);
+  var wl=waLink(l.telefone);
+  var idx=STAGES.indexOf(l.estagio);
+  var sub=[l.produtor, [l.cidade,l.uf].filter(Boolean).join('-')].filter(Boolean).join(' · ');
+  var rc=retClass(l.retorno);
+  var h='';
+  h+='<div class="card '+cls+'">';
+  h+= '<div class="c-top">'+icoPin()+'<div style="flex:1">';
+  h+=  '<div class="c-name">'+esc(l.fazenda||'(sem nome)')+'</div>';
+  if(sub) h+='<div class="c-sub">'+esc(sub)+'</div>';
+  h+=  '<span class="stpill '+cls+'">'+esc(l.estagio)+'</span>';
+  h+= '</div></div>';
+  if(l.proximo_passo) h+='<div class="c-line">'+icoStep()+'<span>'+esc(l.proximo_passo)+'</span></div>';
+  h+= '<div class="c-line '+rc+'">'+icoClock(rc)+'<span>'+esc(retLabel(l.retorno))+'</span></div>';
+  h+= '<div class="c-foot">';
+  if(l.origem) h+='<span class="badge">origem: '+esc(l.origem)+'</span>';
+  if(l.linha)  h+='<span class="badge linha">'+esc(linhaNome(l.linha))+'</span>';
+  h+=  '<span class="spacer"></span>';
+  if(wl) h+='<a class="ico-btn wa" href="'+wl+'" target="_blank" rel="noopener" onclick="event.stopPropagation()">'+icoWa()+'</a>';
+  h+=  '<button class="ico-btn" data-edit="'+esc(l.id)+'">'+icoEdit()+'</button>';
+  h+= '</div>';
+  h+= '<div class="mv">';
+  h+=  '<button data-id="'+esc(l.id)+'" data-mv="-1"'+(idx<=0?' disabled':'')+'>‹ Voltar</button>';
+  h+=  '<button data-id="'+esc(l.id)+'" data-mv="1"'+(idx>=STAGES.length-1?' disabled':'')+'>Avançar ›</button>';
+  h+= '</div>';
+  h+='</div>';
+  return h;
+}
+
+function renderResumo(){
+  var box=$('resumo'); if(!state.leads.length){ box.style.display='none'; return; }
+  var c=counts();
+  var l1=0,l2=0;
+  state.leads.forEach(function(l){ if(l.linha==='linha1') l1++; else if(l.linha==='linha2') l2++; });
+  var abertos = state.leads.filter(function(l){ return l.estagio!=='Fechado' && l.estagio!=='Perdido'; }).length;
+  box.style.display='block';
+  box.innerHTML =
+    '<h3>Sua carteira</h3>'+
+    '<div class="big">'+abertos+' em aberto · '+c['Fechado']+' fechados · '+c['Perdido']+' perdidos</div>'+
+    '<div class="rgrid">'+
+      '<div class="k">Novo lead <span class="v">'+c['Novo lead']+'</span></div>'+
+      '<div class="k">Qualificado <span class="v">'+c['Qualificado']+'</span></div>'+
+      '<div class="k">Visita <span class="v">'+c['Visita']+'</span></div>'+
+      '<div class="k">Proposta <span class="v">'+c['Proposta']+'</span></div>'+
+      '<div class="k">'+esc(state.cfg.linha1)+' <span class="v">'+l1+'</span></div>'+
+      '<div class="k">'+esc(state.cfg.linha2)+' <span class="v">'+l2+'</span></div>'+
+    '</div>';
+}
+
+function renderAll(){ renderFilters(); renderList(); renderResumo(); }
+
+/* ---------- editor ---------- */
+function fillStageSelect(){
+  $('f_estagio').innerHTML = STAGES.map(function(s){ return '<option>'+esc(s)+'</option>'; }).join('');
+  $('f_linha').innerHTML =
+    '<option value="">—</option>'+
+    '<option value="linha1">'+esc(state.cfg.linha1)+'</option>'+
+    '<option value="linha2">'+esc(state.cfg.linha2)+'</option>';
+}
+
+function openEditor(id){
+  fillStageSelect();
+  var l = id ? state.leads.filter(function(x){ return String(x.id)===String(id); })[0] : null;
+  state.editId = l ? l.id : null;
+  $('mtitle').textContent = l ? 'Editar lead' : 'Novo lead';
+  $('f_fazenda').value  = l? (l.fazenda||'') : '';
+  $('f_produtor').value = l? (l.produtor||'') : '';
+  $('f_telefone').value = l? (l.telefone||'') : '';
+  $('f_cidade').value   = l? (l.cidade||'') : '';
+  $('f_uf').value       = l? (l.uf||'') : '';
+  $('f_estagio').value  = l? (l.estagio||'Novo lead') : (state.filter!=='Todos'? state.filter : 'Novo lead');
+  $('f_linha').value    = l? (l.linha||'') : '';
+  $('f_origem').value   = l? (l.origem||'Meta Ads') : 'Meta Ads';
+  $('f_valor').value    = l? (l.valor||'') : '';
+  $('f_proximo').value  = l? (l.proximo_passo||'') : '';
+  $('f_retorno').value  = l? (l.retorno? String(l.retorno).slice(0,10):'') : '';
+  $('f_obs').value      = l? (l.obs||'') : '';
+  $('delrow').style.display = l ? 'flex' : 'none';
+  show('ov');
+}
+
+function collect(){
+  return {
+    id: state.editId || '',
+    fazenda: $('f_fazenda').value.trim(),
+    produtor: $('f_produtor').value.trim(),
+    telefone: $('f_telefone').value.trim(),
+    cidade: $('f_cidade').value.trim(),
+    uf: $('f_uf').value,
+    estagio: $('f_estagio').value,
+    linha: $('f_linha').value,
+    origem: $('f_origem').value,
+    valor: $('f_valor').value.trim(),
+    proximo_passo: $('f_proximo').value.trim(),
+    retorno: $('f_retorno').value,
+    obs: $('f_obs').value.trim()
+  };
+}
+
+function saveLead(){
+  var o=collect();
+  if(!o.fazenda && !o.produtor){ toast('Preencha ao menos a fazenda ou o produtor'); return; }
+  var btn=$('save'); btn.disabled=true; btn.textContent='Salvando…';
+  // otimista local
+  var existing = state.editId ? state.leads.filter(function(x){ return String(x.id)===String(state.editId); })[0] : null;
+  jsonp('save', { payload: JSON.stringify(o) }).then(function(res){
+    if(!res || !res.ok){ throw new Error(res && res.error ? res.error : 'erro ao salvar'); }
+    var row=res.row;
+    if(existing){ Object.assign(existing, row); }
+    else { state.leads.push(row); }
+    hide('ov'); renderAll(); toast('Salvo');
+  }).catch(function(err){
+    toast('Não salvou: '+err.message);
+  }).then(function(){ btn.disabled=false; btn.textContent='Salvar'; });
+}
+
+function moveStage(id, dir){
+  var l=state.leads.filter(function(x){ return String(x.id)===String(id); })[0];
+  if(!l) return;
+  var i=STAGES.indexOf(l.estagio); var ni=i+dir;
+  if(ni<0 || ni>=STAGES.length) return;
+  var prev=l.estagio; l.estagio=STAGES[ni]; renderAll();
+  var o=Object.assign({}, l);
+  jsonp('save', { payload: JSON.stringify(o) }).then(function(res){
+    if(!res||!res.ok) throw new Error(res&&res.error?res.error:'erro');
+    Object.assign(l, res.row);
+  }).catch(function(err){
+    l.estagio=prev; renderAll(); toast('Não moveu: '+err.message);
+  });
+}
+
+/* ---------- exclusão ---------- */
+function askDelete(){
+  var l = state.editId ? state.leads.filter(function(x){ return String(x.id)===String(state.editId); })[0] : null;
+  if(!l) return;
+  $('delname').textContent = (l.fazenda||l.produtor||'este lead')+' será removido de vez.';
+  show('ovdel');
+}
+function doDelete(){
+  var id=state.editId; if(!id){ hide('ovdel'); return; }
+  jsonp('del', { id: id }).then(function(res){
+    if(!res||!res.ok) throw new Error(res&&res.error?res.error:'erro');
+    state.leads = state.leads.filter(function(x){ return String(x.id)!==String(id); });
+    hide('ovdel'); hide('ov'); renderAll(); toast('Excluído');
+  }).catch(function(err){ toast('Não excluiu: '+err.message); hide('ovdel'); });
+}
+
+/* ---------- config linhas ---------- */
+function openCfg(){ $('c_l1').value=state.cfg.linha1||''; $('c_l2').value=state.cfg.linha2||''; show('ovcfg'); }
+function saveCfg(){
+  var o={ linha1: $('c_l1').value.trim()||'Linha 1', linha2: $('c_l2').value.trim()||'Linha 2' };
+  state.cfg.linha1=o.linha1; state.cfg.linha2=o.linha2;
+  hide('ovcfg'); renderAll();
+  jsonp('setcfg', { payload: JSON.stringify(o) }).then(function(res){
+    if(res&&res.ok&&res.cfg){ state.cfg=Object.assign(state.cfg,res.cfg); renderAll(); }
+    toast('Linhas salvas');
+  }).catch(function(err){ toast('Salvou local, mas não na nuvem: '+err.message); });
+}
+
+/* ---------- modais util ---------- */
+function show(id){ $(id).classList.add('show'); }
+function hide(id){ $(id).classList.remove('show'); }
+
+/* ---------- boot ---------- */
+function boot(){
+  if(HOME){ var h=$('home'); h.href=HOME; h.style.display='block'; }
+  if(!API){ $('banner').style.display='block'; $('list').innerHTML='<div class="empty">App em modo demonstração.<br>Configure a nuvem pra salvar.</div>'; renderFilters(); return; }
+  Promise.all([
+    jsonp('getcfg').catch(function(){ return {ok:false}; }),
+    jsonp('list').catch(function(e){ throw e; })
+  ]).then(function(r){
+    if(r[0] && r[0].ok && r[0].cfg){ state.cfg=Object.assign(state.cfg, r[0].cfg); }
+    if(r[1] && r[1].ok){ state.leads=r[1].rows||[]; }
+    renderAll();
+  }).catch(function(err){
+    $('list').innerHTML='<div class="empty">Não consegui carregar da nuvem.<br><small>'+esc(err.message)+'</small></div>';
+    renderFilters();
+  });
+}
+
+/* ---------- eventos ---------- */
+$('add').addEventListener('click', function(){ openEditor(null); });
+$('cancel').addEventListener('click', function(){ hide('ov'); });
+$('save').addEventListener('click', saveLead);
+$('del').addEventListener('click', askDelete);
+$('gear').addEventListener('click', openCfg);
+$('ccancel').addEventListener('click', function(){ hide('ovcfg'); });
+$('csave').addEventListener('click', saveCfg);
+$('dcancel').addEventListener('click', function(){ hide('ovdel'); });
+$('dyes').addEventListener('click', doDelete);
+[['ov'],['ovcfg'],['ovdel']].forEach(function(a){
+  $(a[0]).addEventListener('click', function(e){ if(e.target===this) hide(a[0]); });
+});
+
+boot();
+</script>
+</body>
+</html>

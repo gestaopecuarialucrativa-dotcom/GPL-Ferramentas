@@ -342,19 +342,20 @@ function sendToGestor(id){
   if(!lead) return;
   var hist=parseHist(lead.historico);
   if(hist.sent) return;
+  if(lead._sending) return;
   var gid=hist.gestorId || genGestorId();
   var nome=(lead.fazenda||lead.produtor||'').trim();
   if(!nome){ toast('Sem nome de fazenda/produtor pra cadastrar'); return; }
-  toast('Enviando pro gestor…');
+  lead._sending=true; toast('Enviando pro gestor…');
   jsonpTo(GESTOR_API, {
     acao:'fazenda_salvar', id:gid, nome:nome, prop:(lead.produtor||''),
     pin:'', ferramentas:'', ativo:'0', validade:'', criadoEm:todayBR()
   }).then(function(res){
     if(!res || !res.ok){ throw new Error(res && res.erro ? res.erro : 'erro no gestor'); }
-    lead.historico=JSON.stringify({gestorId:gid, sent:true});
+    lead._sending=false; lead.historico=JSON.stringify({gestorId:gid, sent:true});
     persistLead(lead); renderAll(); toast('Fazenda criada no gestor (inativa) \u2713');
   }).catch(function(err){
-    lead.historico=JSON.stringify({gestorId:gid, sent:false});
+    lead._sending=false; lead.historico=JSON.stringify({gestorId:gid, sent:false});
     persistLead(lead); renderAll(); toast('\u26a0 N\u00e3o confirmou. Toque de novo pra tentar (n\u00e3o duplica).');
   });
 }
@@ -583,7 +584,9 @@ function moveStage(id, dir){
   if(!l) return;
   var i=STAGES.indexOf(l.estagio); var ni=i+dir;
   if(ni<0 || ni>=STAGES.length) return;
-  var prev=l.estagio; l.estagio=STAGES[ni]; renderAll();
+  var prev=l.estagio; l.estagio=STAGES[ni];
+  if(state.filter!=='Todos' && state.filter===prev) state.filter=STAGES[ni];
+  renderAll(); toast('\u2192 '+STAGES[ni]);
   var o=Object.assign({}, l);
   jsonp('save', { payload: JSON.stringify(o) }).then(function(res){
     if(!res||!res.ok) throw new Error(res&&res.error?res.error:'erro');

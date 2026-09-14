@@ -413,8 +413,11 @@ function counts(){
   return c;
 }
 
+function isOpen(l){ return l.estagio!=='Fechado' && l.estagio!=='Perdido'; }
+function hojeCount(){ var t=todayISO(); var n=0; state.leads.forEach(function(l){ if(isOpen(l) && l.retorno && String(l.retorno).slice(0,10)<=t) n++; }); return n; }
 function renderFilters(){
   var c=counts(); var box=$('filters'); var html='';
+  html+=fpill('Pra hoje', hojeCount(), state.filter==='HOJE', 'HOJE');
   html+=fpill('Todos', state.leads.length, state.filter==='Todos');
   STAGES.forEach(function(s){ html+=fpill(s, c[s], state.filter===s); });
   box.innerHTML=html;
@@ -422,19 +425,25 @@ function renderFilters(){
     el.addEventListener('click', function(){ state.filter=el.getAttribute('data-s'); renderFilters(); renderList(); });
   });
 }
-function fpill(label, n, on){
-  return '<button class="fpill'+(on?' on':'')+'" data-s="'+esc(label)+'">'+esc(label)+'<span class="n">'+n+'</span></button>';
+function fpill(label, n, on, val){
+  return '<button class="fpill'+(on?' on':'')+'" data-s="'+esc(val||label)+'">'+esc(label)+'<span class="n">'+n+'</span></button>';
 }
 
 function renderList(){
   var box=$('list');
-  var rows = state.filter==='Todos' ? state.leads.slice() : state.leads.filter(function(l){ return l.estagio===state.filter; });
+  var rows;
+  if(state.filter==='HOJE'){ var _t=todayISO(); rows=state.leads.filter(function(l){ return isOpen(l) && l.retorno && String(l.retorno).slice(0,10)<=_t; }); }
+  else if(state.filter==='Todos'){ rows=state.leads.slice(); }
+  else { rows=state.leads.filter(function(l){ return l.estagio===state.filter; }); }
   rows.sort(function(a,b){
     var ra=a.retorno? String(a.retorno).slice(0,10) : '9999';
     var rb=b.retorno? String(b.retorno).slice(0,10) : '9999';
     return ra<rb?-1:ra>rb?1:0;
   });
-  if(!rows.length){ box.innerHTML='<div class="empty">Nenhum lead aqui ainda.<br>Toque em <b>Novo lead</b> pra começar.</div>'; return; }
+  if(!rows.length){
+    var msg = state.filter==='HOJE' ? 'Nada pra hoje \u2014 tudo em dia! \u2713' : 'Nenhum lead aqui ainda.<br>Toque em <b>Novo lead</b> pra começar.';
+    box.innerHTML='<div class="empty">'+msg+'</div>'; return;
+  }
   box.innerHTML = rows.map(cardHTML).join('');
   Array.prototype.forEach.call(box.querySelectorAll('[data-edit]'), function(el){
     el.addEventListener('click', function(){ openEditor(el.getAttribute('data-edit')); });

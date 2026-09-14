@@ -96,6 +96,8 @@
              color:var(--v2); font-weight:700; font-size:12px; padding:8px;
              border-radius:9px; cursor:pointer}
   .mv button:disabled{opacity:.35; cursor:default}
+  .gestor-btn{width:100%; margin-top:9px; border:1px solid var(--v2); background:#fff; color:var(--v2); font-weight:800; font-size:13px; padding:11px; border-radius:11px; cursor:pointer}
+  .gestor-btn.done{border-color:#cfe0ca; background:#eef4ec; color:#6b8a63; cursor:default}
 
   /* resumo */
   .resumo{margin:6px 16px 0; background:var(--v1); color:#fff;
@@ -297,6 +299,7 @@
    ============================================================ */
 var API  = 'https://script.google.com/macros/s/AKfycbwr8hk8Uc8uyLyhMnYk9ep7etIisJl5WSblf4KkmV1tjC1-r4eBSBR_gV0GRwa2SgyK7A/exec'; // URL do Apps Script (App da Web)
 var HOME = 'https://gestaopecuarialucrativa.com.br'; // botão Início (opcional)
+var GESTOR_API = 'https://script.google.com/macros/s/AKfycbyjWp9UnWpnKYhzV2o2y48MwkJhu_ynr5baIHXAm4QpUVmk2BKu5LoBvOUOCmHPrw/exec'; // gestor-clientes (aba Fazendas)
 
 /* ---------- estado ---------- */
 var STAGES = ['Novo lead','Qualificado','Visita','Proposta','Fechado','Perdido'];
@@ -312,19 +315,47 @@ function toast(msg){
   clearTimeout(t._t); t._t=setTimeout(function(){ t.classList.remove('show'); }, 2200);
 }
 
-function jsonp(action, params){
+function jsonpTo(url, params){
   return new Promise(function(resolve, reject){
-    if(!API){ reject(new Error('API não configurada')); return; }
+    if(!url){ reject(new Error('URL não configurada')); return; }
     var cb='cb_'+Date.now()+'_'+Math.floor(Math.random()*100000);
     var s=document.createElement('script');
-    var p=Object.assign({action:action, callback:cb}, params||{});
+    var p=Object.assign({callback:cb}, params||{});
     var qs=Object.keys(p).map(function(k){ return encodeURIComponent(k)+'='+encodeURIComponent(p[k]); }).join('&');
     var t=setTimeout(function(){ cleanup(); reject(new Error('tempo esgotado')); }, 20000);
     function cleanup(){ try{ delete window[cb]; }catch(e){ window[cb]=undefined; } s.remove(); clearTimeout(t); }
     window[cb]=function(data){ cleanup(); resolve(data); };
     s.onerror=function(){ cleanup(); reject(new Error('falha de rede')); };
-    s.src=API+'?'+qs;
+    s.src=url+(url.indexOf('?')<0?'?':'&')+qs;
     document.body.appendChild(s);
+  });
+}
+function jsonp(action, params){ return jsonpTo(API, Object.assign({action:action}, params||{})); }
+
+/* ---------- integração com o gestor (aba Fazendas) — só CHAMA a ação fazenda_salvar que já existe ---------- */
+function todayBR(){ var d=new Date(); return pad(d.getDate())+'/'+pad(d.getMonth()+1)+'/'+d.getFullYear(); }
+function genGestorId(){ return 'f'+Date.now()+Math.floor(Math.random()*1000); }
+function parseHist(h){ if(!h) return {}; try{ return JSON.parse(h); }catch(e){ return {}; } }
+function persistLead(lead){ return jsonp('save', { payload: JSON.stringify(lead) }); }
+function sendToGestor(id){
+  var lead=state.leads.filter(function(x){ return String(x.id)===String(id); })[0];
+  if(!lead) return;
+  var hist=parseHist(lead.historico);
+  if(hist.sent) return;
+  var gid=hist.gestorId || genGestorId();
+  var nome=(lead.fazenda||lead.produtor||'').trim();
+  if(!nome){ toast('Sem nome de fazenda/produtor pra cadastrar'); return; }
+  toast('Enviando pro gestor…');
+  jsonpTo(GESTOR_API, {
+    acao:'fazenda_salvar', id:gid, nome:nome, prop:(lead.produtor||''),
+    pin:'', ferramentas:'', ativo:'0', validade:'', criadoEm:todayBR()
+  }).then(function(res){
+    if(!res || !res.ok){ throw new Error(res && res.erro ? res.erro : 'erro no gestor'); }
+    lead.historico=JSON.stringify({gestorId:gid, sent:true});
+    persistLead(lead); renderAll(); toast('Fazenda criada no gestor (inativa) \u2713');
+  }).catch(function(err){
+    lead.historico=JSON.stringify({gestorId:gid, sent:false});
+    persistLead(lead); renderAll(); toast('\u26a0 N\u00e3o confirmou. Toque de novo pra tentar (n\u00e3o duplica).');
   });
 }
 
@@ -413,6 +444,9 @@ function renderList(){
   Array.prototype.forEach.call(box.querySelectorAll('[data-del]'), function(el){
     el.addEventListener('click', function(e){ e.stopPropagation(); askDeleteId(el.getAttribute('data-del')); });
   });
+  Array.prototype.forEach.call(box.querySelectorAll('[data-gestor]'), function(el){
+    el.addEventListener('click', function(e){ e.stopPropagation(); sendToGestor(el.getAttribute('data-gestor')); });
+  });
 }
 
 function cardHTML(l){
@@ -442,6 +476,11 @@ function cardHTML(l){
   h+=  '<button data-id="'+esc(l.id)+'" data-mv="-1"'+(idx<=0?' disabled':'')+'>‹ Voltar</button>';
   h+=  '<button data-id="'+esc(l.id)+'" data-mv="1"'+(idx>=STAGES.length-1?' disabled':'')+'>Avançar ›</button>';
   h+= '</div>';
+  if(l.estagio==='Fechado'){
+    var gh=parseHist(l.historico);
+    if(gh.sent){ h+='<button class="gestor-btn done" disabled>\u2713 No gestor \u00b7 inativo</button>'; }
+    else { h+='<button class="gestor-btn" data-gestor="'+esc(l.id)+'">'+(gh.gestorId?'Tentar de novo no gestor':'+ Cadastrar no gestor')+'</button>'; }
+  }
   h+='</div>';
   return h;
 }

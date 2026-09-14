@@ -226,9 +226,17 @@
 <div class="ov" id="ovcfg">
   <div class="sheet">
     <h2>Seus dois números</h2>
-    <div class="hint">Dê um nome fácil pra cada linha (ex.: o nome do número, a região ou "comercial / pessoal"). Isso vira a etiqueta e o filtro dos cards.</div>
-    <div class="fld"><label>Linha 1</label><input id="c_l1" placeholder="Ex.: Comercial (63) 9910..."></div>
-    <div class="fld"><label>Linha 2</label><input id="c_l2" placeholder="Ex.: Campo (99) ...."></div>
+    <div class="hint">Dê um nome e o número de cada linha. Na hora de criar o lead, o seletor mostra os dois; no card fica só o nome.</div>
+    <div style="font-size:12px;font-weight:800;color:#2E7D32;margin:2px 0 6px">Linha 1</div>
+    <div class="row2">
+      <div class="fld"><label>Nome</label><input id="c_l1nome" placeholder="Ex.: Gestão"></div>
+      <div class="fld"><label>Número</label><input id="c_l1num" inputmode="tel" placeholder="63 99108-2453"></div>
+    </div>
+    <div style="font-size:12px;font-weight:800;color:#2E7D32;margin:8px 0 6px">Linha 2</div>
+    <div class="row2">
+      <div class="fld"><label>Nome</label><input id="c_l2nome" placeholder="Ex.: Particular"></div>
+      <div class="fld"><label>Número</label><input id="c_l2num" inputmode="tel" placeholder="99 99178-3222"></div>
+    </div>
     <div class="actions">
       <button class="btn ghost" id="ccancel">Fechar</button>
       <button class="btn primary" id="csave">Salvar</button>
@@ -259,7 +267,7 @@ var HOME = 'https://gestaopecuarialucrativa.com.br'; // botão Início (opcional
 
 /* ---------- estado ---------- */
 var STAGES = ['Novo lead','Qualificado','Visita','Proposta','Fechado','Perdido'];
-var state = { leads: [], cfg: {linha1:'Linha 1', linha2:'Linha 2'}, filter: 'Novo lead', editId: null };
+var state = { leads: [], cfg: {l1nome:'Gestão', l1num:'63991082453', l2nome:'Particular', l2num:'99991783222'}, filter: 'Novo lead', editId: null };
 
 /* ---------- helpers ---------- */
 function $(id){ return document.getElementById(id); }
@@ -307,10 +315,16 @@ function retLabel(iso){
 }
 
 function stClass(st){ if(st==='Fechado') return 'won'; if(st==='Perdido') return 'lost'; return ''; }
+function fmtFone(n){ var d=String(n||'').replace(/\D/g,''); if(d.length===11) return d.slice(0,2)+' '+d.slice(2,7)+'-'+d.slice(7); if(d.length===10) return d.slice(0,2)+' '+d.slice(2,6)+'-'+d.slice(6); return n||''; }
 function linhaNome(v){
-  if(v==='linha1') return state.cfg.linha1||'Linha 1';
-  if(v==='linha2') return state.cfg.linha2||'Linha 2';
+  if(v==='linha1') return state.cfg.l1nome||'Linha 1';
+  if(v==='linha2') return state.cfg.l2nome||'Linha 2';
   return v||'';
+}
+function linhaFull(v){
+  var nome=linhaNome(v);
+  var num = v==='linha1'?state.cfg.l1num : (v==='linha2'?state.cfg.l2num : '');
+  return num ? nome+' · '+fmtFone(num) : nome;
 }
 function waLink(tel){
   var d=String(tel||'').replace(/\D/g,'');
@@ -409,8 +423,8 @@ function renderResumo(){
       '<div class="k">Qualificado <span class="v">'+c['Qualificado']+'</span></div>'+
       '<div class="k">Visita <span class="v">'+c['Visita']+'</span></div>'+
       '<div class="k">Proposta <span class="v">'+c['Proposta']+'</span></div>'+
-      '<div class="k">'+esc(state.cfg.linha1)+' <span class="v">'+l1+'</span></div>'+
-      '<div class="k">'+esc(state.cfg.linha2)+' <span class="v">'+l2+'</span></div>'+
+      '<div class="k">'+esc(state.cfg.l1nome)+' <span class="v">'+l1+'</span></div>'+
+      '<div class="k">'+esc(state.cfg.l2nome)+' <span class="v">'+l2+'</span></div>'+
     '</div>';
 }
 
@@ -421,8 +435,8 @@ function fillStageSelect(){
   $('f_estagio').innerHTML = STAGES.map(function(s){ return '<option>'+esc(s)+'</option>'; }).join('');
   $('f_linha').innerHTML =
     '<option value="">—</option>'+
-    '<option value="linha1">'+esc(state.cfg.linha1)+'</option>'+
-    '<option value="linha2">'+esc(state.cfg.linha2)+'</option>';
+    '<option value="linha1">'+esc(linhaFull('linha1'))+'</option>'+
+    '<option value="linha2">'+esc(linhaFull('linha2'))+'</option>';
 }
 
 function openEditor(id){
@@ -514,10 +528,15 @@ function doDelete(){
 }
 
 /* ---------- config linhas ---------- */
-function openCfg(){ $('c_l1').value=state.cfg.linha1||''; $('c_l2').value=state.cfg.linha2||''; show('ovcfg'); }
+function openCfg(){
+  $('c_l1nome').value=state.cfg.l1nome||''; $('c_l1num').value=state.cfg.l1num||'';
+  $('c_l2nome').value=state.cfg.l2nome||''; $('c_l2num').value=state.cfg.l2num||'';
+  show('ovcfg');
+}
 function saveCfg(){
-  var o={ linha1: $('c_l1').value.trim()||'Linha 1', linha2: $('c_l2').value.trim()||'Linha 2' };
-  state.cfg.linha1=o.linha1; state.cfg.linha2=o.linha2;
+  var o={ l1nome: $('c_l1nome').value.trim()||'Linha 1', l1num: $('c_l1num').value.trim(),
+          l2nome: $('c_l2nome').value.trim()||'Linha 2', l2num: $('c_l2num').value.trim() };
+  state.cfg.l1nome=o.l1nome; state.cfg.l1num=o.l1num; state.cfg.l2nome=o.l2nome; state.cfg.l2num=o.l2num;
   hide('ovcfg'); renderAll();
   jsonp('setcfg', { payload: JSON.stringify(o) }).then(function(res){
     if(res&&res.ok&&res.cfg){ state.cfg=Object.assign(state.cfg,res.cfg); renderAll(); }

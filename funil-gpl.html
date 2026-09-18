@@ -222,7 +222,10 @@
       <div class="fld"><label>Valor estimado (R$)</label><input id="f_valor" inputmode="decimal" placeholder="opcional"></div>
     </div>
     <div class="fld"><label>Próximo passo</label><input id="f_proximo" placeholder="Ex.: retornar ligação / enviar proposta"></div>
-    <div class="fld"><label>Data de retorno</label><input id="f_retorno" type="date"></div>
+    <div class="row2">
+      <div class="fld"><label>Data de entrada</label><input id="f_entrada" type="date"></div>
+      <div class="fld"><label>Data de retorno</label><input id="f_retorno" type="date"></div>
+    </div>
     <div class="fld"><label>Observações</label><textarea id="f_obs" placeholder="Anotações da conversa, tamanho do rebanho, dor do produtor…"></textarea></div>
     <div class="actions" id="delrow" style="display:none; margin-top:10px">
       <button class="btn dang" id="del">Excluir este lead</button>
@@ -586,6 +589,7 @@ function openEditor(id){
   $('f_valor').value    = l? (l.valor||'') : '';
   $('f_proximo').value  = l? (l.proximo_passo||'') : '';
   $('f_retorno').value  = l? (l.retorno? String(l.retorno).slice(0,10):'') : '';
+  $('f_entrada').value  = l? (l.criado? String(l.criado).slice(0,10):'') : todayISO();
   $('f_obs').value      = l? (l.obs||'') : '';
   $('delrow').style.display = l ? 'flex' : 'none';
   var sb=document.querySelector('.sheet.lead .sheet-body'); if(sb) sb.scrollTop=0;
@@ -595,7 +599,7 @@ function openEditor(id){
 function collect(){
   return {
     id: state.editId || '',
-    criado: state.editCriado || '',
+    criado: ($('f_entrada').value || state.editCriado || todayISO()),
     fazenda: $('f_fazenda').value.trim(),
     produtor: $('f_produtor').value.trim(),
     telefone: $('f_telefone').value.trim(),

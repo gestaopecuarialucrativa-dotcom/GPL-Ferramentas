@@ -350,7 +350,7 @@ function toggleForm(L){ _abertosForm[L]=!_abertosForm[L]; var el=document.getEle
 function renderHoje(){
   var el=document.getElementById('conteudoHoje'); if(!el) return;
   // descobre se a data carregada é hoje
-  var hoje=new Date().toISOString().slice(0,10);
+  var _n=new Date(); var hoje=_n.getFullYear()+'-'+String(_n.getMonth()+1).padStart(2,'0')+'-'+String(_n.getDate()).padStart(2,'0');
   var dataCarregada=dados.data||'';
   var ehHoje=dataCarregada===hoje;
   var banner='';
@@ -414,11 +414,23 @@ async function carregarDatas(){
     const faz=(auth.fazenda==="*"||!auth.fazenda)?"":auth.fazenda;
     const r=await jsonp(BACKEND_URL+"?acao=pesagem_datas&token="+encodeURIComponent(auth.token)+"&fazenda="+encodeURIComponent(faz));
     datas=(r&&r.datas)?r.datas:[];
-    if(!datas.length){ document.getElementById("conteudoLotes").innerHTML='<div class="card"><p class="cap">Ainda não há pesagem registrada para esta fazenda.</p></div>'; document.getElementById("dateBar").innerHTML=""; return; }
+    if(!datas.length){ document.getElementById("conteudoLotes").innerHTML='<div class="card"><p class="cap">Ainda não há pesagem registrada para esta fazenda.</p></div>'; document.getElementById("dateBar").innerHTML=""; iniciarAutoRefresh(); return; }
     renderDateBar();
     carregarDia(datas[0].data);
     iniciarAutoRefresh();
   }catch(e){ document.getElementById("conteudoLotes").innerHTML='<div class="card"><p class="cap">Não consegui carregar. Confira a internet e recarregue.</p></div>'; }
+}
+async function atualizarDatas(){
+  try{
+    const faz=(auth.fazenda==="*"||!auth.fazenda)?"":auth.fazenda;
+    const r=await jsonp(BACKEND_URL+"?acao=pesagem_datas&token="+encodeURIComponent(auth.token)+"&fazenda="+encodeURIComponent(faz));
+    var nd=(r&&r.datas)?r.datas:null; if(!nd||!nd.length) return;
+    var mudou=!datas.length || nd.length!==datas.length || nd[0].data!==datas[0].data || nd[0].qtd!==datas[0].qtd;
+    if(!mudou) return;
+    var selAntes=_dataAtual();
+    datas=nd; renderDateBar();
+    var sel=document.getElementById("dsel"); if(sel && selAntes){ sel.value=selAntes; if(sel.value!==selAntes) sel.selectedIndex=0; }
+  }catch(e){}
 }
 function renderDateBar(){
   const el=document.getElementById("dateBar");
@@ -439,17 +451,19 @@ function atualizarAgora(){
 let _autoTimer=null;
 function iniciarAutoRefresh(){
   if(_autoTimer) clearInterval(_autoTimer);
+  var _tick=0;
   _autoTimer=setInterval(function(){
+    _tick++;
     var ae=document.activeElement;
     if(ae && (ae.id==="inMeta"||ae.id==="inGmd")) return;
-    // Hoje: sempre a data mais recente
+    // Hoje: a cada 20 s, relendo as datas (se comecou uma pesagem nova, ela aparece sozinha)
     if(_abaAtual==='hoje'){
-      if(datas.length) carregarDia(datas[0].data, true);
-    } else {
+      atualizarDatas().then(function(){ if(datas.length) carregarDia(datas[0].data, true); });
+    } else if(_tick%2===0){
       var d=_dataAtual();
       if(d) carregarDia(d, true);
     }
-  }, 45000);
+  }, 20000);
 }
 async function carregarDia(data, silent){
   if(!silent) document.getElementById("conteudoLotes").innerHTML='<div class="loading">Carregando pesagem de '+isoToBR(data)+'…</div>';

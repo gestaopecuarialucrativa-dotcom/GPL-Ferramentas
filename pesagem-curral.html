@@ -1262,6 +1262,7 @@ function registrar(){
     peso, lote:String(lote||""), pesoAnterior:s.pesoAnterior, dataAnterior:s.dataAnterior,
     dias:dias, gmd:gmd, obsAnterior:s.obsAnterior||"", obs:obs
   });
+  state.syncDirty=true; /* pendente de envio: nunca deixa a nuvem sobrescrever o que ainda nao subiu */
   save();
   document.getElementById("pesoIn").value="";
   document.getElementById("numIn").value="";
@@ -1406,6 +1407,7 @@ function saveAnimal(){
   t.dataAnterior=_editRef.dataAnterior;
   t.dias=dias;
   t.gmd=gmd;
+  state.syncDirty=true;
   save();
   closeAnimal();
   renderHoje(); renderFooter(); renderFaltantes();
@@ -2254,10 +2256,19 @@ function exportXlsx(){
 
 /* ---------- sincronizar ---------- */
 let _autoSyncTimer=null;
+let _syncing=false, _lastSyncFailed=false;
+/* reenvio: enquanto houver pesagem pendente e o ultimo envio falhou por rede, tenta a cada 20 s; e na hora que a internet volta */
+setInterval(function(){
+  if(!state || !state.autoSync || !state.syncDirty || !_lastSyncFailed || _syncing) return;
+  if(!state.today || !state.today.length || !String(state.fazenda||"").trim()) return;
+  if(typeof navigator!=="undefined" && navigator.onLine===false) return;
+  syncSheets(true);
+}, 20000);
+window.addEventListener("online", function(){ if(state && state.syncDirty){ _lastSyncFailed=true; scheduleAutoSync(); } });
 function scheduleAutoSync(){
   if(!state.autoSync) return;
   if(!String(state.fazenda||"").trim()) return;
-  if(typeof navigator!=="undefined" && navigator.onLine===false) return;
+  if(typeof navigator!=="undefined" && navigator.onLine===false){ _lastSyncFailed=true; return; }
   if(!state.today.length) return;
   clearTimeout(_autoSyncTimer);
   _autoSyncTimer=setTimeout(function(){ syncSheets(true); }, 3000);
@@ -2270,6 +2281,8 @@ async function syncSheets(auto){
     return;
   }
   const statusEl=document.getElementById('syncStatus');
+  if(_syncing) return;
+  _syncing=true;
   statusEl.textContent='Enviando para o Google Sheets...';
   const diasInt = state.ref.data ? daysBetween(state.ref.data, state.data) : '';
   const payload={
@@ -2298,7 +2311,7 @@ async function syncSheets(auto){
     let j=null; try{ j=JSON.parse(await res.text()); }catch(e){}
     if(j && j.ok){
       const n=(j.gravados!=null)?j.gravados:state.today.length;
-      state.syncDirty=false; save();
+      state.syncDirty=false; _lastSyncFailed=false; save();
       statusEl.innerHTML='<span class="status-ok">\u2713 '+n+' pesagens gravadas na planilha'+(auto?" (auto)":"")+'</span>';
     } else if(j && j.ok===false){
       statusEl.textContent='O servidor recusou: '+(j.msg||'erro desconhecido')+'. Confira a planilha.';
@@ -2307,8 +2320,9 @@ async function syncSheets(auto){
       statusEl.textContent='Enviado, mas não consegui confirmar a resposta. Abra a planilha para conferir.';
     }
   }catch(e){
-    statusEl.textContent='Sem sinal / envio falhou. Dados seguem salvos no aparelho — tente de novo com internet.';
-  }
+    _lastSyncFailed=true;
+    statusEl.textContent='Sem sinal / envio falhou. Dados seguem salvos no aparelho — reenvio automático quando o sinal voltar.';
+  }finally{ _syncing=false; }
 }
 
 /* ---------- navegação ---------- */
@@ -2388,7 +2402,9 @@ window.onload=function(){
   if(_fz){
     // Cliente travado numa fazenda: SEMPRE parte limpo e puxa a fazenda dele da nuvem.
     // Assim nunca mostra dado local de outra fazenda (mesmo se ja estava salvo no aparelho).
-    if(state.fazenda!==_fz || (state.today && state.today.length)){
+    // EXCECAO: mesma fazenda com animais AINDA NAO ENVIADOS -> mantem (nao perde pesagem se a pagina recarregar sem sinal)
+    var _pendenteMesma=(state.fazenda===_fz && state.syncDirty && state.today && state.today.length);
+    if(!_pendenteMesma && (state.fazenda!==_fz || (state.today && state.today.length))){
       state.today=[]; state.syncDirty=false;
       state.ref={loaded:false, name:"", data:null, byBrinco:{}, list:[]};
       state.consumo={loaded:false, ts:null, tratos:[], est:{}};
@@ -2434,6 +2450,7 @@ window.onload=function(){
   renderConfig(); renderHoje(); renderFooter(); renderFaltantes(); renderPesarResumo();
   if(state.autoSync){
     if(state.syncDirty && state.today.length){
+      _lastSyncFailed=true; scheduleAutoSync();
       var rb=document.getElementById("resumeBanner"); var rt=document.getElementById("resumeTxt");
       if(rb){ rb.style.display="flex"; if(rt) rt.textContent=state.today.length+" animais ainda NAO enviados — toque em Sincronizar (aba Config)."; }
     } else {

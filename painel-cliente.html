@@ -405,7 +405,19 @@ function renderHoje(){
     h+='<div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><span class="hoje-nome">'+loteLabel(L)+'</span><span class="muted" style="font-size:12px">'+g.animais.length+(g.animais.length===1?' animal':' animais')+'</span></div>';
     h+='<div style="display:flex;gap:8px;margin-top:10px">';
     h+=  '<div style="flex:1;background:#f4f8f3;border-radius:10px;padding:8px 10px"><div class="muted" style="font-size:11px">M\u00e9dia</div><div style="font-size:20px;font-weight:800;color:var(--v1)">'+fmt(med/AR_DIV,1)+' @</div><div class="muted" style="font-size:11px">'+fmt(med,0)+' kg</div></div>';
-    h+=  '<div style="flex:1;background:#f4f8f3;border-radius:10px;padding:8px 10px"><div class="muted" style="font-size:11px">Ganho m\u00e9dio</div><div style="font-size:20px;font-weight:800;color:var(--v1)">'+(gmdMed!=null?fmt(gmdMed,3):'\u2014')+'</div><div class="muted" style="font-size:11px">'+(gmdMed!=null?'kg/dia (GMD)':'sem pesagem anterior')+'</div></div>';
+    /* regra de cobertura do GMD (definida pelo Rog\u00e9rio): >=70% e >=10 animais = confi\u00e1vel; 40-69% = parcial; abaixo disso = pouco dado */
+    var nG=gs.length, nT=g.animais.length, cov=nT? nG/nT : 0;
+    var gBox;
+    if(gmdMed==null){
+      gBox='<div style="font-size:20px;font-weight:800;color:var(--v1)">\u2014</div><div class="muted" style="font-size:11px">sem pesagem anterior</div>';
+    } else if(cov>=0.7 && nG>=10){
+      gBox='<div style="font-size:20px;font-weight:800;color:var(--v1)">'+fmt(gmdMed,3)+'</div><div style="font-size:11px;color:var(--v2);font-weight:700">kg/dia \u00b7 GMD de '+nG+' de '+nT+'</div>';
+    } else if(cov>=0.4 && nG>=10){
+      gBox='<div style="font-size:20px;font-weight:800;color:#b36b00">'+fmt(gmdMed,3)+'</div><div style="font-size:11px;color:#b36b00;font-weight:700">GMD parcial: '+nG+' de '+nT+'</div>';
+    } else {
+      gBox='<div style="font-size:15px;font-weight:800;color:#8a948c;margin-top:3px">Pouco dado</div><div style="font-size:11px;color:#8a948c">'+fmt(gmdMed,3)+' kg/dia \u00b7 s\u00f3 '+nG+' de '+nT+'</div>';
+    }
+    h+=  '<div style="flex:1;background:#f4f8f3;border-radius:10px;padding:8px 10px"><div class="muted" style="font-size:11px">Ganho m\u00e9dio</div>'+gBox+'</div>';
     h+='</div>';
     if(eng){
       h+='<div style="margin-top:10px;font-size:12px;font-weight:700;color:var(--v1)">Meta '+fmt(metaSaida/AR_DIV,0)+' @ ('+fmt(metaSaida,0)+' kg): '+nMeta+' de '+g.animais.length+' j\u00e1 bateram</div>';

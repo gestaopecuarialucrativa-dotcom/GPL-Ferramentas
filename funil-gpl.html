@@ -100,6 +100,11 @@
              color:var(--v2); font-weight:700; font-size:12px; padding:8px;
              border-radius:9px; cursor:pointer}
   .mv button:disabled{opacity:.35; cursor:default}
+  .mv button.lostbtn{flex:.8; color:#77807a; border-color:#d9ddd7; display:flex; align-items:center; justify-content:center; gap:5px}
+  .c-line.motivo{color:#77807a}
+  .c-line.motivo b{color:#5a6b58}
+  .mot-row{display:block; width:100%; text-align:left; background:#f7faf6; border:1px solid var(--line); border-radius:11px; padding:12px; margin-bottom:8px; font-size:13.5px; font-weight:700; color:var(--ink); cursor:pointer}
+  .mot-row:active{background:#eef4ec}
   .gestor-btn{width:100%; margin-top:9px; border:1px solid var(--v2); background:#fff; color:var(--v2); font-weight:800; font-size:13px; padding:11px; border-radius:11px; cursor:pointer}
   .gestor-btn.done{border-color:#cfe0ca; background:#eef4ec; color:#6b8a63; cursor:default}
 
@@ -263,6 +268,14 @@
 </div>
 
 <!-- modal confirma exclusão -->
+<div class="ov" id="ovlost">
+  <div class="sheet lead">
+    <div class="sheet-head"><h2>Por que perdeu?</h2><div class="hint" id="lostname" style="margin:4px 0 0"></div></div>
+    <div class="sheet-body" id="lostbody"></div>
+    <div class="sheet-foot"><div class="actions"><button class="btn ghost" id="lostclose">Cancelar</button></div></div>
+  </div>
+</div>
+
 <div class="ov" id="ovdel">
   <div class="sheet">
     <h2>Excluir lead?</h2>
@@ -285,7 +298,7 @@
       <div class="help-h">O que cada bot&atilde;o faz</div>
       <div class="help-li"><b>+ Novo lead</b> &mdash; cria um lead novo.</div>
       <div class="help-li"><b>Filtros</b> (Todos, Novo lead, Qualificado&hellip;) &mdash; toque pra ver s&oacute; aquela etapa.</div>
-      <div class="help-li">No card: o <b>WhatsApp</b> abre a conversa com o produtor &middot; o <b>l&aacute;pis</b> edita &middot; <b>&lsaquo; Voltar</b> / <b>Avan&ccedil;ar &rsaquo;</b> muda a etapa.</div>
+      <div class="help-li">No card: o <b>WhatsApp</b> abre a conversa com o produtor &middot; o <b>l&aacute;pis</b> edita &middot; <b>&lsaquo; Voltar</b> / <b>Avan&ccedil;ar &rsaquo;</b> muda a etapa &middot; <b>Perdido</b> tira o lead do caminho e pede o motivo (d&aacute; pra <b>Reabrir</b> depois).</div>
       <div class="help-li"><b>&#9881; Linhas</b> (engrenagem) &mdash; d&aacute; nome aos seus dois n&uacute;meros.</div>
       <div class="help-h">As etapas</div>
       <div class="help-li">Novo lead &rarr; Qualificado &rarr; Visita &rarr; Proposta &rarr; <b>Fechado</b> (ou <b>Perdido</b>, pra quem sai do caminho).</div>
@@ -318,6 +331,8 @@ var GESTOR_API = 'https://script.google.com/macros/s/AKfycbyjWp9UnWpnKYhzV2o2y48
 
 /* ---------- estado ---------- */
 var STAGES = ['Novo lead','Qualificado','Visita','Proposta','Fechado','Perdido'];
+var FLOW = ['Novo lead','Qualificado','Visita','Proposta','Fechado']; /* Voltar/Avan\u00e7ar s\u00f3 andam aqui; Perdido tem bot\u00e3o pr\u00f3prio */
+var MOTIVOS = ['Sem resposta no WhatsApp','N\u00e3o cria gado / curioso','Achou caro','J\u00e1 tem t\u00e9cnico ou consultor','Sem momento agora'];
 var MSGS = [
   {titulo:'Saudação', txt:'Opa, {nome}! Aqui é o Rogério, da Gestão Pecuária Lucrativa. Vi que você me chamou pelo anúncio. Rapidinho, pra eu te ajudar certo: você já cria gado ou tá começando? E de qual cidade é a sua fazenda?'},
   {titulo:'Apresentação (venda)', txt:'{nome}, deixa eu me apresentar direito: eu ajudo o pecuarista a enxergar quanto cada boi realmente dá de lucro e a decidir com número na mão, não no achismo. Dá uma olhada no meu trabalho: gestaopecuarialucrativa.com.br . Se fizer sentido pra sua fazenda, a gente marca uma conversa.'},
@@ -374,10 +389,10 @@ function sendToGestor(id){
     pin:'', ferramentas:'', ativo:'0', validade:'', criadoEm:todayBR()
   }).then(function(res){
     if(!res || !res.ok){ throw new Error(res && res.erro ? res.erro : 'erro no gestor'); }
-    lead._sending=false; lead.historico=JSON.stringify({gestorId:gid, sent:true});
+    lead._sending=false; var hh=parseHist(lead.historico); hh.gestorId=gid; hh.sent=true; lead.historico=JSON.stringify(hh);
     persistLead(lead); renderAll(); toast('Fazenda criada no gestor (inativa) \u2713');
   }).catch(function(err){
-    lead._sending=false; lead.historico=JSON.stringify({gestorId:gid, sent:false});
+    lead._sending=false; var hh=parseHist(lead.historico); hh.gestorId=gid; hh.sent=false; lead.historico=JSON.stringify(hh);
     persistLead(lead); renderAll(); toast('\u26a0 N\u00e3o confirmou. Toque de novo pra tentar (n\u00e3o duplica).');
   });
 }
@@ -445,6 +460,8 @@ function openMsgs(id){
   show('ovmsg');
 }
 function icoEdit(){ return '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#5a6b58" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>'; }
+function icoX(){ return '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#77807a" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>'; }
+function icoBack(){ return '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#2E7D32" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg>'; }
 function icoTrash(){ return '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#c0392b" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M9 7V5h6v2M7 7l1 13h8l1-13"/></svg>'; }
 
 /* ---------- render ---------- */
@@ -498,6 +515,12 @@ function renderList(){
   Array.prototype.forEach.call(box.querySelectorAll('[data-gestor]'), function(el){
     el.addEventListener('click', function(e){ e.stopPropagation(); sendToGestor(el.getAttribute('data-gestor')); });
   });
+  Array.prototype.forEach.call(box.querySelectorAll('[data-lost]'), function(el){
+    el.addEventListener('click', function(e){ e.stopPropagation(); askLost(el.getAttribute('data-lost')); });
+  });
+  Array.prototype.forEach.call(box.querySelectorAll('[data-reopen]'), function(el){
+    el.addEventListener('click', function(e){ e.stopPropagation(); reopenLead(el.getAttribute('data-reopen')); });
+  });
   Array.prototype.forEach.call(box.querySelectorAll('[data-msg]'), function(el){
     el.addEventListener('click', function(e){ e.stopPropagation(); openMsgs(el.getAttribute('data-msg')); });
   });
@@ -506,7 +529,9 @@ function renderList(){
 function cardHTML(l){
   var cls=stClass(l.estagio);
   var wl=waLink(l.telefone);
-  var idx=STAGES.indexOf(l.estagio);
+  var idx=FLOW.indexOf(l.estagio);
+  var lost=(l.estagio==='Perdido');
+  var pd=lost? (parseHist(l.historico).perdido||{}) : null;
   var sub=[l.produtor, [l.cidade,l.uf].filter(Boolean).join('-')].filter(Boolean).join(' · ');
   var rc=retClass(l.retorno);
   var h='';
@@ -517,7 +542,8 @@ function cardHTML(l){
   h+=  '<span class="stpill '+cls+'">'+esc(l.estagio)+'</span>';
   h+= '</div></div>';
   if(l.proximo_passo) h+='<div class="c-line">'+icoStep()+'<span>'+esc(l.proximo_passo)+'</span></div>';
-  h+= '<div class="c-line '+rc+'">'+icoClock(rc)+'<span>'+esc(retLabel(l.retorno))+'</span></div>';
+  if(lost){ h+= '<div class="c-line motivo"><span><b>Motivo:</b> '+esc(pd.motivo||'n\u00e3o informado')+(pd.em?' \u00b7 '+esc(fmtBR(pd.em)):'')+'</span></div>'; }
+  else { h+= '<div class="c-line '+rc+'">'+icoClock(rc)+'<span>'+esc(retLabel(l.retorno))+'</span></div>'; }
   h+= '<div class="c-foot">';
   if(l.origem) h+='<span class="badge">origem: '+esc(l.origem)+'</span>';
   if(l.linha)  h+='<span class="badge linha">'+esc(linhaNome(l.linha))+'</span>';
@@ -528,8 +554,13 @@ function cardHTML(l){
   h+=  '<button class="ico-btn del" data-del="'+esc(l.id)+'">'+icoTrash()+'</button>';
   h+= '</div>';
   h+= '<div class="mv">';
-  h+=  '<button data-id="'+esc(l.id)+'" data-mv="-1"'+(idx<=0?' disabled':'')+'>‹ Voltar</button>';
-  h+=  '<button data-id="'+esc(l.id)+'" data-mv="1"'+(idx>=STAGES.length-1?' disabled':'')+'>Avançar ›</button>';
+  if(lost){
+    h+=  '<button data-reopen="'+esc(l.id)+'" style="display:flex;align-items:center;justify-content:center;gap:6px">'+icoBack()+'Reabrir lead</button>';
+  } else {
+    h+=  '<button data-id="'+esc(l.id)+'" data-mv="-1"'+(idx<=0?' disabled':'')+'>‹ Voltar</button>';
+    if(l.estagio!=='Fechado') h+='<button class="lostbtn" data-lost="'+esc(l.id)+'">'+icoX()+'Perdido</button>';
+    h+=  '<button data-id="'+esc(l.id)+'" data-mv="1"'+(idx<0||idx>=FLOW.length-1?' disabled':'')+'>Avançar ›</button>';
+  }
   h+= '</div>';
   if(l.estagio==='Fechado'){
     var gh=parseHist(l.historico);
@@ -557,9 +588,17 @@ function renderResumo(){
       '<div class="k">Proposta <span class="v">'+c['Proposta']+'</span></div>'+
       '<div class="k">'+esc(state.cfg.l1nome)+' <span class="v">'+l1+'</span></div>'+
       '<div class="k">'+esc(state.cfg.l2nome)+' <span class="v">'+l2+'</span></div>'+
-    '</div>';
+    '</div>'+motivosHTML();
 }
 
+function motivosHTML(){
+  var m={}, tot=0;
+  state.leads.forEach(function(l){ if(l.estagio!=='Perdido') return; var k=(parseHist(l.historico).perdido||{}).motivo||'N\u00e3o informado'; m[k]=(m[k]||0)+1; tot++; });
+  if(!tot) return '';
+  var ks=Object.keys(m).sort(function(a,b){ return m[b]-m[a]; });
+  return '<h3 style="margin-top:12px">Por que perdi</h3><div class="rgrid">'+
+    ks.map(function(k){ return '<div class="k">'+esc(k)+' <span class="v">'+m[k]+'</span></div>'; }).join('')+'</div>';
+}
 function renderAll(){ renderFilters(); renderList(); renderResumo(); }
 
 /* ---------- editor ---------- */
@@ -624,8 +663,10 @@ function saveLead(){
   if(idx>=0) state.leads[idx]=Object.assign(state.leads[idx], o);
   else state.leads.push(o);
   hide('ov'); renderAll(); toast('Salvando…');
+  var full=null; for(var k=0;k<state.leads.length;k++){ if(String(state.leads[k].id)===String(o.id)){ full=state.leads[k]; break; } }
+  var payload=Object.assign({}, full||o); delete payload._sending;
   // salva na nuvem por trás
-  jsonp('save', { payload: JSON.stringify(o) }).then(function(res){
+  jsonp('save', { payload: JSON.stringify(payload) }).then(function(res){
     if(!res || !res.ok){ throw new Error(res && res.error ? res.error : 'erro ao salvar'); }
     for(var j=0;j<state.leads.length;j++){ if(String(state.leads[j].id)===String(res.row.id)){ state.leads[j]=Object.assign(state.leads[j],res.row); break; } }
     renderAll(); toast('Salvo \u2713');
@@ -637,17 +678,70 @@ function saveLead(){
 function moveStage(id, dir){
   var l=state.leads.filter(function(x){ return String(x.id)===String(id); })[0];
   if(!l) return;
-  var i=STAGES.indexOf(l.estagio); var ni=i+dir;
-  if(ni<0 || ni>=STAGES.length) return;
-  var prev=l.estagio; l.estagio=STAGES[ni];
-  if(state.filter!=='Todos' && state.filter===prev) state.filter=STAGES[ni];
-  renderAll(); toast('\u2192 '+STAGES[ni]);
+  var i=FLOW.indexOf(l.estagio); if(i<0) return; var ni=i+dir;
+  if(ni<0 || ni>=FLOW.length) return;
+  var prev=l.estagio; l.estagio=FLOW[ni];
+  if(state.filter!=='Todos' && state.filter===prev) state.filter=FLOW[ni];
+  renderAll(); toast('\u2192 '+FLOW[ni]);
   var o=Object.assign({}, l);
   jsonp('save', { payload: JSON.stringify(o) }).then(function(res){
     if(!res||!res.ok) throw new Error(res&&res.error?res.error:'erro');
     Object.assign(l, res.row);
   }).catch(function(err){
     l.estagio=prev; renderAll(); toast('Não moveu: '+err.message);
+  });
+}
+
+/* ---------- perdido com motivo ---------- */
+function askLost(id){
+  var l=state.leads.filter(function(x){ return String(x.id)===String(id); })[0]; if(!l) return;
+  state.lostId=id;
+  $('lostname').textContent=(l.fazenda&&l.fazenda.trim()) || l.produtor || 'este lead';
+  var h='';
+  MOTIVOS.forEach(function(m,i){ h+='<button class="mot-row" data-mot="'+i+'">'+esc(m)+'</button>'; });
+  h+='<div class="fld" style="margin-top:6px"><label>Outro motivo</label><input id="lost_outro" placeholder="Escreva e toque em Salvar"></div>';
+  h+='<button class="btn primary" id="lost_save" style="width:100%;margin-top:4px">Salvar outro motivo</button>';
+  $('lostbody').innerHTML=h;
+  Array.prototype.forEach.call($('lostbody').querySelectorAll('[data-mot]'), function(el){
+    el.addEventListener('click', function(){ setLost(state.lostId, MOTIVOS[parseInt(el.getAttribute('data-mot'),10)]); });
+  });
+  $('lost_save').addEventListener('click', function(){
+    var t=$('lost_outro').value.trim(); if(!t){ toast('Escreva o motivo'); return; }
+    setLost(state.lostId, t);
+  });
+  show('ovlost');
+}
+function setLost(id, motivo){
+  var l=state.leads.filter(function(x){ return String(x.id)===String(id); })[0]; if(!l){ hide('ovlost'); return; }
+  var prevSt=l.estagio, prevH=l.historico;
+  var hist=parseHist(l.historico);
+  hist.perdido={ motivo:motivo, em:todayISO(), de:prevSt };
+  l.historico=JSON.stringify(hist); l.estagio='Perdido';
+  if(state.filter!=='Todos' && state.filter!=='HOJE' && state.filter===prevSt) state.filter='Perdido';
+  hide('ovlost'); renderAll(); toast('\u2192 Perdido: '+motivo);
+  var o=Object.assign({}, l); delete o._sending;
+  jsonp('save', { payload: JSON.stringify(o) }).then(function(res){
+    if(!res||!res.ok) throw new Error(res&&res.error?res.error:'erro');
+    Object.assign(l, res.row);
+  }).catch(function(err){
+    l.estagio=prevSt; l.historico=prevH; renderAll(); toast('N\u00e3o salvou: '+err.message);
+  });
+}
+function reopenLead(id){
+  var l=state.leads.filter(function(x){ return String(x.id)===String(id); })[0]; if(!l) return;
+  var prevH=l.historico;
+  var hist=parseHist(l.historico);
+  var volta=(hist.perdido && FLOW.indexOf(hist.perdido.de)>=0 && hist.perdido.de!=='Fechado')? hist.perdido.de : 'Novo lead';
+  delete hist.perdido;
+  l.historico=JSON.stringify(hist); l.estagio=volta;
+  if(state.filter==='Perdido') state.filter=volta;
+  renderAll(); toast('\u2192 Reaberto em '+volta);
+  var o=Object.assign({}, l); delete o._sending;
+  jsonp('save', { payload: JSON.stringify(o) }).then(function(res){
+    if(!res||!res.ok) throw new Error(res&&res.error?res.error:'erro');
+    Object.assign(l, res.row);
+  }).catch(function(err){
+    l.estagio='Perdido'; l.historico=prevH; renderAll(); toast('N\u00e3o reabriu: '+err.message);
   });
 }
 
@@ -722,7 +816,8 @@ $('dyes').addEventListener('click', doDelete);
 $('help').addEventListener('click', function(){ show('ovhelp'); });
 $('helpclose').addEventListener('click', function(){ hide('ovhelp'); });
 $('msgclose').addEventListener('click', function(){ hide('ovmsg'); });
-[['ov'],['ovcfg'],['ovdel'],['ovhelp'],['ovmsg']].forEach(function(a){
+$('lostclose').addEventListener('click', function(){ hide('ovlost'); });
+[['ov'],['ovcfg'],['ovdel'],['ovhelp'],['ovmsg'],['ovlost']].forEach(function(a){
   $(a[0]).addEventListener('click', function(e){ if(e.target===this) hide(a[0]); });
 });
 

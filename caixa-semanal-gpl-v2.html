@@ -135,6 +135,18 @@ body{font-family:Arial,'Segoe UI',Roboto,system-ui,sans-serif;background:var(--b
 .pill-ok{background:#e8f5e9;color:var(--v2)}
 .pill-neg{background:var(--red-bg);color:var(--red)}
 .pill-warn{background:var(--warn-bg);color:var(--warn)}
+.pill-acerto{background:#eceff1;color:#546e7a}
+.pill-acerto svg{stroke:#546e7a}
+/* ── SEMANAS APAGADAS (saldo do acerto anterior) ── */
+.barra-apagar{background:#fff;border-radius:var(--radius);padding:12px 14px;box-shadow:0 1px 6px rgba(0,0,0,.08);display:flex;flex-direction:row;align-items:center;gap:10px;flex-wrap:wrap;grid-column:1/-1;border-left:none}
+.barra-apagar span{flex:1;font-size:12px;color:var(--fraco);min-width:180px}
+.btn-apagar-val{background:#fff;color:var(--red);border:1.5px solid var(--red);border-radius:12px;padding:8px 14px;font-size:12px;font-weight:700;cursor:pointer}
+.btn-apagar-val:hover{background:var(--red-bg)}
+.card-resumo{background:#e8f5e9;border-radius:var(--radius);border-left:4px solid var(--v2);padding:14px 16px;display:flex;flex-direction:column;gap:4px}
+.card-resumo.acerto{background:#eceff1;border-left-color:#78909c}
+.card-resumo .cr-top{display:flex;justify-content:space-between;align-items:baseline;gap:10px;font-weight:700;color:var(--v)}
+.card-resumo.acerto .cr-top{color:#37474f}
+.card-resumo .cr-sub{font-size:11px;color:var(--fraco)}
 
 /* EMPTY */
 .empty-state{text-align:center;padding:60px 20px;color:var(--fraco);grid-column:1/-1}
@@ -167,6 +179,20 @@ body{font-family:Arial,'Segoe UI',Roboto,system-ui,sans-serif;background:var(--b
 .btn-gerar-pdf svg{width:15px;height:15px;stroke:#fff;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 .btn-gerar-pdf:hover{background:var(--v2)}
 .btn-cancel{background:#f1f1f1;color:#555;border:none;border-radius:12px;padding:10px 16px;font-size:13px;font-weight:700;cursor:pointer}
+/* ── COLAR DO IMPORTADOR ── */
+.colar-area{width:100%;height:70px;border:1px dashed var(--v3);border-radius:10px;padding:8px;font-size:11px;color:var(--fraco);resize:vertical}
+.colar-linha{display:flex;align-items:center;gap:8px;margin:12px 0 8px;font-size:13px}
+.colar-linha select{flex:1;padding:8px 10px;border:1px solid var(--line);border-radius:10px;font-size:13px;background:#fff}
+.colar-item{display:flex;gap:8px;align-items:baseline;padding:7px 0;border-top:1px solid var(--line);font-size:12.5px}
+.colar-item .ci-data{color:var(--fraco);min-width:42px;font-size:11px}
+.colar-item .ci-desc{flex:1}
+.colar-item .ci-obs{display:block;font-size:10.5px;color:var(--fraco)}
+.colar-item .ci-val{font-weight:700;color:var(--red);white-space:nowrap}
+.colar-item.dup{opacity:.45}
+.colar-item.dup .ci-val{color:var(--fraco);text-decoration:line-through}
+.colar-total{display:flex;justify-content:space-between;padding:9px 0 2px;border-top:2px solid var(--line);font-weight:700;font-size:13px}
+.colar-msg{font-size:12px;color:var(--fraco);line-height:1.5}
+.colar-msg.erro{color:var(--red);font-weight:700}
 
 /* PREVIEW PDF */
 #pdf-preview{font-family:Arial,sans-serif;font-size:13px;color:var(--text)}
@@ -240,13 +266,17 @@ body{font-family:Arial,'Segoe UI',Roboto,system-ui,sans-serif;background:var(--b
       <span class="sync-dot" id="sync-dot"></span>
       <span id="sync-txt" style="color:#a5d6a7;font-size:11px;display:none"></span>
     </span>
+    <button class="btn-top btn-pdf" onclick="abrirColar()" title="Lançar as despesas copiadas no Importador de Despesas">
+      <svg viewBox="0 0 24 24"><path d="M16 4h2a2 2 0 012 2v14a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/></svg>
+      Colar do importador
+    </button>
     <button class="btn-top btn-pdf" onclick="abrirModalPDF()">
       <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
       PDF
     </button>
-    <button class="btn-top btn-nova" id="btnNova" onclick="novaSemana()" disabled style="opacity:.55;cursor:default">
+    <button class="btn-top btn-nova" onclick="novaSemana()">
       <svg viewBox="0 0 24 24" stroke-width="2.2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-      <span id="btnNovaTxt">Carregando…</span>
+      Nova Semana
     </button>
   </div>
 </div>
@@ -326,6 +356,27 @@ body{font-family:Arial,'Segoe UI',Roboto,system-ui,sans-serif;background:var(--b
   </div>
 </div>
 
+<!-- MODAL COLAR DO IMPORTADOR -->
+<div class="modal-overlay" id="modalColar">
+  <div class="modal" style="max-width:560px">
+    <div class="modal-header">
+      <span class="modal-title">
+        <svg viewBox="0 0 24 24"><path d="M16 4h2a2 2 0 012 2v14a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/></svg>
+        Colar do importador
+      </span>
+      <button class="btn-fechar" onclick="fecharColar()"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div class="modal-body">
+      <textarea class="colar-area" id="colarTexto" placeholder="Se a lista não aparecer sozinha, clique aqui e cole (Ctrl+V)" oninput="lerColagem()"></textarea>
+      <div id="colarConteudo"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="fecharColar()">Cancelar</button>
+      <button class="btn-gerar-pdf" id="btnLancarColar" onclick="confirmarColar()">Lançar na semana</button>
+    </div>
+  </div>
+</div>
+
 <div id="print-area" style="display:none"></div>
 <div class="toast" id="toast"></div>
 
@@ -341,10 +392,6 @@ var LOGO_B64 = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEYAAABQCAYAAACkoQ
 //  Modelo: semana = { id, dataISO, data, itens:[{id,desc,valor,dataISO}], depositos:[{id,dataISO,valor}] }
 // ══════════════════════════════════════════════════
 var estado = { semanas: [] };
-// TRAVA DE CARREGAMENTO: só permite gravar no Sheets depois de um carregamento
-// bem-sucedido. Enquanto false, salva apenas no aparelho (localStorage).
-// Isso impede que um clique antes do carregamento sobrescreva a planilha inteira.
-var carregado = false;
 
 // ── HELPERS ───────────────────────────────────────
 function gerarId(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,6); }
@@ -432,12 +479,6 @@ function normalizarSemanas(){
 // ══════════════════════════════════════════════════
 //  SINCRONIZAÇÃO GOOGLE SHEETS
 // ══════════════════════════════════════════════════
-function atualizarBotaoNova(){
-  var b=document.getElementById('btnNova'), t=document.getElementById('btnNovaTxt');
-  if(!b)return;
-  b.disabled=false; b.style.opacity=''; b.style.cursor='';
-  if(t)t.textContent='Nova Semana';
-}
 function carregarDoSheets(){
   setSyncStatus('sync');
   fetch(SCRIPT_URL+'?acao=listar')
@@ -447,8 +488,6 @@ function carregarDoSheets(){
         estado.semanas=data.semanas;
         normalizarSemanas();
         salvarLocal();
-        carregado=true;              // libera a gravação no Sheets só após carregar OK
-        atualizarBotaoNova();
         setSyncStatus('ok');
         atualizarAutocomplete();
         renderTudo();
@@ -461,19 +500,11 @@ function carregarDoSheets(){
       normalizarSemanas();
       atualizarAutocomplete();
       renderTudo();
-      // Modo offline: libera o botão para trabalhar no aparelho, mas 'carregado'
-      // continua false — assim NADA é gravado no Sheets enquanto não houver um
-      // carregamento bem-sucedido, evitando sobrescrever a planilha com dados parciais.
-      atualizarBotaoNova();
-      toast('Offline — trabalhando só neste aparelho (não vai gravar na nuvem)',true);
+      toast('Offline — usando dados locais',true);
       console.warn('Sheets indisponível:',err.message);
     });
 }
 function salvarNoSheets(){
-  // TRAVA: enquanto os dados do Sheets não tiverem sido carregados com sucesso,
-  // NÃO grava no Sheets (senão sobrescreveria a planilha inteira com um estado
-  // ainda incompleto). Fica salvo só no aparelho até o carregamento concluir.
-  if(!carregado){ console.warn('Gravação no Sheets bloqueada: dados ainda não carregados.'); return; }
   setSyncStatus('sync');
   fetch(SCRIPT_URL,{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify({acao:'salvar_todas',semanas:estado.semanas})})
     .then(function(r){return r.json();})
@@ -584,6 +615,18 @@ function renderSemanas(){
   // ID da semana mais antiga ativa (única que pode ser validada, da mais antiga p/ mais nova)
   var idMaisAntigaAtiva = ativas.length>0 ? ativas[0].id : null;
 
+  // Aba Validadas: barra "Apagar validadas (manter o acerto)"
+  if(abaAtual==='validadas'){
+    var apagaveis = semanasApagaveis().filter(function(s){ return !s.resumo; });
+    if(apagaveis.length){
+      var barra=document.createElement('div');
+      barra.className='semana-card barra-apagar';
+      barra.innerHTML='<span>Semanas validadas já lançadas na Inttegra podem ser apagadas. O acerto continua: o saldo passa para a próxima semana.</span>'+
+        '<button class="btn-apagar-val" onclick="apagarValidadas()">Apagar '+apagaveis.length+' validada(s) · manter o acerto</button>';
+      grid.appendChild(barra);
+    }
+  }
+
   lista.forEach(function(sem,idx){
     grid.appendChild(criarCard(sem,idx,sem.id===idMaisAntigaAtiva));
   });
@@ -602,6 +645,7 @@ var ICO_VALIDAR = '<svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 11-5.9
 var ICO_VOLTAR  = '<svg viewBox="0 0 24 24"><polyline points="9 14 4 9 9 4"/><path d="M20 20v-7a4 4 0 00-4-4H4"/></svg>';
 
 function criarCard(sem,idx,podeSerValidada){
+  if(sem.resumo) return criarCardResumo(sem);
   var div=document.createElement('div');
   var temMov=(sem._totalItens>0||sem._totalDep>0||sem._reporAnterior>0);
   var cls=sem._saldo<0?'negativa':(sem._saldo===0&&temMov?'zerada':'');
@@ -661,6 +705,19 @@ function criarCard(sem,idx,podeSerValidada){
   return div;
 }
 
+// Cartão da linha que substitui as semanas apagadas
+function criarCardResumo(sem){
+  var div=document.createElement('div');
+  var acerto = sem._saldo<0;
+  div.className='semana-card card-resumo'+(acerto?' acerto':'');
+  div.id='card-'+sem.id;
+  div.innerHTML=
+    '<div class="cr-top"><span>Saldo do acerto anterior</span><span>'+fmtBRL(Math.abs(sem._saldo))+'</span></div>'+
+    '<div class="cr-sub">'+(acerto?'A acertar: passa para a próxima semana como "Acerto da semana anterior"':'Sobrou: passa para a próxima semana como "Saldo anterior"')+'</div>'+
+    '<div class="cr-sub">'+(sem.qtdApagadas||0)+' semana(s) apagada(s)'+(sem.periodo?' · '+esc(sem.periodo):'')+' · já lançadas na Inttegra</div>';
+  return div;
+}
+
 function renderItens(lista,sem){
   lista.innerHTML='';
   var temAlgo=false;
@@ -672,7 +729,7 @@ function renderItens(lista,sem){
     rep.className='item-row repor';
     rep.innerHTML=
       '<span class="item-ico">'+ICO_REPOR+'</span>'+
-      '<div class="item-corpo"><div class="item-desc">Repor semana anterior</div><div class="item-data-tag">saldo que ficou pendente</div></div>'+
+      '<div class="item-corpo"><div class="item-desc">Acerto da semana anterior</div><div class="item-data-tag">saldo da semana anterior</div></div>'+
       '<span class="item-val">'+fmtBRL(sem._reporAnterior)+'</span>'+
       '<span style="width:20px;flex-shrink:0"></span>';
     lista.appendChild(rep);
@@ -712,7 +769,8 @@ function montarFooter(sem){
   var saldoCor=sem._saldo>=0?'c-verde':'c-red';
   var pillCls=sem._saldo>0?'pill-ok':(sem._saldo<0?'pill-neg':'pill-warn');
   var pillIco=sem._saldo>0?ICO_CHECK:(sem._saldo<0?ICO_ALERTA:ICO_MENOS);
-  var pillTxt=sem._saldo>0?'Positivo':(sem._saldo<0?'Você cobriu':'Zerado');
+  var pillTxt=sem._saldo>0?'Positivo':(sem._saldo<0?'Em acerto':'Zerado');
+  if(sem._saldo<0) pillCls='pill-acerto'; // neutro (cinza), não é alerta
 
   var h=
     '<div class="footer-row">'+
@@ -742,7 +800,7 @@ function montarFooter(sem){
     h+='<div class="footer-row" style="font-size:11px;color:#888"><span>Saldo anterior</span><span>'+fmtBRL(sem._saldoAntes)+'</span></div>';
   }
   if(sem._rogerio>0){
-    h+='<div class="footer-row"><span class="footer-label c-warn">Rogério cobriu</span><span class="footer-val c-warn">'+fmtBRL(sem._rogerio)+'</span></div>';
+    h+='<div class="footer-row"><span class="footer-label">Adiantado (Rogério)</span><span class="footer-val c-preto">'+fmtBRL(sem._rogerio)+'</span></div>';
   }
 
   h+='<div class="footer-row" style="margin-top:4px;padding-top:4px;border-top:1px solid var(--line)">'+
@@ -751,7 +809,7 @@ function montarFooter(sem){
      '</div>';
 
   if(sem._falta>0){
-    h+='<div class="footer-row"><span class="footer-label c-red">Falta repor</span><span class="footer-val c-red">'+fmtBRL(sem._falta)+'</span></div>';
+    h+='<div class="footer-row"><span class="footer-label">A acertar</span><span class="footer-val c-preto">'+fmtBRL(sem._falta)+'</span></div>';
   }
 
   h+='<span class="pill '+pillCls+'">'+pillIco+pillTxt+'</span>';
@@ -902,9 +960,9 @@ function atualizarTotaisNaTela(){
         var t=lab.textContent.trim();
         if(t==='Total despesas')val.textContent=fmtBRL(sem._totalDesp);
         else if(t==='Total depositado')val.textContent=fmtBRL(sem._totalDep);
-        else if(t==='Rogério cobriu')val.textContent=fmtBRL(sem._rogerio);
+        else if(t==='Adiantado (Rogério)')val.textContent=fmtBRL(sem._rogerio);
         else if(t==='Saldo')val.textContent=(sem._saldo<0?'− ':'')+fmtBRL(Math.abs(sem._saldo));
-        else if(t==='Falta repor')val.textContent=fmtBRL(sem._falta);
+        else if(t==='A acertar')val.textContent=fmtBRL(sem._falta);
       });
     } else {
       // Card sem foco: pode recriar o rodapé inteiro
@@ -919,6 +977,208 @@ function removerDeposito(semId,depId){
 }
 
 function getSem(id){ return estado.semanas.find(function(s){return s.id===id;})||null; }
+
+// ══════════════════════════════════════════════════
+//  COLAR DO IMPORTADOR DE DESPESAS
+//  O importador copia as despesas da fazenda; aqui elas entram como itens normais da semana.
+//  Segurança: antes de lançar, busca a versão MAIS NOVA da planilha (não grava por cima do que foi
+//  lançado em outro aparelho) e pula itens que já foram lançados (campo "imp").
+// ══════════════════════════════════════════════════
+// ══════════════════════════════════════════════════
+//  APAGAR VALIDADAS — MANTENDO O ACERTO
+//  Semanas validadas (já acertadas e lançadas na Inttegra) viram UMA linha "Saldo do acerto anterior"
+//  com o saldo que elas passavam adiante. Regra de ouro: o acerto das semanas ativas não pode mudar
+//  nem 1 centavo — se mudar, cancela tudo e não grava nada.
+// ══════════════════════════════════════════════════
+function semanasApagaveis(){
+  calcularSemanas(); // ordena e calcula
+  var ativas = estado.semanas.filter(function(s){ return !s.validada; });
+  var limite = ativas.length ? ativas[0].dataISO : '9999-99-99'; // só o que vem ANTES da 1ª semana ativa
+  return estado.semanas.filter(function(s){ return s.validada && s.dataISO < limite; });
+}
+function fotoDoAcerto(){
+  calcularSemanas();
+  return estado.semanas.filter(function(s){ return !s.validada; }).map(function(s){
+    return s.id + '|' + Math.round((s._saldoAntes||0)*100) + '|' + Math.round((s._reporAnterior||0)*100) + '|' + Math.round((s._saldo||0)*100);
+  }).join(';');
+}
+function apagarValidadas(){
+  toast('Conferindo a planilha...');
+  fetch(SCRIPT_URL + '?acao=listar')
+    .then(function(r){ return r.json(); })
+    .then(function(data){
+      if(!data.ok || !Array.isArray(data.semanas)) throw new Error(data.msg || 'Resposta inválida');
+      estado.semanas = data.semanas; normalizarSemanas(); salvarLocal();
+      var copiaSegura = JSON.parse(JSON.stringify(estado.semanas));
+      var antes = fotoDoAcerto();
+
+      var alvo = semanasApagaveis();
+      var reais = alvo.filter(function(s){ return !s.resumo; });
+      if(!reais.length){ renderTudo(); toast('Nenhuma semana validada para apagar'); return; }
+
+      var ultima = alvo[alvo.length-1];
+      var saldo = Math.round((ultima._saldo||0)*100)/100;
+      var resumoAnt = alvo.filter(function(s){ return s.resumo; })[0];
+      var qtd = alvo.reduce(function(a,s){ return a + (s.resumo ? (s.qtdApagadas||0) : 1); },0);
+      var inicio = resumoAnt && resumoAnt.periodoInicio ? resumoAnt.periodoInicio : reais[0].data;
+      var periodo = inicio + ' a ' + ultima.data;
+
+      var txtAcerto = saldo >= 0 ? 'Sobrou ' + fmtBRL(saldo) + ' → entra como "Saldo anterior" na próxima semana.'
+                                 : 'A acertar ' + fmtBRL(-saldo) + ' → entra como "Acerto da semana anterior" na próxima semana.';
+      if(!confirm('Apagar ' + reais.length + ' semana(s) validada(s) (' + periodo + ')?\n\n' + txtAcerto +
+                  '\n\nAs semanas ativas não mudam. Um backup dessas semanas vai ser baixado para o seu computador antes.')){ renderTudo(); return; }
+
+      // backup no computador
+      try {
+        var blob = new Blob([JSON.stringify({ tipo:'gpl-caixa-backup-validadas', salvoEm:new Date().toISOString(), semanas: alvo }, null, 1)], {type:'application/json'});
+        var a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+        a.download = 'caixa-semanal-validadas-' + ultima.dataISO + '.json';
+        document.body.appendChild(a); a.click(); a.remove();
+      } catch(e){}
+
+      // linha que substitui as semanas apagadas (fica no mesmo lugar delas: antes da 1ª ativa)
+      var resumo = { id: gerarId(), dataISO: ultima.dataISO, data: isoParaExibicao(ultima.dataISO),
+        resumo: true, validada: true, validadaEm: dataHojeISO(),
+        qtdApagadas: qtd, periodo: periodo, periodoInicio: inicio,
+        itens: saldo < 0 ? [{ id: gerarId(), desc: 'Saldo do acerto anterior', valor: -saldo }] : [],
+        depositos: saldo > 0 ? [{ id: gerarId(), dataISO: ultima.dataISO, valor: saldo }] : [] };
+
+      var idsAlvo = {}; alvo.forEach(function(s){ idsAlvo[s.id] = true; });
+      estado.semanas = estado.semanas.filter(function(s){ return !idsAlvo[s.id]; }).concat([resumo]);
+
+      // REGRA DE OURO: o acerto das semanas ativas tem que ficar idêntico
+      var depois = fotoDoAcerto();
+      if(antes !== depois){
+        estado.semanas = copiaSegura; normalizarSemanas(); renderTudo();
+        alert('Cancelado: o acerto das semanas ativas mudaria. Nada foi apagado.');
+        return;
+      }
+      salvarEstado();
+      renderTudo();
+      toast(reais.length + ' semana(s) apagada(s) · acerto mantido');
+    })
+    .catch(function(err){
+      toast('Não consegui falar com a planilha. Nada foi apagado.', true);
+      console.warn(err && err.message);
+    });
+}
+
+var pacoteColar = null;
+
+function abrirColar(){
+  pacoteColar = null;
+  document.getElementById('colarTexto').value = '';
+  document.getElementById('colarConteudo').innerHTML = '<p class="colar-msg">No Importador de Despesas, toque em <b>"Copiar para o Caixa Semanal"</b>. Depois volte aqui: a lista aparece sozinha ou cole no campo acima (Ctrl+V).</p>';
+  var btn = document.getElementById('btnLancarColar'); btn.disabled = false; btn.textContent = 'Lançar na semana';
+  document.getElementById('modalColar').classList.add('open');
+  if(navigator.clipboard && navigator.clipboard.readText){
+    navigator.clipboard.readText().then(function(t){
+      if(t && t.indexOf('gpl-despesas-para-caixa') >= 0){ document.getElementById('colarTexto').value = t; lerColagem(); }
+    }).catch(function(){});
+  }
+}
+function fecharColar(){ document.getElementById('modalColar').classList.remove('open'); }
+
+function lerColagem(){
+  var txt = document.getElementById('colarTexto').value.trim();
+  var cont = document.getElementById('colarConteudo');
+  if(!txt){ pacoteColar = null; return; }
+  var dados = null;
+  try { dados = JSON.parse(txt); } catch(e){}
+  if(!dados || dados.tipo !== 'gpl-despesas-para-caixa' || !Array.isArray(dados.itens)){
+    pacoteColar = null;
+    cont.innerHTML = '<p class="colar-msg erro">Isso não é uma lista do importador. Copie de novo no importador e cole aqui.</p>';
+    return;
+  }
+  pacoteColar = dados;
+  renderColar();
+}
+
+function impsExistentes(){
+  var s = {};
+  estado.semanas.forEach(function(sem){ (sem.itens||[]).forEach(function(it){ if(it.imp) s[it.imp] = true; }); });
+  return s;
+}
+
+function renderColar(){
+  var cont = document.getElementById('colarConteudo');
+  if(!pacoteColar) return;
+  var ativas = estado.semanas.filter(function(s){ return !s.validada; })
+    .sort(function(a,b){ return a.dataISO < b.dataISO ? 1 : a.dataISO > b.dataISO ? -1 : 0; });
+  if(!ativas.length){
+    cont.innerHTML = '<p class="colar-msg erro">Não há semana ativa. Crie uma em "Nova Semana" e abra esta janela de novo.</p>';
+    return;
+  }
+  var selAnt = document.getElementById('colarSemana');
+  var escolhida = selAnt ? selAnt.value : '';
+  if(!escolhida || !getSem(escolhida)){
+    // sugestão: a semana ativa mais recente que começa até a data do primeiro item
+    var datas = pacoteColar.itens.map(function(it){ return it.dataISO || ''; }).filter(Boolean).sort();
+    var primeira = datas[0] || dataHojeISO();
+    var sug = ativas.filter(function(s){ return s.dataISO <= primeira; })[0] || ativas[ativas.length-1];
+    escolhida = sug.id;
+  }
+  var ja = impsExistentes(), novos = 0, total = 0;
+  var h = '<div class="colar-linha"><span>Lançar na semana</span><select id="colarSemana" onchange="renderColar()">' +
+    ativas.map(function(s){ return '<option value="' + s.id + '"' + (s.id === escolhida ? ' selected' : '') + '>Semana ' + s.data + ' (' + (s.itens||[]).length + ' itens)</option>'; }).join('') +
+    '</select></div>';
+  pacoteColar.itens.forEach(function(it){
+    var dup = it.imp && ja[it.imp];
+    if(!dup){ novos++; total += parseFloat(it.valor)||0; }
+    h += '<div class="colar-item' + (dup ? ' dup' : '') + '"><span class="ci-data">' + isoParaCurto(it.dataISO) + '</span>' +
+         '<span class="ci-desc">' + esc(it.desc) + (it.obs ? '<span class="ci-obs">' + esc(it.obs) + '</span>' : '') + (dup ? '<span class="ci-obs">já lançado antes, vai ser pulado</span>' : '') + '</span>' +
+         '<span class="ci-val">' + fmtBRL(it.valor) + '</span></div>';
+  });
+  h += '<div class="colar-total"><span>' + novos + ' despesa(s) nova(s)</span><span>' + fmtBRL(total) + '</span></div>';
+  cont.innerHTML = h;
+  var btn = document.getElementById('btnLancarColar');
+  btn.disabled = novos === 0;
+  btn.textContent = novos ? 'Lançar ' + novos + ' na semana' : 'Nada novo para lançar';
+}
+
+function confirmarColar(){
+  if(!pacoteColar) return;
+  var sel = document.getElementById('colarSemana'); if(!sel) return;
+  var semId = sel.value;
+  var btn = document.getElementById('btnLancarColar');
+  btn.disabled = true; btn.textContent = 'Conferindo a planilha...';
+  // 1) pega a versão mais nova da planilha antes de mexer
+  fetch(SCRIPT_URL + '?acao=listar')
+    .then(function(r){ return r.json(); })
+    .then(function(data){
+      if(!data.ok || !Array.isArray(data.semanas)) throw new Error(data.msg || 'Resposta inválida');
+      estado.semanas = data.semanas;
+      normalizarSemanas();
+      salvarLocal();
+      var sem = getSem(semId);
+      if(!sem){ throw new Error('A semana escolhida não existe mais na planilha. Feche e abra de novo.'); }
+      // 2) acrescenta só o que ainda não foi lançado
+      var ja = impsExistentes(), novos = 0, total = 0;
+      if(!sem.itens) sem.itens = [];
+      pacoteColar.itens.forEach(function(it){
+        if(it.imp && ja[it.imp]) return;
+        var valor = Math.round((parseFloat(it.valor)||0) * 100) / 100;
+        if(!(valor > 0) || !it.desc) return;
+        var item = { id: gerarId(), desc: String(it.desc), valor: valor };
+        if(it.dataISO && /^\d{4}-\d{2}-\d{2}$/.test(it.dataISO)) item.dataISO = it.dataISO;
+        if(it.obs) item.obs = String(it.obs);
+        if(it.imp) item.imp = String(it.imp);
+        sem.itens.push(item);
+        ja[it.imp] = true; novos++; total += valor;
+      });
+      // 3) grava (mesmo caminho de sempre do Caixa Semanal)
+      salvarEstado();
+      atualizarAutocomplete();
+      renderTudo();
+      fecharColar();
+      toast(novos ? novos + ' despesa(s) lançada(s) · ' + fmtBRL(total) : 'Nada novo: tudo já estava lançado');
+    })
+    .catch(function(err){
+      btn.disabled = false; btn.textContent = 'Tentar de novo';
+      document.getElementById('colarConteudo').insertAdjacentHTML('afterbegin',
+        '<p class="colar-msg erro">Não consegui falar com a planilha agora (' + esc(err.message) + '). Nada foi lançado.</p>');
+    });
+}
 
 // ══════════════════════════════════════════════════
 //  AUTOCOMPLETE
@@ -995,6 +1255,7 @@ function gerarPreview(sems){
   // e o "Saldo anterior" vindos das semanas de trás continuam corretos mesmo
   // quando o PDF é de uma semana só ou de um período filtrado.
   calcularSemanas(); // garante que os campos _ estão atualizados
+  sems = sems.filter(function(s){ return !s.resumo; }); // a linha do acerto anterior não vai no PDF (o saldo dela já aparece na semana seguinte)
 
   var semsCalc=sems.map(function(sem){
     return Object.assign({},sem,{
@@ -1028,7 +1289,7 @@ function gerarPreview(sems){
     h+='<div class="pdf-sec"><div class="pdf-sem-title">Semana '+esc(sem.data)+'</div>';
 
     if(sem._rep>0){
-      h+='<div class="pdf-item repor"><div class="pdf-item-desc"><span>Repor semana anterior</span><span class="pdf-item-data">saldo pendente</span></div><span class="pdf-item-val">'+fmtBRL(sem._rep)+'</span></div>';
+      h+='<div class="pdf-item repor"><div class="pdf-item-desc"><span>Acerto da semana anterior</span><span class="pdf-item-data">saldo da semana anterior</span></div><span class="pdf-item-val">'+fmtBRL(sem._rep)+'</span></div>';
     }
     if(!sem.itens||!sem.itens.length){
       if(sem._rep<=0)h+='<div class="sem-itens-msg">Sem itens lançados</div>';
@@ -1058,11 +1319,11 @@ function gerarPreview(sems){
     }
 
     if(sem._sa>0)h+='<div class="pdf-tot-row"><span style="color:#555">Saldo anterior</span><span class="pv verde">'+fmtBRL(sem._sa)+'</span></div>';
-    if(sem._rogerio>0)h+='<div class="pdf-tot-row"><span style="color:#555">Rogério cobriu</span><span class="pv vermelho">'+fmtBRL(sem._rogerio)+'</span></div>';
+    if(sem._rogerio>0)h+='<div class="pdf-tot-row"><span style="color:#555">Adiantado (Rogério)</span><span class="pv">'+fmtBRL(sem._rogerio)+'</span></div>';
 
     h+='<div class="pdf-tot-sep"></div>';
-    var sLabel=sem._saldo>=0?'Saldo':'Falta repor';
-    var sCor=sem._saldo>=0?'verde':'vermelho';
+    var sLabel=sem._saldo>=0?'Saldo':'A acertar';
+    var sCor=sem._saldo>=0?'verde':'';
     h+='<div class="pdf-tot-row"><span style="font-weight:700">'+sLabel+'</span><span class="pv '+sCor+'">'+(sem._saldo<0?'− ':'')+fmtBRL(Math.abs(sem._saldo))+'</span></div>';
     h+='</div></div>';
   });

@@ -353,17 +353,32 @@ function parsePesagens(ws){
   })).filter(a=>a.peso!=null && a.lote);
   return {fazenda:String(usar[0][1]||"").trim(), data:maxDt, animais};
 }
+function toISOData(v){
+  if(v==null||v==="") return "";
+  if(v instanceof Date && !isNaN(v)){ const d=new Date(v.getTime()+12*3600e3); return d.toISOString().slice(0,10); }
+  if(typeof v==="number" && v>20000 && v<80000){ const d=new Date(Math.round((v-25569)*864e5)+12*3600e3); return d.toISOString().slice(0,10); }
+  const t=String(v).trim();
+  let m=t.match(/^(\d{4})-(\d{2})-(\d{2})/); if(m) return m[1]+"-"+m[2]+"-"+m[3];
+  m=t.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})/); if(m){ const y=m[3].length===2?"20"+m[3]:m[3]; return y+"-"+("0"+m[2]).slice(-2)+"-"+("0"+m[1]).slice(-2); }
+  return "";
+}
 function parseCurral(ws){
   const aoa=XLSX.utils.sheet_to_json(ws,{header:1,raw:false,defval:null});
-  const dataSheet = aoa[2]&&aoa[2][5] ? String(aoa[2][5]) : "";
-  const animais=[];
+  // v2: data lida de verdade — coluna E de cada animal, ou cabeçalho (F3 do app curral / D3 da planilha de pesagem)
+  const aoaR=XLSX.utils.sheet_to_json(ws,{header:1,raw:true,defval:null});
+  const rawAt=(r,c)=>(aoaR[r]&&aoaR[r][c]!=null&&aoaR[r][c]!=="")?aoaR[r][c]:null;
+  const dataSheet = toISOData(rawAt(2,5)) || toISOData(rawAt(2,3)) || "";
+  const fazSheet = (rawAt(1,3)!=null && typeof rawAt(1,3)==="string") ? rawAt(1,3).trim() : "";
+  const animais=[]; let maxDt="";
   for(let r=DATA_ROW-1;r<aoa.length;r++){
     const row=aoa[r]||[]; const b=row[0], p=parseNum(row[1]), l=parseInt(row[2],10)||null;
     if((b==null||b==="")&&p==null) continue;
     if(p==null||!l) continue;
-    animais.push({brinco:String(b||""), base:String(b||"").replace(/x+$/i,""), peso:p, lote:l, pesoAnterior:null, gmd:null, dias:null, obs:row[3]||"", novo:false, incerto:false});
+    const dA=toISOData(rawAt(r,4)) || dataSheet;
+    if(dA && dA>maxDt) maxDt=dA;
+    animais.push({brinco:String(b||""), base:String(b||"").replace(/x+$/i,""), peso:p, lote:l, data:dA||null, pesoAnterior:null, gmd:null, dias:null, obs:row[3]||"", novo:false, incerto:false});
   }
-  return {fazenda:"", data:dataSheet, animais};
+  return {fazenda:fazSheet, data:maxDt||dataSheet, animais};
 }
 
 /* ---------- estatística por lote ---------- */

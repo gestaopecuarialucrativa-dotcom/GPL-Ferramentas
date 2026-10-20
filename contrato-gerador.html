@@ -73,9 +73,9 @@ input:focus{outline:none;border-color:var(--v3)}
 
   <div class="sec-t"><span class="bar"></span>Dados do contratado (você)</div>
   <div class="card">
-    <div class="f"><label>Nome / Marca</label><input type="text" id="ct_nome" value="Rogério Avelino — Gestão Pecuária Lucrativa (GPL)"></div>
-    <div class="f"><label>CPF / CNPJ</label><input type="text" id="ct_doc" placeholder="000.000.000-00"></div>
-    <div class="f"><label>Cidade / UF</label><input type="text" id="ct_cid" placeholder="Imperatriz / MA"></div>
+    <div class="f"><label>Nome / Marca</label><input type="text" id="ct_nome" value="GPL — Gestão Pecuária Lucrativa"></div>
+    <div class="f"><label>CPF / CNPJ</label><input type="text" id="ct_doc" value="69.557.109/0001-20"></div>
+    <div class="f"><label>Cidade / UF</label><input type="text" id="ct_cid" value="Imperatriz / MA"></div>
   </div>
 
   <div class="sec-t"><span class="bar"></span>Dados do contratante (cliente)</div>
@@ -192,15 +192,15 @@ function gerar(){
     doc.setFillColor(V[0],V[1],V[2]); doc.rect(0,0,PW,26,'F');
     try{doc.addImage(LOGO,'PNG',M,5,15,15);}catch(e){}
     doc.setTextColor(255,255,255); doc.setFont('helvetica','bold'); doc.setFontSize(14);
-    doc.text('Gestão Pecuária Lucrativa',M+18,12);
+    doc.text('GPL — Gestão Pecuária Lucrativa',M+18,12);
     doc.setFont('helvetica','normal'); doc.setFontSize(8);
-    doc.text('Rogério Avelino · Consultoria em Gestão Pecuária',M+18,17);
+    doc.text('R A Consultoria Agropecuária Ltda · CNPJ 69.557.109/0001-20',M+18,17);
     y=34;
   }
   function footer(pg){
     doc.setDrawColor(207,216,207); doc.setLineWidth(0.3); doc.line(M,283,PW-M,283);
     doc.setTextColor(101,118,106); doc.setFont('helvetica','normal'); doc.setFontSize(7.5);
-    doc.text('Gestão Pecuária Lucrativa · Rogério Avelino · @gestaopecuarialucrativa',M,288);
+    doc.text('GPL — Gestão Pecuária Lucrativa · R A Consultoria Agropecuária Ltda · CNPJ 69.557.109/0001-20',M,288);
     doc.text('Página '+pg,PW-M,288,{align:'right'});
   }
   function need(h){ if(y+h>278){ footer(doc.internal.getNumberOfPages()); doc.addPage(); header(); } }
@@ -267,6 +267,18 @@ function gerar(){
   para('Pelos serviços de consultoria, o CONTRATANTE pagará ao CONTRATADO a quantia mensal de R$ '+line(val('vl_mensal'))+', devida durante toda a vigência de 12 (doze) meses.');
   para('O pagamento será efetuado todo dia '+line(val('vl_dia'))+' de cada mês, por meio de '+line(val('vl_forma'))+'. O valor das visitas presenciais, quando houver, será cobrado separadamente, conforme a Cláusula 3ª.');
   para('Observação: o valor é mensal; não há cobrança de valor total antecipado.');
+  // Bloco dados bancários fixo
+  need(34);
+  doc.setFillColor(241,249,242); doc.roundedRect(M,y,maxw,32,3,3,'F');
+  doc.setDrawColor(167,206,170); doc.setLineWidth(0.4); doc.roundedRect(M,y,maxw,32,3,3,'S');
+  y+=6;
+  doc.setTextColor(27,94,32); doc.setFont('helvetica','bold'); doc.setFontSize(8.5);
+  doc.text('DADOS PARA PAGAMENTO',M+4,y); y+=6;
+  doc.setTextColor(40,60,40); doc.setFont('helvetica','normal'); doc.setFontSize(8.5);
+  doc.text('Banco: Nubank (Nu Pagamentos S.A.) — Cód. 260   Agência: 0001   Conta PJ: 897097484-9',M+4,y); y+=5;
+  doc.text('Titular: R A Consultoria Agropecuária Ltda   CNPJ: 69.557.109/0001-20',M+4,y); y+=5;
+  doc.setFont('helvetica','bold');
+  doc.text('Chave PIX (CNPJ): 69.557.109/0001-20',M+4,y); y+=10;
 
   clausula('CLÁUSULA 8ª — DA CONFIDENCIALIDADE');
   para('O CONTRATADO compromete-se a manter sigilo sobre todos os dados, números e informações da Fazenda a que tiver acesso, não os divulgando a terceiros sem autorização escrita do CONTRATANTE, salvo de forma anonimizada para fins de benchmarking, quando previamente autorizado.');

@@ -5,7 +5,7 @@
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{--vd:#123d1d;--vm:#1f6b33;--vc:#3f8f3a;--v5:#8BC34A;--bg:#f3f6f2;--tx:#16261a;--mu:#7a8a7e;--ln:#e6ebe5;--ok:#2E7D32;--okb:#E8F5E9;--wa:#E65100;--wab:#FFF3E0;--er:#B71C1C;--erb:#FDECEA;--ne:#546E7A;--neb:#ECEFF1;--rf:#b08a2e;--rfb:#f6efdc}
-body{font-family:Inter,system-ui,Arial,sans-serif;background:var(--bg);color:var(--tx);max-width:600px;margin:0 auto;padding-bottom:90px;-webkit-tap-highlight-color:transparent}
+body{font-family:Inter,system-ui,Arial,sans-serif;background:var(--bg);color:var(--tx);max-width:600px;margin:0 auto;padding-bottom:24px;-webkit-tap-highlight-color:transparent}
 .top{background:linear-gradient(140deg,var(--vd),var(--vm) 70%,var(--vc));padding:16px 18px 22px;color:#fff;position:relative}
 .top .lg{height:30px;filter:brightness(0) invert(1);opacity:.95}
 .top small{display:block;color:#b9dcbf;font-size:11px;letter-spacing:.6px;font-weight:700;margin-top:12px}
@@ -41,8 +41,10 @@ table.g td.c{font-size:11.5px;font-weight:600;color:var(--tx);white-space:nowrap
 .scroll{overflow-x:auto}
 .del{background:none;border:none;color:var(--er);cursor:pointer;padding:4px}
 .tot{font-size:12px;color:var(--vm);font-weight:700;margin-top:8px}
-.nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:600px;display:flex;background:#fff;border-top:1px solid var(--ln);padding:8px 0 12px;z-index:20}
-.nav button{flex:1;background:none;border:none;font:700 10.5px Inter,Arial;color:#8a978d;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer}.nav button.on{color:var(--vm)}
+.top.tb{padding-bottom:0}
+.nav{display:flex;margin:14px -18px 0;padding:0 8px;overflow-x:auto;scrollbar-width:none}.nav::-webkit-scrollbar{display:none}
+.nav button{flex:none;padding:10px 14px;background:transparent;border:none;border-bottom:3px solid transparent;font:700 11px Inter,Arial;letter-spacing:.4px;text-transform:uppercase;color:rgba(255,255,255,.6);cursor:pointer;white-space:nowrap}
+.nav button:hover{color:#fff;background:rgba(255,255,255,.07)}.nav button.on{color:#fff;border-bottom-color:var(--v5);background:rgba(255,255,255,.1)}
 .pg{display:none}.pg.on{display:block}
 .chk{display:flex;gap:10px;align-items:flex-start;padding:9px 0;border-top:1px solid var(--ln);font-size:12.5px;line-height:1.45}.chk:first-of-type{border-top:none}
 .ind{padding:11px 0;border-top:1px solid var(--ln)}.ind:first-of-type{border-top:none}
@@ -59,7 +61,7 @@ table.g td.c{font-size:11.5px;font-weight:600;color:var(--tx);white-space:nowrap
 .mtx div{height:74px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:12px}
 .mtx .q2{background:#e8cf4a}.mtx .q4{background:#222;color:#fff}.mtx .q1{background:#5aa35f;color:#fff}.mtx .q3{background:#c0392b;color:#fff}
 .mtx .on{outline:4px solid var(--v5);outline-offset:-4px}
-.toast{position:fixed;left:50%;bottom:92px;transform:translateX(-50%);background:#16261a;color:#fff;padding:10px 16px;border-radius:12px;font-size:13px;display:none;z-index:60;max-width:90%}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#16261a;color:#fff;padding:10px 16px;border-radius:12px;font-size:13px;display:none;z-index:60;max-width:90%}
 .off{margin:12px 14px;background:var(--erb);color:var(--er);border-radius:12px;padding:10px 12px;font-size:12.5px;font-weight:600;display:none}
 .empty{color:var(--mu);font-size:12.5px;padding:8px 0}
 .lock{max-width:320px;margin:60px auto;text-align:center;padding:0 20px}
@@ -143,10 +145,10 @@ table.g td.c{font-size:11.5px;font-weight:600;color:var(--tx);white-space:nowrap
 </div>
 
 <div class="nav" id="nav" style="display:none">
- <button id="nv-ed" onclick="ir('ed')"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4h6l1 2h3v14H5V6h3z"/><path d="M9 12h6M9 16h4"/></svg>Coleta</button>
- <button id="nv-chk" onclick="ir('chk')"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3 8-8"/><path d="M20 12v7a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1h11"/></svg>Checagem</button>
- <button id="nv-res" onclick="ir('res')"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 20h16M7 20v-7M12 20V5M17 20v-10"/></svg>Resultado</button>
- <button id="nv-bm" onclick="ir('bm')"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l3-8 4 16 3-8h4"/></svg>Benchmark</button>
+ <button id="nv-ed" onclick="ir('ed')">Coleta</button>
+ <button id="nv-chk" onclick="ir('chk')">Checagem</button>
+ <button id="nv-res" onclick="ir('res')">Resultado</button>
+ <button id="nv-bm" onclick="ir('bm')">Benchmark</button>
 </div>
 <div class="toast" id="toast"></div>
 
@@ -358,7 +360,10 @@ function post(obj){ obj.pin=PIN; return fetch(API,{method:'POST',mode:'no-cors',
 // ---------- navegação ----------
 function ir(p){
   ['login','lista','novo','ed','chk','res','bm'].forEach(function(x){$('pg-'+x).classList.toggle('on',x===p);});
-  $('nav').style.display=(D&&['ed','chk','res'].indexOf(p)>=0)||(D&&p==='bm')?'flex':'none';
+  var mostra=D&&['ed','chk','res','bm'].indexOf(p)>=0, tp=document.querySelector('#pg-'+p+' .top');
+  document.querySelectorAll('.top.tb').forEach(function(t){t.classList.remove('tb');});
+  if(mostra&&tp){ tp.appendChild($('nav')); tp.classList.add('tb'); }
+  $('nav').style.display=mostra?'flex':'none';
   ['ed','chk','res','bm'].forEach(function(x){ if($('nv-'+x)) $('nv-'+x).classList.toggle('on',x===p); });
   if(p==='chk') renderChk(); if(p==='res') renderRes(); if(p==='bm') abrirBM(); if(p==='lista') listar();
   window.scrollTo(0,0);

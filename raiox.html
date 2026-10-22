@@ -946,7 +946,7 @@ function renderRes(){
   h+='<div class="sec"><div class="h">ÚLTIMA LINHA · Perfil de desembolso <span>% do faturamento produtivo</span></div>'+CC.map(function(c){var p=R.perfil[c[0]];return '<div class="ind"><div class="r" style="grid-template-columns:1fr 70px 70px"><span style="color:var(--tx);font-weight:600">'+c[1]+'</span><b>'+pct(p.fat)+'</b><b style="color:var(--mu)">'+fmt(p.ar,2,'R$ ')+'/@</b></div></div>';}).join('')+'</div>';
   // matriz
   if(RX_status(D,'matriz').sem) h+=semBox('matriz','ÚLTIMA LINHA · Matriz de gastos'); else
-  h+='<div class="sec"><div class="h">ÚLTIMA LINHA · Matriz de gastos</div><p class="hint">% desembolso sobre a @ produzida: <b>'+pct(R.matrizX)+'</b> (corte 70%) · insumos + pastagem sobre o desembolso: <b>'+pct(R.matrizY)+'</b> (corte 50%)</p><div class="mtx"><div class="q2 '+(R.quadrante===2?'on':'')+'">Quadrante 2</div><div class="q4 '+(R.quadrante===4?'on':'')+'">Quadrante 4</div><div class="q1 '+(R.quadrante===1?'on':'')+'">Quadrante 1 · ideal</div><div class="q3 '+(R.quadrante===3?'on':'')+'">Quadrante 3</div></div><p class="hint" style="margin-top:8px">Linha de cima: insumos + pastagem abaixo de 50%. Coluna da direita: gasto acima de 70% da @ produzida.</p></div>';
+  h+='<div class="sec"><div class="h">ÚLTIMA LINHA · Matriz de gastos</div>'+matrizHTML(R,false)+'</div>';
   // potencial
   var meta=n(D.valorTerraBenf)*0.04, pf=0; (D.areas.pasto||[]).forEach(function(v){ if(n(v)) pf=n(v); });
   h+='<div class="sec"><div class="h">O que deveria ser · Potencial</div><div class="big"><div class="kc"><b>'+fmt(meta,0,'R$ ')+'</b><span>resultado-alvo/ano (4% da terra)</span></div><div class="kc"><b>'+fmt(pf?meta/pf:null,0,'R$ ')+'/ha</b><span>objetivo sobre '+fmt(pf,0)+' ha de pasto no fim da safra</span></div><div class="kc"><b>'+fmt(meta/0.2,0,'R$ ')+'</b><span>faturamento para 20% de margem</span></div><div class="kc"><b>'+fmt(R.ropSE,0,'R$ ')+'</b><span>resultado desta safra (SE)</span></div></div></div>';
@@ -958,6 +958,28 @@ function renderRes(){
   $('res').innerHTML=h;
 }
 
+// ---------- matriz de gastos (eixos, quadrante da fazenda e leitura) ----------
+function matrizHTML(R,pdf){
+  var X=R.matrizX, Y=R.matrizY, q=R.quadrante, fs=pdf?'8pt':'11px', fq=pdf?'8.5pt':'11.5px';
+  var Q={1:['#2E7D32','1 · ideal'],2:['#c9a24a','2 · margem, pouco no que produz'],3:['#B71C1C','3 · investe, mas não volta em @'],4:['#455a4a','4 · gasta muito e fora da produção']};
+  var cel=function(k){ var on=q===k; return '<div style="background:'+Q[k][0]+';color:#fff;border-radius:4px;padding:'+(pdf?'4mm 2mm':'12px 6px')+';text-align:center;font-weight:800;font-size:'+fq+';line-height:1.3'+(on?';outline:3px solid #8BC34A;outline-offset:-3px':'')+'">'+Q[k][1]+(on?'<br><span style="display:inline-block;margin-top:4px;background:#fff;color:#123d1d;border-radius:9px;padding:1px 8px;font-size:'+fs+'">'+esc(D.fazenda)+'</span>':'')+'</div>'; };
+  var ax='color:#6b7b6f;font-size:'+fs+';display:flex;align-items:center';
+  var g='<div style="display:grid;grid-template-columns:'+(pdf?'22mm':'74px')+' 1fr 1fr;gap:4px;max-width:'+(pdf?'125mm':'100%')+'">'+
+    '<div></div><div style="'+ax+';justify-content:center;text-align:center">gasta até 70% da @</div><div style="'+ax+';justify-content:center;text-align:center">gasta mais de 70% da @</div>'+
+    '<div style="'+ax+'">insumos + pasto até 50%</div>'+cel(2)+cel(4)+
+    '<div style="'+ax+'">insumos + pasto acima de 50%</div>'+cel(1)+cel(3)+'</div>';
+  // leitura automática
+  var maior=null; CC.forEach(function(c){ var p=R.perfil[c[0]]; if(p&&p.pct!==null&&(!maior||p.pct>maior.pct)) maior={n:c[1],pct:p.pct}; });
+  var base='O gasto da safra consumiu <b>'+pct(X)+'</b> do valor da @ produzida, e <b>'+pct(Y)+'</b> foi para insumos e pastagem.';
+  var txt={1:base+' Gasta pouco por arroba e no que produz.',
+    2:base+' Sobra margem, mas pouco do gasto vai para pasto e nutrição. Há espaço para investir no que produz arroba.',
+    3:base+' O dinheiro vai para pasto e nutrição, mas a arroba produzida não pagou o gasto. Vale conferir o uso dos insumos e a lotação.',
+    4:base+' Gasta muito e a maior parte fora da produção.'}[q]||'';
+  if(maior&&(q===4||q===2)) txt+=' Maior centro de custo: <b>'+esc(maior.n)+'</b> ('+pct(maior.pct)+' do desembolso).';
+  var semInv=RX_div(R.custeio,R.fatProd);
+  if(R.invFazenda>0&&semInv!==null) txt+='<br><b>Sem os investimentos:</b> o custeio fica em <b>'+pct(semInv)+'</b> da @ produzida, '+(semInv<0.7?'abaixo':'acima')+' do corte de 70%.';
+  return g+'<div style="font-size:'+(pdf?'9pt':'12px')+';line-height:1.5;margin-top:'+(pdf?'3mm':'10px')+';background:#f3f6f2;border-radius:8px;padding:'+(pdf?'3mm':'9px 11px')+'"><b>Quadrante '+q+':</b> '+txt+'</div>';
+}
 // ---------- PDFs (prévia na tela + Imprimir/Salvar como PDF) ----------
 function pdfAbrir(tit,html){ $('pdf-tit').textContent=tit; $('pdf-ov').style.display='flex'; var f=$('pdf-fr'), d=f.contentDocument||f.contentWindow.document; d.open(); d.write(html); d.close(); document.body.style.overflow='hidden'; }
 function pdfFechar(){ $('pdf-ov').style.display='none'; document.body.style.overflow=''; }
@@ -1046,7 +1068,7 @@ function pdfRelatorio(){
     c2+='<div class="g">Perfil de desembolso · % do faturamento produtivo</div><table class="tb">'+CC.map(function(cc){var p=R.perfil[cc[0]];return '<tr><td>'+esc(cc[1])+'</td><td>'+pct(p.fat)+'</td><td>'+fmt(p.ar,2,'R$ ')+'/@</td></tr>';}).join('')+'</table>';
   c2+='</div><div>';
   if(RX_status(D,'matriz').sem) c2+='<div class="g" style="margin-top:0">Matriz de gastos</div><div class="sem">sem dado</div>'; else
-    c2+='<div class="g" style="margin-top:0">Matriz de gastos</div><div class="tx" style="padding:0"><p>Desembolso sobre a @ produzida: <b>'+pct(R.matrizX)+'</b> (corte 70%) · insumos + pastagem sobre o desembolso: <b>'+pct(R.matrizY)+'</b> (corte 50%)</p></div><div class="mtx"><div class="q2 '+(R.quadrante===2?'on':'')+'">Quadrante 2</div><div class="q4 '+(R.quadrante===4?'on':'')+'">Quadrante 4</div><div class="q1 '+(R.quadrante===1?'on':'')+'">Quadrante 1 · ideal</div><div class="q3 '+(R.quadrante===3?'on':'')+'">Quadrante 3</div></div>';
+    c2+='<div class="g" style="margin-top:0">Matriz de gastos</div>'+matrizHTML(R,true);
   c2+='</div></div>';
   P.push(pdfPag(cab,'Última linha','Intensificação, desembolso e matriz',c2,fonte));
   // potencial + recomendações + plano

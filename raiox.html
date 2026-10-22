@@ -194,6 +194,14 @@ function RX_calc(d){
   var comp=tot(d.compras), te=tot(d.transfEnt), ts=tot(d.transfSai), cons=tot(d.consumo), vend=tot(d.vendas);
   var ab={q:0,kg:0,ar:0,rs:0}; (d.abates||[]).forEach(function(x){ var q=RX_n(x.q); ab.q+=q; ab.kg+=q*RX_n(x.kg); ab.ar+=q*RX_n(x.kgMorto)/15; ab.rs+=RX_n(x.rs); });
   var vab={q:vend.q+ab.q, kg:vend.kg+ab.kg, ar:vend.ar+ab.ar, rs:vend.rs+ab.rs};
+  // abates por grupo (REFERÊNCIAS da OP-32: matrizes descarte, novilhas, machos)
+  var GRP={mat:['Matrizes descarte','Fêmeas + 37 meses'],nov:['Novilhas','Fêmeas 13 a 24 meses','Fêmeas 25 a 36 meses'],mac:['Garrotes/Bois','Machos 13 a 24 meses','Machos 25 a 36 meses','Machos + 37 meses']};
+  R.abGrp={};
+  Object.keys(GRP).forEach(function(g){ var t={q:0,kg:0,km:0,rs:0};
+    (d.abates||[]).forEach(function(x){ if(GRP[g].indexOf(x.cat)<0) return; var q=RX_n(x.q); t.q+=q; t.kg+=q*RX_n(x.kg); t.km+=q*RX_n(x.kgMorto); t.rs+=RX_n(x.rs); });
+    var ar=t.km/15; R.abGrp[g]=t;
+    R['ab'+g+'Ar']=RX_div(ar,t.q); R['ab'+g+'Rend']=RX_div(t.km,t.kg); R['ab'+g+'Val']=RX_div(t.rs,ar);
+  });
   R.compras=comp; R.vendasAbates=vab; R.consumo=cons;
   // ---- produção (ESTOQUE GADO!F33 / E33) ----
   var prodAr = (fin.ar-ini.ar) + vab.ar + ts.ar - comp.ar - te.ar + cons.ar;
@@ -269,7 +277,52 @@ function RX_calc(d){
   R.folhaCusteio=RX_div(RX_n(CC.mo),custeio); R.folhaFat=RX_div(RX_n(CC.mo),vab.rs);
   // ---- intensificação ----
   R.nivel = R.prodHa===null?null:(R.prodHa<10?'baixo':(R.prodHa<=20?'medio':'alto'));
+  // ---- reprodução (aba DADOS REPRODUTIVOS da OP-32) · só Cria e Ciclo completo ----
+  if(d.sistema!=='RE' && d.rep) RX_repro(d,R,ua,custeio,desemb);
   return R;
+}
+function RX_repro(d,R,ua,custeio,desemb){
+  var c=d.rep.c||{}, f=d.rep.f||{}, N=RX_n;
+  // safra atual (coluna C): toque que gerou os bezerros desta safra
+  var emMonta=N(c.nov)+N(c.prim)+N(c.vaca)+N(c.des);                       // C11 (vaca chance fica fora, igual à OP-32)
+  var prenhes=N(c.prenhes)||(N(c.novP)+N(c.desP)+N(c.primP)+N(c.vacaP));    // C13
+  var nasc=N(d.nascimentos), desm=N(c.desm), aDesm=N(c.aDesm), pDesm=N(c.pesoDesm), pMat=N(c.pesoMatriz), aCria=N(c.areaCria);
+  var P={};
+  P.emMonta=emMonta; P.prenhes=prenhes; P.nascidos=nasc;
+  P.pctNov=RX_div(N(c.nov),emMonta);                                         // C9
+  P.aproveitamento=RX_div(emMonta,N(c.femeas));                              // C10
+  P.fertAtual=RX_div(prenhes,emMonta);                                       // C15
+  P.pctInsem=RX_div(N(c.iatfMat),emMonta);                                   // C34
+  P.protMatriz=RX_div(N(c.iatfProt),N(c.iatfMat));                           // C36
+  var fi=N(c.iatfFert)/100, pi=P.pctInsem||0;                                // C35 digitado em %
+  P.fertTouro=(N(c.iatfMat)&&emMonta)?RX_div(prenhes-(fi*(emMonta*pi)),((1-pi)*emMonta)+(pi*emMonta*(1-fi))):null; // C38
+  P.pctFiv=RX_div(N(c.fivMat),emMonta); P.fertFiv=RX_div(N(c.fivPrenhes),N(c.fivMat)); P.protFiv=RX_div(N(c.fivProt),N(c.fivMat)); // C44:C46
+  P.natalidade=RX_div(nasc,prenhes);                                         // C51
+  P.perdaPreParto=prenhes?(prenhes-nasc)/prenhes:null;                       // C52
+  P.perdaFiv=N(c.fivPrenhes)?(N(c.fivPrenhes)-N(c.fivNasc))/N(c.fivPrenhes):null; // C53
+  var mortBez=nasc?(nasc-(desm+aDesm))/nasc:null;                            // C70
+  var desmEf=desm+aDesm*(1-(mortBez||0));                                    // C62 + C63·(1 − C70)
+  P.desmEf=desmEf;
+  P.pesoAjust=RX_div(pDesm,N(c.idadeDesm)); if(P.pesoAjust!==null) P.pesoAjust*=210; // C66
+  R.mortBez=mortBez;
+  R.taxaDesmame=RX_div(desmEf,emMonta);                                      // C71
+  R.perdaPrenhez=prenhes?(prenhes-desmEf)/prenhes:null;                      // C72
+  R.kgDesmVaca=emMonta?pDesm*desmEf/emMonta:null;                            // C68
+  R.kgDesmKgVaca=RX_div(R.kgDesmVaca,pMat);                                  // C67
+  R.kgDesmHa=aCria?pDesm*desmEf/aCria:null;                                  // C69
+  R.relDesmame=RX_div(pDesm,pMat);                                           // relação desmame (TABELA CONSOLIDAÇÃO AQ281)
+  R.pdMN=N(c.pdMN)||null; R.pdFN=N(c.pdFN)||null; R.pdMC=N(c.pdMC)||null; R.pdFC=N(c.pdFC)||null; // C56 C57 C60 C61
+  R.perdaPreParto=P.perdaPreParto; R.natalidade=P.natalidade; R.aproveitamento=P.aproveitamento;
+  // safra futura (coluna D): toque feito nesta safra → fertilidade
+  var fm=N(f.nov)+N(f.prim)+N(f.vaca)+N(f.des), fp=N(f.novP)+N(f.desP)+N(f.primP)+N(f.vacaP);
+  R.fertNov=RX_div(N(f.novP),N(f.nov)); R.fertPrim=RX_div(N(f.primP),N(f.prim)); R.fertVaca=RX_div(N(f.vacaP),N(f.vaca)); // D18 D24 D27
+  R.fertDes=RX_div(N(f.desP),N(f.des)); R.fertChance=RX_div(N(f.chanceP),N(f.chance));
+  R.fertGeral=RX_div(fp,fm);                                                 // D15
+  P.futMonta=fm; P.futPrenhes=fp;
+  // custo do bezerro (ANÁLISE PECUÁRIA C44/C45): custeio ÷ rebanho médio UA ÷ taxa de desmame
+  R.custeioBez=(ua&&R.taxaDesmame)?custeio/ua/R.taxaDesmame:null;
+  R.desembBez=(ua&&R.taxaDesmame)?desemb/ua/R.taxaDesmame:null;
+  R.rep=P;
 }
 // ===== Blocos de dados que a fazenda pode não ter =====
 var RX_BLOCOS={
@@ -294,7 +347,17 @@ var RX_BLOCOS={
  equipe:{etapa:6,nome:'Equipe e funções',inds:['fatFunc','cabHomem'],
   rec:'Registrar a equipe com as funções para medir a produtividade da mão de obra.'},
  patrimonio:{etapa:6,nome:'Valor da terra e benfeitorias',inds:['resTerra'],
-  rec:'Ter o valor de mercado da terra e das benfeitorias para medir se a pecuária remunera o patrimônio (meta do método: 4% a.a.).'}
+  rec:'Ter o valor de mercado da terra e das benfeitorias para medir se a pecuária remunera o patrimônio (meta do método: 4% a.a.).'},
+ // ---- só Cria e Ciclo completo (etapa 8) ----
+ toque:{etapa:7,sis:'CR',nome:'Toque (diagnóstico de gestação) por categoria',
+  inds:['fertNov','fertPrim','fertVaca','fertGeral','perdaPreParto','taxaDesmame','relDesmame','kgDesmVaca','kgDesmHa','custeioBez','desembBez'],
+  rec:'Fazer o diagnóstico de gestação (toque ou ultrassom) e anotar, por categoria (novilhas, primíparas e vacas), quantas entraram em monta e quantas ficaram prenhes. Sem isso não existe fertilidade nem taxa de desmame.'},
+ nascimento:{etapa:7,sis:'CR',nome:'Registro de nascimentos',
+  inds:['perdaPreParto','mortBez','taxaDesmame','kgDesmVaca','kgDesmHa','custeioBez','desembBez'],
+  rec:'Anotar todo nascimento (data, sexo e mãe, quando possível) para medir a perda pré-parto e a mortalidade de bezerros.'},
+ desmama:{etapa:7,sis:'CR',nome:'Contagem e pesagem na desmama',
+  inds:['mortBez','taxaDesmame','relDesmame','pdMN','pdFN','pdMC','pdFC','kgDesmVaca','kgDesmHa','custeioBez','desembBez'],
+  rec:'Contar e pesar os bezerros na desmama, separando machos e fêmeas, e pesar uma amostra das matrizes. É o que mostra quantos quilos de bezerro cada vaca entrega.'}
 };
 // status de um indicador: 'ok' | 'est' (estimado) | {sem:[nomes dos blocos]}
 function RX_status(d,ind){
@@ -328,6 +391,23 @@ function RX_check(d,R){
   if(!RX_n(d.valorTerraBenf)) add('aviso','Valor da terra e benfeitorias não preenchido — sem resultado sobre a terra.','patrimonio');
   var E=d.equipe||{}; if(!RX_n(E.total)) add('aviso','Equipe não preenchida.','equipe');
   if(!RX_n(d.nutricao)) add('aviso','Gasto com nutrição não preenchido — sem correlação de nutrição por 100 g.','nutricao');
+  if(d.sistema!=='RE' && R.rep){
+    var rp=R.rep, c=(d.rep||{}).c||{}, f=(d.rep||{}).f||{};
+    if(!rp.emMonta) add('erro','Reprodução: matrizes em monta (desta safra) não preenchidas.','toque');
+    if(rp.emMonta && rp.prenhes>rp.emMonta) add('alerta','Reprodução: mais prenhes ('+rp.prenhes+') do que matrizes em monta ('+rp.emMonta+').','toque');
+    [['nov','Novilhas'],['des','Novilhas desafio'],['prim','Primíparas'],['vaca','Vacas'],['chance','Vacas chance']].forEach(function(k){
+      if(RX_n(c[k[0]+'P'])>RX_n(c[k[0]])) add('alerta','Reprodução (desta safra): '+k[1]+' com mais prenhes do que em monta.','toque');
+      if(RX_n(f[k[0]+'P'])>RX_n(f[k[0]])) add('alerta','Reprodução (próxima safra): '+k[1]+' com mais prenhes do que em monta.','toque');
+    });
+    if(!rp.futMonta) add('aviso','Toque para a próxima safra não preenchido — sem fertilidade por categoria.','toque');
+    if(!rp.nascidos) add('erro','Bezerros nascidos não preenchidos.','nascimento');
+    if(rp.nascidos && rp.prenhes && rp.nascidos>rp.prenhes) add('alerta','Nasceram mais bezerros ('+rp.nascidos+') do que matrizes prenhes ('+rp.prenhes+').','nascimento');
+    var dd=RX_n(c.desm)+RX_n(c.aDesm);
+    if(rp.nascidos && dd>rp.nascidos) add('alerta','Desmamados + a desmamar ('+dd+') maior que nascidos ('+rp.nascidos+').','desmama');
+    if(!RX_n(c.pesoDesm)) add('aviso','Peso médio dos bezerros desmamados não preenchido.','desmama');
+    if(!RX_n(c.pesoMatriz)) add('aviso','Peso médio das matrizes em monta não preenchido — sem relação de desmame.','desmama');
+    if(!RX_n(c.areaCria)) add('aviso','Área usada pela cria não preenchida — sem kg desmamado por ha.','desmama');
+  }
   return P;
 }
 
@@ -335,8 +415,13 @@ function RX_check(d,R){
 <script>
 var API='https://script.google.com/macros/s/AKfycbyzXNUkBom7cZEV2Q2fgQh43XwA1h0X5Y9r-FN5GyGLr0uqOh8Crl3zlNVB4jfbfD-Y/exec';
 var MESES=['Jul','Ago','Set','Out','Nov','Dez','Jan','Fev','Mar','Abr','Mai','Jun'];
-var SIS={RE:{n:'Recria-engorda',d:'Compra e/ou recria e termina o gado',ok:true},CR:{n:'Cria',d:'Matrizes, bezerros e desmama',ok:false},CC:{n:'Ciclo completo',d:'Cria, recria e engorda na mesma fazenda',ok:false}};
+var SIS={RE:{n:'Recria-engorda',d:'Compra e/ou recria e termina o gado',ok:true},CR:{n:'Cria',d:'Matrizes, bezerros e desmama',ok:true},CC:{n:'Ciclo completo',d:'Cria, recria e engorda na mesma fazenda',ok:true}};
 var CATS={RE:['Bezerras mamando','Bezerros mamando','Fêmeas até 12 meses','Fêmeas 13 a 24 meses','Fêmeas 25 a 36 meses','Fêmeas + 37 meses','Machos até 12 meses','Machos 13 a 24 meses','Machos 25 a 36 meses','Machos + 37 meses','Touros']};
+CATS.CR=CATS.RE.slice(); CATS.CC=CATS.RE.slice();
+var REP_CAT=[['nov','Novilhas'],['des','Novilhas desafio'],['prim','Primíparas'],['vaca','Vacas'],['chance','Vacas chance']];
+function repVazio(){ var c={}, f={}; REP_CAT.forEach(function(k){c[k[0]]='';c[k[0]+'P']='';f[k[0]]='';f[k[0]+'P']='';});
+  ['estacao','areaCria','femeas','pesoMatriz','prenhes','iatfMat','iatfProt','iatfFert','fivMat','fivProt','fivPrenhes','fivNasc','abortos','natimortos','desm','aDesm','pesoDesm','idadeDesm','pdMN','pdFN','pdMC','pdFC'].forEach(function(k){c[k]='';});
+  return {c:c,f:f}; }
 var CC=[['insumos','Insumos do rebanho','nutrição, sanidade, reprodução'],['mo','Mão de obra permanente','salários + encargos'],['adm','Administração','contador, energia, telefone, viagens'],['maquinas','Parque de máquinas','custeio + investimento'],['pastagem','Pastagem','custeio + investimento'],['infra','Infraestrutura','cercas, curral, sede: custeio + investimento'],['taxas','Taxas e impostos',''],['outros','Outros','']];
 var PIN='', D=null, ID='', LISTA=[], ETAPA=0, BMS={}, timer=null, salvando=false;
 var CS='color:var(--vm)';
@@ -432,7 +517,7 @@ function vazio(sis,faz,safra,mun){
     nutricao:'',sanidade:'',custoFixo:'',
     mensal:{custeio:Array(12).fill(''),invest:Array(12).fill(''),compra:Array(12).fill(''),venda:Array(12).fill('')},
     insumosIni:'',insumosFim:'',parqueIni:'',parqueFim:'',outrasReceitas:'',
-    equipe:{campo:'',total:'',salarioMedio:''},valorTerraBenf:'',bmSafra:''};
+    equipe:{campo:'',total:'',salarioMedio:''},valorTerraBenf:'',bmSafra:'',rep:sis==='RE'?undefined:repVazio()};
 }
 function criar(){
   var faz=$('nv-faz').value.trim(), safra=$('nv-safra').value.trim();
@@ -452,7 +537,7 @@ function abrir(id){
 function voltarLista(){ if(timer){clearTimeout(timer);salvarJa();} D=null; ir('lista'); }
 
 // ---------- editor ----------
-var ETAPAS=[
+var ETAPAS_BASE=[
  {t:'Fazenda e áreas',f:function(){return n(D.areas.pasto.filter(function(v){return n(v);}).length)>=12 && n(D.rebanhoMedioCab);}},
  {t:'Inventário',f:function(){return D.inv.some(function(c){return n(c.cf);});}},
  {t:'Movimentações',f:function(){return D.compras.length||D.vendas.length||D.abates.length;}},
@@ -461,7 +546,11 @@ var ETAPAS=[
  {t:'Fluxo mensal',f:function(){return D.mensal.custeio.some(function(v){return n(v);});}},
  {t:'Equipe e patrimônio',f:function(){return n(D.equipe.total)&&n(D.valorTerraBenf);}}
 ];
+var ETAPA_REP={t:'Reprodução e desmama',f:function(){var c=(D.rep||{}).c||{};return n(c.vaca)||n(c.nov)||n(c.prim);}};
+var ETAPAS=ETAPAS_BASE;
 function abrirEditor(){
+  if(D.sistema!=='RE'&&!D.rep) D.rep=repVazio();
+  ETAPAS=D.sistema==='RE'?ETAPAS_BASE:ETAPAS_BASE.concat([ETAPA_REP]); if(ETAPA>=ETAPAS.length) ETAPA=0;
   $('ed-tit').textContent=D.fazenda; $('ed-sub').textContent='RAIO-X · SAFRA '+D.safra+' · '+SIS[D.sistema].n.toUpperCase();
   ir('ed'); renderEd();
 }
@@ -530,7 +619,8 @@ function renderEd(){
     h+=sec('Abates','',lista('abates',[['cat','Categoria'],['q','Qtd'],['kg','Peso vivo kg',80],['kgMorto','Peso carcaça kg',80],['rs','R$ total',100]],cats),'@ do abate = kg de carcaça ÷ 15.');
     h+=sec('Consumo e doação','',lista('consumo',colsQ,cats));
     h+=sec('Transferências','entre fazendas','<b style="font-size:12px">Entrada</b>'+lista('transfEnt',colsQ,cats)+'<b style="font-size:12px">Saída</b>'+lista('transfSai',colsQ,cats));
-    h+=sec('Nascimentos','',campo('Bezerros nascidos na safra','nascimentos',''),'Usado só para conferir se o estoque fecha.');
+    if(D.sistema==='RE') h+=sec('Nascimentos','',campo('Bezerros nascidos na safra','nascimentos',''),'Usado só para conferir se o estoque fecha.');
+    else h+=sec('Nascimentos','','<p class="hint">Os nascimentos entram na etapa 8 · Reprodução e desmama.</p>');
   }
   if(ETAPA===3){
     h+=sec('Mortes e estoque mensal','cabeças',grade12(['Estoque jovens','Estoque adultos','Mortes jovens','Mortes adultos'],['mortes.jov','mortes.adu','mortes.mj','mortes.ma'])+'<div class="tot" id="t-mort"></div>','Mortalidade = mortes ÷ estoque médio do ano. O indicador principal é a mortalidade geral.');
@@ -549,6 +639,19 @@ function renderEd(){
     h+=sec('Equipe','','<div class="two">'+campo('Funcionários de campo','equipe.campo','')+campo('Total de funcionários','equipe.total','')+'</div>'+campo('Salário médio (R$)','equipe.salarioMedio',''));
     h+=sec('Patrimônio','R$',campo('Valor da terra + benfeitorias','valorTerraBenf',''),'Base do resultado sobre o valor da terra (meta do método: 4% a.a.).');
   }
+  if(ETAPA===7 && D.rep){
+    var tq=function(col){ var t='<div class="scroll"><table class="g"><tr><th>Categoria</th><th>Em monta</th><th>Prenhes</th><th>Fertilidade</th></tr>';
+      REP_CAT.forEach(function(k){ t+='<tr><td class="c">'+k[1]+'</td><td style="min-width:80px">'+inp('rep.'+col+'.'+k[0],'')+'</td><td style="min-width:80px">'+inp('rep.'+col+'.'+k[0]+'P','')+'</td><td class="c" id="fx-'+col+'-'+k[0]+'">—</td></tr>'; });
+      return t+'</table></div><div class="tot" id="t-'+col+'"></div>'; };
+    h+=sec('Estação de monta','', '<div class="two">'+campo('Tempo de estação (meses)','rep.c.estacao','')+campo('Área usada pela cria (ha)','rep.c.areaCria','')+'</div><div class="two">'+campo('Total de fêmeas no rebanho','rep.c.femeas','')+campo('Peso médio das matrizes em monta (kg)','rep.c.pesoMatriz','')+'</div>');
+    h+=sec('Toque que gerou os bezerros desta safra','safra '+esc(D.safra), tq('c')+'<div class="two" style="margin-top:8px">'+campo('Total de matrizes prenhes (se não tiver por categoria)','rep.c.prenhes','')+'<div></div></div>','Exemplo da OP-32: safra 22/23 = toque de 2022, nascimentos de julho/2022 a junho/2023 e desmama em 2023. Vacas chance não entram no total em monta.');
+    h+=sec('Toque feito nesta safra · próxima safra','fertilidade', tq('f'),'É deste toque que sai a fertilidade de novilhas, primíparas e vacas (safra futura), igual ao PLACAR da OP-32.');
+    h+=sec('Nascimentos','', '<div class="two">'+campo('Bezerros nascidos na safra','nascimentos','')+campo('% abortos','rep.c.abortos','')+'</div><div class="two">'+campo('% natimortos','rep.c.natimortos','')+'<div></div></div>');
+    h+=sec('Desmama','', '<div class="two">'+campo('Bezerros desmamados','rep.c.desm','')+campo('Bezerros ainda a desmamar','rep.c.aDesm','')+'</div><div class="two">'+campo('Peso médio dos desmamados (kg)','rep.c.pesoDesm','')+campo('Idade ao desmame (dias)','rep.c.idadeDesm','')+'</div>'+
+      '<div class="two">'+campo('Peso desmame machos Nelore (kg)','rep.c.pdMN','')+campo('Peso desmame fêmeas Nelore (kg)','rep.c.pdFN','')+'</div><div class="two">'+campo('Peso desmame machos cruzados (kg)','rep.c.pdMC','')+campo('Peso desmame fêmeas cruzadas (kg)','rep.c.pdFC','')+'</div><div class="tot" id="t-desm"></div>','Bezerros a desmamar entram descontando a mortalidade de bezerros, igual à OP-32.');
+    h+=sec('IATF / IA','opcional', '<div class="two">'+campo('Matrizes inseminadas','rep.c.iatfMat','')+campo('Total de protocolos','rep.c.iatfProt','')+'</div><div class="two">'+campo('Fertilidade IATF/IA (%)','rep.c.iatfFert','')+'<div></div></div><div class="tot" id="t-iatf"></div>');
+    h+=sec('FIV / TE','opcional', '<div class="two">'+campo('Matrizes FIV/TE','rep.c.fivMat','')+campo('Protocolos FIV/TE','rep.c.fivProt','')+'</div><div class="two">'+campo('Matrizes prenhes FIV/TE','rep.c.fivPrenhes','')+campo('Bezerros nascidos FIV/TE','rep.c.fivNasc','')+'</div>');
+  }
   $('form').innerHTML=h; atualizaTot();
 }
 function atualizaTot(){
@@ -558,6 +661,13 @@ function atualizaTot(){
   if($('t-mort')) $('t-mort').textContent='Mortalidade geral: '+pct(R.mortGeral)+' · jovens '+pct(R.mortJov)+' · adultos '+pct(R.mortAdu);
   if($('t-cc')) $('t-cc').textContent='Desembolso: '+fmt(R.desembolso,2,'R$ ');
   if($('t-inv2')) $('t-inv2').textContent='Investimento: '+fmt(R.invFazenda,2,'R$ ')+' · Custeio: '+fmt(R.custeio,2,'R$ ');
+  if(R.rep){ var rp=R.rep, c=D.rep.c, f=D.rep.f;
+    REP_CAT.forEach(function(k){ ['c','f'].forEach(function(col){ var e=$('fx-'+col+'-'+k[0]); if(e){ var o=D.rep[col]; e.textContent=pct(RX_div(n(o[k[0]+'P']),n(o[k[0]]))); } }); });
+    if($('t-c')) $('t-c').textContent='Em monta: '+fmt(rp.emMonta,0)+' · prenhes: '+fmt(rp.prenhes,0)+' · fertilidade: '+pct(rp.fertAtual)+' · aproveitamento de fêmeas: '+pct(rp.aproveitamento);
+    if($('t-f')) $('t-f').textContent='Em monta: '+fmt(rp.futMonta,0)+' · prenhes: '+fmt(rp.futPrenhes,0)+' · fertilidade geral: '+pct(R.fertGeral);
+    if($('t-desm')) $('t-desm').textContent='Mortalidade de bezerros: '+pct(R.mortBez)+' · taxa de desmame: '+pct(R.taxaDesmame)+' · kg desmamado/vaca exposta: '+fmt(R.kgDesmVaca,1)+' · peso ajustado 210 dias: '+fmt(rp.pesoAjust,1,'',' kg');
+    if($('t-iatf')) $('t-iatf').textContent='% inseminadas: '+pct(rp.pctInsem)+' · protocolos por matriz: '+fmt(rp.protMatriz,2)+' · fertilidade do touro: '+pct(rp.fertTouro);
+  }
   if($('t-mes')&&R.mensalTot) $('t-mes').textContent='Totais: custeio '+fmt(R.mensalTot.custeio,0,'R$ ')+' · invest. '+fmt(R.mensalTot.invest,0,'R$ ')+' · compra '+fmt(R.mensalTot.compra,0,'R$ ')+' · venda '+fmt(R.mensalTot.venda,0,'R$ ');
   renderSteps();
 }
@@ -603,6 +713,30 @@ var IND=[
  ['desemb100g','Desembolso por 100 g de ganho','R$/cab/mês',2,'rs','cor','menor'],
  ['nut100g','Nutrição por 100 g de ganho','R$/cab/mês',2,'rs','cor','ref'],
  ['past1UA','Pastagem por 1 UA/ha','R$/cab/mês',2,'rs','cor','ref'],
+ ['mortBez','Mortalidade de bezerros','',1,'pct','rep','menor'],
+ ['fertNov','Fertilidade de novilhas · safra futura','',1,'pct','rep','maior'],
+ ['fertPrim','Fertilidade de primíparas · safra futura','',1,'pct','rep','maior'],
+ ['fertVaca','Fertilidade de vacas · safra futura','',1,'pct','rep','maior'],
+ ['fertGeral','Fertilidade geral · safra futura','',1,'pct','rep','maior'],
+ ['perdaPreParto','Perda pré-parto','',1,'pct','rep','menor'],
+ ['taxaDesmame','Taxa de desmame','',1,'pct','rep','maior'],
+ ['relDesmame','Relação de desmame','kg bezerro ÷ kg vaca',1,'pct','rep','maior'],
+ ['pdMN','Peso ao desmame machos Nelore','kg',0,'num','rep','maior'],
+ ['pdFN','Peso ao desmame fêmeas Nelore','kg',0,'num','rep','maior'],
+ ['pdMC','Peso ao desmame machos cruzados','kg',0,'num','rep','maior'],
+ ['pdFC','Peso ao desmame fêmeas cruzadas','kg',0,'num','rep','maior'],
+ ['kgDesmVaca','Kg desmamado por vaca exposta','kg',1,'num','rep','maior'],
+ ['kgDesmHa','Kg desmamado por ha da cria','kg/ha',1,'num','rep','maior'],
+ ['custeioBez','Custeio por bezerro desmamado','',0,'rs','rep','menor'],
+ ['desembBez','Desembolso por bezerro desmamado','',0,'rs','rep','menor'],
+ ['abmatAr','Peso ao abate · matrizes de descarte','@/cab',1,'num','abate','maior'],
+ ['abmatRend','Rendimento de carcaça · matrizes de descarte','',1,'pct','abate','maior'],
+ ['abnovAr','Peso ao abate · novilhas','@/cab',1,'num','abate','maior'],
+ ['abnovRend','Rendimento de carcaça · novilhas','',1,'pct','abate','maior'],
+ ['abnovVal','Valor da @ · novilhas','R$/@',2,'rs','abate','maior'],
+ ['abmacAr','Peso ao abate · machos','@/cab',1,'num','abate','maior'],
+ ['abmacRend','Rendimento de carcaça · machos','',1,'pct','abate','maior'],
+ ['abmacVal','Valor da @ · machos','R$/@',2,'rs','abate','maior'],
  ['ropSEha','Resultado da operação (R$/ha) SE','',2,'rs','ul','maior'],
  ['resTerra','Resultado sobre o valor da terra','a.a.',1,'pct','ul','maior'],
  ['resRebanho','Resultado sobre o valor do rebanho','a.a.',1,'pct','ul','maior']
@@ -611,7 +745,17 @@ var BM_PADRAO={
  'RE|2025/2026':{fonte:'Benchmarking Inttegra Recria-Engorda · Safra 2025/2026 (205 fazendas) + referências recria-engorda da planilha OP-32',v:{
   gmd:[0.632,0.779,0.918],lotUA:[2.31,3.17,4.62],prodHa:[30.1,50.3,69.8],custoFixoCabMes:[55.23,46.27,27.82],desembCabMes:[196.22,205.19,90.17],
   desemb100g:[30.48,25.18,''],desembAr:[266.46,205.53,169.28],resTerra:[0.018,0.076,0.086],resRebanho:[0.073,0.246,0.282],ropSEha:[828.64,3736.87,3736.87],fatFunc:[903644,1299835,1670738],
-  mortGeral:[0.011,'',''],desfrute:[0.852,'',''],msv:[0.389,'',''],tir:[0.017,'',''],arGasta:[0.611,'',''],custeioCabMes:[110.58,'',''],custeioAr:[129.07,'',''],nut100g:[8.08,'',''],past1UA:[12.23,'',''],cabHomem:[792,'','']}}
+  mortGeral:[0.011,'',''],desfrute:[0.852,'',''],msv:[0.389,'',''],tir:[0.017,'',''],arGasta:[0.611,'',''],custeioCabMes:[110.58,'',''],custeioAr:[129.07,'',''],nut100g:[8.08,'',''],past1UA:[12.23,'',''],cabHomem:[792,'','']}},
+ 'CR|2025/2026':{fonte:'Referências Cria da planilha OP-32 (aba REFERÊNCIAS) · troque pelo folheto Inttegra do ano quando sair',v:{
+  mortBez:[0.026,'',''],mortGeral:[0.018,'',''],fertNov:[0.837,'',''],fertPrim:[0.757,'',''],fertVaca:[0.824,'',''],fertGeral:[0.807,'',''],perdaPreParto:[0.083,'',''],taxaDesmame:[0.719,'',''],relDesmame:[0.525,'',''],
+  pdMN:[227,'',''],pdFN:[208,'',''],pdMC:[236,'',''],pdFC:[219,'',''],lotUA:[1.22,'',''],desfrute:[0.412,'',''],gmd:[0.346,'',''],prodHa:[7,'',''],cabHomem:[665,'',''],fatFunc:[367698,'',''],
+  custeioCabMes:[51.16,'',''],desembCabMes:[57.68,'',''],custeioAr:[145.74,'',''],desembAr:[164.33,'',''],valorVenda:[237.27,'',''],msv:[0.305,'',''],custeioBez:[1174,'',''],desembBez:[1326,'',''],tir:[0.01,'',''],nut100g:[2.98,'',''],
+  abmatAr:[16.3,'',''],abmatRend:[0.497,'',''],abnovAr:[14.6,'',''],abnovRend:[0.498,'',''],abnovVal:[210.61,'','']}},
+ 'CC|2025/2026':{fonte:'Referências Ciclo completo da planilha OP-32 (aba REFERÊNCIAS) · troque pelo folheto Inttegra do ano quando sair',v:{
+  mortBez:[0.032,'',''],mortGeral:[0.016,'',''],fertNov:[0.855,'',''],fertPrim:[0.762,'',''],fertVaca:[0.821,'',''],fertGeral:[0.802,'',''],perdaPreParto:[0.091,'',''],taxaDesmame:[0.686,'',''],relDesmame:[0.512,'',''],
+  pdMN:[223,'',''],pdFN:[206,'',''],pdMC:[253,'',''],pdFC:[235,'',''],lotUA:[1.47,'',''],desfrute:[0.487,'',''],gmd:[0.426,'',''],prodHa:[10.8,'',''],cabHomem:[693,'',''],fatFunc:[424688,'',''],
+  custeioCabMes:[68.12,'',''],desembCabMes:[73.91,'',''],custeioAr:[146.9,'',''],desembAr:[162.2,'',''],valorVenda:[234.16,'',''],msv:[0.316,'',''],custeioBez:[1597,'',''],desembBez:[1726,'',''],tir:[0.014,'',''],nut100g:[5.02,'',''],
+  abmatAr:[16.2,'',''],abmatRend:[0.498,'',''],abnovAr:[15,'',''],abnovRend:[0.507,'',''],abnovVal:[217.27,'',''],abmacAr:[20.6,'',''],abmacRend:[0.537,'',''],abmacVal:[221.61,'','']}}
 };
 function carregarBM(cb){
   BMS=JSON.parse(JSON.stringify(BM_PADRAO));
@@ -629,7 +773,8 @@ function abrirBM(){
 function renderBM(){
   var k=$('bm-sis').value+'|'+$('bm-safra').value, b=BMS[k]||{fonte:'',v:{}};
   $('bm-fonte').value=b.fonte||'';
-  $('bm-form').innerHTML='<div class="scroll"><table class="g"><tr><th>Indicador</th><th>Média</th><th>Top rentáveis</th><th>Top indicadores</th></tr>'+IND.map(function(it){
+  var sisB=$('bm-sis').value;
+  $('bm-form').innerHTML='<div class="scroll"><table class="g"><tr><th>Indicador</th><th>Média</th><th>Top rentáveis</th><th>Top indicadores</th></tr>'+IND.filter(function(it){return (sisB!=='RE'||(it[5]!=='rep'&&it[5]!=='abate'))&&!(sisB==='CR'&&/^abmac/.test(it[0]));}).map(function(it){
     var v=(b.v||{})[it[0]]||['','',''], sc=it[4]==='pct'?' (%)':'';
     return '<tr><td class="c" style="white-space:normal;min-width:130px">'+it[1]+sc+'</td>'+[0,1,2].map(function(j){var x=v[j]; if(x!==''&&x!=null&&it[4]==='pct') x=+(x*100).toFixed(2); return '<td style="min-width:76px"><input inputmode="decimal" data-i="'+it[0]+'" data-j="'+j+'" value="'+(x===''||x==null?'':String(x).replace('.',','))+'"></td>';}).join('')+'</tr>';
   }).join('')+'</table></div>';
@@ -668,10 +813,12 @@ function renderRes(){
   if(erros) h+='<div class="off" style="display:block">Há '+erros+' ponto(s) para corrigir na checagem — o resultado pode estar errado.</div>';
   h+='<div class="sec"><div class="h">A fazenda em números</div><div class="big">'+
     '<div class="kc"><b>'+fmt(R.area,2)+'</b><span>ha de pasto (média)</span></div><div class="kc"><b>'+fmt(R.rebMedCab,0)+'</b><span>cab · rebanho médio</span></div>'+
-    '<div class="kc"><b>'+fmt(R.producao,0)+' @</b><span>produzidas na safra</span></div><div class="kc"><b>'+fmt(R.ini.cab,0)+' → '+fmt(R.fin.cab,0)+'</b><span>cabeças início → fim</span></div></div></div>';
+    '<div class="kc"><b>'+fmt(R.producao,0)+' @</b><span>produzidas na safra</span></div><div class="kc"><b>'+fmt(R.ini.cab,0)+' → '+fmt(R.fin.cab,0)+'</b><span>cabeças início → fim</span></div>'+
+    (R.rep?'<div class="kc"><b>'+fmt(R.rep.emMonta,0)+'</b><span>matrizes em monta</span></div><div class="kc"><b>'+fmt(R.rep.desmEf,0)+'</b><span>bezerros desmamados</span></div>':'')+'</div></div>';
   var G=[['prod','LINHA DO MEIO · Produtivos'],['fin','LINHA DO MEIO · Financeiros'],['eq','LINHA DO MEIO · Equipe'],['cor','LINHA DO MEIO · Correlações inteligentes'],['ul','ÚLTIMA LINHA']];
+  if(D.sistema!=='RE') G.splice(1,0,['rep','LINHA DO MEIO · Reprodutivos'],['abate','LINHA DO MEIO · Abates']);
   G.forEach(function(g){
-    h+='<div class="sec"><div class="h">'+g[1]+'</div>'+IND.filter(function(it){return it[5]===g[0];}).map(function(it){return cartao(it,R,bm);}).join('');
+    h+='<div class="sec"><div class="h">'+g[1]+(g[0]==='abate'?' <span>da lista de abates (etapa 3)</span>':'')+'</div>'+IND.filter(function(it){return it[5]===g[0]&&!(D.sistema==='CR'&&/^abmac/.test(it[0]));}).map(function(it){return cartao(it,R,bm);}).join('');
     if(g[0]==='ul' && !RX_status(D,'ropSI').sem) h+='<div class="big" style="margin-top:10px"><div class="kc"><b style="color:var(--ok)">'+fmt(R.ropSIha,2,'R$ ')+'</b><span>/ha sem investimentos</span></div><div class="kc"><b style="color:var(--ok)">'+fmt(R.ropCEha,2,'R$ ')+'</b><span>/ha com efeito de mercado</span></div></div>';
     h+='</div>';
   });

@@ -83,6 +83,38 @@ input:focus,select:focus{outline:2px solid var(--v3); border-color:var(--v3)}
 .detail .val{font-size:16px; font-weight:800; color:var(--v1)}
 .gmd-big{font-size:22px}
 
+/* Ganho (já ganhou + GMD) */
+.ganho-g{display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:10px}
+.ganho-c{background:var(--v7); border-radius:12px; padding:8px; text-align:center}
+.ganho-c .k{font-size:11px; color:var(--muted); font-weight:700}
+.ganho-c .v{font-size:22px; font-weight:800; color:var(--v1); line-height:1.15}
+.ganho-c .s{font-size:11px; color:var(--muted)}
+.ganho-c.neg .v{color:var(--danger)}
+
+/* Lote por toque (sem digitar) */
+.lote-dec{display:grid; grid-template-columns:1fr 1fr; gap:8px}
+.lote-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-top:8px}
+.lote-btn{padding:12px 6px; border:1px solid var(--line); border-radius:12px; background:#fff; color:var(--v1);
+  font-size:14px; font-weight:800; font-family:inherit; cursor:pointer; text-align:center; line-height:1.2}
+.lote-btn.on{border:2px solid var(--v2); background:var(--v7); padding:11px 5px}
+.lote-btn.muted{color:var(--muted)}
+.lote-mudou{font-size:13px; color:var(--warn); font-weight:800; margin-top:8px}
+
+/* Último lançado */
+.ult-bar{margin:10px 16px 0; background:#FFF8E1; border:1px solid #f0dca0; border-radius:12px; padding:8px 10px; font-size:13px; color:#5a4300}
+.ult-row{display:flex; align-items:center; gap:8px}
+.ult-row .t{flex:1; min-width:0; cursor:pointer}
+.ult-row .t b{color:var(--ink)}
+.ult-btn{flex:none; border:1px solid #c9820a; color:#7a5000; background:#fff; border-radius:8px; padding:6px 9px; font-size:12px; font-weight:800; font-family:inherit; cursor:pointer}
+.ult-lista{margin-top:6px; border-top:1px dashed #e6cf8f; padding-top:4px}
+.ult-lista .ult-row{padding:5px 0}
+
+/* Confirmação ao registrar */
+.ok-flash{position:fixed; left:50%; top:38%; transform:translate(-50%,-50%); z-index:60; background:var(--v2); color:#fff;
+  border-radius:18px; padding:16px 22px; text-align:center; box-shadow:0 6px 24px rgba(0,0,0,.25); min-width:220px}
+.ok-flash .n{font-size:30px; font-weight:800; line-height:1.1}
+.ok-flash .m{font-size:15px; font-weight:700; margin-top:4px; opacity:.95}
+
 /* Today list */
 .item{display:flex; align-items:center; gap:10px; padding:10px 12px; border:1px solid var(--line);
   border-radius:12px; margin-top:8px; background:#fff}
@@ -378,18 +410,11 @@ input:focus,select:focus{outline:2px solid var(--v3); border-color:var(--v3)}
       </select>
       <div id="pesarLoteInfo" style="margin-top:10px;font-size:13px"></div>
     </div>
-    <div class="card stripe">
-      <h2><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v3"/><path d="M6 6l-3 7h6l-3-7z"/><path d="M18 6l-3 7h6l-3-7z"/><path d="M5 6h14"/><path d="M9 20h6"/><path d="M12 6v14"/></svg> 1. Peso na balança (kg)</h2>
-      <input id="pesoIn" class="peso-input" inputmode="decimal" placeholder="0" autocomplete="off">
-      <button class="btn btn-ghost btn-sm" style="margin-top:8px" onclick="tryBalanca()">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16"/><path d="M4 7v10a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7"/><path d="M9 3h6"/></svg>
-        Conectar balança (experimental)
-      </button>
-    </div>
+    <div id="ultimoBar" class="ult-bar" style="display:none"></div>
 
     <div class="card stripe">
-      <h2><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7h18"/><path d="M3 12h18"/><path d="M3 17h18"/></svg> 2. Nº do animal / brinco</h2>
-      <input id="numIn" inputmode="text" placeholder="Digite o número (ou termine com x se incerto)" autocomplete="off">
+      <h2><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7h18"/><path d="M3 12h18"/><path d="M3 17h18"/></svg> 1. Nº do animal / brinco</h2>
+      <input id="numIn" inputmode="text" enterkeyhint="next" placeholder="Digite o número (ou termine com x se incerto)" autocomplete="off">
       <div id="numWarn" class="inline-warn"></div>
       <div id="matches"></div>
       <div id="detail"></div>
@@ -399,12 +424,29 @@ input:focus,select:focus{outline:2px solid var(--v3); border-color:var(--v3)}
       </button>
     </div>
 
+    <div class="card stripe">
+      <h2><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v3"/><path d="M6 6l-3 7h6l-3-7z"/><path d="M18 6l-3 7h6l-3-7z"/><path d="M5 6h14"/><path d="M9 20h6"/><path d="M12 6v14"/></svg> 2. Peso na balança (kg)</h2>
+      <input id="pesoIn" class="peso-input" inputmode="decimal" enterkeyhint="done" placeholder="0" autocomplete="off">
+      <div id="ganhoBox"></div>
+      <button class="btn btn-ghost btn-sm" style="margin-top:8px" onclick="tryBalanca()">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16"/><path d="M4 7v10a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7"/><path d="M9 3h6"/></svg>
+        Conectar balança (experimental)
+      </button>
+    </div>
+
+    <div class="card stripe" id="loteCard">
+      <h2><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16"/><path d="M4 12h16"/><path d="M4 18h10"/></svg> 3. Lote</h2>
+      <input type="hidden" id="loteSel" value="">
+      <div id="loteBox"><div class="hint">Digite o número do animal primeiro.</div></div>
+    </div>
+
     <div style="margin:12px 16px">
       <button class="btn btn-primary" onclick="registrar()">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
-        Registrar pesagem
+        Registrar e próximo
       </button>
     </div>
+    <div id="okFlash" class="ok-flash" style="display:none"></div>
 
     <div class="card" id="pesarResumoCard" style="display:none">
       <div style="font-size:12px; font-weight:800; color:var(--v2); margin-bottom:6px">RESUMO DOS LOTES (parcial)</div>
@@ -913,7 +955,13 @@ function onNum(){
     sel={brinco:raw, base:base, incerto:incerto, novo:true, lote:"", pesoAnterior:null, dataAnterior:null, obsAnterior:""};
     renderMatches([]); renderDetail();
   }
-  else { sel=incerto?makeIncerto(base):null; renderMatches(matches, incerto); renderDetail(); }
+  else {
+    // Varios parecidos (ex: digitou 14 e existe 140, 141) e nenhum igual:
+    // ANTES ficava sel=null -> sumia o lote e o Registrar travava.
+    // AGORA: mostra os parecidos pra tocar, mas ja deixa pesar o numero digitado como animal novo.
+    sel=incerto?makeIncerto(base):{brinco:raw, base:base, incerto:false, novo:true, lote:"", pesoAnterior:null, dataAnterior:null, obsAnterior:""};
+    renderMatches(matches, incerto); renderDetail();
+  }
 }
 function makeIncerto(base){ return {brinco:base+"x", base, incerto:true, lote:"", pesoAnterior:null, dataAnterior:null, obsAnterior:""}; }
 function selectAnimal(a, incerto){
@@ -932,35 +980,73 @@ function renderMatches(list, incerto){
 function pickMatch(i, inc){ selectAnimal(window._matchCache[i], !!inc); }
 function renderDetail(){
   const box=document.getElementById("detail");
-  if(!sel){ box.innerHTML=""; return; }
-  const peso=parseNum(document.getElementById("pesoIn").value);
-  const dias=daysBetween(sel.dataAnterior, state.data);
-  let gmd=null;
-  if(peso!=null && sel.pesoAnterior!=null && dias && dias>0) gmd=(peso-sel.pesoAnterior)/dias;
-  const loteSelect = `<select id="loteSel">${loteOptions(sel.lote||_pesarLote)}</select>`;
+  if(!sel){ box.innerHTML=""; renderLote(); renderGanho(); return; }
   const temReg = (sel.pesoAnterior!=null);
   const regBanner = temReg ? `<div style="margin:0 0 10px;padding:11px 13px;border-radius:12px;background:#E8F5E9;border-left:5px solid #2E7D32;display:flex;align-items:center;gap:11px">
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#2E7D32" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="flex:none"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
-      <div><div style="font-weight:800;color:#1B5E20;font-size:15px">Tem registro · peso anterior ${sel.pesoAnterior} kg</div>${sel.obsAnterior?`<div style="font-size:13px;color:#2E7D32;font-weight:700;margin-top:2px">Obs anterior: ${esc(sel.obsAnterior)}</div>`:''}</div>
-    </div>` : '';
+      <div><div style="font-weight:800;color:#1B5E20;font-size:15px">Tem registro · ${sel.lote?esc(loteLabel(sel.lote))+" · ":""}${sel.pesoAnterior} kg${sel.dataAnterior?" em "+isoToBR(sel.dataAnterior):""}</div>${sel.obsAnterior?`<div style="font-size:13px;color:#2E7D32;font-weight:700;margin-top:2px">Obs anterior: ${esc(sel.obsAnterior)}</div>`:''}</div>
+    </div>` : (sel.novo?`<div style="margin:0 0 10px;padding:9px 12px;border-radius:12px;background:#eef0ee;color:var(--muted);font-size:13px;font-weight:700">Sem registro anterior · animal novo (pesa sem GMD)</div>`:'');
   box.innerHTML=`
     <div class="detail">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
         <div class="b" style="font-size:18px;font-weight:800;color:var(--v1)">${esc(sel.brinco)}</div>
-        ${sel.incerto?'<span class="pill pill-warn">Incerto — revisar depois</span>':'<span class="pill pill-green">Identificado</span>'}
+        ${sel.incerto?'<span class="pill pill-warn">Incerto — revisar depois</span>':(sel.novo?'<span class="pill pill-grey">Novo</span>':'<span class="pill pill-green">Identificado</span>')}
       </div>
       ${regBanner}
-      <div class="grid">
-        <div><div class="k">Lote</div>${loteSelect}</div>
-        <div${temReg?' style="background:#E8F5E9;border-radius:10px;padding:6px 8px;margin:-6px -8px"':''}><div class="k">Peso anterior</div><div class="val"${temReg?' style="color:#1B5E20;font-weight:800"':''}>${sel.pesoAnterior!=null?sel.pesoAnterior+" kg":"—"}</div></div>
-        <div><div class="k">Dias desde a última</div><div class="val">${dias!=null?dias:"—"}</div></div>
-        <div><div class="k">GMD individual</div><div class="val gmd-big">${gmd!=null?gmd.toFixed(3)+" kg/d":"—"}</div></div>
-      </div>
-      <div style="margin-top:4px; padding-top:6px; border-top:1px dashed #cfe6cf"><div class="k">Observação anterior (da última pesagem)</div><div style="font-size:14px;color:var(--v1);font-weight:700">${sel.obsAnterior?esc(sel.obsAnterior):"— sem observação"}</div></div>
-      <div style="margin-top:8px"><label>Observação de hoje (opcional)</label><input id="obsNova" placeholder="Anotar algo?" spellcheck="true" autocorrect="on" autocapitalize="sentences" lang="pt-BR" value="${esc(window._obsNova||"")}"></div>
+      <div style="margin-top:4px"><label>Observação de hoje (opcional)</label><input id="obsNova" placeholder="Anotar algo?" spellcheck="true" autocorrect="on" autocapitalize="sentences" lang="pt-BR" value="${esc(window._obsNova||"")}"></div>
     </div>`;
   const oi=document.getElementById("obsNova"); if(oi) oi.oninput=()=>{window._obsNova=oi.value;};
+  renderLote(); renderGanho();
 }
+/* Ganho: "já ganhou X kg em Y dias" + GMD do dia — atualiza a cada tecla do peso */
+function renderGanho(){
+  const box=document.getElementById("ganhoBox"); if(!box) return;
+  if(!sel || sel.pesoAnterior==null){ box.innerHTML=""; return; }
+  const peso=parseNum(document.getElementById("pesoIn").value);
+  const dias=daysBetween(sel.dataAnterior, state.data);
+  if(peso==null){ box.innerHTML='<div class="hint" style="margin-top:8px">Peso anterior: <b>'+sel.pesoAnterior+' kg</b>'+(dias?" · há "+dias+" dias":"")+'</div>'; return; }
+  const ganho=peso-sel.pesoAnterior;
+  const gmd=(dias && dias>0)?ganho/dias:null;
+  const neg=ganho<0?" neg":"";
+  box.innerHTML='<div class="ganho-g">'+
+    '<div class="ganho-c'+neg+'"><div class="k">'+(ganho<0?"Perdeu":"Já ganhou")+'</div><div class="v">'+(ganho>=0?"+":"")+fmtBR(ganho,0)+' kg</div><div class="s">'+(dias?"em "+dias+" dias":"")+'</div></div>'+
+    '<div class="ganho-c'+(gmd!=null&&gmd<0?" neg":"")+'"><div class="k">GMD</div><div class="v">'+(gmd!=null?fmtBR(gmd,3):"—")+'</div><div class="s">kg/dia</div></div>'+
+  '</div>';
+}
+/* Lote por TOQUE — nada de digitar. Padrão = lote em que o animal já estava. */
+function loteAtual(){
+  if(!sel) return "";
+  if(sel.loteEsc!==undefined) return String(sel.loteEsc||"");
+  return String(sel.lote||_pesarLote||"");
+}
+function renderLote(){
+  const box=document.getElementById("loteBox"); const hid=document.getElementById("loteSel");
+  if(!box) return;
+  if(!sel){ box.innerHTML='<div class="hint">Digite o número do animal primeiro.</div>'; if(hid) hid.value=""; return; }
+  const cur=loteAtual(); if(hid) hid.value=cur;
+  const ant=String(sel.lote||"");
+  let h="";
+  if(ant && !sel.loteAberto){
+    const fica=(cur===ant);
+    h+='<div class="lote-dec">'+
+      '<button type="button" class="lote-btn'+(fica?' on':' muted')+'" onclick="loteFica()">Fica no '+esc(loteLabel(ant))+'</button>'+
+      '<button type="button" class="lote-btn'+(!fica?' on':' muted')+'" onclick="loteAbrir()">'+(fica?'Mudar de lote':'Muda → '+esc(loteLabel(cur)))+'</button>'+
+    '</div>';
+    if(!fica) h+='<div class="lote-mudou">Mudou de lote: '+esc(loteLabel(ant))+' → '+esc(loteLabel(cur))+'</div>';
+  } else {
+    if(ant) h+='<div class="hint" style="margin:0 0 2px">Estava no <b>'+esc(loteLabel(ant))+'</b>. Toque no lote de hoje:</div>';
+    else h+='<div class="hint" style="margin:0 0 2px">Toque no lote:</div>';
+    h+='<div class="lote-grid">';
+    for(let i=1;i<=N_LOTES;i++){
+      h+='<button type="button" class="lote-btn'+(String(i)===cur?' on':'')+'" onclick="loteEscolher(\''+i+'\')">'+esc(loteLabel(i))+'</button>';
+    }
+    h+='</div>';
+  }
+  box.innerHTML=h;
+}
+function loteFica(){ if(!sel) return; sel.loteEsc=String(sel.lote||""); sel.loteAberto=false; renderLote(); }
+function loteAbrir(){ if(!sel) return; sel.loteAberto=true; renderLote(); }
+function loteEscolher(L){ if(!sel) return; sel.loteEsc=String(L); sel.loteAberto=false; renderLote(); }
 function loteOptions(cur){
   let o=`<option value="">Lote?</option>`;
   for(let i=1;i<=N_LOTES;i++) o+=`<option value="${i}" ${String(cur)==String(i)?"selected":""}>${loteLabel(i)}</option>`;
@@ -1193,7 +1279,7 @@ function gerarXlsxConsolidadoDownload(fazenda, datasStr, animais, dataArq){
 
 function registrar(){
   const peso=parseNum(document.getElementById("pesoIn").value);
-  if(peso==null){ alert("Digite o peso primeiro."); document.getElementById("pesoIn").focus(); return; }
+  if(peso==null){ alert("Digite o peso."); document.getElementById("pesoIn").focus(); return; }
   const numRaw=document.getElementById("numIn").value.trim();
   if(!sel && !numRaw){ alert("Digite o número do animal ou use \"Novo animal\"."); return; }
   let s=sel || makeIncerto(baseBrinco(numRaw));
@@ -1219,7 +1305,7 @@ function registrar(){
   }
   const loteSel=document.getElementById("loteSel");
   const lote = loteSel ? loteSel.value : (s.lote||"");
-  if(!lote){ alert("Selecione o LOTE antes de registrar."); if(loteSel) loteSel.focus(); return; }
+  if(!lote){ alert("Toque no LOTE antes de registrar."); const lc=document.getElementById("loteCard"); if(lc) lc.scrollIntoView({behavior:"smooth",block:"center"}); return; }
   // GMD e dias SO quando ha peso anterior valido (evita "dias" lixo em animal novo)
   let dias=null, gmd=null;
   if(s.pesoAnterior!=null){
@@ -1272,7 +1358,65 @@ function registrar(){
   document.getElementById("numWarn").style.display="none";
   renderDetail(); renderHoje(); renderFooter(); renderFaltantes(); renderPesarResumo();
   scheduleAutoSync();
-  document.getElementById("pesoIn").focus();
+  const _ult=state.today[state.today.length-1];
+  okFlash(_ult);
+  renderUltimo();
+  document.getElementById("numIn").focus();
+}
+
+/* ---------- conferir o último lançado SEM parar o serviço ---------- */
+var _ultAberto=false;
+function _horaItem(t){
+  const ms=parseInt(String(t.id||"").split("_")[0],10);
+  if(!ms || ms<1e12) return "";
+  const d=new Date(ms);
+  return String(d.getHours()).padStart(2,"0")+":"+String(d.getMinutes()).padStart(2,"0");
+}
+function _ultLinha(t, principal){
+  const h=_horaItem(t);
+  return '<div class="ult-row">'+
+    '<div class="t" onclick="'+(principal?'ultToggle()':'openAnimal(\''+t.id+'\')')+'">'+(principal?'Último: ':'')+'<b>'+esc(t.brinco)+'</b> · '+fmtBR(t.peso,0)+' kg · '+esc(loteLabel(t.lote))+(h?' · '+h:'')+'</div>'+
+    (principal?'<button type="button" class="ult-btn" onclick="ultDesfazer()">Desfazer</button>':'')+
+    '<button type="button" class="ult-btn" onclick="openAnimal(\''+t.id+'\')">Corrigir</button>'+
+  '</div>';
+}
+function renderUltimo(){
+  const bar=document.getElementById("ultimoBar"); if(!bar) return;
+  if(!state.today.length){ bar.style.display="none"; bar.innerHTML=""; return; }
+  const n=state.today.length;
+  let h=_ultLinha(state.today[n-1], true);
+  if(_ultAberto && n>1){
+    h+='<div class="ult-lista">';
+    for(let i=n-2;i>=Math.max(0,n-5);i--) h+=_ultLinha(state.today[i], false);
+    h+='</div>';
+  } else if(n>1){
+    h+='<div style="font-size:11px;color:#8a6d1a;margin-top:3px;cursor:pointer" onclick="ultToggle()">Toque para ver os últimos '+Math.min(5,n)+'</div>';
+  }
+  bar.innerHTML=h; bar.style.display="block";
+}
+function ultToggle(){ _ultAberto=!_ultAberto; renderUltimo(); }
+/* Desfazer: tira o último e devolve número, peso e lote pros campos pra lançar de novo certo */
+function ultDesfazer(){
+  if(!state.today.length) return;
+  const t=state.today[state.today.length-1];
+  if(!confirm("Desfazer o último?\n\n"+t.brinco+" · "+t.peso+" kg · "+loteLabel(t.lote)+"\n\nO número e o peso voltam pros campos pra você corrigir.")) return;
+  removeItem(t.id, true);
+  const numEl=document.getElementById("numIn"), pesoEl=document.getElementById("pesoIn");
+  window._obsNova=(t.obs||"").replace(/\s*·?\s*revisar depois$/,"");
+  numEl.value=t.brinco||""; onNum();
+  pesoEl.value=t.peso!=null?String(t.peso).replace(".",","):"";
+  if(sel){ sel.loteEsc=String(t.lote||""); sel.loteAberto=false; }
+  renderDetail(); renderUltimo();
+  numEl.focus(); numEl.select();
+}
+function okFlash(t){
+  const el=document.getElementById("okFlash"); if(!el || !t) return;
+  el.innerHTML='<svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>'+
+    '<div class="n">'+esc(t.brinco)+' · '+fmtBR(t.peso,0)+' kg</div><div class="m">'+esc(loteLabel(t.lote))+(t.gmd!=null?' · GMD '+fmtBR(t.gmd,3):'')+'</div>';
+  el.style.display="block";
+  try{ if(navigator.vibrate) navigator.vibrate(90); }catch(e){}
+  clearTimeout(window._okT);
+  window._okT=setTimeout(function(){ el.style.display="none"; }, 1300);
 }
 
 /* ---------- lote helpers ---------- */
@@ -1287,7 +1431,7 @@ function loteStats(){
   });
   return st;
 }
-function renderHoje(){ renderResumoLotes(); renderList(); }
+function renderHoje(){ renderResumoLotes(); renderList(); if(typeof renderUltimo==="function") renderUltimo(); }
 function renderPesarResumo(){
   const box=document.getElementById("pesarResumo");
   const card=document.getElementById("pesarResumoCard");
@@ -1410,7 +1554,7 @@ function saveAnimal(){
   state.syncDirty=true;
   save();
   closeAnimal();
-  renderHoje(); renderFooter(); renderFaltantes();
+  renderHoje(); renderFooter(); renderFaltantes(); renderUltimo();
   scheduleAutoSync();
 }
 function changeLote(id, val){
@@ -1423,13 +1567,13 @@ function changeLote(id, val){
   if(ss) ss.innerHTML='<span style="color:var(--warn);font-weight:700">Lotes alterados \u2014 salvando...</span>';
   scheduleAutoSync();
 }
-function removeItem(id){
-  if(!confirm("Remover esta pesagem?")) return;
+function removeItem(id, semPerguntar){
+  if(!semPerguntar && !confirm("Remover esta pesagem?")) return;
   state.today=state.today.filter(t=>t.id!==id);
   state.syncDirty=true;
   diaCompleto=true;
   save();
-  renderHoje(); renderFooter(); renderFaltantes();
+  renderHoje(); renderFooter(); renderFaltantes(); renderUltimo();
   var ss=document.getElementById("syncStatus");
   if(ss) ss.innerHTML='<span style="color:var(--warn);font-weight:700">Removido \u2014 atualizando planilha...</span>';
   if(state.today.length){ syncSheets(true); }
@@ -2412,8 +2556,20 @@ window.onload=function(){
     state.fazenda=_fz; save();
   }
   // trocar de fazenda agora fica no seletor do topo (pesgBar); o dropdown do Config fica oculto
-  document.getElementById("pesoIn").addEventListener("input", ()=>{ if(sel) renderDetail(); });
+  document.getElementById("pesoIn").addEventListener("input", ()=>{ if(sel) renderGanho(); });
   document.getElementById("numIn").addEventListener("input", onNum);
+  // Enter no número -> vai pro peso; Enter no peso -> registra (se o lote já está definido)
+  document.getElementById("numIn").addEventListener("keydown", e=>{
+    if(e.key==="Enter"){ e.preventDefault(); const p=document.getElementById("pesoIn"); p.focus(); p.select(); }
+  });
+  document.getElementById("pesoIn").addEventListener("keydown", e=>{
+    if(e.key!=="Enter") return;
+    e.preventDefault();
+    const L=document.getElementById("loteSel");
+    if(L && L.value){ registrar(); }
+    else { document.getElementById("pesoIn").blur(); const lc=document.getElementById("loteCard"); if(lc) lc.scrollIntoView({behavior:"smooth",block:"center"}); }
+  });
+  renderUltimo();
   document.getElementById("dataHoje").addEventListener("change", e=>{ state.data=e.target.value||todayISO(); save(); renderConfig(); renderFooter(); if(sel) renderDetail(); });
   document.getElementById("fazendaIn").addEventListener("input", e=>{ state.fazenda=e.target.value; save(); renderConfig(); });
   document.getElementById("respIn").addEventListener("input", e=>{ state.responsavel=e.target.value; save(); });

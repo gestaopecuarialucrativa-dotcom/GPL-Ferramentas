@@ -338,6 +338,7 @@ function importFile(input){
         dados.fazenda=parsed.fazenda||dados.fazenda;
         dados.data=parsed.data||dados.data;
         dados.animais=parsed.animais;
+        _evolPronto=false; _evolTentou=false;
         render();
       } else {
         alert("Não encontrei dados de pesagem nessa planilha.");
@@ -709,11 +710,14 @@ function render(){
   renderEvol();
 }
 /* ---------- busca TODAS as pesagens da fazenda na planilha (uma vez; fica em cache) ---------- */
-var _anDatasTodas=null, _anCarregando=null;
+var _anDatasTodas=null, _anCarregando=null, _anFazCache=null;
+function _fazAtual(){ return String(gplFazendaLock()||dados.fazenda||"").trim(); }
 async function carregarTodasPesagens(){
   if(_anCarregando) return _anCarregando;
   _anCarregando=(async function(){
-    const fz=gplFazendaLock()||dados.fazenda||"";
+    const fz=_fazAtual();
+    if(_anFazCache!==fz){ _anDatasTodas=null; _anAnimaisCache={}; _anFazCache=fz; }   // outra fazenda: esquece o que tinha
+    if(!fz){ _anDatasTodas=[]; return; }                                               // sem fazenda não busca nada (senão viria tudo misturado)
     if(!_anDatasTodas){
       const r=await jsonp(BACKEND_URL+"?acao=pesagem_datas&token="+encodeURIComponent(gplToken())+"&fazenda="+encodeURIComponent(fz));
       _anDatasTodas=(r&&r.datas)?r.datas.map(d=>d.data).sort():[];
@@ -739,7 +743,11 @@ function renderEvol(){
     return;
   }
   const lotesAgora=lotesAtivos().filter(L=>isEngorda(L));
-  const datas=(_anDatasTodas||[]).slice();
+  if(_anFazCache!==_fazAtual()){ _evolPronto=false; _evolTentou=false; renderEvol(); return; }
+  const corte=dados.data||"9999-12-31";
+  const fontes=(_anDatasTodas||[]).filter(d=>d<=corte).map(d=>[d,_anAnimaisCache[d]||[]]);
+  if(dados.data && !fontes.some(f=>f[0]===dados.data))
+    fontes.push([dados.data, dados.animais.map(a=>({brinco:a.brinco, peso:a.peso, lote:a.lote, is_revisar:a.incerto}))]);
   // MESMOS animais: os que estão HOJE no lote, com o peso deles em cada pesagem anterior
   // (o lote muda de composição entre pesagens — a média do "Lote 2" de cada dia enganaria)
   const base=b=>String(b||"").trim().replace(/x+$/i,"");
@@ -747,9 +755,9 @@ function renderEvol(){
     const membros=new Set(dados.animais.filter(a=>a.lote===L && !a.incerto).map(a=>base(a.brinco)));
     // cada ponto = ponto anterior + ganho médio de quem foi pesado nas DUAS datas (o mesmo animal comparado com ele mesmo)
     const ult={}; let kg=null, pts=[];
-    datas.forEach(d=>{
+    fontes.forEach(([d,lista])=>{
       const vistos={};
-      (_anAnimaisCache[d]||[]).forEach(a=>{ const b=base(a.brinco), p=parseNum(a.peso); if(membros.has(b) && p!=null && !a.is_revisar) vistos[b]=p; });
+      lista.forEach(a=>{ const b=base(a.brinco), p=parseNum(a.peso); if(membros.has(b) && p!=null && !a.is_revisar) vistos[b]=p; });
       const ks=Object.keys(vistos);
       const pares=ks.filter(k=>ult[k]!=null);
       if(kg!=null && pares.length>=5){
@@ -761,7 +769,7 @@ function renderEvol(){
     });
     return {L, pts, nMembros:membros.size};
   }).filter(s=>s.pts.length>=2);
-  if(!series.length){ box.innerHTML='<div class="cap">Precisa de pelo menos 2 pesagens dos mesmos animais pra mostrar a evolução.</div>'; return; }
+  if(!series.length){ box.innerHTML='<div class="cap">Ainda não dá pra mostrar a evolução: precisa de pelo menos 2 pesagens dos mesmos animais desta fazenda na planilha, até a data escolhida.</div>'; return; }
   box.innerHTML=svgEvol(series)+
     '<div class="cap" style="margin-top:6px">Os animais que estão hoje em cada lote. Cada ponto soma o ganho médio de quem foi pesado nas duas datas — o mesmo animal comparado com ele mesmo.</div>'+
     series.map((s,i)=>{ const a=s.pts[0], b=s.pts[s.pts.length-1], g=b.kg-a.kg, dd=Math.round((new Date(b.d+"T12:00:00")-new Date(a.d+"T12:00:00"))/86400000);

@@ -149,6 +149,15 @@ const AR_DIV=30, UA_DIV=450, N_LOTES=10;
 const LOTES_NOME={11:"Vaca",12:"Reprodutor",13:"Bezerro mamando",14:"Enfermaria",15:"Compra",16:"Novilha"};
 const CATEG_LOTES=[11,12,13,14,15,16];   // não são engorda/abate
 function isEngorda(L){ return CATEG_LOTES.indexOf(Number(L))<0; }
+const CATEG_FORA_GMD=[11,12,13,14,15];
+function entraGmdGeral(L){ return CATEG_FORA_GMD.indexOf(Number(L))<0; }
+/* confiança do GMD do lote — mesma regra do painel: bom >=70% do lote e >=10 animais; parcial 40–69%; abaixo disso pouco dado */
+function confGmd(s){
+  const nG=s.arr.filter(a=>a.gmd!=null).length, n=s.n||0, pct=n?nG/n:0;
+  let t="pouco dado", cls="t-grey";
+  if(nG>=10 && pct>=0.7){ t="bom"; cls="t-ok"; } else if(nG>=10 && pct>=0.4){ t="parcial"; cls="t-warn"; }
+  return {nG, n, t, cls};
+}
 function loteLabel(L){ return LOTES_NOME[Number(L)] || ("Lote "+L); }
 function loteTag(L){ return LOTES_NOME[Number(L)] || ("L"+L); }
 const STORE_KEY="pesagem_curral_state_v1";
@@ -510,14 +519,14 @@ function render(){
   // KPIs gerais
   const todosP=dados.animais.map(a=>a.peso);
   const pesoMed=media(todosP), pesoTot=todosP.reduce((a,b)=>a+b,0);
-  const gmdsAll=dados.animais.filter(a=>a.gmd!=null).map(a=>a.gmd);
+  const gmdsAll=dados.animais.filter(a=>a.gmd!=null && entraGmdGeral(a.lote)).map(a=>a.gmd);
   const gmdMed=gmdsAll.length? media(gmdsAll):null;
   const prontos=dados.animais.filter(a=>isEngorda(a.lote) && a.peso>=meta).length;
   let html="";
   html+='<div class="kpis">'+
     kpi("Animais", dados.animais.length, lotes.length+" lotes")+
     kpi("Peso médio", fmt(pesoMed,0), fmt(pesoMed/AR_DIV,1)+" @")+
-    kpi("GMD médio", gmdMed!=null?fmt(gmdMed,3):"—", "kg/cab/dia")+
+    kpi("GMD médio", gmdMed!=null?fmt(gmdMed,3):"—", "engorda · "+gmdsAll.length+" animais")+
     kpi("Arrobas totais", fmt(pesoTot/AR_DIV,0), "@ no curral")+
     kpi("Prontos p/ abate", prontos, "≥ "+meta+" kg")+
     kpi("UA totais", fmt(pesoTot/UA_DIV,1), "÷ 450")+
@@ -537,7 +546,7 @@ function render(){
 
   // Card por lote
   statsEng.forEach(s=>{
-    const cu=classUnif(s.unif), cg=classGmd(s.gmd);
+    const cu=classUnif(s.unif), cg=classGmd(s.gmd), cf=confGmd(s);
     let proj="";
     if(s.media>=meta){ proj='<span class="tag t-ok">✓ Lote no ponto de abate</span>'; }
     else {
@@ -600,12 +609,13 @@ function render(){
         cellHtml("Peso médio", fmt(s.media,0), fmt(s.media/AR_DIV,1)+" @")+
         cellHtml("Menor / Maior", fmt(s.min,0)+" / "+fmt(s.max,0), "kg")+
         cellHtml("Amplitude", fmt(s.amplitude,0), "kg (maior−menor)")+
-        cellHtml("GMD", s.gmd!=null?fmt(s.gmd,3):"—", "kg/cab/dia")+
+        cellHtml("GMD", s.gmd!=null?fmt(s.gmd,3):"—", "de "+cf.nG+" de "+cf.n+" animais")+
       '</div>'+
       '<div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:8px">'+
         '<span class="tag '+cu.cls+'">Uniformidade '+fmt(s.unif,0)+'% · '+cu.t+'</span>'+
         '<span class="tag t-grey" title="Coeficiente de variação: quanto menor, mais parelho o lote">Variação de peso '+fmt(s.cv,1)+'%</span>'+
         '<span class="tag '+cg.cls+'">GMD '+cg.t+'</span>'+
+        '<span class="tag '+cf.cls+'" title="Quantos animais do lote têm GMD">Confiança do GMD: '+cf.t+'</span>'+
       '</div>'+
       '<div class="hist-cap">Distribuição por faixa de peso (kg, de–até) — barras escuras já na meta · linha vermelha = meta</div>'+
       svgHist(s.pesos, meta)+
@@ -622,6 +632,18 @@ function render(){
       html+=cellHtml(loteLabel(s.L), fmt(s.media,0)+" kg", s.n+" cab · "+fmt(s.media/AR_DIV,1)+" @ méd");
     });
     html+='</div></div>';
+  }
+
+  // 10 piores GMD — so engorda, sem numero suspeito (x / SN-), que pode estar com GMD de outro animal
+  const piores=dados.animais.filter(a=>a.gmd!=null && isEngorda(a.lote) && !a.incerto && !/^SN-/i.test(a.brinco))
+    .sort((a,b)=>a.gmd-b.gmd).slice(0,10);
+  if(piores.length){
+    html+='<div class="card"><h2>10 piores GMD — conferir no curral</h2>'+
+      '<div class="cap">Só gado de engorda. Pode ser animal doente, refugo, número trocado ou descarte. Toque no número pra ver o histórico.</div>'+
+      piores.map(a=>'<div class="rank" style="cursor:pointer" onclick="abrirHistorico(\''+esc(a.brinco)+'\')"><span class="b">'+esc(a.brinco)+
+        ' <span style="font-weight:400;color:var(--muted)">'+loteTag(a.lote)+' · '+fmt(a.peso,0)+' kg'+(a.dias?' · '+fmt(a.dias,0)+' dias':'')+'</span></span>'+
+        '<span style="font-weight:800;color:'+(a.gmd<0.18?'var(--danger,#c0392b)':'#c9820a')+'">'+fmt(a.gmd,3)+'</span></div>').join('')+
+    '</div>';
   }
 
   // Ranking maior/menor
@@ -697,6 +719,54 @@ function render(){
 
   box.innerHTML=html;
 }
+/* ---------- histórico do animal: todas as pesagens dele na planilha ---------- */
+var _anDatasTodas=null;
+async function abrirHistorico(brinco){
+  const base=String(brinco).replace(/x+$/i,"");
+  const box=document.getElementById("histBody"), m=document.getElementById("histModal");
+  document.getElementById("histTit").textContent="Animal "+brinco;
+  box.innerHTML='<div class="cap">Buscando as pesagens na planilha…</div>';
+  m.style.display="flex";
+  try{
+    const faz=gplFazendaLock()||dados.fazenda||"";
+    if(!_anDatasTodas){
+      const r=await jsonp(BACKEND_URL+"?acao=pesagem_datas&token="+encodeURIComponent(gplToken())+"&fazenda="+encodeURIComponent(faz));
+      _anDatasTodas=(r&&r.datas)?r.datas.map(d=>d.data).sort():[];
+    }
+    for(const d of _anDatasTodas){
+      if(_anAnimaisCache[d]) continue;
+      try{
+        const r=await jsonp(BACKEND_URL+"?acao=pesagem_ler&token="+encodeURIComponent(gplToken())+"&fazenda="+encodeURIComponent(faz)+"&data="+encodeURIComponent(d));
+        _anAnimaisCache[d]=(r&&r.animais)?r.animais:[];
+      }catch(e){ _anAnimaisCache[d]=[]; }
+    }
+    const pts=[];
+    _anDatasTodas.forEach(d=>{
+      (_anAnimaisCache[d]||[]).forEach(a=>{
+        const b=String(a.brinco||"").trim();
+        if(b.replace(/x+$/i,"")!==base) return;
+        const p=parseNum(a.peso); if(p==null) return;
+        pts.push({data:d, peso:p, lote:a.lote, brinco:b, obs:a.obs||""});
+      });
+    });
+    if(!pts.length){ box.innerHTML='<div class="cap">Nenhuma pesagem encontrada desse número.</div>'; return; }
+    let h='', ant=null;
+    pts.forEach(pt=>{
+      let gmd=null, dias=null;
+      if(ant){ dias=Math.round((new Date(pt.data+"T12:00:00")-new Date(ant.data+"T12:00:00"))/86400000); if(dias>0) gmd=(pt.peso-ant.peso)/dias; }
+      h+='<div class="rank"><span class="b" style="min-width:62px">'+isoToBR(pt.data).slice(0,5)+'/'+pt.data.slice(2,4)+'</span>'+
+         '<span style="flex:1;color:var(--muted)">'+fmt(pt.peso,0)+' kg · '+loteLabel(pt.lote)+(dias?' · '+dias+' dias':'')+(pt.brinco!==base?' · <b>'+esc(pt.brinco)+'</b>':'')+(pt.obs?'<br><span style="font-size:11px">'+esc(pt.obs)+'</span>':'')+'</span>'+
+         '<span style="font-weight:800;color:'+(gmd==null?'var(--muted)':gmd<0.18?'#c0392b':gmd<0.35?'#c9820a':'#1B5E20')+'">'+(gmd!=null?fmt(gmd,3):'—')+'</span></div>';
+      ant=pt;
+    });
+    if(pts.length>=2){
+      const tot=(pts[pts.length-1].peso-pts[0].peso), dd=Math.round((new Date(pts[pts.length-1].data+"T12:00:00")-new Date(pts[0].data+"T12:00:00"))/86400000);
+      h+='<div class="cap" style="margin-top:8px;font-weight:700">Desde '+isoToBR(pts[0].data)+': '+(tot>=0?'+':'')+fmt(tot,0)+' kg em '+dd+' dias'+(dd>0?' · GMD '+fmt(tot/dd,3):'')+'</div>';
+    }
+    box.innerHTML=h;
+  }catch(e){ box.innerHTML='<div class="cap">Sem sinal — não consegui buscar o histórico agora.</div>'; }
+}
+function fecharHistorico(){ document.getElementById("histModal").style.display="none"; }
 function kpi(k,v,u){ return '<div class="kpi"><div class="k">'+k+'</div><div class="v">'+v+'</div><div class="u">'+u+'</div></div>'; }
 function cellHtml(k,v,u){ return '<div class="cell"><div class="k">'+k+'</div><div class="v">'+v+'</div><div class="u">'+u+'</div></div>'; }
 function rankRow(a){ return '<div class="rank"><span class="b">'+esc(a.brinco)+' <span style="font-weight:400;color:var(--muted)">'+loteTag(a.lote)+'</span></span><span>'+fmt(a.peso,0)+' kg ('+fmt(a.peso/AR_DIV,1)+'@)</span></div>'; }
@@ -767,5 +837,11 @@ document.getElementById("arrobaIn").addEventListener("input", e=>{ dados.precoAr
 document.getElementById("gmdEspIn").addEventListener("input", e=>{ dados.gmdEsperado=parseNum(e.target.value)||0; render(); });
 carregarNuvem();  // ao abrir, puxa direto da planilha (nuvem). Se falhar, usa o local.
 </script>
+<div id="histModal" onclick="if(event.target===this)fecharHistorico()" style="display:none;position:fixed;inset:0;z-index:60;background:rgba(0,0,0,.45);align-items:flex-end;justify-content:center">
+  <div style="background:#fff;width:100%;max-width:520px;border-radius:18px 18px 0 0;padding:16px 16px 22px;max-height:85vh;overflow-y:auto">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><b id="histTit" style="font-size:16px;color:#1B5E20"></b><span onclick="fecharHistorico()" style="cursor:pointer;font-weight:800;color:#5f6b60;padding:4px 8px">✕</span></div>
+    <div id="histBody"></div>
+  </div>
+</div>
 </body>
 </html>

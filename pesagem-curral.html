@@ -13,11 +13,11 @@
   --warn:#c9820a; --danger:#c0392b;
 }
 *{box-sizing:border-box; -webkit-tap-highlight-color:transparent}
-body{margin:0; font-family:Arial,'Segoe UI',Roboto,system-ui; background:var(--bg); color:var(--ink); padding-bottom:150px}
+body{margin:0; font-family:Arial,'Segoe UI',Roboto,system-ui; background:var(--bg); color:var(--ink); padding-bottom:90px}
 .wrap{max-width:480px; margin:0 auto}
 
 /* Topbar */
-.top{background:var(--v1); color:#fff; padding:12px 16px; position:sticky; top:0; z-index:20; display:flex; align-items:center; gap:12px}
+.top{background:var(--v1); color:#fff; padding:12px 16px; position:sticky; top:0; z-index:20; display:flex; flex-wrap:wrap; align-items:center; gap:12px}
 .top h1{margin:0; font-size:18px; font-weight:800; display:flex; align-items:center; gap:8px}
 .top .sub{font-size:12px; opacity:.85; margin-top:2px}
 .top svg{stroke:#fff}
@@ -151,19 +151,17 @@ input:focus,select:focus{outline:2px solid var(--v3); border-color:var(--v3)}
 .fin-lote b{color:var(--v1)}
 
 /* Footer sticky */
-.footer{position:fixed; bottom:56px; left:0; right:0; z-index:15; background:#fff; border-top:1px solid var(--line);
+.footer{position:fixed; bottom:0; left:0; right:0; z-index:15; background:#fff; border-top:1px solid var(--line);
   padding:8px 16px; max-width:480px; margin:0 auto; display:flex; gap:10px; align-items:center; justify-content:space-between; font-size:12px}
 .footer .n{font-weight:800; color:var(--v1); font-size:16px}
 .footer .lbl{color:var(--muted)}
 
-/* Bottom nav */
-.nav{position:fixed; bottom:0; left:0; right:0; z-index:18; background:#fff; border-top:1px solid var(--line);
-  display:flex; max-width:480px; margin:0 auto}
-.nav button{flex:1; background:none; border:none; padding:8px 0 10px; display:flex; flex-direction:column; align-items:center; gap:2px;
-  font-size:10px; font-weight:700; color:var(--muted); cursor:pointer; font-family:inherit}
-.nav button svg{stroke:var(--muted)}
-.nav button.on{color:var(--v2)}
-.nav button.on svg{stroke:var(--v2)}
+/* Abas no topo (igual Raio-X) */
+.nav{flex-basis:100%; display:flex; margin:10px -16px -12px; padding:0 8px; overflow-x:auto; scrollbar-width:none}
+.nav::-webkit-scrollbar{display:none}
+.nav button{flex:none; padding:11px 12px 9px; background:transparent; border:none; border-bottom:3px solid transparent;
+  font:800 12px Arial,'Segoe UI',Roboto,system-ui; letter-spacing:.4px; text-transform:uppercase; color:rgba(255,255,255,.62); cursor:pointer; white-space:nowrap}
+.nav button.on{color:#fff; border-bottom-color:#8BC34A; background:rgba(255,255,255,.08)}
 
 .screen{display:none}
 .screen.on{display:block}
@@ -382,6 +380,15 @@ input:focus,select:focus{outline:2px solid var(--v3); border-color:var(--v3)}
       <div class="top-title">Pesagem de Curral</div>
       <div class="sub" id="topSub">GPL · Gestão Pecuária Lucrativa</div>
     </div>
+    <div class="nav" id="nav">
+      <button class="on" data-s="pesar" onclick="go('pesar')">Pesar</button>
+      <button data-s="hoje" onclick="go('hoje')">Hoje</button>
+      <button data-s="falt" onclick="go('falt')">Faltas</button>
+      <button data-s="relatorio" onclick="go('relatorio')">Relatório</button>
+      <button data-s="dashboard" onclick="go('dashboard')">Análise</button>
+      <button data-s="venda" onclick="go('venda')">Venda</button>
+      <button data-s="config" onclick="go('config')">Ajustes</button>
+    </div>
   </div>
 
   <div id="resumeBanner" class="banner" style="display:none">
@@ -403,12 +410,14 @@ input:focus,select:focus{outline:2px solid var(--v3); border-color:var(--v3)}
 
   <!-- ============ PESAR ============ -->
   <div class="screen on" id="scr-pesar">
-    <div class="card stripe" id="pesarLoteCard" style="display:none">
-      <h2><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7h18"/><path d="M3 12h18"/><path d="M3 17h18"/></svg> Lote a pesar hoje</h2>
-      <select id="pesarLoteSel" onchange="pesarSetLote()" style="width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:10px;font-size:15px;background:#fff;color:var(--text);-webkit-appearance:none;appearance:none">
+    <div class="card stripe" id="pesarLoteCard" style="display:none;padding:10px 12px">
+      <div style="display:flex;align-items:center;gap:8px">
+      <span style="font-size:13px;font-weight:800;color:var(--v1);flex:none">Lote a pesar</span>
+      <select id="pesarLoteSel" onchange="pesarSetLote()" style="flex:1;padding:8px 10px;border:1px solid var(--line);border-radius:10px;font-size:14px;background:#fff;color:var(--text);-webkit-appearance:none;appearance:none">
         <option value="">Todos os lotes</option>
       </select>
-      <div id="pesarLoteInfo" style="margin-top:10px;font-size:13px"></div>
+      </div>
+      <div id="pesarLoteInfo" style="margin-top:8px;font-size:13px"></div>
     </div>
     <div id="ultimoBar" class="ult-bar" style="display:none"></div>
 
@@ -447,6 +456,13 @@ input:focus,select:focus{outline:2px solid var(--v3); border-color:var(--v3)}
       </button>
     </div>
     <div id="okFlash" class="ok-flash" style="display:none"></div>
+    <div class="modal-bg" id="suspModal" onclick="if(event.target===this)closeSuspeitos()">
+      <div class="modal">
+        <div class="modal-h">Resolver suspeitos <span class="modal-x" onclick="closeSuspeitos()">✕</span></div>
+        <div class="hint">Animal com número borrado. Toque no número certo entre os que faltam do mesmo lote.</div>
+        <div id="suspBody"></div>
+      </div>
+    </div>
 
     <div class="card" id="pesarResumoCard" style="display:none">
       <div style="font-size:12px; font-weight:800; color:var(--v2); margin-bottom:6px">RESUMO DOS LOTES (parcial)</div>
@@ -640,6 +656,7 @@ input:focus,select:focus{outline:2px solid var(--v3); border-color:var(--v3)}
   <div class="screen" id="scr-venda">
     <div class="card stripe">
       <h2><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg> Relatório de Venda</h2>
+      <button class="btn btn-ghost btn-sm" style="margin:2px 0 8px" onclick="go('vendidos')">Ver histórico de vendas →</button>
       <div style="font-size:12px;color:var(--muted)">Selecione a data da pesagem, preencha os dados da negociação e gere o relatório. @ a pé = peso ÷ 30 kg (peso vivo).</div>
     </div>
 
@@ -696,21 +713,13 @@ input:focus,select:focus{outline:2px solid var(--v3); border-color:var(--v3)}
   <div class="screen" id="scr-vendidos">
     <div class="card stripe">
       <h2><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg> Histórico de Vendas</h2>
+      <button class="btn btn-ghost btn-sm" style="margin:2px 0 8px" onclick="go('venda')">← Voltar para Venda</button>
       <div style="font-size:12px;color:var(--muted)">Animais marcados como vendidos são arquivados aqui e removidos da pesagem ativa.</div>
     </div>
     <div id="vdsLista" style="margin-top:4px"></div>
   </div>
 
-  <div class="nav" id="nav">
-  <button class="on" data-s="pesar" onclick="go('pesar')"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v3"/><path d="M6 6l-3 7h6l-3-7z"/><path d="M18 6l-3 7h6l-3-7z"/><path d="M5 6h14"/><path d="M9 20h6"/><path d="M12 6v14"/></svg>Pesar</button>
-  <button data-s="hoje" onclick="go('hoje')"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3 8-8"/><path d="M20 12v6a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h9"/></svg>Hoje</button>
-  <button data-s="falt" onclick="go('falt')"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4"/><path d="M12 17h.01"/><path d="M10.3 3.9L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg>Faltas</button>
-  <button data-s="relatorio" onclick="go('relatorio')"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M16 13H8"/><path d="M16 17H8"/><path d="M10 9H8"/></svg>Relatório</button>
-  <button data-s="dashboard" onclick="go('dashboard')"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><rect x="7" y="10" width="3" height="7"/><rect x="12" y="6" width="3" height="11"/><rect x="17" y="13" width="3" height="4"/></svg>Painel</button>
-  <button data-s="venda" onclick="go('venda')"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>Venda</button>
-  <button data-s="vendidos" onclick="go('vendidos')"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>Vendidos</button>
-  <button data-s="config" onclick="go('config')"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v3"/><path d="M12 17v3"/><path d="M4 12h3"/><path d="M17 12h3"/><circle cx="12" cy="12" r="3.5"/></svg>Config</button>
-</div>
+
 
 <script>
 "use strict";
@@ -935,7 +944,13 @@ function onNum(){
   const jaHoje=state.today.find(t=>t.base===base);
   if(jaHoje){
     const w=document.getElementById("numWarn");
-    w.innerHTML="\u26a0 N\u00ba <b>"+esc(jaHoje.brinco)+"</b> j\u00e1 pesado hoje: "+jaHoje.peso+"kg"+(jaHoje.obs?" \u00b7 <i>"+esc(jaHoje.obs)+"</i>":"")+". Confira a observa\u00e7\u00e3o para definir o n\u00famero certo.";
+    const hh=_horaItem(jaHoje);
+    if(jaHoje.incerto && !incerto){
+      w.innerHTML="\u26a0 J\u00e1 tem o <b>"+esc(jaHoje.brinco)+"</b> SUSPEITO hoje ("+jaHoje.peso+" kg \u00b7 "+esc(loteLabel(jaHoje.lote))+(hh?" \u00b7 "+hh:"")+"). Se este \u00e9 o <b>"+esc(base)+"</b> certo, registre: o suspeito vira <b>"+esc(snNome(base))+"</b> pra revisar.";
+    } else {
+      w.innerHTML="\u26a0 N\u00ba <b>"+esc(jaHoje.brinco)+"</b> j\u00e1 pesado hoje: "+jaHoje.peso+" kg \u00b7 "+esc(loteLabel(jaHoje.lote))+(hh?" \u00b7 "+hh:"")+(jaHoje.obs?" \u00b7 <i>"+esc(jaHoje.obs)+"</i>":"")+". N\u00e3o aceita repetido."+
+        ' <button type="button" class="ult-btn" style="margin-left:4px" onclick="openAnimal(\''+jaHoje.id+'\')">Abrir pra corrigir</button>';
+    }
     w.style.display="block";
   }
   if(_vendidoPorBase(base)){
@@ -1288,8 +1303,18 @@ function registrar(){
   if(baseNew){
     const dup=state.today.find(t=>t.base===baseNew);
     if(dup){
-      alert("O n\u00famero "+dup.brinco+" j\u00e1 foi pesado hoje ("+dup.peso+"kg"+(dup.obs?" \u00b7 "+dup.obs:"")+").\n\nCorrija o n\u00famero, ou edite esse animal na aba Hoje.");
-      return;
+      if(dup.incerto && !s.incerto){
+        // chegou o numero CERTO de um suspeito: o suspeito perde o numero e vira SN-<num>
+        const sn=snNome(baseNew);
+        if(!confirm("J\u00e1 tem o "+dup.brinco+" SUSPEITO hoje ("+dup.peso+" kg \u00b7 "+loteLabel(dup.lote)+").\n\nEste aqui \u00e9 o "+baseNew+" CERTO?\n\nOK = sim: lan\u00e7a este como "+baseNew+" e o suspeito vira "+sn+" (revisar depois)\nCancelar = conferir o n\u00famero")){
+          document.getElementById("numIn").focus(); return;
+        }
+        var _snPend={t:dup, sn:sn};
+      } else {
+        if(confirm("O n\u00famero "+dup.brinco+" j\u00e1 foi pesado hoje ("+dup.peso+" kg \u00b7 "+loteLabel(dup.lote)+").\n\nN\u00e3o aceita repetido.\n\nOK = abrir o lan\u00e7ado pra corrigir\nCancelar = corrigir o n\u00famero digitado")) openAnimal(dup.id);
+        else { const ne=document.getElementById("numIn"); ne.focus(); ne.select(); }
+        return;
+      }
     }
   }
   // aviso: brinco que consta como VENDIDO (cruza com a planilha via _vendidosMap)
@@ -1341,6 +1366,7 @@ function registrar(){
     }
   }
 
+  if(typeof _snPend!=="undefined" && _snPend) viraSN(_snPend.t, _snPend.sn);
   state.today.push({
     id:Date.now()+"_"+Math.random().toString(36).slice(2,6),
     brinco:s.incerto?(baseBrinco(s.brinco)+"x"):s.brinco,
@@ -1362,6 +1388,63 @@ function registrar(){
   okFlash(_ult);
   renderUltimo();
   document.getElementById("numIn").focus();
+}
+
+/* ---------- suspeitos (numero borrado) ---------- */
+function snNome(base){
+  let n="SN-"+base, i=2;
+  while(state.today.some(t=>t.base===n)) n="SN-"+base+"-"+(i++);
+  return n;
+}
+// o suspeito NAO era esse numero: perde o numero e o historico (o GMD era contra o peso do outro animal)
+function viraSN(t, sn){
+  t.brinco=sn; t.base=sn; t.incerto=true; t.novo=true;
+  t.pesoAnterior=null; t.dataAnterior=null; t.dias=null; t.gmd=null; t.obsAnterior="";
+  let o=String(t.obs||"").replace(/\s*·?\s*revisar depois/g,"").trim();
+  t.obs=(o?o+" · ":"")+"número borrado — revisar";
+  state.syncDirty=true;
+}
+function listaSuspeitos(){ return state.today.filter(t=>t.incerto); }
+// numeros que FALTAM no mesmo lote, os mais parecidos primeiro
+function candidatosSuspeito(t){
+  if(!state.ref || !state.ref.loaded) return [];
+  const pesados=new Set(state.today.filter(x=>!x.incerto).map(x=>x.base));
+  const alvo=String(t.base).replace(/^SN-/,"").replace(/-\d+$/,"");
+  const doLote=state.ref.list.filter(a=>!pesados.has(a.base) && (!t.lote || String(a.lote||"")===String(t.lote)));
+  const score=a=>{ const b=String(a.base); let c=0; for(let i=0;i<Math.min(b.length,alvo.length);i++) if(b[i]===alvo[i]) c+=2; for(const ch of alvo) if(b.indexOf(ch)>=0) c++; return c-Math.abs(b.length-alvo.length); };
+  return doLote.map(a=>({a, sc:score(a)})).sort((x,y)=>y.sc-x.sc).slice(0,12).map(x=>x.a);
+}
+function abrirSuspeitos(){
+  const box=document.getElementById("suspBody"); const sus=listaSuspeitos();
+  if(!sus.length){ box.innerHTML='<div class="empty">Nenhum suspeito hoje.</div>'; }
+  else box.innerHTML=sus.map(t=>{
+    const cand=candidatosSuspeito(t);
+    return '<div class="card" style="margin:10px 0">'+
+      '<div style="display:flex;justify-content:space-between;align-items:center"><b style="font-size:17px;color:var(--v1)">'+esc(t.brinco)+'</b><span class="pill pill-warn">'+fmtBR(t.peso,0)+' kg · '+esc(loteLabel(t.lote))+'</span></div>'+
+      (t.obs?'<div class="hint">'+esc(t.obs)+'</div>':'')+
+      (cand.length?'<div class="hint" style="margin-top:8px">Faltam do '+esc(loteLabel(t.lote))+' — toque no número certo:</div><div class="lote-grid">'+
+        cand.map(a=>'<button type="button" class="lote-btn" onclick="resolverSuspeito(\''+t.id+'\',\''+esc(a.base)+'\')">'+esc(a.brinco)+'</button>').join('')+'</div>'
+       :'<div class="hint" style="margin-top:8px">Sem faltantes desse lote pra sugerir (importe a pesagem anterior).</div>')+
+      '<button type="button" class="btn btn-ghost btn-sm" style="margin-top:8px" onclick="closeSuspeitos();openAnimal(\''+t.id+'\')">Digitar outro número</button>'+
+    '</div>';
+  }).join('');
+  document.getElementById("suspModal").style.display="flex";
+}
+function closeSuspeitos(){ document.getElementById("suspModal").style.display="none"; }
+function resolverSuspeito(id, base){
+  const t=state.today.find(x=>x.id===id); const rec=state.ref.byBrinco[base];
+  if(!t || !rec) return;
+  if(state.today.some(x=>x.base===base && x.id!==id)){ alert("O "+base+" já foi pesado hoje."); return; }
+  if(!confirm("Trocar "+t.brinco+" para "+rec.brinco+"?\n\n"+t.peso+" kg · anterior "+(rec.pesoAnterior!=null?rec.pesoAnterior+" kg":"—"))) return;
+  t.brinco=rec.brinco; t.base=rec.base; t.incerto=false; t.novo=false;
+  t.pesoAnterior=rec.pesoAnterior; t.dataAnterior=rec.dataAnterior; t.obsAnterior=rec.obsAnterior||"";
+  const dd=daysBetween(rec.dataAnterior, state.data);
+  t.dias=(dd&&dd>0&&rec.pesoAnterior!=null)?dd:null;
+  t.gmd=t.dias?+((t.peso-rec.pesoAnterior)/t.dias).toFixed(3):null;
+  t.obs=String(t.obs||"").replace(/\s*·?\s*(revisar depois|número borrado — revisar)/g,"").replace(/^\s*·\s*/,"").trim();
+  state.syncDirty=true; save();
+  renderHoje(); renderFooter(); renderFaltantes(); renderPesarLoteInfo(); scheduleAutoSync();
+  abrirSuspeitos();
 }
 
 /* ---------- conferir o último lançado SEM parar o serviço ---------- */
@@ -1392,6 +1475,10 @@ function renderUltimo(){
   } else if(n>1){
     h+='<div style="font-size:11px;color:#8a6d1a;margin-top:3px;cursor:pointer" onclick="ultToggle()">Toque para ver os últimos '+Math.min(5,n)+'</div>';
   }
+  const pend=!!state.syncDirty;
+  h+='<div style="font-size:11px;margin-top:4px;font-weight:700;color:'+(pend?'#b26a00':'#2E7D32')+'">'+
+     (pend?(!state.autoSync?'Envio automático desligado — envie em Ajustes':(_lastSyncFailed||(navigator.onLine===false)?'Sem sinal — guardado no aparelho, envia sozinho quando o sinal voltar':'Enviando pra planilha...'))
+          :'Salvo na planilha')+'</div>';
   bar.innerHTML=h; bar.style.display="block";
 }
 function ultToggle(){ _ultAberto=!_ultAberto; renderUltimo(); }
@@ -1431,7 +1518,7 @@ function loteStats(){
   });
   return st;
 }
-function renderHoje(){ renderResumoLotes(); renderList(); if(typeof renderUltimo==="function") renderUltimo(); }
+function renderHoje(){ renderResumoLotes(); renderList(); renderUltimo(); renderPesarLoteInfo(); }
 function renderPesarResumo(){
   const box=document.getElementById("pesarResumo");
   const card=document.getElementById("pesarResumoCard");
@@ -1838,7 +1925,11 @@ function renderFaltantes(){
 }
 
 // ===== Item 3: escolher lote na tela Pesar + faltantes ao vivo =====
-var _pesarLote='';
+var _pesarLote='', _faltAberto=false;
+function _suspLinha(){
+  var n=listaSuspeitos().length; if(!n) return '';
+  return '<div style="margin-top:6px"><button type="button" class="ult-btn" onclick="abrirSuspeitos()">'+n+(n>1?' suspeitos':' suspeito')+' (número borrado) — resolver</button></div>';
+}
 function pesarPreencherLoteSel(){
   var sel=document.getElementById('pesarLoteSel');
   var card=document.getElementById('pesarLoteCard');
@@ -1863,17 +1954,17 @@ function renderPesarLoteInfo(){
   var pesados=new Set(state.today.filter(function(t){return !t.incerto;}).map(function(t){return t.base;}));
   if(!_pesarLote){
     var totRef=state.ref.list.length, totPes=state.ref.list.filter(function(a){return pesados.has(a.base);}).length;
-    box.innerHTML='<span style="color:var(--muted)">Escolha um lote acima pra focar. Geral: <b style="color:var(--v1)">'+totPes+' de '+totRef+'</b> pesados.</span>';
+    box.innerHTML='<span style="color:var(--muted)">Geral: <b style="color:var(--v1)">'+totPes+' de '+totRef+'</b> pesados.</span>'+_suspLinha();
     return;
   }
   var doLote=state.ref.list.filter(function(a){return String(a.lote||'')===_pesarLote;});
   var faltam=doLote.filter(function(a){return !pesados.has(a.base);});
   faltam.sort(function(x,y){ var nx=parseInt(x.base,10),ny=parseInt(y.base,10); if(!isNaN(nx)&&!isNaN(ny)&&nx!==ny)return nx-ny; return String(x.base).localeCompare(String(y.base),'pt',{numeric:true}); });
   var pes=doLote.length-faltam.length;
-  var h='<div style="font-weight:800;color:var(--v1)">Lote '+esc(_pesarLote)+': '+pes+' de '+doLote.length+' pesados</div>';
-  if(faltam.length){ h+='<div style="font-size:11px;color:var(--muted);margin:5px 0 3px">Faltam '+faltam.length+':</div><div class="lote-tags">'+faltam.map(function(a){return '<span class="pill pill-grey">'+esc(a.brinco)+'</span>';}).join('')+'</div>'; }
-  else { h+='<span class="pill pill-green" style="margin-top:6px;display:inline-block">Lote completo &#10003;</span>'; }
-  box.innerHTML=h;
+  var h='<div style="font-weight:800;color:var(--v1);cursor:pointer" onclick="_faltAberto=!_faltAberto;renderPesarLoteInfo()">'+esc(loteLabel(_pesarLote))+': '+pes+' de '+doLote.length+' pesados'+(faltam.length?' · faltam '+faltam.length+' <span style="color:var(--v2);font-weight:700">'+(_faltAberto?'fechar ▴':'ver ▾')+'</span>':'')+'</div>';
+  if(faltam.length && _faltAberto){ h+='<div class="lote-tags">'+faltam.map(function(a){return '<span class="pill pill-grey">'+esc(a.brinco)+'</span>';}).join('')+'</div>'; }
+  else if(!faltam.length){ h+='<span class="pill pill-green" style="margin-top:6px;display:inline-block">Lote completo &#10003;</span>'; }
+  box.innerHTML=h+_suspLinha();
 }
 
 function renderFooter(){
@@ -2400,7 +2491,7 @@ function exportXlsx(){
 
 /* ---------- sincronizar ---------- */
 let _autoSyncTimer=null;
-let _syncing=false, _lastSyncFailed=false;
+var _syncing=false, _lastSyncFailed=false;
 /* reenvio: enquanto houver pesagem pendente e o ultimo envio falhou por rede, tenta a cada 20 s; e na hora que a internet volta */
 setInterval(function(){
   if(!state || !state.autoSync || !state.syncDirty || !_lastSyncFailed || _syncing) return;
@@ -2455,7 +2546,7 @@ async function syncSheets(auto){
     let j=null; try{ j=JSON.parse(await res.text()); }catch(e){}
     if(j && j.ok){
       const n=(j.gravados!=null)?j.gravados:state.today.length;
-      state.syncDirty=false; _lastSyncFailed=false; save();
+      state.syncDirty=false; _lastSyncFailed=false; save(); renderUltimo();
       statusEl.innerHTML='<span class="status-ok">\u2713 '+n+' pesagens gravadas na planilha'+(auto?" (auto)":"")+'</span>';
     } else if(j && j.ok===false){
       statusEl.textContent='O servidor recusou: '+(j.msg||'erro desconhecido')+'. Confira a planilha.';
@@ -2464,7 +2555,7 @@ async function syncSheets(auto){
       statusEl.textContent='Enviado, mas não consegui confirmar a resposta. Abra a planilha para conferir.';
     }
   }catch(e){
-    _lastSyncFailed=true;
+    _lastSyncFailed=true; renderUltimo();
     statusEl.textContent='Sem sinal / envio falhou. Dados seguem salvos no aparelho — reenvio automático quando o sinal voltar.';
   }finally{ _syncing=false; }
 }
@@ -2473,7 +2564,10 @@ async function syncSheets(auto){
 function go(s){
   document.querySelectorAll(".screen").forEach(x=>x.classList.remove("on"));
   document.getElementById("scr-"+s).classList.add("on");
-  document.querySelectorAll(".nav button").forEach(b=>b.classList.toggle("on", b.dataset.s===s));
+  const _aba=(s==="vendidos")?"venda":s;
+  document.querySelectorAll("#nav button").forEach(b=>b.classList.toggle("on", b.dataset.s===_aba));
+  const _bt=document.querySelector("#nav button.on"); if(_bt && _bt.scrollIntoView) _bt.scrollIntoView({block:"nearest",inline:"center"});
+  window.scrollTo(0,0);
   const showFooter=(s==="pesar"||s==="hoje"||s==="falt");
   document.getElementById("footer").style.display = showFooter?"flex":"none";
   if(s==="pesar") renderPesarResumo();

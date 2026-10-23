@@ -1096,6 +1096,16 @@ function loteLabel(n){
   if(n===''||n==null) return "Lote ?";
   return LOTES_NOME[String(n)] || ("Lote "+n);
 }
+/* animais da referencia que NAO foram vendidos depois da ultima pesagem deles
+   (vendido sai do total e dos faltantes; se foi pesado de novo depois da venda, continua) */
+function refAtivos(){
+  if(!state.ref || !state.ref.list) return [];
+  return state.ref.list.filter(function(a){
+    var v=_vendidoPorBase(a.base); if(!v) return true;
+    if(v.data && a.dataAnterior && String(v.data).slice(0,10) < String(a.dataAnterior).slice(0,10)) return true;
+    return false;
+  });
+}
 async function carregarVendidos(){
   try{
     var _fs=document.getElementById('pesgFazSel');
@@ -1114,6 +1124,7 @@ async function carregarVendidos(){
     }
     _vendidosMap=map;
     _pesgAvisoVenda();
+    try{ pesarPreencherLoteSel(); renderFooter(); renderFaltantes(); }catch(e){}
   }catch(e){ /* falha silenciosa: nunca bloqueia a pesagem */ }
 }
 /* ============================================================
@@ -1411,7 +1422,7 @@ function candidatosSuspeito(t){
   if(!state.ref || !state.ref.loaded) return [];
   const pesados=new Set(state.today.filter(x=>!x.incerto).map(x=>x.base));
   const alvo=String(t.base).replace(/^SN-/,"").replace(/-\d+$/,"");
-  const doLote=state.ref.list.filter(a=>!pesados.has(a.base) && (!t.lote || String(a.lote||"")===String(t.lote)));
+  const doLote=refAtivos().filter(a=>!pesados.has(a.base) && (!t.lote || String(a.lote||"")===String(t.lote)));
   const score=a=>{ const b=String(a.base); let c=0; for(let i=0;i<Math.min(b.length,alvo.length);i++) if(b[i]===alvo[i]) c+=2; for(const ch of alvo) if(b.indexOf(ch)>=0) c++; return c-Math.abs(b.length-alvo.length); };
   return doLote.map(a=>({a, sc:score(a)})).sort((x,y)=>y.sc-x.sc).slice(0,12).map(x=>x.a);
 }
@@ -1466,7 +1477,11 @@ function _ultLinha(t, principal){
 }
 function renderUltimo(){
   const bar=document.getElementById("ultimoBar"); if(!bar) return;
-  if(!state.today.length){ bar.style.display="none"; bar.innerHTML=""; return; }
+  if(!state.today.length){
+    if(state.limparPend){ bar.innerHTML='<div style="font-size:12px;font-weight:700;color:#b26a00">Sem sinal — a limpeza do dia vai pra planilha quando o sinal voltar</div>'; bar.style.display="block"; }
+    else { bar.style.display="none"; bar.innerHTML=""; }
+    return;
+  }
   const n=state.today.length;
   let h=_ultLinha(state.today[n-1], true);
   if(_ultAberto && n>1){
@@ -1675,19 +1690,22 @@ async function limparDiaNuvem(){
   if(statusEl) statusEl.textContent='Limpando o dia na planilha...';
   var payload={action:"pesagem_salvar",data:{data:state.data,fazenda:state.fazenda,responsavel:state.responsavel,token:gplToken(),completo:true,animais:[]}};
   try{
+    if(typeof navigator!=="undefined" && navigator.onLine===false) throw new Error("offline");
     await fetch(BACKEND_URL,{method:"POST",body:JSON.stringify(payload)});
-    state.syncDirty=false; save();
+    state.syncDirty=false; state.limparPend=false; _lastSyncFailed=false; save();
     if(statusEl) statusEl.innerHTML='<span class="status-ok">\u2713 Dia limpo na planilha</span>';
   }catch(e){
-    if(statusEl) statusEl.textContent='Nao foi possivel limpar na planilha. Toque em Sincronizar.';
+    state.limparPend=true; _lastSyncFailed=true; save();
+    if(statusEl) statusEl.textContent='Sem sinal — a planilha sera limpa sozinha quando o sinal voltar.';
   }
+  renderUltimo();
 }
 
 function shareFaltantes(){
   if(!state.ref.loaded){ alert("Importe a planilha de referência primeiro (aba Config)."); return; }
   const pesados=new Set(state.today.filter(t=>!t.incerto).map(t=>t.base));
   const porLote={};
-  state.ref.list.forEach(a=>{ const L=a.lote||"?"; (porLote[L]=porLote[L]||[]); if(!pesados.has(a.base)) porLote[L].push(a); });
+  refAtivos().forEach(a=>{ const L=a.lote||"?"; (porLote[L]=porLote[L]||[]); if(!pesados.has(a.base)) porLote[L].push(a); });
   let t="*FALTAM PESAR — GPL*\n";
   if(state.fazenda) t+="Fazenda: "+state.fazenda+"\n";
   t+="Data: "+isoToBR(state.data)+"\n\n";
@@ -1744,6 +1762,12 @@ async function carregarDiaNuvem(silent){
     var r=await jsonp(BACKEND_URL+"?acao=pesagem_ler&data="+encodeURIComponent(state.data||todayISO())+"&token="+encodeURIComponent(gplToken())+"&fazenda="+encodeURIComponent(state.fazenda||""));
     if(!r || !r.ok) return false;
     if(!r.animais || !r.animais.length){
+      // A PLANILHA MANDA: se o dia foi apagado em outro aparelho e aqui nao tem nada pendente, esvazia aqui tambem
+      if(!state.syncDirty && state.today && state.today.length){
+        state.today=[]; sel=null; save();
+        renderConfig(); renderHoje(); renderFooter(); renderFaltantes(); renderPesarResumo();
+        var _rb=document.getElementById("resumeBanner"); if(_rb) _rb.style.display="none";
+      }
       if(el && !silent) el.textContent="Este dia ainda nao esta na planilha (dia novo).";
       diaCompleto=true; save();
       return false;
@@ -1908,7 +1932,7 @@ function renderFaltantes(){
   if(!state.ref.loaded){ box.innerHTML='<p class="empty">Importe a planilha de referência na aba Config.</p>'; return; }
   const pesados=new Set(state.today.filter(t=>!t.incerto).map(t=>t.base));
   const porLote={};
-  state.ref.list.forEach(a=>{ const L=a.lote||"?"; (porLote[L]=porLote[L]||[]); if(!pesados.has(a.base)) porLote[L].push(a); });
+  refAtivos().forEach(a=>{ const L=a.lote||"?"; (porLote[L]=porLote[L]||[]); if(!pesados.has(a.base)) porLote[L].push(a); });
   let html="";
   Object.keys(porLote).sort((a,b)=>(parseInt(a)||99)-(parseInt(b)||99)).forEach(L=>{
     const arr=porLote[L];
@@ -1917,7 +1941,7 @@ function renderFaltantes(){
       if(!isNaN(nx)&&!isNaN(ny)&&nx!==ny) return nx-ny;
       return String(x.base).localeCompare(String(y.base),'pt',{numeric:true,sensitivity:'base'});
     });
-    const totalRef=state.ref.list.filter(a=>(a.lote||"?")===L).length;
+    const totalRef=refAtivos().filter(a=>(a.lote||"?")===L).length;
     html+=`<div style="margin-top:10px"><div style="font-weight:800;color:var(--v1)">${loteLabel(L)} — faltam ${arr.length} de ${totalRef}</div>`;
     if(arr.length){ html+='<div class="lote-tags">'+arr.map(a=>`<span class="pill pill-grey">${esc(a.brinco)}</span>`).join("")+'</div>'; }
     else{ html+='<span class="pill pill-green" style="margin-top:6px">Lote completo ✓</span>'; }
@@ -1939,7 +1963,7 @@ function pesarPreencherLoteSel(){
   if(!sel||!card) return;
   if(!state.ref||!state.ref.loaded||!state.ref.list||!state.ref.list.length){ card.style.display='none'; return; }
   var lotes=[];
-  state.ref.list.forEach(function(a){ var L=String(a.lote||''); if(L&&lotes.indexOf(L)<0) lotes.push(L); });
+  refAtivos().forEach(function(a){ var L=String(a.lote||''); if(L&&lotes.indexOf(L)<0) lotes.push(L); });
   lotes.sort(function(a,b){ return (parseInt(a)||99)-(parseInt(b)||99); });
   sel.innerHTML='<option value="">Todos os lotes</option>'+lotes.map(function(L){ return '<option value="'+esc(L)+'"'+(L===_pesarLote?' selected':'')+'>'+esc(loteLabel(L))+'</option>'; }).join('');
   card.style.display='block';
@@ -1956,11 +1980,11 @@ function renderPesarLoteInfo(){
   if(!state.ref||!state.ref.loaded){ box.innerHTML=''; return; }
   var pesados=new Set(state.today.filter(function(t){return !t.incerto;}).map(function(t){return t.base;}));
   if(!_pesarLote){
-    var totRef=state.ref.list.length, totPes=state.ref.list.filter(function(a){return pesados.has(a.base);}).length;
+    var _ra=refAtivos(), totRef=_ra.length, totPes=_ra.filter(function(a){return pesados.has(a.base);}).length;
     box.innerHTML='<span style="color:var(--muted)">Geral: <b style="color:var(--v1)">'+totPes+' de '+totRef+'</b> pesados.</span>'+_suspLinha();
     return;
   }
-  var doLote=state.ref.list.filter(function(a){return String(a.lote||'')===_pesarLote;});
+  var doLote=refAtivos().filter(function(a){return String(a.lote||'')===_pesarLote;});
   var faltam=doLote.filter(function(a){return !pesados.has(a.base);});
   faltam.sort(function(x,y){ var nx=parseInt(x.base,10),ny=parseInt(y.base,10); if(!isNaN(nx)&&!isNaN(ny)&&nx!==ny)return nx-ny; return String(x.base).localeCompare(String(y.base),'pt',{numeric:true}); });
   var pes=doLote.length-faltam.length;
@@ -1981,7 +2005,7 @@ function renderFooter(){
   if(fGmdSub) fGmdSub.textContent = gq? gn+" de "+gq+" animais" : "";
   if(state.ref.loaded){
     const pesados=new Set(state.today.filter(t=>!t.incerto).map(t=>t.base));
-    const falt=state.ref.list.filter(a=>!pesados.has(a.base)).length;
+    const falt=refAtivos().filter(a=>!pesados.has(a.base)).length;
     document.getElementById("fFalt").textContent=falt;
   } else document.getElementById("fFalt").textContent="—";
 }
@@ -2499,11 +2523,23 @@ var _syncing=false, _lastSyncFailed=false;
 /* reenvio: enquanto houver pesagem pendente e o ultimo envio falhou por rede, tenta a cada 20 s; e na hora que a internet volta */
 setInterval(function(){
   if(!state || !state.autoSync || !state.syncDirty || !_lastSyncFailed || _syncing) return;
+  if(state.limparPend && (!state.today || !state.today.length)){ if(navigator.onLine!==false) limparDiaNuvem(); return; }
   if(!state.today || !state.today.length || !String(state.fazenda||"").trim()) return;
   if(typeof navigator!=="undefined" && navigator.onLine===false) return;
   syncSheets(true);
 }, 20000);
-window.addEventListener("online", function(){ if(state && state.syncDirty){ _lastSyncFailed=true; scheduleAutoSync(); } });
+window.addEventListener("online", function(){
+  if(state && state.syncDirty){
+    _lastSyncFailed=true;
+    if(state.limparPend && (!state.today || !state.today.length)) limparDiaNuvem(); else scheduleAutoSync();
+  }
+});
+/* voltou pra tela (trocou de app/aba): se aqui nao tem nada pendente, puxa da planilha — pega o que mudou em outro aparelho */
+document.addEventListener("visibilitychange", function(){
+  if(document.visibilityState!=="visible" || !state || !state.autoSync || state.syncDirty || _syncing) return;
+  if(!String(state.fazenda||"").trim()) return;
+  carregarDiaNuvem(true);
+});
 function scheduleAutoSync(){
   if(!state.autoSync) return;
   if(!String(state.fazenda||"").trim()) return;
@@ -2550,7 +2586,7 @@ async function syncSheets(auto){
     let j=null; try{ j=JSON.parse(await res.text()); }catch(e){}
     if(j && j.ok){
       const n=(j.gravados!=null)?j.gravados:state.today.length;
-      state.syncDirty=false; _lastSyncFailed=false; save(); renderUltimo();
+      state.syncDirty=false; state.limparPend=false; _lastSyncFailed=false; save(); renderUltimo();
       statusEl.innerHTML='<span class="status-ok">\u2713 '+n+' pesagens gravadas na planilha'+(auto?" (auto)":"")+'</span>';
     } else if(j && j.ok===false){
       statusEl.textContent='O servidor recusou: '+(j.msg||'erro desconhecido')+'. Confira a planilha.';

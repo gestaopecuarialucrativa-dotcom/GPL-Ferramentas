@@ -58,6 +58,7 @@ body{margin:0; font-family:Arial,'Segoe UI',Roboto,system-ui; background:var(--b
 .t-grey{background:#eef0ee; color:var(--muted)}
 
 svg{width:100%; height:auto; display:block}
+.btn svg, .inicio svg{width:15px!important; height:15px!important; flex:none; display:inline-block}
 .hist-cap{font-size:11px; color:var(--muted); margin:8px 0 4px; font-weight:700}
 .comp3{display:flex; gap:12px; flex-wrap:wrap; margin-top:6px}
 .comp3 .comp-col{flex:1; min-width:165px}
@@ -169,7 +170,7 @@ function gplFazendaLock(){ var a=gplAuth(); return (a&&a.fazenda)?a.fazenda:null
 
 
 let dados={ fazenda:"", data:"", animais:[], metaPeso:480, precoArroba:0, gmdEsperado:0 };
-let ordemLista="lote";
+let ordemLista="lote", _atTodos=false, _listaAberta=false;
 
 /* ---------- utils ---------- */
 function isoToBR(iso){ if(!iso) return "—"; const p=String(iso).split("-"); if(p.length<3) return iso; return p[2].slice(0,2)+"/"+p[1]+"/"+p[0]; }
@@ -317,9 +318,9 @@ async function confirmarDatas(){
   dados.fazenda=dados.fazenda||faz||"";
   dados.data=datasEsc[datasEsc.length-1];
   dados.animais=animais;
+  _evolPronto=false; _evolTentou=false;
   document.getElementById("modalDatas").style.display="none";
   render();
-  salvarLocal();
 }
 
 function importFile(input){
@@ -434,15 +435,20 @@ function svgBars(items, opts){
   const plotH=H-padB-padT, y0=padT+plotH;
   let bars="";
   items.forEach((it,i)=>{
-    const val=it.value||0, bh=Math.max(2,Math.abs(val)/max*plotH), x=padL+i*bw+bw*0.18, w=bw*0.64, y=y0-bh;
-    bars+='<rect x="'+x.toFixed(1)+'" y="'+y.toFixed(1)+'" width="'+w.toFixed(1)+'" height="'+bh.toFixed(1)+'" rx="4" fill="'+(it.color||"#2E7D32")+'"/>';
-    bars+='<text x="'+(x+w/2).toFixed(1)+'" y="'+(y-4).toFixed(1)+'" text-anchor="middle" font-size="11" font-weight="700" fill="#1B5E20">'+val.toFixed(dec)+'</text>';
+    const x=padL+i*bw+bw*0.18, w=bw*0.64;
+    if(it.value==null){
+      bars+='<text x="'+(x+w/2).toFixed(1)+'" y="'+(y0-6).toFixed(1)+'" text-anchor="middle" font-size="10" fill="#8a948b">sem GMD</text>';
+    } else {
+      const val=it.value, bh=Math.max(2,Math.abs(val)/max*plotH), y=y0-bh;
+      bars+='<rect x="'+x.toFixed(1)+'" y="'+y.toFixed(1)+'" width="'+w.toFixed(1)+'" height="'+bh.toFixed(1)+'" rx="4" fill="'+(it.color||"#2E7D32")+'"/>';
+      bars+='<text x="'+(x+w/2).toFixed(1)+'" y="'+(y-4).toFixed(1)+'" text-anchor="middle" font-size="11" font-weight="700" fill="#1B5E20">'+val.toFixed(dec).replace(".",",")+'</text>';
+    }
     bars+='<text x="'+(x+w/2).toFixed(1)+'" y="'+(y0+16).toFixed(1)+'" text-anchor="middle" font-size="11" fill="#5f6b60">'+esc(it.label)+'</text>';
   });
   let tline="";
   if(target!=null){ const ty=y0-(target/max*plotH);
     tline='<line x1="'+padL+'" y1="'+ty.toFixed(1)+'" x2="'+(W-padR)+'" y2="'+ty.toFixed(1)+'" stroke="#c9820a" stroke-width="1.5" stroke-dasharray="5 4"/>'+
-          '<text x="'+(W-padR)+'" y="'+(ty-4).toFixed(1)+'" text-anchor="end" font-size="10" fill="#c9820a">meta '+target.toFixed(dec)+unit+'</text>';
+          '<text x="'+(W-padR)+'" y="'+(ty-4).toFixed(1)+'" text-anchor="end" font-size="10" fill="#c9820a">meta '+target.toFixed(dec).replace(".",",")+unit+'</text>';
   }
   return '<svg viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="xMidYMid meet"><line x1="'+padL+'" y1="'+y0+'" x2="'+(W-padR)+'" y2="'+y0+'" stroke="#e0e7e0"/>'+tline+bars+'</svg>';
 }
@@ -532,11 +538,14 @@ function render(){
     kpi("UA totais", fmt(pesoTot/UA_DIV,1), "÷ 450")+
   '</div>';
 
+  // Evolução do peso — o gráfico que o dono entende na hora
+  html+='<div class="card"><h2>Evolução do peso por lote</h2><div id="evolBox"><div class="cap">Carregando as pesagens da planilha…</div></div></div>';
+
   // Gráficos gerais
   html+='<div class="card"><h2>Comparativo entre lotes</h2>';
   html+='<div class="comp3">';
   html+='<div class="comp-col"><div class="hist-cap">GMD (kg/cab/dia)<br>meta 0,35</div>'+
-    svgBars(statsEng.map(s=>({label:loteTag(s.L), value:s.gmd||0, color:(s.gmd>=0.5?"#2E7D32":s.gmd>=0.35?"#4CAF50":s.gmd>=0.18?"#c9820a":"#c0392b")})),{dec:3,target:0.35})+'</div>';
+    svgBars(statsEng.map(s=>({label:loteTag(s.L), value:(s.gmd!=null?s.gmd:null), color:(s.gmd>=0.5?"#2E7D32":s.gmd>=0.35?"#4CAF50":s.gmd>=0.18?"#c9820a":"#c0392b")})),{dec:3,target:0.35})+'</div>';
   html+='<div class="comp-col"><div class="hist-cap">Peso médio (@)<br>meta '+fmt(meta/AR_DIV,1)+'@</div>'+
     svgBars(statsEng.map(s=>({label:loteTag(s.L), value:s.media/AR_DIV, color:"#2E7D32"})),{dec:1,target:meta/AR_DIV,unit:"@"})+'</div>';
   html+='<div class="comp-col"><div class="hist-cap">Uniformidade (%)<br>meta 70%</div>'+
@@ -561,36 +570,20 @@ function render(){
           return {data:addDays(baseA,Math.round(falta/gA)),brinco:a.brinco};
         }).filter(Boolean).sort(function(a,b){return a.data<b.data?-1:1;});
 
-        // agrupa por janela de 10 dias
-        const JANELA=10, grupos=[];
-        itens.forEach(function(a){
-          const ult=grupos[grupos.length-1];
-          const diff=ult?Math.round((new Date(a.data+"T12:00:00")-new Date(ult[0].data+"T12:00:00"))/86400000):999;
-          if(!ult||diff>JANELA) grupos.push([a]); else ult.push(a);
-        });
-
-        // monta HTML das carradas — visual caprichado
-        const svgTruck='<span style="flex:none;width:34px;height:34px;display:inline-flex;align-items:center;justify-content:center;background:#E8F5E9;border-radius:9px"><svg viewBox="0 0 24 24" fill="none" stroke="#2E7D32" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:20px!important;height:20px!important;display:block"><path d="M1 4h13v11H1z"/><path d="M14 8h4l3 3v4h-7V8z"/><circle cx="5" cy="17.5" r="2"/><circle cx="17.5" cy="17.5" r="2"/></svg></span>';
+        // agrupa por MÊS de saída (fica fácil de ler e de planejar a venda)
+        const porMes={}; itens.forEach(function(a){ const k=String(a.data).slice(0,7); porMes[k]=(porMes[k]||0)+1; });
+        const meses=Object.keys(porMes).sort();
         const totalAnimais=itens.length;
-        let carr='<div style="margin-top:12px;background:#f6faf5;border:1px solid var(--line);border-radius:14px;padding:14px">';
-        carr+='<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">';
-        carr+='<div style="font-size:14px;font-weight:800;color:var(--v1)">Programação de saída</div>';
-        carr+='<div style="font-size:11px;color:var(--muted);font-weight:700">'+grupos.length+(grupos.length>1?' carradas':' carrada')+'</div></div>';
-        carr+='<div style="font-size:11px;color:var(--muted);margin-bottom:10px">'+(ehEst?'Estimativa · GMD esperado '+fmt(gmdEsp,3)+' kg/dia':'GMD medido '+fmt(s.gmd,3)+' kg/dia')+' · agrupado por proximidade de saída (10 dias)</div>';
-        grupos.forEach(function(g,i){
-          const ms=g.map(function(a){return new Date(a.data+"T12:00:00").getTime();});
-          const dataMed=new Date(ms.reduce(function(x,y){return x+y;},0)/ms.length).toISOString().slice(0,10);
-          const pct=Math.round(g.length/totalAnimais*100);
-          carr+='<div style="display:flex;align-items:center;gap:12px;background:#fff;border:1px solid var(--line);border-radius:12px;padding:11px 13px;margin-bottom:8px">';
-          carr+=svgTruck;
-          carr+='<div style="flex:1;min-width:0">';
-          carr+='<div style="font-size:15px;font-weight:800;color:var(--ink)">'+g.length+' animais <span style="font-size:12px;font-weight:600;color:var(--muted)">('+pct+'% do lote)</span></div>';
-          carr+='<div style="font-size:11px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.03em">'+(i+1)+'ª carrada</div>';
-          carr+='</div>';
-          carr+='<div style="text-align:right;flex:none"><div style="font-size:16px;font-weight:800;color:var(--v1)">'+isoToBR(dataMed)+'</div><div style="font-size:11px;color:var(--muted)">'+mesAno(dataMed)+'</div></div>';
-          carr+='</div>';
+        let acum=0;
+        let carr='<div style="margin-top:12px;background:#f6faf5;border:1px solid var(--line);border-radius:14px;padding:12px 14px">';
+        carr+='<div style="font-size:14px;font-weight:800;color:var(--v1)">Previsão de saída por mês</div>';
+        carr+='<div style="font-size:11px;color:var(--muted);margin:2px 0 8px">'+(ehEst?'Estimativa · GMD esperado '+fmt(gmdEsp,3)+' kg/dia':'GMD de cada animal (ou do lote) · meta '+fmt(meta,0)+' kg')+'</div>';
+        carr+='<table class="venda" style="margin:0"><tr><th>Mês</th><th>Saem</th><th>% do lote</th><th>Acumulado</th></tr>';
+        meses.forEach(function(k){
+          acum+=porMes[k];
+          carr+='<tr><td style="text-align:left;font-weight:700">'+mesAno(k+"-15")+'</td><td>'+porMes[k]+'</td><td>'+Math.round(porMes[k]/totalAnimais*100)+'%</td><td>'+acum+' ('+Math.round(acum/totalAnimais*100)+'%)</td></tr>';
         });
-        carr+='</div>';
+        carr+='</table></div>';
         proj=carr;
       } else { proj='<span class="tag t-grey">Sem GMD para projetar venda</span>'; }
     }
@@ -599,7 +592,7 @@ function render(){
       comp='<div class="hist-cap" style="margin-top:10px">Comparativo com a pesagem anterior</div>'+
         '<div class="grid"><div class="cell"><div class="k">Peso anterior</div><div class="v">'+fmt(s.pesoAntMed,0)+'</div><div class="u">kg médio</div></div>'+
         '<div class="cell"><div class="k">Peso atual</div><div class="v">'+fmt(s.media,0)+'</div><div class="u">kg médio</div></div>'+
-        '<div class="cell"><div class="k">Ganho</div><div class="v">+'+fmt(ganho,0)+'</div><div class="u">kg/cab'+(s.diasMed?" em "+Math.round(s.diasMed)+"d":"")+'</div></div>'+
+        '<div class="cell"><div class="k">Ganho</div><div class="v">'+(ganho>=0?'+':'')+fmt(ganho,0)+'</div><div class="u">kg/cab'+(s.diasMed?" em "+Math.round(s.diasMed)+"d":"")+'</div></div>'+
         '<div class="cell"><div class="k">GMD</div><div class="v">'+(s.gmd!=null?fmt(s.gmd,3):"—")+'</div><div class="u">kg/dia</div></div></div>';
     }
     html+='<div class="card">'+
@@ -634,26 +627,6 @@ function render(){
     html+='</div></div>';
   }
 
-  // 10 piores GMD — so engorda, sem numero suspeito (x / SN-), que pode estar com GMD de outro animal
-  const piores=dados.animais.filter(a=>a.gmd!=null && isEngorda(a.lote) && !a.incerto && !/^SN-/i.test(a.brinco))
-    .sort((a,b)=>a.gmd-b.gmd).slice(0,10);
-  if(piores.length){
-    html+='<div class="card"><h2>10 piores GMD — conferir no curral</h2>'+
-      '<div class="cap">Só gado de engorda. Pode ser animal doente, refugo, número trocado ou descarte. Toque no número pra ver o histórico.</div>'+
-      piores.map(a=>'<div class="rank" style="cursor:pointer" onclick="abrirHistorico(\''+esc(a.brinco)+'\')"><span class="b">'+esc(a.brinco)+
-        ' <span style="font-weight:400;color:var(--muted)">'+loteTag(a.lote)+' · '+fmt(a.peso,0)+' kg'+(a.dias?' · '+fmt(a.dias,0)+' dias':'')+'</span></span>'+
-        '<span style="font-weight:800;color:'+(a.gmd<0.18?'var(--danger,#c0392b)':'#c9820a')+'">'+fmt(a.gmd,3)+'</span></div>').join('')+
-    '</div>';
-  }
-
-  // Ranking maior/menor
-  const ordP=dados.animais.slice().sort((a,b)=>b.peso-a.peso);
-  const top=ordP.slice(0,5), bot=ordP.slice(-5).reverse();
-  html+='<div class="card"><h2>Ranking de peso</h2><div class="grid" style="grid-template-columns:1fr 1fr; gap:14px">'+
-    '<div><div class="hist-cap">🔝 Maiores</div>'+top.map(a=>rankRow(a)).join("")+'</div>'+
-    '<div><div class="hist-cap">🔻 Menores</div>'+bot.map(a=>rankRow(a)).join("")+'</div>'+
-  '</div></div>';
-
   // Distribuição de GMD (ganhos parecidos)
   const gmdAll=dados.animais.map(a=>a.gmd).filter(g=>g!=null);
   if(gmdAll.length){
@@ -662,20 +635,32 @@ function render(){
       svgHistGMD(gmdAll)+'</div>';
   }
 
-  // Animais que precisam de atenção (GMD baixo ou negativo)
-  const atencao=dados.animais.filter(a=>a.gmd!=null && a.gmd<0.15).sort((a,b)=>a.gmd-b.gmd);
-  html+='<div class="card"><h2>⚠ Animais que precisam de atenção</h2>';
-  if(atencao.length){
-    html+='<div class="cap">GMD baixo ou negativo — vale conferir saúde/manejo destes '+atencao.length+' animais.</div>';
-    atencao.forEach(a=>{
+  // Animais pra conferir: os piores GMD (só engorda, sem número suspeito x/SN-, que pode ter GMD de outro animal)
+  const comGmd=dados.animais.filter(a=>a.gmd!=null && isEngorda(a.lote) && !a.incerto && !/^SN-/i.test(a.brinco) && !/x$/i.test(a.brinco)).sort((a,b)=>a.gmd-b.gmd);
+  const nBaixo=comGmd.filter(a=>a.gmd<0.15).length;
+  const mostra=_atTodos?comGmd.filter(a=>a.gmd<0.15):comGmd.slice(0,10);
+  html+='<div class="card"><h2>Animais pra conferir no curral</h2>';
+  if(mostra.length){
+    html+='<div class="cap">Os que menos ganharam peso (só engorda). Pode ser doença, refugo, número trocado ou descarte. '+nBaixo+' animais com GMD abaixo de 0,150. Toque no número pra ver o histórico.</div>';
+    mostra.forEach(a=>{
       const gcls=a.gmd<0?"t-bad":"t-warn";
-      html+='<div class="rank"><span class="b">'+esc(a.brinco)+' <span style="font-weight:400;color:var(--muted)">'+loteTag(a.lote)+'</span></span>'+
-        '<span><span class="tag '+gcls+'" style="padding:2px 8px">GMD '+fmt(a.gmd,3)+'</span> '+fmt(a.peso,0)+'kg'+(a.obs?' · '+esc(a.obs):'')+'</span></div>';
+      html+='<div class="rank" style="cursor:pointer" onclick="abrirHistorico(\''+esc(a.brinco)+'\')"><span class="b">'+esc(a.brinco)+' <span style="font-weight:400;color:var(--muted)">'+loteTag(a.lote)+' · '+fmt(a.peso,0)+' kg'+(a.obs?' · '+esc(a.obs):'')+'</span></span>'+
+        '<span class="tag '+gcls+'" style="padding:2px 8px">'+fmt(a.gmd,3)+'</span></div>';
     });
+    if(nBaixo>10) html+='<button class="btn btn-ghost" style="margin-top:8px" onclick="_atTodos=!_atTodos;render()">'+(_atTodos?'Mostrar só os 10 piores':'Ver todos com GMD baixo ('+nBaixo+')')+'</button>';
   } else {
-    html+='<div class="cap">Nenhum animal com GMD baixo. Todos ganhando bem. ✓</div>';
+    html+='<div class="cap">Nenhum animal com GMD pra conferir.</div>';
   }
   html+='</div>';
+
+  // Números fora do padrão (letra, data, 4+ dígitos) — pra corrigir na planilha
+  const estranhos=dados.animais.filter(a=>!/^(SN-)?\d{1,3}x?$/i.test(String(a.brinco).trim()));
+  if(estranhos.length){
+    html+='<div class="card"><h2>Números pra corrigir ('+estranhos.length+')</h2>'+
+      '<div class="cap">Número com letra, com 4 dígitos ou que virou data na planilha. Confira e corrija na pesagem ou na planilha.</div>'+
+      estranhos.map(a=>'<div class="rank"><span class="b">'+esc(a.brinco)+'</span><span style="color:var(--muted)">'+loteTag(a.lote)+' · '+fmt(a.peso,0)+' kg'+(a.obs?' · '+esc(a.obs):'')+'</span></div>').join('')+
+    '</div>';
+  }
 
   // Lista completa de todos os animais
   const todos=dados.animais.slice().sort((a,b)=>{
@@ -689,6 +674,8 @@ function render(){
     return String(a.brinco).localeCompare(String(b.brinco));
   });
   html+='<div class="card"><h2>Lista completa — '+todos.length+' animais</h2>'+
+    '<button class="btn btn-ghost" onclick="_listaAberta=!_listaAberta;render()">'+(_listaAberta?'Fechar lista ▴':'Ver lista ▾')+'</button>';
+  if(_listaAberta){ html+=''+
     '<div class="cap" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">Ordenar do menor para o maior: '+
     '<select onchange="setOrdem(this.value)" style="padding:4px 6px;border:1px solid var(--line);border-radius:6px;font-family:inherit;font-size:13px">'+
     ordemOpt("lote","Lote e número")+ordemOpt("peso_asc","Peso ↑ (menor→maior)")+ordemOpt("peso_desc","Peso ↓ (maior→menor)")+ordemOpt("gmd_asc","GMD ↑ (menor→maior)")+ordemOpt("gmd_desc","GMD ↓ (maior→menor)")+
@@ -697,7 +684,8 @@ function render(){
   todos.forEach(a=>{
     html+='<tr><td>'+esc(a.brinco)+'</td><td>'+loteTag(a.lote)+'</td><td>'+fmt(a.peso,0)+'</td><td>'+fmt(a.peso/AR_DIV,1)+'</td><td>'+(a.gmd!=null?fmt(a.gmd,3):"—")+'</td><td style="text-align:left;font-size:11px;color:var(--muted)">'+esc(a.obs||"")+'</td></tr>';
   });
-  html+='</table></div>';
+  html+='</table>'; }
+  html+='</div>';
 
   // Quadro de venda
   html+='<div class="card"><h2>Quadro de venda</h2>';
@@ -718,9 +706,93 @@ function render(){
   html+='</table></div>';
 
   box.innerHTML=html;
+  renderEvol();
 }
+/* ---------- busca TODAS as pesagens da fazenda na planilha (uma vez; fica em cache) ---------- */
+var _anDatasTodas=null, _anCarregando=null;
+async function carregarTodasPesagens(){
+  if(_anCarregando) return _anCarregando;
+  _anCarregando=(async function(){
+    const fz=gplFazendaLock()||dados.fazenda||"";
+    if(!_anDatasTodas){
+      const r=await jsonp(BACKEND_URL+"?acao=pesagem_datas&token="+encodeURIComponent(gplToken())+"&fazenda="+encodeURIComponent(fz));
+      _anDatasTodas=(r&&r.datas)?r.datas.map(d=>d.data).sort():[];
+    }
+    for(const d of _anDatasTodas){
+      if(_anAnimaisCache[d]) continue;
+      try{
+        const r=await jsonp(BACKEND_URL+"?acao=pesagem_ler&token="+encodeURIComponent(gplToken())+"&fazenda="+encodeURIComponent(fz)+"&data="+encodeURIComponent(d));
+        _anAnimaisCache[d]=(r&&r.animais)?r.animais:[];
+      }catch(e){ _anAnimaisCache[d]=[]; }
+    }
+  })();
+  try{ await _anCarregando; } finally { _anCarregando=null; }
+}
+var _evolPronto=false, _evolTentou=false;
+function renderEvol(){
+  const box=document.getElementById("evolBox"); if(!box) return;
+  if(!_evolPronto){
+    if(!_evolTentou){ _evolTentou=true;
+      carregarTodasPesagens().then(()=>{ _evolPronto=true; renderEvol(); })
+        .catch(()=>{ const b=document.getElementById("evolBox"); if(b) b.innerHTML='<div class="cap">Sem sinal — não consegui buscar as pesagens anteriores.</div>'; });
+    }
+    return;
+  }
+  const lotesAgora=lotesAtivos().filter(L=>isEngorda(L));
+  const datas=(_anDatasTodas||[]).slice();
+  // MESMOS animais: os que estão HOJE no lote, com o peso deles em cada pesagem anterior
+  // (o lote muda de composição entre pesagens — a média do "Lote 2" de cada dia enganaria)
+  const base=b=>String(b||"").trim().replace(/x+$/i,"");
+  const series=lotesAgora.map(L=>{
+    const membros=new Set(dados.animais.filter(a=>a.lote===L && !a.incerto).map(a=>base(a.brinco)));
+    // cada ponto = ponto anterior + ganho médio de quem foi pesado nas DUAS datas (o mesmo animal comparado com ele mesmo)
+    const ult={}; let kg=null, pts=[];
+    datas.forEach(d=>{
+      const vistos={};
+      (_anAnimaisCache[d]||[]).forEach(a=>{ const b=base(a.brinco), p=parseNum(a.peso); if(membros.has(b) && p!=null && !a.is_revisar) vistos[b]=p; });
+      const ks=Object.keys(vistos);
+      const pares=ks.filter(k=>ult[k]!=null);
+      if(kg!=null && pares.length>=5){
+        const g=media(pares.map(k=>vistos[k]-ult[k])); kg+=g; pts.push({d, kg, n:pares.length});
+      } else if(ks.length>=5 && ks.length>=membros.size*0.3){
+        kg=media(ks.map(k=>vistos[k])); pts=[{d, kg, n:ks.length}];   // começa (ou recomeça, se não deu pra ligar) a linha
+      }
+      ks.forEach(k=>{ ult[k]=vistos[k]; });
+    });
+    return {L, pts, nMembros:membros.size};
+  }).filter(s=>s.pts.length>=2);
+  if(!series.length){ box.innerHTML='<div class="cap">Precisa de pelo menos 2 pesagens dos mesmos animais pra mostrar a evolução.</div>'; return; }
+  box.innerHTML=svgEvol(series)+
+    '<div class="cap" style="margin-top:6px">Os animais que estão hoje em cada lote. Cada ponto soma o ganho médio de quem foi pesado nas duas datas — o mesmo animal comparado com ele mesmo.</div>'+
+    series.map((s,i)=>{ const a=s.pts[0], b=s.pts[s.pts.length-1], g=b.kg-a.kg, dd=Math.round((new Date(b.d+"T12:00:00")-new Date(a.d+"T12:00:00"))/86400000);
+      return '<div class="rank"><span class="b"><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:'+EVOL_CORES[i%EVOL_CORES.length]+';margin-right:6px"></span>'+loteLabel(s.L)+' <span style="font-weight:400;color:var(--muted)">('+s.nMembros+' cab)</span></span>'+
+        '<span>'+fmt(a.kg,0)+' → <b>'+fmt(b.kg,0)+' kg</b> ('+(g>=0?'+':'')+fmt(g,0)+' kg em '+dd+' dias)</span></div>'; }).join('');
+}
+const EVOL_CORES=["#1B5E20","#4CAF50","#c9820a","#2f6f9f","#8e5ba6","#a65b5b","#5f6b60"];
+function svgEvol(series){
+  const W=640, H=220, pL=40, pR=14, pT=14, pB=28;
+  let t0=Infinity,t1=-Infinity,k0=Infinity,k1=-Infinity;
+  series.forEach(s=>s.pts.forEach(p=>{ const t=new Date(p.d+"T12:00:00").getTime(); t0=Math.min(t0,t); t1=Math.max(t1,t); k0=Math.min(k0,p.kg); k1=Math.max(k1,p.kg); }));
+  if(t1===t0) t1=t0+86400000; k0=Math.floor((k0-10)/10)*10; k1=Math.ceil((k1+10)/10)*10;
+  const X=t=>pL+(t-t0)/(t1-t0)*(W-pL-pR), Y=k=>pT+(k1-k)/(k1-k0)*(H-pT-pB);
+  let g='';
+  for(let i=0;i<=4;i++){ const k=k0+(k1-k0)*i/4, y=Y(k);
+    g+='<line x1="'+pL+'" y1="'+y.toFixed(1)+'" x2="'+(W-pR)+'" y2="'+y.toFixed(1)+'" stroke="#e8eee7"/>'+
+       '<text x="'+(pL-6)+'" y="'+(y+3).toFixed(1)+'" text-anchor="end" font-size="10" fill="#8a948b">'+Math.round(k)+'</text>'; }
+  const datasTodas=[...new Set([].concat(...series.map(s=>s.pts.map(p=>p.d))))].sort();
+  datasTodas.forEach(d=>{ const x=X(new Date(d+"T12:00:00").getTime());
+    g+='<text x="'+x.toFixed(1)+'" y="'+(H-8)+'" text-anchor="middle" font-size="10" fill="#8a948b">'+isoToBR(d).slice(0,5)+'</text>'; });
+  series.forEach((s,i)=>{ const c=EVOL_CORES[i%EVOL_CORES.length];
+    const pts=s.pts.map(p=>X(new Date(p.d+"T12:00:00").getTime()).toFixed(1)+","+Y(p.kg).toFixed(1));
+    g+='<polyline points="'+pts.join(" ")+'" fill="none" stroke="'+c+'" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>';
+    s.pts.forEach(p=>{ g+='<circle cx="'+X(new Date(p.d+"T12:00:00").getTime()).toFixed(1)+'" cy="'+Y(p.kg).toFixed(1)+'" r="3.5" fill="'+c+'"/>'; });
+    const u=s.pts[s.pts.length-1];
+    g+='<text x="'+(X(new Date(u.d+"T12:00:00").getTime())-4).toFixed(1)+'" y="'+(Y(u.kg)-8).toFixed(1)+'" text-anchor="end" font-size="10.5" font-weight="700" fill="'+c+'">'+loteTag(s.L)+' '+Math.round(u.kg)+'</text>';
+  });
+  return '<svg viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="xMidYMid meet">'+g+'</svg>';
+}
+
 /* ---------- histórico do animal: todas as pesagens dele na planilha ---------- */
-var _anDatasTodas=null;
 async function abrirHistorico(brinco){
   const base=String(brinco).replace(/x+$/i,"");
   const box=document.getElementById("histBody"), m=document.getElementById("histModal");
@@ -728,18 +800,7 @@ async function abrirHistorico(brinco){
   box.innerHTML='<div class="cap">Buscando as pesagens na planilha…</div>';
   m.style.display="flex";
   try{
-    const faz=gplFazendaLock()||dados.fazenda||"";
-    if(!_anDatasTodas){
-      const r=await jsonp(BACKEND_URL+"?acao=pesagem_datas&token="+encodeURIComponent(gplToken())+"&fazenda="+encodeURIComponent(faz));
-      _anDatasTodas=(r&&r.datas)?r.datas.map(d=>d.data).sort():[];
-    }
-    for(const d of _anDatasTodas){
-      if(_anAnimaisCache[d]) continue;
-      try{
-        const r=await jsonp(BACKEND_URL+"?acao=pesagem_ler&token="+encodeURIComponent(gplToken())+"&fazenda="+encodeURIComponent(faz)+"&data="+encodeURIComponent(d));
-        _anAnimaisCache[d]=(r&&r.animais)?r.animais:[];
-      }catch(e){ _anAnimaisCache[d]=[]; }
-    }
+    await carregarTodasPesagens();
     const pts=[];
     _anDatasTodas.forEach(d=>{
       (_anAnimaisCache[d]||[]).forEach(a=>{

@@ -57,8 +57,9 @@ body{margin:0; font-family:Arial,'Segoe UI',Roboto,system-ui; background:var(--b
 .t-bad{background:#fbe9e7; color:#8B0000}
 .t-grey{background:#eef0ee; color:var(--muted)}
 
-svg{width:100%; height:auto; display:block}
-.btn svg, .inicio svg{width:15px!important; height:15px!important; flex:none; display:inline-block}
+/* só os GRÁFICOS esticam na largura; ícone fica no tamanho dele (antes o ícone do modal ficava gigante) */
+svg[preserveAspectRatio]{width:100%; height:auto; display:block}
+svg:not([preserveAspectRatio]){flex:none}
 .hist-cap{font-size:11px; color:var(--muted); margin:8px 0 4px; font-weight:700}
 .comp3{display:flex; gap:12px; flex-wrap:wrap; margin-top:6px}
 .comp3 .comp-col{flex:1; min-width:165px}
@@ -658,8 +659,11 @@ function render(){
   const estranhos=dados.animais.filter(a=>!/^(SN-)?\d{1,3}x?$/i.test(String(a.brinco).trim()));
   if(estranhos.length){
     html+='<div class="card"><h2>Números pra corrigir ('+estranhos.length+')</h2>'+
-      '<div class="cap">Número com letra, com 4 dígitos ou que virou data na planilha. Confira e corrija na pesagem ou na planilha.</div>'+
-      estranhos.map(a=>'<div class="rank"><span class="b">'+esc(a.brinco)+'</span><span style="color:var(--muted)">'+loteTag(a.lote)+' · '+fmt(a.peso,0)+' kg'+(a.obs?' · '+esc(a.obs):'')+'</span></div>').join('')+
+      '<div class="cap">Toque em Corrigir: abre a pesagem daquele dia já no animal, você digita o número certo e salva na planilha.</div>'+
+      estranhos.map(a=>{ const m=motivoNumero(a.brinco), dia=a.data||dados.data;
+        return '<div class="rank" style="align-items:center;gap:8px"><span style="flex:1;min-width:0"><b style="color:var(--v1);font-size:14px">'+esc(m.mostra)+'</b>'+(m.alerta?' <span style="color:#7a5000;font-weight:700;font-size:12px">'+m.alerta+'</span>':'')+
+          '<br><span style="font-size:12px;color:var(--muted)">'+(m.alerta?'':m.motivo+' · ')+loteTag(a.lote)+' · '+fmt(a.peso,0)+' kg'+(a.obs?' · obs: '+esc(a.obs):'')+(dia?' · pesado em '+isoToBR(dia):'')+'</span></span>'+
+          (dia?'<a class="btn btn-ghost" style="padding:7px 12px;font-size:13px;text-decoration:none;flex:none" href="'+linkCorrigir(dia,a.brinco)+'">Corrigir</a>':'')+'</div>'; }).join('')+
     '</div>';
   }
 
@@ -718,6 +722,16 @@ async function carregarTodasPesagens(){
     const fz=_fazAtual();
     if(_anFazCache!==fz){ _anDatasTodas=null; _anAnimaisCache={}; _anFazCache=fz; }   // outra fazenda: esquece o que tinha
     if(!fz){ _anDatasTodas=[]; return; }                                               // sem fazenda não busca nada (senão viria tudo misturado)
+    if(!_anDatasTodas){
+      try{
+        const rt=await jsonp(BACKEND_URL+"?acao=pesagem_todas&token="+encodeURIComponent(gplToken())+"&fazenda="+encodeURIComponent(fz));
+        if(rt && rt.ok && rt.pesagens){
+          _anDatasTodas=Object.keys(rt.pesagens).sort();
+          _anDatasTodas.forEach(d=>{ _anAnimaisCache[d]=rt.pesagens[d]||[]; });
+          return;
+        }
+      }catch(e){}
+    }
     if(!_anDatasTodas){
       const r=await jsonp(BACKEND_URL+"?acao=pesagem_datas&token="+encodeURIComponent(gplToken())+"&fazenda="+encodeURIComponent(fz));
       _anDatasTodas=(r&&r.datas)?r.datas.map(d=>d.data).sort():[];
@@ -836,6 +850,22 @@ async function abrirHistorico(brinco){
   }catch(e){ box.innerHTML='<div class="cap">Sem sinal — não consegui buscar o histórico agora.</div>'; }
 }
 function fecharHistorico(){ document.getElementById("histModal").style.display="none"; }
+/* número estranho: por que está na lista e como mostrar */
+function motivoNumero(b){
+  b=String(b||"").trim();
+  if(/^(Mon|Tue|Wed|Thu|Fri|Sat|Sun) [A-Z][a-z]{2} \d{1,2} \d{4}/.test(b) || /^\d{4}-\d{2}-\d{2}T/.test(b)){
+    const d=new Date(b); const dm=isNaN(d)?b:(String(d.getDate()).padStart(2,"0")+"/"+String(d.getMonth()+1).padStart(2,"0"));
+    return {mostra:dm, motivo:"virou data", alerta:"virou data na planilha"};
+  }
+  if(/[a-z]/i.test(b)) return {mostra:b, motivo:"tem letra"};
+  if(/^\d{4,}$/.test(b)) return {mostra:b, motivo:b.length+" dígitos"};
+  return {mostra:b, motivo:"fora do padrão"};
+}
+function linkCorrigir(dia, brinco){
+  const u=new URLSearchParams(location.search);   // mantém fz/tk do cliente, se tiver
+  u.set("abrir", dia); u.set("animal", String(brinco)); if(dados.fazenda) u.set("fazenda", String(dados.fazenda).trim());
+  return "pesagem-curral.html?"+u.toString();
+}
 function kpi(k,v,u){ return '<div class="kpi"><div class="k">'+k+'</div><div class="v">'+v+'</div><div class="u">'+u+'</div></div>'; }
 function cellHtml(k,v,u){ return '<div class="cell"><div class="k">'+k+'</div><div class="v">'+v+'</div><div class="u">'+u+'</div></div>'; }
 function rankRow(a){ return '<div class="rank"><span class="b">'+esc(a.brinco)+' <span style="font-weight:400;color:var(--muted)">'+loteTag(a.lote)+'</span></span><span>'+fmt(a.peso,0)+' kg ('+fmt(a.peso/AR_DIV,1)+'@)</span></div>'; }

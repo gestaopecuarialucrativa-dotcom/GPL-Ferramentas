@@ -1645,6 +1645,8 @@ function saveAnimal(){
   if(!document.getElementById("mLote").value){ alert("Selecione o LOTE."); return; }
   const incerto=isIncerto(raw);
   const brincoNovo=incerto?(baseBrinco(raw)+"x"):raw;
+  const _dupE=state.today.find(x=>x.id!==_editId && x.base===baseBrinco(raw));
+  if(_dupE){ alert("O número "+_dupE.brinco+" já está nesta pesagem ("+_dupE.peso+" kg · "+loteLabel(_dupE.lote)+").\n\nNão aceita repetido."); return; }
   if(baseBrinco(brincoNovo)!==baseBrinco(_editOrigBrinco)){
     if(!confirm("Mudar o número de "+_editOrigBrinco+" para "+brincoNovo+"?\n\nIsso troca o peso anterior e recalcula o GMD.")) return;
   }
@@ -1764,8 +1766,10 @@ async function carregarDiaNuvem(silent){
   var el=document.getElementById("syncStatus");
   try{
     if(el && !silent) el.textContent="Puxando a pesagem do dia da planilha...";
-    var r=await jsonp(BACKEND_URL+"?acao=pesagem_ler&data="+encodeURIComponent(state.data||todayISO())+"&token="+encodeURIComponent(gplToken())+"&fazenda="+encodeURIComponent(state.fazenda||""));
+    var _dReq=state.data||todayISO();
+    var r=await jsonp(BACKEND_URL+"?acao=pesagem_ler&data="+encodeURIComponent(_dReq)+"&token="+encodeURIComponent(gplToken())+"&fazenda="+encodeURIComponent(state.fazenda||""));
     if(!r || !r.ok) return false;
+    if((state.data||todayISO())!==_dReq) return false;   // trocou de dia enquanto buscava: ignora
     if(!r.animais || !r.animais.length){
       // A PLANILHA MANDA: se o dia foi apagado em outro aparelho e aqui nao tem nada pendente, esvazia aqui tambem
       if(!state.syncDirty && state.today && state.today.length){
@@ -1830,6 +1834,10 @@ function pesgFechar(){
 // ===== Seletor de PESAGEM no topo (Fazenda + Data) — manda em tudo =====
 var _pesgDatas=[];
 async function pesgInit(){
+  var _lk=new URLSearchParams(location.search);
+  if(_lk.get('abrir') && _lk.get('fazenda') && !gplFazendaLock() && state.fazenda!==_lk.get('fazenda') && !(state.syncDirty && state.today.length)){
+    state.fazenda=_lk.get('fazenda'); state.today=[]; state.ref={loaded:false, name:"", data:null, byBrinco:{}, list:[]}; save();
+  }
   var fazWrap=document.getElementById('pesgFazWrap');
   if(!gplFazendaLock()){                 // consultor: pode trocar de fazenda
     if(fazWrap) fazWrap.style.display='block';
@@ -1840,6 +1848,23 @@ async function pesgInit(){
   await pesgCarregarDatas();
   carregarVendidos();
   pesgResumoUpd();
+  await abrirPeloLink();
+}
+/* veio da Análise ("Corrigir"): abre a pesagem daquele dia e o animal */
+async function abrirPeloLink(){
+  var u=new URLSearchParams(location.search), d=u.get('abrir'); if(!d) return;
+  var alvo=String(u.get('animal')||'').trim();
+  ['abrir','animal','fazenda'].forEach(function(k){ u.delete(k); });
+  try{ history.replaceState(null,'',location.pathname+(u.toString()?'?'+u.toString():'')); }catch(e){}
+  var ds=document.getElementById('pesgDataSel'); if(!ds) return;
+  var val=(d===todayISO())?'__hoje__':d;
+  if(![].slice.call(ds.options).some(function(o){return o.value===val;})){ alert('Não achei a pesagem de '+isoToBR(d)+' nesta fazenda.'); return; }
+  if(ds.value!==val){ ds.value=val; await pesgEscolherData(); _pesgAvisoVenda(); pesgResumoUpd(); }
+  if(val==='__hoje__') await carregarDiaNuvem(true);
+  go('hoje');
+  var t=state.today.find(function(x){ return String(x.brinco).trim()===alvo; });
+  if(t) openAnimal(t.id);
+  else alert('O animal '+alvo+' não está na pesagem de '+isoToBR(d)+'.');
 }
 async function pesgCarregarFazendas(){
   var s=document.getElementById('pesgFazSel'); if(!s) return;

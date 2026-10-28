@@ -386,6 +386,7 @@ input:focus,select:focus{outline:2px solid var(--v3); border-color:var(--v3)}
       <button data-s="falt" onclick="go('falt')">Faltas</button>
       <button data-s="relatorio" onclick="go('relatorio')">Relatório</button>
       <button data-s="dashboard" onclick="go('dashboard')">Análise</button>
+      <button data-s="estoque" id="navEstoque" onclick="go('estoque')">Estoque</button>
       <button data-s="venda" onclick="go('venda')">Venda</button>
       <button data-s="config" onclick="go('config')">Ajustes</button>
     </div>
@@ -548,6 +549,30 @@ input:focus,select:focus{outline:2px solid var(--v3); border-color:var(--v3)}
       Análise de Rebanho completa
     </a>
     <div class="print-only print-brand"><div class="pb-t">Gestão Pecuária Lucrativa</div><div class="pb-frase">"Pare de gerenciar no escuro — descubra o lucro real por hectare."</div></div><div id="dashContent"></div><div class="print-only print-foot">gestaopecuarialucrativa.com.br · Rogério · Consultor GPL · (63) 99108-2453 · @gestaopecuarialucrativa</div>
+  </div>
+
+  <!-- ============ ESTOQUE INTTEGRA (só leitura) ============ -->
+  <div class="screen" id="scr-estoque">
+    <div class="card stripe">
+      <h2><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 14h3v4H7z"/><path d="M12 9h3v9h-3z"/><path d="M17 5h3v13h-3z"/></svg> Estoque Inttegra</h2>
+      <p class="hint">Último peso de cada animal até o fim do mês, vendidos fora. Só leitura — você digita no portal.</p>
+      <div id="estFaz" style="font-size:13px;font-weight:700;color:var(--v1);margin:8px 0 2px"></div>
+      <div style="display:flex;gap:8px;margin-top:8px">
+        <div style="flex:1">
+          <label style="font-size:11px;font-weight:700;color:var(--muted);display:block;margin-bottom:3px">Mês</label>
+          <input type="month" id="estMes" style="width:100%;padding:9px 10px;border:1px solid var(--line);border-radius:10px;font-size:14px">
+        </div>
+      </div>
+      <div style="font-size:12px;font-weight:800;color:var(--ink);margin:12px 0 4px">Regra de peso (machos e novilhas)</div>
+      <div style="display:grid;grid-template-columns:minmax(0,1fr) 92px;gap:6px;align-items:center;font-size:13px">
+        <span style="color:var(--muted)">Até 12 meses: até (kg)</span><input type="number" id="estC12" value="250" inputmode="numeric" style="padding:8px;border:1px solid var(--line);border-radius:10px;font-size:14px">
+        <span style="color:var(--muted)">13 a 24 meses: até (kg)</span><input type="number" id="estC24" value="450" inputmode="numeric" style="padding:8px;border:1px solid var(--line);border-radius:10px;font-size:14px">
+        <span style="color:var(--muted)">25 a 36 meses</span><span style="font-size:12px;color:var(--muted)">acima disso</span>
+      </div>
+      <button class="btn btn-primary" style="margin-top:12px" onclick="calcEstoque()">Calcular estoque do mês</button>
+      <div id="estStatus" class="hint" style="margin-top:8px"></div>
+      <div id="estTabela" style="margin-top:6px"></div>
+    </div>
   </div>
 
   <!-- ============ CONFIG ============ -->
@@ -2658,6 +2683,87 @@ async function syncSheets(auto){
   }finally{ _syncing=false; }
 }
 
+/* ---------- ESTOQUE INTTEGRA (só leitura, não grava nada) ---------- */
+var EST_LINHAS = [
+  ["matriz","MATRIZES EM REPRODUÇÃO"],["descarte","MATRIZES DESCARTE"],
+  ["bzf","BEZERRAS MAMANDO"],["bzm","BEZERROS MAMANDO"],
+  ["f12","FÊMEAS ATÉ 12 MESES"],["f24","FÊMEAS 13 A 24 MESES"],["f36","FÊMEAS 25 A 36 MESES"],["f37","FÊMEAS + 37 MESES"],
+  ["m12","MACHOS ATÉ 12 MESES"],["m24","MACHOS 13 A 24 MESES"],["m36","MACHOS 25 A 36 MESES"],["m37","MACHOS + 37 MESES"],
+  ["touro","TOUROS"]
+];
+function _estFmt(n,dec){ return Number(n).toLocaleString("pt-BR",{minimumFractionDigits:dec,maximumFractionDigits:dec}); }
+function _estMesPadrao(){ var d=new Date(); d.setDate(1); d.setMonth(d.getMonth()-1); return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0"); }
+function renderEstoque(){
+  var m=document.getElementById("estMes"); if(m && !m.value) m.value=_estMesPadrao();
+  var f=document.getElementById("estFaz"); if(f) f.textContent=state.fazenda?("Fazenda: "+state.fazenda):"Escolha a fazenda no topo.";
+}
+function _estCategoria(lote,peso,c12,c24){
+  var l=String(lote==null?"":lote).trim();
+  if(l==="11") return "f37";                 // Vaca
+  if(l==="12") return "touro";               // Reprodutor
+  if(l==="13") return "bzm";                 // Bezerro mamando (machos e fêmeas juntos)
+  var pre=(l==="16")?"f":"m";                // Novilha = fêmea; resto = macho
+  if(peso<=c12) return pre+"12";
+  if(peso<=c24) return pre+"24";
+  return pre+"36";
+}
+async function calcEstoque(){
+  var st=document.getElementById("estStatus"), tb=document.getElementById("estTabela");
+  var faz=state.fazenda||gplFazendaLock()||"";
+  var mes=(document.getElementById("estMes").value||"");
+  var c12=parseFloat(document.getElementById("estC12").value), c24=parseFloat(document.getElementById("estC24").value);
+  tb.innerHTML="";
+  if(!faz){ st.textContent="Escolha a fazenda primeiro."; return; }
+  if(!/^\d{4}-\d{2}$/.test(mes)){ st.textContent="Escolha o mês."; return; }
+  if(!(c12>0) || !(c24>c12)){ st.textContent="Confira a regra de peso: o 2º corte tem que ser maior que o 1º."; return; }
+  var ano=parseInt(mes.slice(0,4),10), mm=parseInt(mes.slice(5,7),10);
+  var prox=new Date(ano,mm,1);
+  var antes=prox.getFullYear()+"-"+String(prox.getMonth()+1).padStart(2,"0")+"-01";
+  var fimMes=mes+"-"+String(new Date(ano,mm,0).getDate()).padStart(2,"0");
+  st.textContent="Buscando pesagens e vendas na planilha…";
+  var rP, rV;
+  try{
+    rP=await jsonp(BACKEND_URL+"?acao=pesagem_ultimas&antes="+encodeURIComponent(antes)+"&token="+encodeURIComponent(gplToken())+"&fazenda="+encodeURIComponent(faz));
+    rV=await jsonp(BACKEND_URL+"?acao=venda_animais&token="+encodeURIComponent(gplToken())+"&fazenda="+encodeURIComponent(faz));
+  }catch(e){ st.textContent="Sem internet ou a planilha não respondeu. Tente de novo."; return; }
+  if(!rP || !rP.animais || !rP.animais.length){ st.textContent="Não achei pesagem dessa fazenda até "+isoToBR(fimMes)+"."; return; }
+  var vend={};
+  ((rV&&rV.vendidos)||[]).forEach(function(v){ var b=String(v.brinco||"").trim(); if(b) vend[b]=String(v.data||"").slice(0,10); });
+  var acc={}; EST_LINHAS.forEach(function(x){ acc[x[0]]={q:0,p:0}; });
+  var nV=0, nSemPeso=0, dMin=null, dMax=null;
+  rP.animais.forEach(function(a){
+    var br=String(a.brinco||"").trim(); if(!br) return;
+    var dA=String(a.data||"").slice(0,10);
+    if(dA && dA>fimMes) return;
+    var dv=vend[br];
+    if(dv && dv<=fimMes && (!dA || dv>=dA)){ nV++; return; }   // vendido depois da última pesagem e até o fim do mês
+    var peso=parseNum(a.peso);
+    if(!(peso>0)){ nSemPeso++; return; }
+    var c=_estCategoria(a.lote,peso,c12,c24);
+    acc[c].q++; acc[c].p+=peso;
+    if(dA){ if(!dMin||dA<dMin) dMin=dA; if(!dMax||dA>dMax) dMax=dA; }
+  });
+  var tq=0, tp=0, linhas="";
+  EST_LINHAS.forEach(function(x){
+    var a=acc[x[0]]; tq+=a.q; tp+=a.p;
+    var nome=x[1]+(x[0]==="bzm"&&a.q?' <span style="font-weight:400;color:var(--muted)">(bezerros + bezerras)</span>':"");
+    linhas+='<tr style="border-top:1px solid var(--line)"><td style="padding:7px 4px;font-size:12px">'+nome+'</td>'+
+      '<td style="padding:7px 4px;text-align:right;font-weight:700">'+(a.q?a.q:"—")+'</td>'+
+      '<td style="padding:7px 4px;text-align:right;font-weight:700">'+(a.q?_estFmt(a.p/a.q,2):"—")+'</td></tr>';
+  });
+  tb.innerHTML='<table style="width:100%;border-collapse:collapse;font-size:14px">'+
+    '<tr style="font-size:11px;color:var(--muted)"><td style="padding:4px">Categoria · '+isoToBR(fimMes)+'</td><td style="padding:4px;text-align:right">Qtd</td><td style="padding:4px;text-align:right">Peso (kg)</td></tr>'+
+    linhas+
+    '<tr style="border-top:2px solid var(--v2);font-weight:800;color:var(--v1)"><td style="padding:8px 4px">Total</td><td style="padding:8px 4px;text-align:right">'+tq+'</td><td style="padding:8px 4px;text-align:right">'+_estFmt(tp,2)+'</td></tr>'+
+    '<tr style="font-weight:700;color:var(--muted)"><td style="padding:4px">Média ponderada</td><td></td><td style="padding:4px;text-align:right">'+(tq?_estFmt(tp/tq,2):"—")+'</td></tr>'+
+    '</table>';
+  var info="Pesos de pesagens entre "+(dMin?isoToBR(dMin):"—")+" e "+(dMax?isoToBR(dMax):"—")+".";
+  if(nV) info+=" "+nV+" vendido(s) fora da conta.";
+  if(nSemPeso) info+=" "+nSemPeso+" sem peso ignorado(s).";
+  st.textContent=info;
+}
+(function(){ try{ if(gplFazendaLock()){ var b=document.getElementById("navEstoque"); if(b) b.style.display="none"; } }catch(e){} })();
+
 /* ---------- navegação ---------- */
 function go(s){
   document.querySelectorAll(".screen").forEach(x=>x.classList.remove("on"));
@@ -2674,6 +2780,7 @@ function go(s){
   if(s==="config") renderConfig();
   if(s==="relatorio") renderRelatorio();
   if(s==="dashboard") renderDashboard();
+  if(s==="estoque") renderEstoque();
   if(s==="venda") renderVenda();
   if(s==="vendidos") renderVendidos();
 }

@@ -9,7 +9,7 @@
      do jeito que já funcionava.
    Para forçar atualizar este arquivo no celular: mude a VERSAO.
    ===================================================================== */
-var VERSAO = 'gpl-pesagem-v1';
+var VERSAO = 'gpl-pesagem-v2';
 var BIBLIOTECAS = [
   'https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js',
   'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js'
@@ -18,10 +18,12 @@ var BIBLIOTECAS = [
 self.addEventListener('install', function (e) {
   e.waitUntil(
     caches.open(VERSAO).then(function (c) {
-      // guarda as bibliotecas já na instalação (se falhar uma, não trava)
-      return Promise.all(BIBLIOTECAS.map(function (u) {
+      // guarda JÁ NA PRIMEIRA ABERTURA: a própria página + as bibliotecas (se falhar uma, não trava)
+      var pagina = fetch('/pesagem-curral.html', { cache: 'reload' })
+        .then(function (r) { if (r && r.ok) return c.put('/pesagem-curral.html', r); }).catch(function () {});
+      return Promise.all([pagina].concat(BIBLIOTECAS.map(function (u) {
         return fetch(u, { mode: 'no-cors' }).then(function (r) { return c.put(u, r); }).catch(function () {});
-      }));
+      })));
     }).then(function () { return self.skipWaiting(); })
   );
 });

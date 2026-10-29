@@ -47,6 +47,15 @@ button{font:inherit;font-weight:700;border:0;border-radius:12px;cursor:pointer}
 .mini{font-size:13px;color:var(--muted)}
 .ok-msg{color:var(--v1);font-weight:700}
 .esc{display:none}
+.abas{display:flex;gap:6px;margin-bottom:12px}
+.aba{flex:1;text-align:center;padding:10px 6px;border-radius:10px;border:1px solid var(--line);background:#fff;font-weight:700;font-size:14px;color:var(--muted);cursor:pointer}
+.aba.on{background:var(--v7);border-color:var(--v3);color:var(--v1)}
+.kpis{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:10px}
+.kpi{background:#f4f7f3;border-radius:10px;padding:9px 10px}.kpi .k1{font-size:12px;color:var(--muted)}.kpi .k2{font-size:21px;font-weight:900;margin-top:2px}
+.pas{display:flex;justify-content:space-between;font-size:14px;padding:5px 0;border-bottom:1px solid #f0f3ef}
+.pas.dsf{text-decoration:line-through;color:#aab3aa}
+.hist{display:flex;gap:4px;align-items:flex-end;height:54px;margin-top:10px}.hist div{flex:1;background:#b9dfbb;border-radius:3px 3px 0 0;min-height:2px}
+.histx{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-top:2px}
 </style>
 </head>
 <body>
@@ -316,13 +325,135 @@ function lerLink(){
 
 function render(){
   var app=$("app");
-  if(TELA==="montar"){ app.innerHTML=telaMontar(); posMontar(); return; }
+  if(TELA==="montar"){
+    app.innerHTML=telaAbas()+(ABA==="link"?telaMontar():ABA==="vivo"?telaConsulta("vivo"):telaConsulta("rel"));
+    if(ABA==="link") posMontar(); else carregarConsulta();
+    return;
+  }
   if(S.atual && !S.atual.fim){ TELA="pesando"; }
   if(TELA==="pesando"){ app.innerHTML=telaPesando(); $("topSub").textContent=S.atual.fazenda+" · "+dataBR(S.atual.data); renderPesoAoVivo(); renderSync(); return; }
   if(TELA==="fim"){ app.innerHTML=telaFim(); renderSync(); return; }
   app.innerHTML=telaInicio();
   $("topSub").textContent=_cfg?_cfg.fazenda+" · hoje":"GPL";
 }
+
+/* ---- abas do consultor: Link · Ao vivo · Relatório ---- */
+var ABA="link", _fazLista=[], _cons={ faz:"", grupos:[], carregado:"", erro:"" }, _abertos={};
+function telaAbas(){
+  return '<div class="abas">'+[["link","Link"],["vivo","Ao vivo"],["rel","Relatório"]].map(function(a){
+    return '<div class="aba'+(ABA===a[0]?' on':'')+'" onclick="trocarAba(\''+a[0]+'\')">'+a[1]+'</div>'; }).join("")+'</div>';
+}
+function trocarAba(a){ ABA=a; render(); }
+function fazConsulta(){ return _cons.faz || (S.ultimoMontar&&S.ultimoMontar.fazenda) || _fazLista[0] || ""; }
+function telaConsulta(tipo){
+  var f=fazConsulta();
+  var h='<div class="card" style="padding:10px 12px"><div class="linha" style="align-items:center"><select id="cFaz" onchange="_cons.faz=this.value;_cons.grupos=[];render()">'
+    +(_fazLista.length?_fazLista:[f]).filter(Boolean).map(function(x){ return '<option'+(x===f?' selected':'')+'>'+esc(x)+'</option>'; }).join("")
+    +'</select><button class="bt3" style="flex:0 0 auto" onclick="carregarConsulta()">Atualizar</button></div>'
+    +'<p class="mini" id="cInfo" style="margin:6px 0 0"></p></div><div id="cBox"><p class="mini" style="text-align:center">Carregando…</p></div>';
+  return h;
+}
+async function carregarConsulta(){
+  $("topSub").textContent=ABA==="vivo"?"Ao vivo":"Relatório";
+  if(!_fazLista.length){ try{ var rf=await jsonp(BACKEND_URL+"?acao=fazendas&token="); _fazLista=(rf&&rf.fazendas)||[]; if(TELA==="montar"&&ABA!=="link"){ var sel=$("cFaz"); var f0=fazConsulta(); if(sel) sel.innerHTML=_fazLista.map(function(x){ return '<option'+(x===f0?' selected':'')+'>'+esc(x)+'</option>'; }).join(""); } }catch(e){} }
+  var faz=fazConsulta(); if(!faz){ $("cBox").innerHTML='<p class="mini">Escolha a fazenda.</p>'; return; }
+  var abaPedida=ABA;
+  try{
+    var url=BACKEND_URL+"?acao=manejo_ler&token=&fazenda="+encodeURIComponent(faz)+(ABA==="vivo"?"&data="+hojeISO():"");
+    var rr=await Promise.all([jsonp(url), jsonp(BACKEND_URL+"?acao=lida_ler&token=&fazenda="+encodeURIComponent(faz)).catch(function(){ return {lidas:[]}; })]);
+    if(TELA!=="montar"||ABA!==abaPedida) return;
+    if(!rr[0]||rr[0].ok===false) throw new Error((rr[0]&&rr[0].msg)||"sem resposta");
+    _cons.grupos=agruparManejos(rr[0].itens||[], (rr[1]&&rr[1].lidas)||[]); _cons.erro="";
+    _cons.carregado=new Date().toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"});
+  }catch(e){ _cons.erro="Não deu pra buscar na planilha ("+(e&&e.message?e.message:e)+"). Sem internet?"; }
+  if(TELA==="montar"&&ABA===abaPedida) desenharConsulta();
+}
+function agruparManejos(itens, lidas){
+  var g={};
+  itens.forEach(function(it){
+    var k=it.id; if(!g[k]) g[k]={ id:k, data:it.data, tarefas:it.tarefas, itens:[], lida:null };
+    g[k].itens.push(it);
+  });
+  lidas.forEach(function(l){ if(String(l.id).indexOf("MV-")===0){ var k=String(l.id).slice(3); if(g[k]) g[k].lida=l; } });
+  return Object.keys(g).map(function(k){ var x=g[k];
+    x.itens.sort(function(a,b){ return Number(b.n)-Number(a.n); });
+    x.ok=x.itens.filter(function(i){ return String(i.situacao).toUpperCase()!=="DESFEITO"; });
+    x.pesos=x.ok.map(function(i){ return Number(i.peso); }).filter(function(v){ return v>0; });
+    x.media=x.pesos.length?x.pesos.reduce(function(s,v){return s+v;},0)/x.pesos.length:null;
+    x.min=x.pesos.length?Math.min.apply(null,x.pesos):null; x.max=x.pesos.length?Math.max.apply(null,x.pesos):null;
+    var hs=x.ok.map(function(i){ return String(i.hora||""); }).filter(Boolean).sort();
+    x.ultHora=hs[hs.length-1]||""; x.priHora=hs[0]||"";
+    x.paradas=[]; try{ x.paradas=JSON.parse((x.lida&&x.lida.paradas)||"[]")||[]; }catch(e){}
+    x.aberta= x.lida ? !!x.lida.aberta : true;
+    return x; }).sort(function(a,b){ return (b.data+(b.lida&&b.lida.inicio||b.priHora)).localeCompare(a.data+(a.lida&&a.lida.inicio||a.priHora)); });
+}
+function minDesde(hhmm){ var p=String(hhmm).split(":"); if(p.length<2) return null; var d=new Date(); d.setHours(+p[0],+p[1],0,0); return Math.round((Date.now()-d.getTime())/60000); }
+function kpisManejo(x, vivo){
+  var l=x.lida||{}, pm=x.paradas.reduce(function(s,p){ return s+(Number(p.min)||0); },0);
+  return '<div class="kpis">'
+   +'<div class="kpi"><div class="k1">Passaram</div><div class="k2">'+x.ok.length+'</div></div>'
+   +'<div class="kpi"><div class="k1">Peso médio</div><div class="k2">'+(x.media!=null?fmtBR(x.media,0)+' kg':'sem peso')+'</div></div>'
+   +'<div class="kpi"><div class="k1">Ritmo</div><div class="k2">'+(l.por_hora!==''&&l.por_hora!=null?fmtBR(l.por_hora,0)+'/hora':'—')+'</div></div>'
+   +'<div class="kpi"><div class="k1">Paradas</div><div class="k2">'+(x.paradas.length?x.paradas.length+' · '+fmtBR(pm,0)+' min':'nenhuma')+'</div></div></div>';
+}
+function listaPassagens(x, limite){
+  var arr=limite?x.itens.slice(0,limite):x.itens;
+  return '<div style="margin-top:10px">'+arr.map(function(i){ var d=String(i.situacao).toUpperCase()==="DESFEITO";
+    return '<div class="pas'+(d?' dsf':'')+'"><span>nº '+esc(i.n)+'</span><span>'+(Number(i.peso)>0?fmtBR(i.peso,1)+' kg':'sem peso')+'</span><span>'+(d?'desfeito':esc(i.hora))+'</span></div>'; }).join("")
+    +(limite&&x.itens.length>limite?'<p class="mini" style="text-align:center">… mais '+(x.itens.length-limite)+'</p>':'')+'</div>';
+}
+function histograma(x){
+  if(x.pesos.length<3) return '';
+  var passo=20, ini=Math.floor(x.min/passo)*passo, fim=Math.ceil((x.max+0.01)/passo)*passo;
+  while((fim-ini)/passo>8){ passo*=2; ini=Math.floor(x.min/passo)*passo; fim=Math.ceil((x.max+0.01)/passo)*passo; }
+  var nb=Math.max(1,(fim-ini)/passo), c=[]; for(var i=0;i<nb;i++) c.push(0);
+  x.pesos.forEach(function(v){ var k=Math.min(nb-1,Math.floor((v-ini)/passo)); c[k]++; });
+  var mx=Math.max.apply(null,c);
+  var lab=[]; for(var j=0;j<=nb;j+=Math.max(1,Math.round(nb/4))) lab.push(ini+j*passo);
+  return '<div class="hist">'+c.map(function(v){ return '<div title="'+v+'" style="height:'+Math.round(v/mx*100)+'%"></div>'; }).join("")+'</div>'
+    +'<div class="histx">'+lab.map(function(v){ return '<span>'+v+'</span>'; }).join("")+'<span>kg</span></div>';
+}
+function desenharConsulta(){
+  var box=$("cBox"), info=$("cInfo"); if(!box) return;
+  if(info) info.textContent=_cons.erro?_cons.erro:("Atualizado "+_cons.carregado+(ABA==="vivo"?" · atualiza sozinho":""));
+  if(info) info.style.color=_cons.erro?"var(--danger)":"";
+  var gs=_cons.grupos;
+  if(ABA==="vivo"){
+    gs=gs.filter(function(x){ return x.data===hojeISO(); });
+    if(!gs.length){ box.innerHTML='<div class="card"><p class="lbl" style="margin:0">Nenhum manejo hoje nesta fazenda ainda.</p></div>'; return; }
+    box.innerHTML=gs.map(function(x){
+      var m=minDesde(x.ultHora), l=x.lida||{};
+      return '<div class="card"><div style="display:flex;justify-content:space-between;gap:8px"><b>'+esc(x.tarefas||"Manejo")+'</b>'
+        +(x.aberta?'<span class="ok-msg" style="flex:none">● em andamento</span>':'<span class="mini" style="flex:none">encerrado '+esc(l.fim||"")+'</span>')+'</div>'
+        +'<p class="mini" style="margin:3px 0 0">Começou '+esc(l.inicio||x.priHora||"—")+(x.ultHora?' · último animal '+(m!=null&&m>=0&&m<600?(m<1?'agora':'há '+m+' min'):'às '+esc(x.ultHora)):'')+'</p>'
+        +kpisManejo(x,true)+listaPassagens(x,30)+'</div>';
+    }).join("");
+    return;
+  }
+  if(!gs.length){ box.innerHTML='<div class="card"><p class="lbl" style="margin:0">Nenhum manejo registrado nesta fazenda.</p></div>'; return; }
+  box.innerHTML=gs.map(function(x){
+    var l=x.lida||{}, pm=x.paradas.reduce(function(s,p){ return s+(Number(p.min)||0); },0), aberto=!!_abertos[x.id];
+    var linha=x.ok.length+' animais'+(x.media!=null?' · média '+fmtBR(x.media,0)+' kg ('+fmtBR(x.min,0)+' a '+fmtBR(x.max,0)+')':' (sem peso)')
+      +' · '+esc(l.inicio||x.priHora||"?")+'–'+esc(l.fim||x.ultHora||"?")
+      +(l.por_hora!==''&&l.por_hora!=null?' · '+fmtBR(l.por_hora,0)+'/hora':'')
+      +(x.paradas.length?' · '+x.paradas.length+' parada(s), '+fmtBR(pm,0)+' min':'');
+    return '<div class="card"><div style="display:flex;justify-content:space-between;gap:8px"><b>'+dataBR(x.data)+' · '+esc(x.tarefas||"Manejo")+'</b>'
+      +(x.aberta?'<span class="ok-msg" style="flex:none">aberto</span>':'')+'</div>'
+      +'<p class="mini" style="margin:4px 0 0;font-size:14px">'+linha+'</p>'+histograma(x)
+      +'<div class="linha" style="margin-top:10px"><button class="bt3" onclick="_abertos[\''+x.id+'\']=!_abertos[\''+x.id+'\'];desenharConsulta()">'+(aberto?'Fechar lista':'Ver passagens')+'</button>'
+      +'<button class="bt2" onclick="whatsManejo(\''+x.id+'\')">Resumo no WhatsApp</button></div>'
+      +(aberto?listaPassagens(x,0):'')+'</div>';
+  }).join("");
+}
+function whatsManejo(id){
+  var x=_cons.grupos.filter(function(g){ return g.id===id; })[0]; if(!x) return;
+  var l=x.lida||{}, p=x.data.split("-");
+  var t="*Manejo "+p[2]+"/"+p[1]+"/"+p[0]+" — "+fazConsulta()+"*\n"+(x.tarefas||"")+"\n\nAnimais: "+x.ok.length
+    +(x.media!=null?"\nPeso médio: "+fmtBR(x.media,1)+" kg\nMais leve: "+fmtBR(x.min,1)+" kg · Mais pesado: "+fmtBR(x.max,1)+" kg":"")
+    +"\nHorário: "+(l.inicio||x.priHora||"?")+" às "+(l.fim||x.ultHora||"?")+"\n\nRogério · Consultor GPL";
+  location.href="https://wa.me/?text="+encodeURIComponent(t);
+}
+setInterval(function(){ if(TELA==="montar" && ABA==="vivo" && document.visibilityState==="visible") carregarConsulta(); }, 20000);
 
 /* ---- 1) você monta o link ---- */
 function telaMontar(){
@@ -341,7 +472,8 @@ function telaMontar(){
 }
 async function posMontar(){
   $("topSub").textContent="Montar link";
-  try{ var r=await jsonp(BACKEND_URL+"?acao=fazendas&token="); var l=(r&&r.fazendas)||[];
+  if(_fazLista.length){ $("mFazLista").innerHTML=_fazLista.map(function(f){ return '<option value="'+esc(f)+'">'; }).join(""); return; }
+  try{ var r=await jsonp(BACKEND_URL+"?acao=fazendas&token="); var l=(r&&r.fazendas)||[]; _fazLista=l;
     $("mFazLista").innerHTML=l.map(function(f){ return '<option value="'+esc(f)+'">'; }).join("");
     if(!$("mFaz").value && l.length===1) $("mFaz").value=l[0];
   }catch(e){}

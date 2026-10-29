@@ -23,15 +23,14 @@ body{margin:0; font-family:Arial,'Segoe UI',Roboto,system-ui; background:var(--b
 .top svg{stroke:#fff}
 
 /* Início pill */
-.inicio{position:fixed; top:10px; left:10px; z-index:30; background:#fff; border:1px solid var(--line);
-  border-radius:999px; padding:6px 12px 6px 10px; font-size:12px; font-weight:700; color:var(--v2);
-  display:flex; align-items:center; gap:6px; text-decoration:none; box-shadow:0 2px 6px rgba(0,0,0,.12)}
-.inicio svg{stroke:var(--v2)}
+.inicio{margin-left:auto; flex:none; width:36px; height:36px; border-radius:50%; background:rgba(255,255,255,.14); border:1px solid rgba(255,255,255,.35);
+  display:flex; align-items:center; justify-content:center; text-decoration:none}
+.inicio svg{stroke:#fff}
 @media print{.inicio{display:none}}
 
 /* Logo no header */
 .hdr-logo{height:34px; width:auto; object-fit:contain; filter:brightness(0) invert(1); flex-shrink:0}
-.top-titles{min-width:0}
+.top-titles{min-width:0; flex:1}
 .top-title{font-size:16px; font-weight:800; line-height:1.1}
 .rel-logo{display:none}
 
@@ -99,6 +98,18 @@ input:focus,select:focus{outline:2px solid var(--v3); border-color:var(--v3)}
 .lote-btn.on{border:2px solid var(--v2); background:var(--v7); padding:11px 5px}
 .lote-btn.muted{color:var(--muted)}
 .lote-mudou{font-size:13px; color:var(--warn); font-weight:800; margin-top:8px}
+
+/* Lida (tempo de manejo) */
+.lida-ch{display:inline-block; border:1px solid var(--line); border-radius:10px; padding:8px 10px; margin:4px 4px 0 0; font-size:13px; font-weight:800; color:var(--v1); background:#fff; cursor:pointer; font-family:inherit}
+.lida-ch.on{border:2px solid var(--v2); background:var(--v7); padding:7px 9px}
+.lida-bar{margin:10px 16px 0; background:var(--v7); border:1px solid #cfe6cf; border-radius:12px; padding:9px 11px; font-size:13px; color:var(--v1)}
+.lida-bar.pausa{background:#FFF3E0; border-color:#f0c88a; color:#7a4a00}
+.lida-row{display:flex; align-items:center; gap:8px; flex-wrap:wrap}
+.lida-row .t{flex:1; min-width:150px; font-weight:800}
+.lida-kp{display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-top:8px}
+.lida-kp div{background:#f4f8f3; border-radius:10px; padding:7px 9px}
+.lida-kp b{display:block; font-size:17px; color:var(--v1)}
+.lida-kp span{font-size:11px; color:var(--muted); font-weight:700}
 
 /* Último lançado */
 .ult-bar{margin:10px 16px 0; background:#FFF8E1; border:1px solid #f0dca0; border-radius:12px; padding:8px 10px; font-size:13px; color:#5a4300}
@@ -368,10 +379,6 @@ input:focus,select:focus{outline:2px solid var(--v3); border-color:var(--v3)}
 </style>
 </head>
 <body>
-<a class="inicio" href="https://gestaopecuarialucrativa.com.br/painel">
-  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg>
-  Início
-</a>
 
 <div class="wrap">
   <div class="top">
@@ -380,10 +387,12 @@ input:focus,select:focus{outline:2px solid var(--v3); border-color:var(--v3)}
       <div class="top-title">Pesagem de Curral</div>
       <div class="sub" id="topSub">GPL · Gestão Pecuária Lucrativa</div>
     </div>
+    <a class="inicio" href="https://gestaopecuarialucrativa.com.br/painel" title="Início" aria-label="Início">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg>
+    </a>
     <div class="nav" id="nav">
       <button class="on" data-s="pesar" onclick="go('pesar')">Pesar</button>
       <button data-s="hoje" onclick="go('hoje')">Hoje</button>
-      <button data-s="falt" onclick="go('falt')">Faltas</button>
       <button data-s="relatorio" onclick="go('relatorio')">Relatório</button>
       <button data-s="dashboard" onclick="go('dashboard')">Análise</button>
       <button data-s="estoque" id="navEstoque" onclick="go('estoque')">Estoque</button>
@@ -416,6 +425,7 @@ input:focus,select:focus{outline:2px solid var(--v3); border-color:var(--v3)}
 
   <!-- ============ PESAR ============ -->
   <div class="screen on" id="scr-pesar">
+    <div id="lidaBox"></div>
     <div class="card stripe" id="pesarLoteCard" style="display:none;padding:10px 12px">
       <div style="display:flex;align-items:center;gap:8px">
       <span style="font-size:13px;font-weight:800;color:var(--v1);flex:none">Lote a pesar</span>
@@ -526,7 +536,7 @@ input:focus,select:focus{outline:2px solid var(--v3); border-color:var(--v3)}
       </div>
     </div>
 
-    <div class="print-only print-brand"><div class="pb-t">Gestão Pecuária Lucrativa</div><div class="pb-frase">"Pare de gerenciar no escuro — descubra o lucro real por hectare."</div></div><div id="relContent"></div><div class="print-only print-foot">gestaopecuarialucrativa.com.br · Rogério · Consultor GPL · (63) 99108-2453 · @gestaopecuarialucrativa</div>
+    <div class="print-only print-brand"><div class="pb-t">Gestão Pecuária Lucrativa</div><div class="pb-frase">"Pare de gerenciar no escuro — descubra o lucro real por hectare."</div></div><div id="lidaRel"></div><div id="relContent"></div><div class="print-only print-foot">gestaopecuarialucrativa.com.br · Rogério · Consultor GPL · (63) 99108-2453 · @gestaopecuarialucrativa</div>
 
   </div>
 
@@ -608,9 +618,6 @@ input:focus,select:focus{outline:2px solid var(--v3); border-color:var(--v3)}
       <button class="btn btn-ghost" style="margin-top:10px" onclick="exportXlsx()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M8 11l4 4 4-4"/><path d="M4 15v4a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-4"/></svg> Exportar planilha (.xlsx)</button>
       <button class="btn btn-ghost" style="margin-top:10px;border-color:var(--v2);color:var(--v2)" onclick="abrirConsolidado()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M9 3v18"/></svg> Exportar lote consolidado (.xlsx)</button>
       <button class="btn btn-ghost" style="margin-top:10px" onclick="syncSheets()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12a8 8 0 0 1 14-5l2 2"/><path d="M20 4v5h-5"/><path d="M20 12a8 8 0 0 1-14 5l-2-2"/><path d="M4 20v-5h5"/></svg> Sincronizar Google Sheets</button>
-      <label style="display:flex; align-items:center; gap:8px; margin-top:12px; font-weight:700; color:var(--ink); cursor:pointer">
-        <input type="checkbox" id="autoSyncChk" style="width:auto; margin:0" checked> Salvar automático (com internet)
-      </label>
       <div class="status-line" id="syncStatus">Dados salvos no aparelho. Sincronize quando tiver sinal.</div>
     </div>
 
@@ -656,6 +663,8 @@ input:focus,select:focus{outline:2px solid var(--v3); border-color:var(--v3)}
   <div class="modal">
     <div class="modal-h"><span>Finalizar pesagem do dia</span><span class="modal-x" onclick="closeFinalizar()">✕</span></div>
     <div id="finResumo"></div>
+    <div id="finLida"></div>
+    <div id="finConf" style="margin-top:12px"></div>
     <div class="fin-steps">
       <div class="fin-step">
         <button class="btn btn-primary" onclick="finSync()"><span class="fin-n">1</span> Salvar na planilha (nuvem)</button>
@@ -917,7 +926,7 @@ function load(){
     if(s){ const p=JSON.parse(s); if(p&&p.today){ state=p;
         if(!state.metaPeso) state.metaPeso=480;
         if(state.precoArroba==null) state.precoArroba=0;
-        if(state.autoSync==null) state.autoSync=true;
+        state.autoSync=true;   // sempre salva sozinho na planilha (não tem mais opção de desligar)
         if(!state.fazendaUrl) state.fazendaUrl=FAZENDA_URL_DEFAULT;
         if(!state.consumo) state.consumo={loaded:false,ts:null,tratos:[],est:{}};
         if(!state.precos) state.precos={};
@@ -1403,7 +1412,7 @@ function registrar(){
   }
   // 3) GMD ALTO (>1,400 kg/dia) — costuma ser numero do animal trocado
   if(gmd!=null && gmd>1.4){
-    if(!confirm("GMD muito alto: "+gmd.toFixed(3)+" kg/dia (animal "+numMostra+").\n\nO numero do animal esta certo? GMD assim costuma ser numero trocado.\n\nOK = salvar   |   Cancelar = conferir o numero")){
+    if(!confirm("GMD muito alto: "+fmtBR(gmd,3)+" kg/dia (animal "+numMostra+").\n\nO numero do animal esta certo? GMD assim costuma ser numero trocado.\n\nOK = salvar   |   Cancelar = conferir o numero")){
       if(numInEl){ numInEl.focus(); numInEl.select(); } return;
     }
   }
@@ -1427,7 +1436,7 @@ function registrar(){
   renderDetail(); renderHoje(); renderFooter(); renderFaltantes(); renderPesarResumo();
   scheduleAutoSync();
   const _ult=state.today[state.today.length-1];
-  okFlash(_ult);
+  okFlash(_ult); renderLida();
   renderUltimo();
   document.getElementById("numIn").focus();
 }
@@ -1487,6 +1496,232 @@ function resolverSuspeito(id, base){
   state.syncDirty=true; save();
   renderHoje(); renderFooter(); renderFaltantes(); renderPesarLoteInfo(); scheduleAutoSync();
   abrirSuspeitos();
+}
+
+
+/* ===================== CONFERÊNCIA DO REBANHO (no Finalizar) =====================
+   3 jeitos de pesar:
+   - todo:   pesou o rebanho todo hoje            -> falta quem não passou hoje
+   - etapas: rodada em vários fins de semana      -> falta quem não passou desde o início da rodada
+   - lotes:  só alguns lotes hoje                 -> confere só os lotes que passaram hoje
+   Vendidos nunca entram (refAtivos). */
+var _confModo='etapas', _confInicio=null;
+function addDaysISO(iso,n){ var d=new Date(iso+"T12:00:00"); d.setDate(d.getDate()+n); return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
+function _confDatasRecentes(){
+  var hoje=state.data||todayISO(), lim=addDaysISO(hoje,-60);
+  var ds=(_pesgDatas||[]).map(function(d){return d.data;}).filter(function(d){ return d<hoje && d>=lim; }).sort();
+  return ds;
+}
+function _confInicioPadrao(){
+  var hoje=state.data||todayISO(), lim=addDaysISO(hoje,-30);
+  var ds=_confDatasRecentes().filter(function(d){ return d>=lim; });
+  return ds.length? ds[0] : hoje;            // primeira pesagem dos últimos 30 dias
+}
+function _confCalc(){
+  if(!state.ref || !state.ref.loaded) return null;
+  var pesadosHoje=new Set(state.today.filter(function(t){return !t.incerto;}).map(function(t){return t.base;}));
+  var lotesHoje=new Set(state.today.map(function(t){return String(t.lote||"");}));
+  var ini=_confInicio||_confInicioPadrao();
+  var porLote={}, total=0, falt=0;
+  refAtivos().forEach(function(a){
+    var L=String(a.lote||"?");
+    if(_confModo==='lotes' && !lotesHoje.has(L)) return;
+    var g=(porLote[L]=porLote[L]||{tot:0,falt:[]}); g.tot++; total++;
+    if(pesadosHoje.has(a.base)) return;                                            // passou hoje
+    if(_confModo==='etapas' && a.dataAnterior && a.dataAnterior>=ini) return;      // passou nesta rodada
+    g.falt.push(a); falt++;
+  });
+  return {porLote:porLote, total:total, falt:falt, ini:ini};
+}
+function renderConferencia(){
+  var box=document.getElementById("finConf"); if(!box) return;
+  var h='<div style="font-size:14px;font-weight:800;color:var(--v1)">Conferência do rebanho — como foi a pesagem?</div>';
+  var c=_confCalc();
+  if(!c){ box.innerHTML=h+'<div class="hint">Sem pesagem anterior pra comparar.</div>'; return; }
+  function op(m,t,sub){ return '<div onclick="_confModo=\''+m+'\';renderConferencia()" style="cursor:pointer;margin-top:6px;border-radius:10px;padding:8px 10px;'+
+    (_confModo===m?'border:2px solid var(--v2);background:var(--v7)':'border:1px solid var(--line)')+'"><b style="color:var(--v1)">'+t+'</b><div class="hint" style="margin:2px 0 0">'+sub+'</div></div>'; }
+  var ds=_confDatasRecentes(), selIni='<select onclick="event.stopPropagation()" onchange="_confInicio=this.value;renderConferencia()" style="width:auto;display:inline-block;padding:3px 6px;font-size:13px;font-weight:700;color:var(--v1)">'+
+    (ds.length?ds:[c.ini]).map(function(d){ return '<option value="'+d+'"'+(d===c.ini?' selected':'')+'>'+isoToBR(d).slice(0,5)+'</option>'; }).join('')+'</select>';
+  h+=op('todo','Pesei o rebanho todo hoje','falta = quem não passou hoje');
+  h+=op('etapas','Pesagem em etapas (fins de semana)','a rodada começou em '+selIni+' — quem passou desde essa data já conta');
+  h+=op('lotes','Só os lotes de hoje','confere só os lotes que passaram hoje');
+  var pes=c.total-c.falt, pct=c.total?Math.round(pes/c.total*100):0;
+  h+='<div style="margin-top:10px;font-weight:800;color:var(--v1)">'+(_confModo==='etapas'?'Rodada desde '+isoToBR(c.ini).slice(0,5):_confModo==='todo'?'Rebanho todo':'Lotes de hoje')+'</div>'+
+     '<div class="hint" style="margin:0">'+pes+' de '+c.total+' pesados · faltam '+c.falt+'</div>'+
+     '<div style="height:9px;background:#e6ece5;border-radius:99px;overflow:hidden;margin-top:6px"><div style="width:'+pct+'%;height:100%;background:var(--v3)"></div></div>';
+  Object.keys(c.porLote).sort(function(a,b){return (parseInt(a)||99)-(parseInt(b)||99);}).forEach(function(L){
+    var g=c.porLote[L];
+    g.falt.sort(function(x,y){ return String(x.base).localeCompare(String(y.base),'pt',{numeric:true}); });
+    h+='<div style="margin-top:8px"><b style="color:var(--v1)">'+esc(loteLabel(L))+'</b> '+
+       (g.falt.length? '<span class="hint">faltam '+g.falt.length+' de '+g.tot+'</span><div class="lote-tags">'+g.falt.map(function(a){return '<span class="pill pill-grey">'+esc(a.brinco)+'</span>';}).join('')+'</div>'
+                     : '<span class="pill pill-green">completo ✓</span>')+'</div>';
+  });
+  if(c.falt) h+='<button class="btn btn-ghost btn-sm" style="margin-top:10px" onclick="shareConferencia()">Enviar faltantes pro vaqueiro</button>';
+  box.innerHTML=h;
+}
+function shareConferencia(){
+  var c=_confCalc(); if(!c) return;
+  var t="*FALTAM PESAR — GPL*\n";
+  if(state.fazenda) t+="Fazenda: "+state.fazenda+"\n";
+  t+="Data: "+isoToBR(state.data)+(_confModo==='etapas'?" (rodada desde "+isoToBR(c.ini)+")":"")+"\n";
+  Object.keys(c.porLote).sort(function(a,b){return (parseInt(a)||99)-(parseInt(b)||99);}).forEach(function(L){
+    var f=c.porLote[L].falt; if(!f.length) return;
+    t+="\n*"+loteLabel(L)+"* ("+f.length+"): "+f.map(function(a){return a.brinco;}).join(", ");
+  });
+  window.open("https://wa.me/?text="+encodeURIComponent(t),"_blank");
+}
+
+/* ===================== LIDA: tempo de manejo ===================== */
+var LIDA_TIPOS=["Pesagem","Vermífugo","Vacina","Brinco","Marca a fogo","Castração","Apartação/desmama","Mosquicida/carrapaticida","IATF"];
+var LIDA_MOTIVOS=["Almoço","Chuva","Brete/curral","Gado fugiu","Outro"];
+var _lidaNova={tipos:["Pesagem"], pessoas:2, aberta:false}, _lidaPausaEsc=false, _lidaHist=null;
+function _lidaTiposExtras(){
+  var ex=[]; (_lidaHist||[]).forEach(function(l){ String(l.tipos||"").split(/\s*,\s*/).forEach(function(t){ if(t && LIDA_TIPOS.indexOf(t)<0 && ex.indexOf(t)<0) ex.push(t); }); });
+  return ex;
+}
+function _hm(min){ min=Math.max(0,Math.round(min)); var h=Math.floor(min/60), m=min%60; return h? (h+"h"+String(m).padStart(2,"0")) : (m+" min"); }
+function _hora(ms){ var d=new Date(ms); return String(d.getHours()).padStart(2,"0")+":"+String(d.getMinutes()).padStart(2,"0"); }
+/* conta: tempo ativo (sem pausas), animais/hora, por pessoa, manhã x tarde, paradas por motivo */
+function lidaCalc(l){
+  var end=l.fim||Date.now(), MIN=60000, LIM=15*MIN;
+  var man=(l.pausas||[]).slice(); if(l.emPausa) man.push({ini:l.emPausa.ini, fim:end, motivo:l.emPausa.motivo});
+  function ov(a,b){ var t=0; man.forEach(function(p){ t+=Math.max(0, Math.min(b,p.fim)-Math.max(a,p.ini)); }); return t; }
+  var tms=state.today.map(function(t){ return parseInt(String(t.id||"").split("_")[0],10); }).filter(function(ms){ return ms>=l.inicio && ms<=end; }).sort(function(a,b){return a-b;});
+  var pts=[l.inicio].concat(tms).concat([end]);
+  var auto=0, manha={n:0,ms:0}, tarde={n:0,ms:0};
+  for(var i=0;i<pts.length-1;i++){
+    var a=pts[i], b=pts[i+1], idle=(b-a)-ov(a,b);
+    if(idle>LIM){ auto+=idle; continue; }
+    var meio=new Date((a+b)/2); (meio.getHours()<12?manha:tarde).ms+=idle;
+  }
+  tms.forEach(function(ms){ (new Date(ms).getHours()<12?manha:tarde).n++; });
+  var manualMs=0, motivos={}; man.forEach(function(p){ var d=Math.max(0,p.fim-p.ini); manualMs+=d; motivos[p.motivo]=(motivos[p.motivo]||0)+d/MIN; });
+  if(auto) motivos["Parada sem registro"]=auto/MIN;
+  var ativoMs=Math.max(0,(end-l.inicio)-manualMs-auto), h=ativoMs/3600000;
+  return {animais:tms.length, minAtivo:ativoMs/MIN, minPausa:(manualMs+auto)/MIN, porHora:h>0.05?tms.length/h:null,
+          porPessoaHora:(h>0.05&&l.pessoas)?tms.length/h/l.pessoas:null,
+          manha:{n:manha.n,min:manha.ms/MIN}, tarde:{n:tarde.n,min:tarde.ms/MIN}, motivos:motivos};
+}
+function renderLida(soTempo){
+  var box=document.getElementById("lidaBox"); if(!box) return;
+  var l=state.lida;
+  if(l && !l.fim && l.data && l.data!==(state.data||todayISO())) l=null;   // lida de outro dia não aparece
+  if(!l || l.fim){
+    if(soTempo) return;
+    if(!_lidaNova.aberta){
+      box.innerHTML='<div class="lida-bar" style="display:flex;align-items:center;gap:8px"><span style="flex:1;font-weight:800">Marcar o tempo da lida</span>'+
+        '<button type="button" class="ult-btn" style="border-color:var(--v2);color:var(--v1)" onclick="_lidaNova.aberta=true;renderLida()">Iniciar lida</button></div>';
+      return;
+    }
+    var tipos=LIDA_TIPOS.concat(_lidaTiposExtras());
+    var h='<div class="card stripe"><h2 style="margin-bottom:4px">Iniciar lida</h2><div class="hint">O que vai fazer (pode marcar mais de um)</div><div>';
+    tipos.forEach(function(t){ h+='<button type="button" class="lida-ch'+(_lidaNova.tipos.indexOf(t)>=0?' on':'')+'" onclick="lidaTipo(\''+esc(t).replace(/'/g,"\\'")+'\')">'+esc(t)+'</button>'; });
+    h+='<button type="button" class="lida-ch" onclick="lidaTipoOutro()">+ Outro</button></div>';
+    h+='<div class="hint" style="margin-top:10px">Pessoas na lida</div><div style="display:flex;align-items:center;gap:12px;margin-top:4px">'+
+       '<button type="button" class="lida-ch" onclick="_lidaNova.pessoas=Math.max(1,_lidaNova.pessoas-1);renderLida()">−</button>'+
+       '<b style="font-size:22px;color:var(--v1);min-width:24px;text-align:center">'+_lidaNova.pessoas+'</b>'+
+       '<button type="button" class="lida-ch" onclick="_lidaNova.pessoas=Math.min(30,_lidaNova.pessoas+1);renderLida()">+</button></div>';
+    h+='<div style="display:flex;gap:8px;margin-top:12px"><button class="btn btn-primary" onclick="lidaIniciar()">Começar agora ('+_hora(Date.now())+')</button>'+
+       '<button class="btn btn-ghost" style="width:auto" onclick="_lidaNova.aberta=false;renderLida()">Cancelar</button></div></div>';
+    box.innerHTML=h; return;
+  }
+  var c=lidaCalc(l);
+  if(l.emPausa){
+    box.innerHTML='<div class="lida-bar pausa"><div class="lida-row"><span class="t">Pausado: '+esc(l.emPausa.motivo)+' · '+_hm((Date.now()-l.emPausa.ini)/60000)+'</span>'+
+      '<button type="button" class="ult-btn" onclick="lidaVoltar()">Voltar à lida</button></div></div>';
+    return;
+  }
+  var h='<div class="lida-bar"><div class="lida-row"><span class="t">Lida '+_hm(c.minAtivo)+' · '+c.animais+' animais'+(c.porHora!=null?' · '+fmtBR(c.porHora,0)+' por hora':'')+' · '+l.pessoas+(l.pessoas>1?' pessoas':' pessoa')+'</span>'+
+    '<button type="button" class="ult-btn" onclick="_lidaPausaEsc=!_lidaPausaEsc;renderLida()">Pausar</button>'+
+    '<button type="button" class="ult-btn" style="border-color:var(--v2);color:var(--v1)" onclick="if(confirm(\'Encerrar a lida agora?\'))lidaEncerrar()">Encerrar</button></div>';
+  if(_lidaPausaEsc){
+    h+='<div class="hint" style="margin-top:6px">Motivo da parada:</div><div>'+LIDA_MOTIVOS.map(function(m){ return '<button type="button" class="lida-ch" onclick="lidaPausar(\''+m+'\')">'+m+'</button>'; }).join('')+'</div>';
+  }
+  h+='<div style="font-size:11px;margin-top:3px;opacity:.85">'+esc(l.tipos.join(" + "))+' · começou '+_hora(l.inicio)+(c.minPausa>=1?' · parado '+_hm(c.minPausa):'')+'</div></div>';
+  box.innerHTML=h;
+}
+function lidaTipo(t){ var i=_lidaNova.tipos.indexOf(t); if(i>=0) _lidaNova.tipos.splice(i,1); else _lidaNova.tipos.push(t); renderLida(); }
+function lidaTipoOutro(){ var n=(prompt("Nome do manejo:")||"").trim(); if(!n) return; if(LIDA_TIPOS.indexOf(n)<0 && _lidaTiposExtras().indexOf(n)<0) (_lidaHist=_lidaHist||[]).push({tipos:n}); if(_lidaNova.tipos.indexOf(n)<0) _lidaNova.tipos.push(n); renderLida(); }
+function lidaIniciar(){
+  if(!_lidaNova.tipos.length){ alert("Marque o que vai fazer na lida."); return; }
+  if(!String(state.fazenda||"").trim()){ alert("Escolha a fazenda primeiro."); return; }
+  state.lida={id:"L"+Date.now(), fazenda:state.fazenda, data:state.data||todayISO(), inicio:Date.now(), fim:null,
+              tipos:_lidaNova.tipos.slice(), pessoas:_lidaNova.pessoas, pausas:[], emPausa:null};
+  _lidaNova.aberta=false; state.lidaDirty=true; state.lidaVer=(state.lidaVer||0)+1; save(); renderLida(); lidaSync();
+}
+function lidaPausar(m){
+  var l=state.lida; if(!l||l.fim) return;
+  if(m==="Outro"){ var x=(prompt("Motivo da parada:")||"").trim(); if(x) m=x; }
+  l.emPausa={ini:Date.now(), motivo:m}; _lidaPausaEsc=false; state.lidaDirty=true; state.lidaVer=(state.lidaVer||0)+1; save(); renderLida(); lidaSync();
+}
+function lidaVoltar(){
+  var l=state.lida; if(!l||!l.emPausa) return;
+  l.pausas.push({ini:l.emPausa.ini, fim:Date.now(), motivo:l.emPausa.motivo}); l.emPausa=null;
+  state.lidaDirty=true; state.lidaVer=(state.lidaVer||0)+1; save(); renderLida(); lidaSync();
+}
+function lidaEncerrar(silencioso){
+  var l=state.lida; if(!l||l.fim) return;
+  if(l.emPausa) lidaVoltar();
+  l.fim=Date.now(); state.lidaDirty=true; state.lidaVer=(state.lidaVer||0)+1; save(); renderLida(); lidaSync();
+  if(!silencioso){ var c=lidaCalc(l); alert("Lida encerrada\n\n"+_hm(c.minAtivo)+" de trabalho · "+c.animais+" animais"+(c.porHora!=null?"\n"+fmtBR(c.porHora,0)+" animais por hora · "+fmtBR(c.porPessoaHora,1)+" por pessoa/hora":"")+(c.minPausa>=1?"\nParado: "+_hm(c.minPausa):"")); }
+}
+function renderFinLida(){
+  var box=document.getElementById("finLida"); if(!box) return;
+  var l=state.lida; if(!l || l.data!==(state.data||todayISO())){ box.innerHTML=''; return; }
+  var c=lidaCalc(l);
+  box.innerHTML='<div style="margin-top:12px;font-size:14px;font-weight:800;color:var(--v1)">Resumo da lida'+(l.fim?'':' (ainda aberta — encerra ao concluir)')+'</div>'+
+    '<div class="lida-kp"><div><span>Tempo de trabalho</span><b>'+_hm(c.minAtivo)+'</b></div><div><span>Animais</span><b>'+c.animais+'</b></div>'+
+    '<div><span>Por hora</span><b>'+(c.porHora!=null?fmtBR(c.porHora,0):'—')+'</b></div><div><span>Por pessoa/hora</span><b>'+(c.porPessoaHora!=null?fmtBR(c.porPessoaHora,1):'—')+'</b></div></div>'+
+    (c.minPausa>=1?'<div class="hint" style="margin-top:6px">Parado: '+Object.keys(c.motivos).map(function(k){return esc(k)+' '+_hm(c.motivos[k]);}).join(' · ')+'</div>':'');
+}
+/* grava a lida na planilha (aba Lidas) — uma linha por lida, atualiza a mesma linha */
+var _lidaSyncing=false, _lidaDeNovo=false;
+async function lidaSync(){
+  var l=state.lida; if(!l || !state.lidaDirty) return;
+  if(_lidaSyncing){ _lidaDeNovo=true; return; }
+  if(typeof navigator!=="undefined" && navigator.onLine===false) return;
+  _lidaSyncing=true; _lidaDeNovo=false;
+  var verEnviada=state.lidaVer||0;
+  try{
+    var c=lidaCalc(l);
+    var payload={action:"lida_salvar", data:{token:gplToken(), fazenda:l.fazenda, lida:{
+      id:l.id, data:l.data, inicio:_hora(l.inicio), fim:l.fim?_hora(l.fim):"", tipos:l.tipos.join(", "), pessoas:l.pessoas,
+      animais:c.animais, min_ativo:Math.round(c.minAtivo), min_parado:Math.round(c.minPausa),
+      por_hora:c.porHora!=null?+c.porHora.toFixed(1):"", por_pessoa_hora:c.porPessoaHora!=null?+c.porPessoaHora.toFixed(2):"",
+      manha_animais:c.manha.n, manha_min:Math.round(c.manha.min), tarde_animais:c.tarde.n, tarde_min:Math.round(c.tarde.min),
+      paradas:JSON.stringify(Object.keys(c.motivos).map(function(k){return {motivo:k, min:Math.round(c.motivos[k])};})),
+      aberta:!l.fim }}};
+    var res=await fetch(BACKEND_URL,{method:"POST",body:JSON.stringify(payload)});
+    var j=null; try{ j=JSON.parse(await res.text()); }catch(e){}
+    if((!j || j.ok!==false) && (state.lidaVer||0)===verEnviada){ state.lidaDirty=false; save(); }
+  }catch(e){ /* sem sinal: tenta de novo depois */ }
+  finally{ _lidaSyncing=false; if(_lidaDeNovo || state.lidaDirty) setTimeout(lidaSync, 1500); }
+}
+setInterval(function(){ if(state && state.lida && (state.lidaDirty || !state.lida.fim)){ if(!state.lida.fim) state.lidaDirty=true; lidaSync(); } }, 120000);
+window.addEventListener("online", function(){ lidaSync(); });
+/* Relatório: indicadores das lidas desta fazenda (lidas da planilha) */
+async function renderLidaRel(){
+  var box=document.getElementById("lidaRel"); if(!box) return;
+  var faz=state.fazenda||gplFazendaLock()||""; if(!faz){ box.innerHTML=''; return; }
+  try{
+    var r=await jsonp(BACKEND_URL+"?acao=lida_ler&token="+encodeURIComponent(gplToken())+"&fazenda="+encodeURIComponent(faz));
+    _lidaHist=(r&&r.lidas)?r.lidas:[];
+  }catch(e){ if(!_lidaHist){ box.innerHTML=''; return; } }
+  var L=(_lidaHist||[]).slice().sort(function(a,b){ return String(b.data+b.inicio).localeCompare(String(a.data+a.inicio)); });
+  if(!L.length){ box.innerHTML='<div class="rel-card"><div class="rel-lote-title">Indicadores da lida</div><div class="hint">Nenhuma lida marcada ainda. Na tela Pesar, toque em "Iniciar lida" antes de começar.</div></div>'; return; }
+  var mN=0,mM=0,tN=0,tM=0, par={};
+  L.forEach(function(x){ mN+=+x.manha_animais||0; mM+=+x.manha_min||0; tN+=+x.tarde_animais||0; tM+=+x.tarde_min||0;
+    try{ JSON.parse(x.paradas||"[]").forEach(function(p){ par[p.motivo]=(par[p.motivo]||0)+(+p.min||0); }); }catch(e){} });
+  var h='<div class="rel-card"><div class="rel-lote-title">Indicadores da lida</div>';
+  L.slice(0,8).forEach(function(x){
+    h+='<div class="pr-row"><span class="pr-lote" style="min-width:48px">'+isoToBR(x.data).slice(0,5)+'</span><span class="pr-info">'+esc(x.tipos||"")+' · '+(+x.animais||0)+' cab · '+_hm(+x.min_ativo||0)+' · '+(+x.pessoas||0)+' pess.'+(String(x.aberta)==="true"||x.aberta===true?' · <i>aberta</i>':'')+'</span>'+
+       '<b style="color:var(--v1)">'+(x.por_hora!==""&&x.por_hora!=null?fmtBR(+x.por_hora,0)+'/h':'—')+'</b></div>';
+  });
+  h+='<div class="lida-kp"><div><span>Manhã</span><b>'+(mM>5?fmtBR(mN/(mM/60),0)+'/h':'—')+'</b></div><div><span>Tarde</span><b>'+(tM>5?fmtBR(tN/(tM/60),0)+'/h':'—')+'</b></div></div>';
+  var pk=Object.keys(par).filter(function(k){return par[k]>=1;}).sort(function(a,b){return par[b]-par[a];});
+  if(pk.length) h+='<div class="hint" style="margin-top:8px">Tempo parado (todas as lidas): '+pk.map(function(k){return esc(k)+' '+_hm(par[k]);}).join(' · ')+'</div>';
+  h+='<div class="hint" style="margin-top:4px">Parada de mais de 15 min sem animal pesado conta como parada, não como trabalho.</div></div>';
+  box.innerHTML=h;
 }
 
 /* ---------- conferir o último lançado SEM parar o serviço ---------- */
@@ -1574,7 +1809,7 @@ function renderPesarResumo(){
     const media=s.peso/s.qtd, gmd=s.gmdN?s.gmdSum/s.gmdN:null;
     const fora=CATEG_FORA_GMD.indexOf(i)>=0;
     html+='<div class="pr-row"><span class="pr-lote">'+loteLabel(i)+'</span>'+
-          '<span class="pr-info">'+s.qtd+' cab \u00b7 '+media.toFixed(0)+'kg ('+(media/AR_DIV).toFixed(1)+'@)<br><span style="font-size:11px">'+(fora?'fora do GMD geral':'GMD de '+s.gmdN+' de '+s.qtd)+'</span></span>'+
+          '<span class="pr-info">'+s.qtd+' cab \u00b7 '+fmtBR(media,0)+'kg ('+fmtBR((media/AR_DIV),1)+'@)<br><span style="font-size:11px">'+(fora?'fora do GMD geral':'GMD de '+s.gmdN+' de '+s.qtd)+'</span></span>'+
           '<span class="pill '+(gmd!=null&&!fora?"pill-green":"pill-grey")+'">GMD '+(gmd!=null?fmtBR(gmd,3):"\u2014")+'</span></div>';
   }
   if(html){ box.innerHTML=html; card.style.display="block"; }
@@ -1586,7 +1821,7 @@ function renderResumoLotes(){
     const media=s.peso/s.qtd, gmd=s.gmdN?s.gmdSum/s.gmdN:null;
     const fora=CATEG_FORA_GMD.indexOf(i)>=0;
     html+=`<div class="item"><div class="b">${loteLabel(i)}</div>
-      <div class="m">${s.qtd} animais · média ${media.toFixed(0)}kg (${(media/AR_DIV).toFixed(1)}@)<br><span style="font-size:11px">${fora?'fora do GMD geral':'GMD de '+s.gmdN+' de '+s.qtd}</span></div>
+      <div class="m">${s.qtd} animais · média ${fmtBR(media,0)}kg (${fmtBR((media/AR_DIV),1)}@)<br><span style="font-size:11px">${fora?'fora do GMD geral':'GMD de '+s.gmdN+' de '+s.qtd}</span></div>
       <span class="pill ${gmd!=null&&!fora?'pill-green':'pill-grey'}">GMD ${gmd!=null?fmtBR(gmd,3):'—'}</span></div>`;
   }
   document.getElementById("resumoLotes").innerHTML = html || '<p class="empty">Nenhum lote pesado ainda.</p>';
@@ -1615,7 +1850,7 @@ function renderList(){
     <div class="item">
       <div class="item-main" onclick="openAnimal('${t.id}')">
         <div class="b">${esc(t.brinco)}</div>
-        <div class="m">${t.peso}kg · GMD ${t.gmd!=null?t.gmd.toFixed(3):"—"}${t.incerto?' · <span style="color:var(--warn)">incerto</span>':''}${t.obs?' · '+esc(t.obs):''}</div>
+        <div class="m">${t.peso}kg · GMD ${t.gmd!=null?fmtBR(t.gmd,3):"—"}${t.incerto?' · <span style="color:var(--warn)">incerto</span>':''}${t.obs?' · '+esc(t.obs):''}</div>
       </div>
       <select class="lote-edit" title="Trocar lote" onchange="changeLote('${t.id}', this.value)">${loteOptions(t.lote)}</select>
       <div class="x" onclick="removeItem('${t.id}')">✕</div>
@@ -1657,8 +1892,8 @@ function mRecalc(){
   info.innerHTML=
     '<div class="mi"><span class="k">Última pesagem</span><span class="v">'+(_editRef.pesoAnterior!=null?_editRef.pesoAnterior+" kg":"—")+(_editRef.dataAnterior?" ("+isoToBR(_editRef.dataAnterior)+")":"")+'</span></div>'+
     '<div class="mi"><span class="k">Dias no período</span><span class="v">'+(dias!=null?dias:"—")+'</span></div>'+
-    '<div class="mi"><span class="k">Ganho de peso</span><span class="v">'+(ganho!=null?(ganho>=0?"+":"")+ganho.toFixed(0)+" kg":"—")+'</span></div>'+
-    '<div class="mi"><span class="k">GMD</span><span class="v">'+(gmd!=null?gmd.toFixed(3)+" kg/dia":"—")+'</span></div>'+
+    '<div class="mi"><span class="k">Ganho de peso</span><span class="v">'+(ganho!=null?(ganho>=0?"+":"")+fmtBR(ganho,0)+" kg":"—")+'</span></div>'+
+    '<div class="mi"><span class="k">GMD</span><span class="v">'+(gmd!=null?fmtBR(gmd,3)+" kg/dia":"—")+'</span></div>'+
     '<div class="mi"><span class="k">Obs. anterior</span><span class="v" style="font-weight:700">'+(_editRef.obsAnterior?esc(_editRef.obsAnterior):"—")+'</span></div>';
 }
 function saveAnimal(){
@@ -2055,7 +2290,7 @@ function pesarPreencherLoteSel(){
 function pesarSetLote(){
   var sel=document.getElementById('pesarLoteSel');
   _pesarLote=sel?sel.value:'';
-  renderPesarLoteInfo();
+  renderPesarLoteInfo(); renderFooter();
 }
 function renderPesarLoteInfo(){
   var box=document.getElementById('pesarLoteInfo');
@@ -2086,11 +2321,14 @@ function renderFooter(){
   // GMD geral = só gado de recria/engorda (vaca, reprodutor, bezerro, enfermaria e compra ficam fora)
   var fGmdSub=document.getElementById("fGmdSub");
   if(fGmdSub) fGmdSub.textContent = gq? gn+" de "+gq+" animais" : "";
-  if(state.ref.loaded){
+  // "Faltam" = só do lote que está sendo pesado (sem lote escolhido, não mostra)
+  var fF=document.getElementById("fFalt"), fFw=fF?fF.parentNode:null;
+  if(state.ref.loaded && _pesarLote){
     const pesados=new Set(state.today.filter(t=>!t.incerto).map(t=>t.base));
-    const falt=refAtivos().filter(a=>!pesados.has(a.base)).length;
-    document.getElementById("fFalt").textContent=falt;
-  } else document.getElementById("fFalt").textContent="—";
+    const falt=refAtivos().filter(a=>String(a.lote||"")===String(_pesarLote) && !pesados.has(a.base)).length;
+    fF.textContent=falt; if(fFw) fFw.style.display="";
+    var lb=fFw?fFw.querySelector(".lbl"):null; if(lb) lb.textContent="Faltam "+loteLabel(_pesarLote);
+  } else { if(fF) fF.textContent="—"; if(fFw) fFw.style.display="none"; }
 }
 
 function renderConfig(){
@@ -2122,10 +2360,10 @@ function renderConfig(){
    ============================================================ */
 function gmdClassify(gmd){
   if(gmd==null) return {cls:"warn", icon:"⚠", label:"Sem dados de GMD", sub:"Necessário peso anterior para calcular", css:"rel-s-warn"};
-  if(gmd>=0.5)  return {cls:"great", icon:"🟢", label:"Desempenho excelente", sub:`${gmd.toFixed(3)} kg/dia — acima do esperado`, css:"rel-s-great"};
-  if(gmd>=0.35) return {cls:"ok",    icon:"✅", label:"Dentro do esperado", sub:`${gmd.toFixed(3)} kg/dia — siga com a estratégia atual`, css:"rel-s-ok"};
-  if(gmd>=0.18) return {cls:"warn",  icon:"⚠️", label:"Abaixo do esperado", sub:`${gmd.toFixed(3)} kg/dia — revisar suplementação`, css:"rel-s-warn"};
-  return {cls:"bad", icon:"🔴", label:"Desempenho crítico", sub:`${gmd.toFixed(3)} kg/dia — intervenção necessária`, css:"rel-s-bad"};
+  if(gmd>=0.5)  return {cls:"great", icon:'<svg width="16" height="16" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8" fill="#2E7D32"/></svg>', label:"Desempenho excelente", sub:`${fmtBR(gmd,3)} kg/dia — acima do esperado`, css:"rel-s-great"};
+  if(gmd>=0.35) return {cls:"ok",    icon:'<svg width="16" height="16" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8" fill="#4CAF50"/></svg>', label:"Dentro do esperado", sub:`${fmtBR(gmd,3)} kg/dia — siga com a estratégia atual`, css:"rel-s-ok"};
+  if(gmd>=0.18) return {cls:"warn",  icon:'<svg width="16" height="16" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8" fill="#c9820a"/></svg>', label:"Abaixo do esperado", sub:`${fmtBR(gmd,3)} kg/dia — revisar suplementação`, css:"rel-s-warn"};
+  return {cls:"bad", icon:'<svg width="16" height="16" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8" fill="#c0392b"/></svg>', label:"Desempenho crítico", sub:`${fmtBR(gmd,3)} kg/dia — intervenção necessária`, css:"rel-s-bad"};
 }
 
 function svgBars(items, opts){
@@ -2149,14 +2387,14 @@ function svgBars(items, opts){
     const col=it.color||"#2E7D32";
     bars+='<rect x="'+x.toFixed(1)+'" y="'+y.toFixed(1)+'" width="'+w.toFixed(1)+'" height="'+bh.toFixed(1)+'" rx="4" fill="'+col+'"/>';
     bars+='<text x="'+(x+w/2).toFixed(1)+'" y="'+(y-4).toFixed(1)+'" text-anchor="middle" font-size="11" font-weight="700" fill="#1B5E20">'+
-          (val.toFixed(dec))+'</text>';
+          (fmtBR(val,dec))+'</text>';
     bars+='<text x="'+(x+w/2).toFixed(1)+'" y="'+(y0+16).toFixed(1)+'" text-anchor="middle" font-size="11" fill="#5f6b60">'+esc(it.label)+'</text>';
   });
   let tline="";
   if(target!=null){
     const ty=y0-(target/max*plotH);
     tline='<line x1="'+padL+'" y1="'+ty.toFixed(1)+'" x2="'+(W-padR)+'" y2="'+ty.toFixed(1)+'" stroke="#c9820a" stroke-width="1.5" stroke-dasharray="5 4"/>'+
-          '<text x="'+(W-padR)+'" y="'+(ty-4).toFixed(1)+'" text-anchor="end" font-size="10" fill="#c9820a">meta '+target.toFixed(dec)+unit+'</text>';
+          '<text x="'+(W-padR)+'" y="'+(ty-4).toFixed(1)+'" text-anchor="end" font-size="10" fill="#c9820a">meta '+fmtBR(target,dec)+unit+'</text>';
   }
   return '<svg viewBox="0 0 '+W+' '+H+'" xmlns="http://www.w3.org/2000/svg">'+
     '<line x1="'+padL+'" y1="'+y0+'" x2="'+(W-padR)+'" y2="'+y0+'" stroke="#e0e7e0" stroke-width="1"/>'+
@@ -2189,15 +2427,15 @@ function renderDashboard(){
   if(!lotes.length){ box.innerHTML='<div class="dash-empty">Nenhum animal pesado ainda.<br>Registre pesagens para ver o painel.</div>'; return; }
 
   let pesoSum=0,pesoN=0,gs=0,gn=0;
-  for(let i=1;i<=N_LOTES;i++){ pesoSum+=st[i].peso; pesoN+=st[i].qtd; gs+=st[i].gmdSum; gn+=st[i].gmdN; }
+  for(let i=1;i<=N_LOTES;i++){ pesoSum+=st[i].peso; pesoN+=st[i].qtd; if(CATEG_FORA_GMD.indexOf(i)<0){ gs+=st[i].gmdSum; gn+=st[i].gmdN; } }
   const pesoMed=pesoN?pesoSum/pesoN:0;
   const gmdMed=gn?gs/gn:0;
 
   // KPIs
   let html='<div class="dash-kpis">'+
     '<div class="dash-kpi"><div class="k">Animais pesados</div><div class="v">'+state.today.length+'</div><div class="s">'+lotes.length+' lotes</div></div>'+
-    '<div class="dash-kpi"><div class="k">GMD médio</div><div class="v">'+(gmdMed?gmdMed.toFixed(3):"—")+'</div><div class="s">kg/cab/dia</div></div>'+
-    '<div class="dash-kpi"><div class="k">Peso médio</div><div class="v">'+Math.round(pesoMed)+'</div><div class="s">kg · '+(pesoMed/AR_DIV).toFixed(1)+' @</div></div>'+
+    '<div class="dash-kpi"><div class="k">GMD médio</div><div class="v">'+(gmdMed?fmtBR(gmdMed,3):"—")+'</div><div class="s">kg/cab/dia</div></div>'+
+    '<div class="dash-kpi"><div class="k">Peso médio</div><div class="v">'+Math.round(pesoMed)+'</div><div class="s">kg · '+fmtBR((pesoMed/AR_DIV),1)+' @</div></div>'+
     '<div class="dash-kpi"><div class="k">Arroba total</div><div class="v">'+Math.round(pesoSum/AR_DIV)+'</div><div class="s">@ no curral</div></div>'+
   '</div>';
 
@@ -2210,7 +2448,7 @@ function renderDashboard(){
   // Gráfico peso médio (@) por lote
   const pesoData=lotes.map(function(L){ return {label:"L"+L, value:(st[L].peso/st[L].qtd)/AR_DIV, color:"#2E7D32"}; });
   const metaAr=(parseFloat(state.metaPeso)||480)/AR_DIV;
-  html+='<div class="dash-chart"><h3>Peso médio por lote</h3><div class="cap">arrobas (@) — linha = meta '+metaAr.toFixed(1)+'@</div>'+
+  html+='<div class="dash-chart"><h3>Peso médio por lote</h3><div class="cap">arrobas (@) — linha = meta '+fmtBR(metaAr,1)+'@</div>'+
         svgBars(pesoData,{dec:1, target:metaAr, unit:"@"})+'</div>';
 
   // Gráfico retorno econômico (margem R$/cab/dia) — se houver dados
@@ -2252,10 +2490,10 @@ function renderRelatorio(){
   for(const L of lotesAtivos){
     const s=st[L];
     const media=s.peso/s.qtd;
-    const ar=(media/AR_DIV).toFixed(1);
+    const ar=fmtBR((media/AR_DIV),1);
     const gmd=s.gmdN?s.gmdSum/s.gmdN:null;
     const diasMedio=s.diasN?s.diasSum/s.diasN:null;
-    const ganhoTotal=gmd!=null&&diasMedio!=null?(gmd*diasMedio).toFixed(1):null;
+    const ganhoTotal=gmd!=null&&diasMedio!=null?fmtBR((gmd*diasMedio),1):null;
     const cls=gmdClassify(gmd);
 
     // Projeção de venda
@@ -2264,15 +2502,15 @@ function renderRelatorio(){
       projHtml=`<div class="rel-proj">
         <div class="rel-proj-title">PROJEÇÃO DE VENDA</div>
         <div class="rel-proj-row"><span class="rel-proj-label">Status</span><span class="rel-proj-val highlight">✓ Meta atingida — prontos para venda</span></div>
-        <div class="rel-proj-row"><span class="rel-proj-label">Peso médio atual</span><span class="rel-proj-val">${media.toFixed(0)} kg (${ar}@)</span></div>
-        <div class="rel-proj-row"><span class="rel-proj-label">Meta de abate</span><span class="rel-proj-val">${meta} kg (${(meta/AR_DIV).toFixed(1)}@)</span></div>
+        <div class="rel-proj-row"><span class="rel-proj-label">Peso médio atual</span><span class="rel-proj-val">${fmtBR(media,0)} kg (${ar}@)</span></div>
+        <div class="rel-proj-row"><span class="rel-proj-label">Meta de abate</span><span class="rel-proj-val">${meta} kg (${fmtBR((meta/AR_DIV),1)}@)</span></div>
       </div>`;
     } else if(gmd && gmd>0){
-      const faltaKg=(meta-media).toFixed(0);
+      const faltaKg=fmtBR((meta-media),0);
       const diasRestantes=Math.round((meta-media)/gmd);
       const dataPrev=addDays(state.data, diasRestantes);
       projHtml=`<div class="rel-proj">
-        <div class="rel-proj-title">PROJEÇÃO DE VENDA — meta ${meta} kg (${(meta/AR_DIV).toFixed(1)}@)</div>
+        <div class="rel-proj-title">PROJEÇÃO DE VENDA — meta ${meta} kg (${fmtBR((meta/AR_DIV),1)}@)</div>
         <div class="rel-proj-row"><span class="rel-proj-label">Faltam por animal</span><span class="rel-proj-val highlight">${faltaKg} kg</span></div>
         <div class="rel-proj-row"><span class="rel-proj-label">Dias estimados</span><span class="rel-proj-val">${diasRestantes} dias ao ritmo atual</span></div>
         <div class="rel-proj-row"><span class="rel-proj-label">Previsão de venda</span><span class="rel-proj-val highlight">${isoToBR(dataPrev)} (${mesAno(dataPrev)})</span></div>
@@ -2280,7 +2518,7 @@ function renderRelatorio(){
     } else {
       projHtml=`<div class="rel-proj">
         <div class="rel-proj-title">PROJEÇÃO DE VENDA — meta ${meta} kg</div>
-        <div class="rel-proj-row"><span class="rel-proj-label">Faltam por animal</span><span class="rel-proj-val">${(meta-media).toFixed(0)} kg</span></div>
+        <div class="rel-proj-row"><span class="rel-proj-label">Faltam por animal</span><span class="rel-proj-val">${fmtBR((meta-media),0)} kg</span></div>
         <div class="rel-proj-row"><span class="rel-proj-label">Data estimada</span><span class="rel-proj-val">— (sem GMD calculado)</span></div>
       </div>`;
     }
@@ -2294,12 +2532,12 @@ function renderRelatorio(){
       <div class="rel-nums">
         <div>
           <div class="rel-k">Peso médio</div>
-          <div class="rel-v">${media.toFixed(0)} kg</div>
+          <div class="rel-v">${fmtBR(media,0)} kg</div>
           <div class="rel-v-sub">${ar} arrobas</div>
         </div>
         <div>
           <div class="rel-k">GMD do período</div>
-          <div class="rel-v rel-gmd-big">${gmd!=null?gmd.toFixed(3):'—'}</div>
+          <div class="rel-v rel-gmd-big">${gmd!=null?fmtBR(gmd,3):'—'}</div>
           <div class="rel-v-sub">${gmd!=null?'kg / cab / dia':'sem referência'}</div>
         </div>
       </div>
@@ -2340,8 +2578,8 @@ function gmdGlobalHTML(gmd){
   var cls=acima?"rel-s-ok":"rel-s-bad";
   var pctTxt=pct?(" ("+(acima?"+":"")+pct+"%)"):"";
   var h="<div class=\"rel-gmdg\">";
-  h+="<div class=\"rel-gmdg-row\"><span>GMD do lote <b>"+gmd.toFixed(3)+"</b></span><span>GMD global fazenda <b>"+g.toFixed(3)+"</b></span></div>";
-  h+="<div class=\"rel-gmdg-diff "+cls+"\">"+(acima?"+":"")+diff.toFixed(3)+" kg/dia "+(acima?"acima":"abaixo")+" da média da fazenda"+pctTxt+"</div>";
+  h+="<div class=\"rel-gmdg-row\"><span>GMD do lote <b>"+fmtBR(gmd,3)+"</b></span><span>GMD global fazenda <b>"+fmtBR(g,3)+"</b></span></div>";
+  h+="<div class=\"rel-gmdg-diff "+cls+"\">"+(acima?"+":"")+fmtBR(diff,3)+" kg/dia "+(acima?"acima":"abaixo")+" da média da fazenda"+pctTxt+"</div>";
   if(valExtra!=null && Math.abs(diff)>0.0005){
     h+="<div class=\"rel-gmdg-sub\">Esse ganho "+(acima?"a mais":"a menos")+" vale <b>R$ "+fmtBR(Math.abs(valExtra),2)+"/cab/dia</b> (@ R$ "+fmtBR(pArr,2)+") — compare com o custo do trato abaixo</div>";
   }
@@ -2513,15 +2751,15 @@ function shareRelatorio(){
   for(let i=1;i<=N_LOTES;i++){
     const s=st[i]; if(!s.qtd) continue;
     const media=s.peso/s.qtd;
-    const ar=(media/AR_DIV).toFixed(1);
+    const ar=fmtBR((media/AR_DIV),1);
     const gmd=s.gmdN?s.gmdSum/s.gmdN:null;
     const diasMedio=s.diasN?s.diasSum/s.diasN:null;
     const cls=gmdClassify(gmd);
 
     txt+=`*${loteLabel(i)}* — ${s.qtd} animais\n`;
-    txt+=`Peso médio: ${media.toFixed(0)} kg (${ar}@)\n`;
-    if(gmd!=null) txt+=`GMD: ${gmd.toFixed(3)} kg/dia\n`;
-    if(gmd!=null&&diasMedio!=null) txt+=`Ganho no período: +${(gmd*diasMedio).toFixed(1)} kg/animal\n`;
+    txt+=`Peso médio: ${fmtBR(media,0)} kg (${ar}@)\n`;
+    if(gmd!=null) txt+=`GMD: ${fmtBR(gmd,3)} kg/dia\n`;
+    if(gmd!=null&&diasMedio!=null) txt+=`Ganho no período: +${fmtBR((gmd*diasMedio),1)} kg/animal\n`;
     txt+=`Situação: ${cls.label}\n`;
 
     if(media<meta && gmd && gmd>0){
@@ -2699,7 +2937,7 @@ function renderEstoque(){
 }
 function _estCategoria(lote,peso,c12,c24){
   var l=String(lote==null?"":lote).trim();
-  if(l==="11") return "f37";                 // Vaca
+  if(l==="11") return "matriz";              // Vaca = matriz em reprodução (decisão do Rogério, out/2026)
   if(l==="12") return "touro";               // Reprodutor
   if(l==="13") return "bzm";                 // Bezerro mamando (machos e fêmeas juntos)
   var pre=(l==="16")?"f":"m";                // Novilha = fêmea; resto = macho
@@ -2774,11 +3012,11 @@ function go(s){
   window.scrollTo(0,0);
   const showFooter=(s==="pesar"||s==="hoje"||s==="falt");
   document.getElementById("footer").style.display = showFooter?"flex":"none";
-  if(s==="pesar") renderPesarResumo();
+  if(s==="pesar"){ renderPesarResumo(); renderLida(); }
   if(s==="hoje") renderHoje();
   if(s==="falt") renderFaltantes();
   if(s==="config") renderConfig();
-  if(s==="relatorio") renderRelatorio();
+  if(s==="relatorio"){ renderRelatorio(); renderLidaRel(); }
   if(s==="dashboard") renderDashboard();
   if(s==="estoque") renderEstoque();
   if(s==="venda") renderVenda();
@@ -2788,13 +3026,13 @@ function openFinalizar(){
   if(!state.today.length){ alert("Nenhum animal pesado para finalizar."); return; }
   const st=loteStats();
   let gs=0,gn=0,pTot=0,qTot=0;
-  for(let i=1;i<=N_LOTES;i++){ gs+=st[i].gmdSum; gn+=st[i].gmdN; pTot+=st[i].peso; qTot+=st[i].qtd; }
+  for(let i=1;i<=N_LOTES;i++){ if(CATEG_FORA_GMD.indexOf(i)<0){ gs+=st[i].gmdSum; gn+=st[i].gmdN; } pTot+=st[i].peso; qTot+=st[i].qtd; }
   const gmdGeral=gn?(gs/gn):null;
   const pesoMed=qTot?pTot/qTot:0;
   let lotes="";
   for(let i=1;i<=N_LOTES;i++){ const s=st[i]; if(!s.qtd) continue;
     const media=s.peso/s.qtd, gmd=s.gmdN?s.gmdSum/s.gmdN:null;
-    lotes+='<div class="fin-lote"><span><b>'+loteLabel(i)+'</b> · '+s.qtd+' cab</span><span>'+media.toFixed(0)+'kg ('+(media/AR_DIV).toFixed(1)+'@) · GMD '+(gmd!=null?gmd.toFixed(3):"—")+'</span></div>';
+    lotes+='<div class="fin-lote"><span><b>'+loteLabel(i)+'</b> · '+s.qtd+' cab</span><span>'+fmtBR(media,0)+'kg ('+fmtBR((media/AR_DIV),1)+'@) · GMD '+(gmd!=null?fmtBR(gmd,3):"—")+'</span></div>';
   }
   const semLote=state.today.filter(t=>!t.lote).length;
   const revisar=state.today.filter(t=>t.incerto).length;
@@ -2805,11 +3043,12 @@ function openFinalizar(){
     '<div class="fin-resumo">'+
       '<div style="font-size:12px;color:var(--muted);font-weight:700">'+(state.fazenda?esc(state.fazenda)+" · ":"")+isoToBR(state.data)+'</div>'+
       '<div class="big">'+state.today.length+' animais</div>'+
-      '<div style="font-size:13px;color:var(--muted);margin-bottom:6px">peso médio '+pesoMed.toFixed(0)+'kg ('+(pesoMed/AR_DIV).toFixed(1)+'@) · GMD médio '+(gmdGeral!=null?gmdGeral.toFixed(3):"—")+'</div>'+
+      '<div style="font-size:13px;color:var(--muted);margin-bottom:6px">peso médio '+fmtBR(pesoMed,0)+'kg ('+fmtBR((pesoMed/AR_DIV),1)+'@) · GMD médio '+(gmdGeral!=null?fmtBR(gmdGeral,3):"—")+'</div>'+
       lotes+avisos+
     '</div>';
   document.getElementById("finSyncSt").innerHTML = state.syncDirty===false ? '<span class="ok">✓ já sincronizado</span>' : "Envie os dados para a planilha.";
   document.getElementById("finExpSt").innerHTML = "Guarde este arquivo — é a referência do mês que vem.";
+  renderConferencia(); renderFinLida();
   document.getElementById("finalizarModal").style.display="flex";
 }
 function closeFinalizar(){ document.getElementById("finalizarModal").style.display="none"; }
@@ -2828,6 +3067,7 @@ function finExport(){
 }
 function finConcluir(){
   if(!confirm("Concluir a pesagem e começar uma nova?\n\nConfirme que você JÁ salvou na planilha e exportou o backup. Isso limpa os animais pesados hoje (mantém a planilha de referência).")) return;
+  if(state.lida && !state.lida.fim) lidaEncerrar(true);
   state.today=[]; state.data=todayISO(); window._obsNova=""; sel=null; state.syncDirty=false; diaCompleto=false;
   save(); closeFinalizar();
   renderConfig(); renderHoje(); renderFooter(); renderFaltantes(); renderPesarResumo();
@@ -2869,6 +3109,8 @@ window.onload=function(){
     else { document.getElementById("pesoIn").blur(); const lc=document.getElementById("loteCard"); if(lc) lc.scrollIntoView({behavior:"smooth",block:"center"}); }
   });
   renderUltimo();
+  renderLida(); lidaSync();
+  setInterval(function(){ if(state.lida && !state.lida.fim) renderLida(true); }, 30000);   // relógio da lida
   document.getElementById("dataHoje").addEventListener("change", e=>{ state.data=e.target.value||todayISO(); save(); renderConfig(); renderFooter(); if(sel) renderDetail(); });
   document.getElementById("fazendaIn").addEventListener("input", e=>{ state.fazenda=e.target.value; save(); renderConfig(); });
   document.getElementById("respIn").addEventListener("input", e=>{ state.responsavel=e.target.value; save(); });
@@ -2955,10 +3197,27 @@ function vdFiltrarLote(){
   renderVenda();
 }
 
+/* feriados NACIONAIS (+ Carnaval, que banco não abre) — só pra prever o dia do pagamento */
+function vdPascoa(a){ var b=a%19,c=Math.floor(a/100),d=a%100,e=Math.floor(c/4),f=c%4,g=Math.floor((c+8)/25),h=Math.floor((c-g+1)/3),
+  i=(19*b+c-e-h+15)%30,k=Math.floor(d/4),l=d%4,m=(32+2*f+2*k-i-l)%7,n=Math.floor((b+11*i+22*m)/451),mes=Math.floor((i+m-7*n+114)/31),dia=((i+m-7*n+114)%31)+1;
+  return new Date(a,mes-1,dia,12); }
+function vdFeriado(d){
+  var md=('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2);
+  var fixos={'01-01':'Confraternização','04-21':'Tiradentes','05-01':'Dia do Trabalho','09-07':'Independência','10-12':'N. Sra. Aparecida','11-02':'Finados','11-15':'Proclamação da República','11-20':'Consciência Negra','12-25':'Natal'};
+  if(fixos[md]) return fixos[md];
+  var p=vdPascoa(d.getFullYear()), dif=Math.round((new Date(d.getFullYear(),d.getMonth(),d.getDate(),12)-p)/86400000);
+  if(dif===-2) return 'Sexta-feira Santa';
+  if(dif===-47||dif===-48) return 'Carnaval';
+  return '';
+}
 function vdProxUtil(d){
-  var dw=d.getDay();
-  if(dw===6) d.setDate(d.getDate()+2);
-  else if(dw===0) d.setDate(d.getDate()+1);
+  var motivo='';
+  for(var i=0;i<10;i++){
+    var dw=d.getDay(), f=vdFeriado(d);
+    if(dw===6||dw===0||f){ if(!motivo) motivo=f?('feriado: '+f):(dw===6?'cai no sábado':'cai no domingo'); d.setDate(d.getDate()+1); }
+    else break;
+  }
+  d._motivo=motivo;
   return d;
 }
 function vdFmtData(d){
@@ -3065,11 +3324,11 @@ function renderVenda(){
     // base = data da pesagem escolhida (não hoje); soma o prazo em cima dela
     var base = _vdDataSel ? new Date(_vdDataSel+'T12:00:00') : new Date();
     base.setDate(base.getDate()+prazo);
-    ajustou=(base.getDay()===6||base.getDay()===0);
     vdProxUtil(base);
+    ajustou=!!base._motivo;
     dataStr=vdFmtData(base);
     var ds=['dom','seg','ter','qua','qui','sex','sáb'];
-    dataLabel=dataStr+(ajustou?' ('+ds[base.getDay()]+' — próximo dia útil)':'');
+    dataLabel=dataStr+(ajustou?' ('+ds[base.getDay()]+' — '+base._motivo+', vai pro próximo dia útil)':'');
     if(dpPagEl){dpPagEl.textContent=dataLabel;dpPagEl.className='vd-datapag ok';}
   } else {
     if(dpPagEl){dpPagEl.textContent='Preencha o prazo acima';dpPagEl.className='vd-datapag';}

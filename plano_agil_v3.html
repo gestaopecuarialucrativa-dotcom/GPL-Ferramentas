@@ -3,7 +3,7 @@
 <html lang="pt-BR"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Plano Ágil Pecuário | Rogério Avelino</title>
+<title>Plano Ágil Pecuário | GPL</title>
 <script src="./Plano Ágil Pecuário _ Rogério Avelino_files/chart.umd.min.js.download"></script>
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
@@ -199,7 +199,7 @@ body{font-family:Arial,'Segoe UI',Roboto,system-ui,sans-serif;background:var(--g
     <div class="lt">
       <span class="t1">Gestão Pecuária Lucrativa</span>
       <span class="t2">PLANO ÁGIL</span>
-      <span class="t3">Rogério Avelino · (63) 99108-2453</span>
+      <span class="t3">Rogério · Consultor GPL · (63) 99108-2453</span>
     </div>
   </div>
 </header>
@@ -503,7 +503,7 @@ body{font-family:Arial,'Segoe UI',Roboto,system-ui,sans-serif;background:var(--g
   </div>
 </div>
 
-<footer class="ft">Gestão Pecuária Lucrativa · Rogério Avelino · (63) 99108-2453 · @gestaopecuarialucrativa</footer>
+<footer class="ft">Gestão Pecuária Lucrativa · Rogério · Consultor GPL · (63) 99108-2453 · @gestaopecuarialucrativa</footer>
 
 <script>
 // ── FORMATADORES ───────────────────────────────────────
@@ -740,7 +740,7 @@ function cAR(){
   else {tp='at2';tt='OPERAÇÃO NO PREJUÍZO';tx=`Custo ${M(custo)} maior que a receita ${M(receita)} por cabeça. Reveja arrendamento, GMD e custos.`;}
   const aic=(tp==='lc')?'<circle cx="12" cy="12" r="9"/><path d="M8.5 12.5l2.5 2.5 4.5-5"/>':'<path d="M12 9v4"/><path d="M12 17h.01"/><path d="M10.3 3.9 2 18a2 2 0 0 0 1.7 3h16.6A2 2 0 0 0 22 18L13.7 3.9a2 2 0 0 0-3.4 0Z"/>';
 
-  const wm=`PLANO ÁGIL — ARRENDAMENTO\n\nArrendamento: ${M(arrCM,2)}/cab/mês\nPermanência: ${N(dias)} dias (${N(mes,1)} meses)\n\nPOR CABEÇA\nReceita: ${M(receita)} (${N(arrobas,1)} @)\nCompra: ${M(dr)}\nArrendamento: ${M(arrTot)}\nCusto variável: ${M(cvTot)}\nLucro: ${M(lucro)} (${P(margem)})\n\nPOR HECTARE/ANO\nLucro: ${M(lucroHaAno)}\nArrobas: ${N(arrobasHaAno,1)} @\n\nRogério Avelino — (63) 99108-2453`;
+  const wm=`PLANO ÁGIL — ARRENDAMENTO\n\nArrendamento: ${M(arrCM,2)}/cab/mês\nPermanência: ${N(dias)} dias (${N(mes,1)} meses)\n\nPOR CABEÇA\nReceita: ${M(receita)} (${N(arrobas,1)} @)\nCompra: ${M(dr)}\nArrendamento: ${M(arrTot)}\nCusto variável: ${M(cvTot)}\nLucro: ${M(lucro)} (${P(margem)})\n\nPOR HECTARE/ANO\nLucro: ${M(lucroHaAno)}\nArrobas: ${N(arrobasHaAno,1)} @\n\nRogério · Consultor GPL — (63) 99108-2453`;
 
   document.getElementById('ar_res').innerHTML=`
   <div class="am2 ${tp}"><span class="ai"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="width:24px;height:24px;display:block">${aic}</svg></span><div class="ac"><div class="at3">${tt}</div><div class="ax">${tx}</div></div></div>
@@ -827,7 +827,7 @@ function cR(){
   const vReb=(pm/30)*pa*rb;
   const rReb=vReb>0?(re/vReb*100):0;
 
-  const wm=`🐂 PLANO ÁGIL — RECRIA-ENGORDA\n\nFazenda: ${N(at)}ha x R$${N(vh)}/ha = ${M(vf)}\nMeta: ${P(mt)} a.a. = ${M(re)}\nMargem: ${P(mg)} | Faturamento: ${M(fat)}\n\n🔗 CADEIA DE CÁLCULO\n${N(ps)}kg - ${N(pe)}kg = ${N(pg)}kg a ganhar\n${N(pg)}kg ÷ ${N(gm,3)} GMD = ${N(dias)} dias\n12 ÷ ${N(mes)} meses = ${N(giro,2)} giros/ano\n${N(va)} vendas ÷ ${N(giro,2)} = ${N(rb)} cabeças em campo\n\n📊 METAS\nVendas/ano: ${N(va)} cab | Vendas/mês: ${N(Math.ceil(va/12))}\nRebanho: ${N(rb)} cab | Giro: ${N(giro,2)}x/ano\nLotação: ${N(lCab,2)} cab/ha | ${N(lUA,2)} UA/ha\n\n💰 FINANCEIRO\nFaturamento: ${M(fat)}\nDesemb. Reposição: ${M(dRepAn)}\nDesemb. Operação: ${M(dOpAn)}\nDesemb./cab/mês: ${M(dCM)}\nResultado/ha: ${M(rHA)}\nValor rebanho: ${M(vReb)}\n\n📞 Rogério Avelino — (63) 99108-2453`;
+  const wm=`🐂 PLANO ÁGIL — RECRIA-ENGORDA\n\nFazenda: ${N(at)}ha x R$${N(vh)}/ha = ${M(vf)}\nMeta: ${P(mt)} a.a. = ${M(re)}\nMargem: ${P(mg)} | Faturamento: ${M(fat)}\n\n🔗 CADEIA DE CÁLCULO\n${N(ps)}kg - ${N(pe)}kg = ${N(pg)}kg a ganhar\n${N(pg)}kg ÷ ${N(gm,3)} GMD = ${N(dias)} dias\n12 ÷ ${N(mes)} meses = ${N(giro,2)} giros/ano\n${N(va)} vendas ÷ ${N(giro,2)} = ${N(rb)} cabeças em campo\n\n📊 METAS\nVendas/ano: ${N(va)} cab | Vendas/mês: ${N(Math.ceil(va/12))}\nRebanho: ${N(rb)} cab | Giro: ${N(giro,2)}x/ano\nLotação: ${N(lCab,2)} cab/ha | ${N(lUA,2)} UA/ha\n\n💰 FINANCEIRO\nFaturamento: ${M(fat)}\nDesemb. Reposição: ${M(dRepAn)}\nDesemb. Operação: ${M(dOpAn)}\nDesemb./cab/mês: ${M(dCM)}\nResultado/ha: ${M(rHA)}\nValor rebanho: ${M(vReb)}\n\n📞 Rogério · Consultor GPL — (63) 99108-2453`;
 
   // ── Arrendamento (opcional) ──
   const arrOn=graw('r_arr')==='1';
@@ -914,7 +914,7 @@ function cC(){
   const rHA=ap>0?re/ap:0;
   const vReb=(pp/30)*pa*rb,rReb=vReb>0?(re/vReb*100):0;
 
-  const wm=`🐄 PLANO ÁGIL — CRIA\n\nFazenda: ${N(at)}ha x R$${N(vh)}/ha = ${M(vf)}\nMeta: ${P(mt)} a.a. = ${M(re)}\nMargem: ${P(mg)} | Faturamento: ${M(fat)}\n\nRebanho: ${N(rb)} cab | Matrizes: ${N(mat)}\nVendas/ano: ${N(va)} | Desmame: ${P(td*100)}\nLotação: ${N(lCab,2)} cab/ha | ${N(lUA,2)} UA/ha\nResultado/ha: ${M(rHA)} | Valor rebanho: ${M(vReb)}\n\n📞 Rogério Avelino — (63) 99108-2453`;
+  const wm=`🐄 PLANO ÁGIL — CRIA\n\nFazenda: ${N(at)}ha x R$${N(vh)}/ha = ${M(vf)}\nMeta: ${P(mt)} a.a. = ${M(re)}\nMargem: ${P(mg)} | Faturamento: ${M(fat)}\n\nRebanho: ${N(rb)} cab | Matrizes: ${N(mat)}\nVendas/ano: ${N(va)} | Desmame: ${P(td*100)}\nLotação: ${N(lCab,2)} cab/ha | ${N(lUA,2)} UA/ha\nResultado/ha: ${M(rHA)} | Valor rebanho: ${M(vReb)}\n\n📞 Rogério · Consultor GPL — (63) 99108-2453`;
 
   document.getElementById('c_res').innerHTML=`
   ${alerta(re,mg,fat,va,vv)}
@@ -974,7 +974,7 @@ function cCC(){
   const rHA=ap>0?re/ap:0;
   const vReb=(pp/30)*pa*rb,rReb=vReb>0?(re/vReb*100):0;
 
-  const wm=`🌾 PLANO ÁGIL — CICLO COMPLETO\n\nFazenda: ${N(at)}ha x R$${N(vh)}/ha = ${M(vf)}\nMeta: ${P(mt)} a.a. = ${M(re)}\nMargem: ${P(mg)} | Faturamento: ${M(fat)}\n\nRebanho: ${N(rb)} cab | Matrizes: ${N(mat)}\nVendas/ano: ${N(va)} | Lotação: ${N(lCab,2)} cab/ha | ${N(lUA,2)} UA/ha\nDesmame: ${N(pd)}kg → Abate: ${N(pa2)}kg | GMD: ${N(gmd,3)} kg/dia\nIdade abate: ${N(ia)} meses\nResultado/ha: ${M(rHA)} | Valor rebanho: ${M(vReb)}\n\n📞 Rogério Avelino — (63) 99108-2453`;
+  const wm=`🌾 PLANO ÁGIL — CICLO COMPLETO\n\nFazenda: ${N(at)}ha x R$${N(vh)}/ha = ${M(vf)}\nMeta: ${P(mt)} a.a. = ${M(re)}\nMargem: ${P(mg)} | Faturamento: ${M(fat)}\n\nRebanho: ${N(rb)} cab | Matrizes: ${N(mat)}\nVendas/ano: ${N(va)} | Lotação: ${N(lCab,2)} cab/ha | ${N(lUA,2)} UA/ha\nDesmame: ${N(pd)}kg → Abate: ${N(pa2)}kg | GMD: ${N(gmd,3)} kg/dia\nIdade abate: ${N(ia)} meses\nResultado/ha: ${M(rHA)} | Valor rebanho: ${M(vReb)}\n\n📞 Rogério · Consultor GPL — (63) 99108-2453`;
 
   document.getElementById('cc_res').innerHTML=`
   ${alerta(re,mg,fat,va,vv)}

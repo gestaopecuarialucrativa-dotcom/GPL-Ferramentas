@@ -64,6 +64,7 @@ input,select{font:inherit;font-size:16px;width:100%;padding:10px 12px;border:1px
 var LS="gpl_central_v1";
 var PADRAO={
   dose2Dias:30, semPesarDias:60, insumoDias:15,
+  rotinaEtapas:["Coleta de campo do mês (pesagem, manejo, trato)","Lançamentos conferidos na Inttegra","Relatório do mês gerado","Reunião de fechamento com o dono","Plano de ação revisado"],
   fazendas:[{ nome:"Fazenda Estrela",
     pesagem:"https://script.google.com/macros/s/AKfycby4lOB4zXu2dCBoA-pda6U_do8v9GDvNuH0dFOY6u5kc7FP7gZdPKofZX5Dt-QgnT4V/exec",
     app:"https://script.google.com/macros/s/AKfycbxhLo4cpRZsBMSEzcfM8sBFCH25dCe1X_VFvElz3dfhMLdZhQF9CTrXfq2DE4QJ4d0rbg/exec" }]
@@ -100,12 +101,16 @@ var ICO={
   pacote:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9z"/><path d="M12 12l8-4.5"/><path d="M12 12v9"/><path d="M12 12L4 7.5"/></svg>',
   balanca:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18"/><path d="M5 7h14"/><path d="M5 7l-3 7h6z"/><path d="M19 7l-3 7h6z"/><path d="M8 21h8"/></svg>',
   vivo:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M5.6 5.6a9 9 0 0 0 0 12.8"/><path d="M18.4 5.6a9 9 0 0 1 0 12.8"/></svg>',
+  check:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>',
+  circulo:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><circle cx="12" cy="12" r="8"/></svg>',
   agenda:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4"/><path d="M8 3v4"/><path d="M3 11h18"/></svg>'
 };
 
 /* ---------- guardado no aparelho ---------- */
-var L={ url:"", senha:"", config:null, cache:null };
+var URL_CENTRAL="https://script.google.com/macros/s/AKfycbzTIa9TZj69T5GtLuouKI3C5R8Hb3ceCUvjwHF7zuxp7pWJ10R9rBtGzhyn3FBsa7hh/exec";
+var L={ url:URL_CENTRAL, senha:"", config:null, cache:null };
 try{ var r0=localStorage.getItem(LS); if(r0) L=Object.assign(L,JSON.parse(r0)); }catch(e){}
+if(!L.url) L.url=URL_CENTRAL;
 function salvarL(){ try{ localStorage.setItem(LS,JSON.stringify(L)); }catch(e){} }
 function cfg(){ return Object.assign({},PADRAO,L.config||{}); }
 
@@ -120,10 +125,19 @@ function jsonp(url,ms){
     document.head.appendChild(s);
   });
 }
-function central(acao,extra){ return jsonp(L.url+"?acao="+acao+"&senha="+encodeURIComponent(L.senha)+(extra||""),20000); }
+/* Central: busca SEM os cookies do Google (fetch). Com várias contas logadas no Chrome,
+   o jeito antigo (script) mandava os cookies e o Google desviava pra outra conta e dava erro. */
+async function central(acao,extra){
+  var ctl=new AbortController(), t=setTimeout(function(){ ctl.abort(); },20000);
+  try{
+    var r=await fetch(L.url+"?acao="+acao+"&senha="+encodeURIComponent(L.senha)+(extra||"")+"&t="+Date.now(),{credentials:"omit",signal:ctl.signal});
+    return JSON.parse(await r.text());
+  }catch(e){ throw new Error(e.name==="AbortError"?"demorou demais":"sem conexão"); }
+  finally{ clearTimeout(t); }
+}
 async function centralPost(action,data){
   data.senha=L.senha;
-  var r=await fetch(L.url,{method:"POST",body:JSON.stringify({action:action,data:data})});
+  var r=await fetch(L.url,{method:"POST",body:JSON.stringify({action:action,data:data}),credentials:"omit"});
   var j=null; try{ j=JSON.parse(await r.text()); }catch(e){}
   if(!j||!j.ok) throw new Error((j&&j.msg)||"não salvou");
   return j;
@@ -132,16 +146,17 @@ async function centralPost(action,data){
 /* =====================================================================
    DADOS: agenda (Central) + cada fazenda (pesagem e app)
    ===================================================================== */
-var D={ agenda:[], faz:{}, erros:[], quando:"" };
+var D={ agenda:[], rotina:[], plano:[], faz:{}, erros:[], quando:"" };
 async function carregarTudo(forcar){
   var c=cfg(); D.erros=[];
   $("topSub").textContent="atualizando…";
   var tarefas=[ central("agenda_ler").then(function(r){ if(!r||!r.ok) throw new Error(r&&r.msg||"agenda"); D.agenda=r.itens||[]; })
     .catch(function(e){ D.erros.push("Agenda: "+e.message); }) ];
-  c.fazendas.forEach(function(f){ tarefas.push(carregarFazenda(f)); });
+  tarefas.push(central("tabela_ler","&tabela=Rotina").then(function(r){ if(!r||!r.ok) throw new Error(r&&r.msg||"rotina"); D.rotina=r.itens||[]; }).catch(function(e){ D.erros.push("Rotina: "+e.message); }));
+  tarefas.push(central("tabela_ler","&tabela=Plano").then(function(r){ if(!r||!r.ok) throw new Error(r&&r.msg||"plano"); D.plano=r.itens||[]; }).catch(function(e){ D.erros.push("Plano de ação: "+e.message); }));
   await Promise.all(tarefas);
   D.quando=new Date().toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"});
-  L.cache={agenda:D.agenda,faz:D.faz,quando:D.quando,dia:hoje()}; salvarL();
+  L.cache={agenda:D.agenda,rotina:D.rotina,plano:D.plano,quando:D.quando,dia:hoje()}; salvarL();
   $("topSub").textContent="atualizado "+D.quando;
   render();
 }
@@ -230,15 +245,15 @@ function alertas(){
 /* =====================================================================
    TELAS
    ===================================================================== */
-var ABA="hoje";
+var ABA="rotina";
 function render(){
   var app=$("app");
   if(!L.url||!L.senha){ app.innerHTML=telaEntrar(); $("btAtualizar").style.display="none"; return; }
   $("btAtualizar").style.display="";
-  var h='<div class="abas">'+[["hoje","Hoje"],["agenda","Agenda"],["fazendas","Fazendas"],["sistemas","Sistemas"],["ajustes","Ajustes"]].map(function(a){
+  var h='<div class="abas">'+[["rotina","Rotina"],["plano","Plano"],["agenda","Agenda"],["sistemas","Sistemas"],["ajustes","Ajustes"]].map(function(a){
     return '<div class="aba'+(ABA===a[0]?' on':'')+'" onclick="ABA=\''+a[0]+'\';render()">'+a[1]+'</div>'; }).join("")+'</div>';
   if(D.erros.length) h+='<div class="erro">'+D.erros.map(esc).join("<br>")+'</div>';
-  if(ABA==="hoje") h+=telaHoje(); else if(ABA==="agenda") h+=telaAgenda(); else if(ABA==="fazendas") h+=telaFazendas();
+  if(ABA==="rotina") h+=telaRotina(); else if(ABA==="plano") h+=telaPlano(); else if(ABA==="agenda") h+=telaAgenda();
   else if(ABA==="sistemas") h+=telaSistemas(); else h+=telaAjustes();
   app.innerHTML=h;
 }
@@ -303,10 +318,8 @@ function telaSistemas(){
 }
 function telaAjustes(){
   var c=cfg();
-  return '<div class="card" style="padding:12px 14px"><b>Prazos dos avisos</b> <span class="mini">(você define)</span>'
-   +'<div class="linha"><div><div class="lbl">2ª dose (dias depois da 1ª)</div><input id="cD2" type="number" value="'+c.dose2Dias+'"></div>'
-   +'<div><div class="lbl">Lote sem pesar (dias)</div><input id="cSP" type="number" value="'+c.semPesarDias+'"></div></div>'
-   +'<div class="lbl">Avisar insumo quando faltar (dias)</div><input id="cIn" type="number" value="'+c.insumoDias+'">'
+  return '<div class="card" style="padding:12px 14px"><b>Etapas da rotina do mês</b> <span class="mini">(uma por linha — do seu método)</span>'
+   +'<textarea id="cEt" rows="6" style="font:inherit;font-size:15px;width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:10px;margin-top:8px">'+esc((c.rotinaEtapas||[]).join("\n"))+'</textarea>'
    +'<div class="lbl" style="margin-top:14px"><b>Fazendas</b> — nome igual ao da pesagem</div>'
    +c.fazendas.map(function(f,i){ return '<div style="border:1px solid var(--line);border-radius:10px;padding:8px 10px;margin-bottom:8px">'
       +'<input id="fN'+i+'" value="'+esc(f.nome)+'" placeholder="Nome da fazenda">'
@@ -319,9 +332,117 @@ function telaAjustes(){
 function telaEntrar(){
   $("topSub").textContent="";
   return '<div class="card" style="padding:14px"><b style="font-size:17px">Entrar na Central</b>'
-   +'<div class="lbl">Endereço da Central (Apps Script — "Implantar")</div><input id="eUrl" value="'+esc(L.url||"")+'" placeholder="https://script.google.com/macros/s/.../exec">'
-   +'<div class="lbl">Senha</div><input id="eSenha" type="password" value="">'
+   +'<input id="eUrl" type="hidden" value="'+esc(L.url||URL_CENTRAL)+'">'
+   +'<div class="lbl">Senha</div><input id="eSenha" type="password" value="" onkeydown="if(event.key===\'Enter\')entrar()">'
    +'<button class="b p" style="width:100%;margin-top:12px;padding:12px" onclick="entrar()">Entrar</button><div class="mini" id="eMsg" style="margin-top:6px"></div></div>';
+}
+
+/* =====================================================================
+   ROTINA DO MÊS — checklist por fazenda (renova todo mês)
+   ===================================================================== */
+var MESES=["janeiro","fevereiro","março","abril","maio","junho","julho","agosto","setembro","outubro","novembro","dezembro"];
+var MES=hoje().slice(0,7);
+function mesNome(m){ var p=m.split("-"), n=MESES[+p[1]-1]; return n.charAt(0).toUpperCase()+n.slice(1)+" de "+p[0]; }
+function mesMais(m,n){ var p=m.split("-"), d=new Date(+p[0],+p[1]-1+n,1); return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0"); }
+function idRot(f,m,et){ return f+"|"+m+"|"+et; }
+function rotItem(f,m,et){ return D.rotina.filter(function(r){ return r.id===idRot(f,m,et); })[0]; }
+function telaRotina(){
+  var c=cfg(), ets=c.rotinaEtapas||[];
+  var x='<div style="display:flex;align-items:center;justify-content:space-between;margin:2px 2px 10px"><button class="b g" onclick="MES=mesMais(MES,-1);render()">‹</button>'
+    +'<b style="font-size:17px">'+mesNome(MES)+'</b><button class="b g" onclick="MES=mesMais(MES,1);render()">›</button></div>';
+  c.fazendas.forEach(function(f,fi){
+    var feitos=ets.filter(function(et){ var r=rotItem(f.nome,MES,et); return r&&r.feito; }).length, pct=ets.length?Math.round(feitos/ets.length*100):0;
+    var abertosPl=D.plano.filter(function(p){ return p.fazenda===f.nome && p.situacao!=="feito"; }), atrasPl=abertosPl.filter(function(p){ return p.prazo && p.prazo<hoje(); });
+    x+='<div class="card" style="padding:12px 14px"><div style="display:flex;justify-content:space-between;align-items:baseline"><b style="font-size:16px">'+esc(f.nome)+'</b><span class="mini">'+feitos+' de '+ets.length+'</span></div>'
+      +'<div style="height:7px;background:#eef2ed;border-radius:4px;margin:8px 0 6px"><div style="width:'+pct+'%;height:7px;background:var(--v3);border-radius:4px"></div></div>';
+    ets.forEach(function(et,ei){
+      var r=rotItem(f.nome,MES,et), ok=r&&r.feito;
+      x+='<div class="item"><div class="ico '+(ok?'ok':'')+'" style="cursor:pointer" onclick="toggleRotina('+fi+','+ei+')">'+(ok?ICO.check:ICO.circulo)+'</div>'
+        +'<div style="flex:1;min-width:0"><div class="it1'+(ok?' feito':'')+'" style="font-size:14px">'+esc(et)+'</div>'
+        +(ok&&r.data?'<div class="it2">feito '+r.data.split("-").reverse().slice(0,2).join("/")+'</div>':'')+'</div>'
+        +'<div class="acts">'+(ok?'<button class="b g" onclick="toggleRotina('+fi+','+ei+')">Desfazer</button>':'<button class="b" onclick="toggleRotina('+fi+','+ei+')">Feito</button><button class="b g" onclick="agendarEtapa('+fi+','+ei+')">Agendar</button>')+'</div></div>';
+    });
+    x+='<div class="mini" style="padding:8px 0 4px">Plano de ação: '+abertosPl.length+' em aberto'+(atrasPl.length?' · <b style="color:var(--danger)">'+atrasPl.length+' atrasada(s)</b>':'')+'</div></div>';
+  });
+  return x+'<p class="mini" style="text-align:center">As etapas você muda em Ajustes, do jeito do seu método.</p>';
+}
+async function toggleRotina(fi,ei){
+  var c=cfg(), faz=c.fazendas[fi].nome, et=c.rotinaEtapas[ei];
+  var r=rotItem(faz,MES,et), novo=r?Object.assign({},r):{ id:idRot(faz,MES,et), fazenda:faz, mes:MES, etapa:et, obs:"" };
+  novo.feito=!(r&&r.feito); novo.data=novo.feito?hoje():"";
+  D.rotina=D.rotina.filter(function(x){ return x.id!==novo.id; }).concat([novo]); render();
+  try{ await centralPost("tabela_salvar",{tabela:"Rotina",itens:[novo]}); }
+  catch(e){ D.rotina=D.rotina.filter(function(x){ return x.id!==novo.id; }).concat(r?[r]:[]); render(); alert("Não salvou: "+e.message); }
+}
+async function agendarEtapa(fi,ei){
+  var c=cfg(), faz=c.fazendas[fi].nome, et=c.rotinaEtapas[ei];
+  var d=prompt("Em que dia? (dd/mm)\n"+et+" — "+faz); if(!d) return;
+  var p=d.split("/"); if(p.length<2){ alert("Use dd/mm"); return; }
+  var ano=new Date().getFullYear(), iso=ano+"-"+p[1].padStart(2,"0")+"-"+p[0].padStart(2,"0"); if(iso<hoje()) iso=(ano+1)+iso.slice(4);
+  var it={ id:"a"+Date.now().toString(36), data:iso, hora:"", titulo:et, fazenda:faz, tipo:"compromisso", origem:"rotina", feito:false };
+  try{ await centralPost("agenda_salvar",{itens:[it]}); D.agenda.push(it); alert("Na agenda: "+iso.split("-").reverse().join("/")); }catch(e){ alert("Não salvou: "+e.message); }
+}
+
+/* =====================================================================
+   PLANO DE AÇÃO — o que foi combinado, quem faz, até quando
+   ===================================================================== */
+var PL_FILTRO="abertos", PL_FAZ="";
+function telaPlano(){
+  var c=cfg(), h=hoje();
+  var x='<div class="card" style="padding:12px 14px"><b>Nova ação</b>'
+   +'<div class="lbl">O que fazer</div><input id="pAc" placeholder="Reformar o cocho do pasto 4">'
+   +'<div class="linha"><div><div class="lbl">Fazenda</div><select id="pFz">'+c.fazendas.map(function(f){ return '<option'+(f.nome===PL_FAZ?' selected':'')+'>'+esc(f.nome)+'</option>'; }).join("")+'</select></div>'
+   +'<div><div class="lbl">Responsável</div><input id="pRe" placeholder="Zé"></div></div>'
+   +'<div class="linha"><div><div class="lbl">Prazo</div><input id="pPr" type="date"></div><div><div class="lbl">Origem</div><input id="pOr" placeholder="Reunião de fechamento '+h.split("-").reverse().slice(0,2).join("/")+'"></div></div>'
+   +'<button class="b p" style="width:100%;margin-top:12px;padding:12px" onclick="addPlano()">Salvar ação</button><div class="mini" id="pMsg" style="margin-top:6px"></div></div>';
+  x+='<div style="display:flex;gap:6px;margin:4px 0 8px;align-items:center"><select style="flex:1" onchange="PL_FAZ=this.value;render()"><option value="">Todas as fazendas</option>'+c.fazendas.map(function(f){ return '<option'+(f.nome===PL_FAZ?' selected':'')+'>'+esc(f.nome)+'</option>'; }).join("")+'</select>'
+   +'<button class="b'+(PL_FILTRO==="abertos"?' p':'')+'" onclick="PL_FILTRO=\'abertos\';render()">Abertas</button><button class="b'+(PL_FILTRO==="todos"?' p':'')+'" onclick="PL_FILTRO=\'todos\';render()">Todas</button>'
+   +'<button class="b" onclick="imprimirPlano()">Imprimir</button></div>';
+  var lista=planoFiltrado();
+  if(!lista.length) return x+'<div class="vazio">Nenhuma ação '+(PL_FILTRO==="abertos"?'em aberto':'')+'.</div>';
+  x+='<div class="card">'+lista.map(function(p){
+    var feito=p.situacao==="feito", atr=!feito&&p.prazo&&p.prazo<h;
+    return '<div class="item"><div class="ico '+(feito?'ok':(atr?'err':''))+'">'+(feito?ICO.check:ICO.circulo)+'</div><div style="flex:1;min-width:0"><div class="it1'+(feito?' feito':'')+'" style="font-size:14px">'+esc(p.acao)+'</div>'
+      +'<div class="it2">'+esc([p.resp,p.fazenda].filter(Boolean).join(" · "))+(p.prazo?' · '+(atr?'<b style="color:var(--danger)">atrasada, era '+p.prazo.split("-").reverse().slice(0,2).join("/")+'</b>':'até '+p.prazo.split("-").reverse().slice(0,2).join("/")):'')+(p.origem?' · '+esc(p.origem):'')+'</div></div>'
+      +'<div class="acts">'+(feito?'<button class="b g" onclick="sitPlano(\''+p.id+'\',\'aberto\')">Reabrir</button>':'<button class="b" onclick="sitPlano(\''+p.id+'\',\'feito\')">Feito</button>')
+      +'<button class="b g" onclick="apagarPlano(\''+p.id+'\')">Apagar</button></div></div>'; }).join("")+'</div>';
+  return x;
+}
+function planoFiltrado(){
+  return D.plano.filter(function(p){ return (!PL_FAZ||p.fazenda===PL_FAZ) && (PL_FILTRO==="todos"||p.situacao!=="feito"); })
+    .sort(function(a,b){ var fa=a.situacao==="feito"?1:0, fb=b.situacao==="feito"?1:0; if(fa!==fb) return fa-fb; return (a.prazo||"9999").localeCompare(b.prazo||"9999"); });
+}
+async function addPlano(){
+  var ac=$("pAc").value.trim(), m=$("pMsg");
+  if(!ac){ m.textContent="Escreva a ação."; m.style.color="var(--danger)"; $("pAc").focus(); return; }
+  var it={ id:"p"+Date.now().toString(36), fazenda:$("pFz").value, acao:ac, resp:$("pRe").value.trim(), prazo:$("pPr").value, situacao:"aberto",
+    origem:$("pOr").value.trim()||$("pOr").placeholder, obs:"", criado:hoje() };
+  m.textContent="Salvando…"; m.style.color="";
+  try{ await centralPost("tabela_salvar",{tabela:"Plano",itens:[it]}); D.plano.push(it); PL_FAZ=it.fazenda; render(); }
+  catch(e){ m.textContent="Não salvou: "+e.message; m.style.color="var(--danger)"; }
+}
+async function sitPlano(id,sit){
+  var p=D.plano.filter(function(x){ return x.id===id; })[0]; if(!p) return; var ant=p.situacao; p.situacao=sit; render();
+  try{ await centralPost("tabela_salvar",{tabela:"Plano",itens:[p]}); }catch(e){ p.situacao=ant; render(); alert("Não salvou: "+e.message); }
+}
+async function apagarPlano(id){
+  var p=D.plano.filter(function(x){ return x.id===id; })[0]; if(!p||!confirm("Apagar a ação \""+p.acao+"\"?")) return;
+  try{ await centralPost("tabela_salvar",{tabela:"Plano",itens:[{id:id,apagar:true}]}); D.plano=D.plano.filter(function(x){ return x.id!==id; }); render(); }
+  catch(e){ alert("Não apagou: "+e.message); }
+}
+function imprimirPlano(){
+  var lista=planoFiltrado(), h=hoje(), faz=PL_FAZ||"Todas as fazendas";
+  var linhas=lista.map(function(p){ var feito=p.situacao==="feito", atr=!feito&&p.prazo&&p.prazo<h;
+    return '<tr><td>'+esc(p.acao)+'</td><td>'+esc(p.resp||"")+'</td><td>'+(p.prazo?p.prazo.split("-").reverse().join("/"):"")+'</td><td style="color:'+(feito?'#1B5E20':(atr?'#c0392b':'#333'))+'">'+(feito?'Feito':(atr?'Atrasada':'Em aberto'))+'</td>'+(PL_FAZ?'':'<td>'+esc(p.fazenda)+'</td>')+'</tr>'; }).join("");
+  var w=window.open("","_blank"); if(!w){ alert("Libere as janelas (pop-up) pra imprimir."); return; }
+  w.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Plano de ação — '+esc(faz)+'</title><style>body{font-family:Arial,sans-serif;color:#1c241c;margin:28px}'
+   +'.cab{display:flex;align-items:center;gap:12px;border-bottom:3px solid #1B5E20;padding-bottom:10px;margin-bottom:16px}.cab img{width:46px;height:46px;border-radius:8px}'
+   +'h1{font-size:20px;margin:0;color:#1B5E20}.sub{font-size:13px;color:#5f6b60}table{width:100%;border-collapse:collapse;font-size:13px}th{background:#1B5E20;color:#fff;text-align:left;padding:8px}'
+   +'td{padding:8px;border-bottom:1px solid #dfe6de;vertical-align:top}.rod{margin-top:22px;font-size:12px;color:#5f6b60}@media print{.np{display:none}}</style></head><body>'
+   +'<div class="cab"><img src="'+location.origin+'/icone-caixa-gpl.png"><div><h1>Plano de ação</h1><div class="sub">'+esc(faz)+' · '+h.split("-").reverse().join("/")+'</div></div></div>'
+   +'<table><tr><th>Ação</th><th>Responsável</th><th>Prazo</th><th>Situação</th>'+(PL_FAZ?'':'<th>Fazenda</th>')+'</tr>'+(linhas||'<tr><td colspan="5">Nenhuma ação.</td></tr>')+'</table>'
+   +'<div class="rod">Gestão Pecuária Lucrativa · Rogério · Consultor GPL</div><p class="np"><button onclick="print()">Imprimir / salvar PDF</button></p></body></html>');
+  w.document.close();
 }
 
 /* ---------- ações ---------- */
@@ -377,7 +498,7 @@ function linkDose2(faz,n){
 }
 function addFazenda(){ var c=cfg(); lerAjustes(c); c.fazendas.push({nome:"",pesagem:"",app:""}); L.config=c; render(); }
 function lerAjustes(c){
-  c.dose2Dias=parseInt($("cD2").value,10)||PADRAO.dose2Dias; c.semPesarDias=parseInt($("cSP").value,10)||PADRAO.semPesarDias; c.insumoDias=parseInt($("cIn").value,10)||PADRAO.insumoDias;
+  var et=($("cEt")?$("cEt").value:"").split("\n").map(function(x){ return x.trim(); }).filter(Boolean); if(et.length) c.rotinaEtapas=et;
   c.fazendas=c.fazendas.map(function(f,i){ return { nome:($("fN"+i)?$("fN"+i).value.trim():f.nome), pesagem:($("fP"+i)?$("fP"+i).value.trim():f.pesagem), app:($("fA"+i)?$("fA"+i).value.trim():f.app) }; }).filter(function(f){ return f.nome; });
   return c;
 }
@@ -389,7 +510,7 @@ async function salvarAjustes(){
 
 /* ---------- abrir ---------- */
 (function(){
-  if(L.cache && L.cache.dia===hoje()){ D.agenda=L.cache.agenda||[]; D.faz=L.cache.faz||{}; D.quando=L.cache.quando; }
+  if(L.cache && L.cache.dia===hoje()){ D.agenda=L.cache.agenda||[]; D.rotina=L.cache.rotina||[]; D.plano=L.cache.plano||[]; D.quando=L.cache.quando; }
   render();
   if(L.url && L.senha){ $("topSub").textContent=D.quando?"atualizado "+D.quando:""; carregarTudo(); }
 })();

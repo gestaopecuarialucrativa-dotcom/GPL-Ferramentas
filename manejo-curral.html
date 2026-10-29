@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Manejo do Curral — GPL</title>
+<link rel="apple-touch-icon" href="icone-caixa-gpl.png">
+<link rel="icon" type="image/png" href="icone-caixa-gpl.png">
+<meta name="apple-mobile-web-app-title" content="Manejo GPL">
+<meta name="theme-color" content="#1B5E20">
+<style>
+:root{--v1:#1B5E20;--v2:#2E7D32;--v3:#4CAF50;--v7:#E8F5E9;--bg:#eef2ec;--card:#fff;--line:#dfe6de;--ink:#1c241c;--muted:#5f6b60;--warn:#c9820a;--danger:#c0392b;--danger7:#fdecea;--warn7:#fff4e0}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;font-family:Arial,Helvetica,sans-serif;background:var(--bg);color:var(--ink)}
+.top{background:var(--v1);color:#fff;padding:10px 14px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:5}
+.top img{width:32px;height:32px;border-radius:8px}
+.top .t1{font-weight:700;font-size:16px}.top .t2{font-size:12px;opacity:.85}
+.wrap{max-width:560px;margin:0 auto;padding:12px 14px 40px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:12px}
+.lbl{font-size:13px;color:var(--muted);margin:0 0 6px}
+h2{font-size:17px;margin:0 0 10px}
+input,select{font:inherit;font-size:16px;width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--ink)}
+button{font:inherit;font-weight:700;border:0;border-radius:12px;cursor:pointer}
+.bt{background:var(--v2);color:#fff;width:100%;padding:15px;font-size:17px}
+.bt.grande{padding:20px;font-size:22px}
+.bt2{background:#fff;color:var(--v1);border:1.5px solid var(--v2);padding:11px 14px;font-size:15px}
+.bt3{background:#f1f4ef;color:var(--ink);padding:11px 14px;font-size:15px}
+.btv{background:#fff;color:var(--danger);border:1.5px solid var(--danger);padding:11px 14px;font-size:15px}
+.linha{display:flex;gap:8px;flex-wrap:wrap}.linha>*{flex:1}
+.tag{display:flex;align-items:center;gap:10px;border:1.5px solid var(--line);border-radius:12px;padding:12px;font-size:16px;margin-bottom:8px;background:#fff}
+.tag.on{border-color:var(--v3);background:var(--v7);color:var(--v1);font-weight:700}
+.tag .ck{width:22px;height:22px;border-radius:6px;border:2px solid var(--line);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:14px}
+.tag.on .ck{background:var(--v2);border-color:var(--v2);color:#fff}
+.bal{display:flex;align-items:center;gap:10px;border:1px solid var(--line);border-radius:12px;padding:10px 12px;font-size:15px}
+.dot{width:12px;height:12px;border-radius:50%;background:#bbb;flex-shrink:0}.dot.ok{background:var(--v3)}.dot.err{background:var(--danger)}
+.alerta{border-radius:12px;padding:12px;font-size:15px;font-weight:700;margin-bottom:10px}
+.alerta.err{background:var(--danger7);color:var(--danger);border:1.5px solid var(--danger)}
+.alerta.warn{background:var(--warn7);color:#8a5a00;border:1.5px solid var(--warn)}
+.cab{display:flex;justify-content:space-between;font-size:14px;color:var(--muted)}
+.cab b{color:var(--ink);font-size:18px}
+.peso{text-align:center;font-size:64px;font-weight:900;line-height:1.1;margin:14px 0 2px;letter-spacing:-1px}
+.peso small{font-size:24px;font-weight:700}
+.est{text-align:center;font-size:15px;min-height:22px;margin-bottom:12px;color:var(--muted)}
+.est.trav{color:var(--v1);font-weight:700}
+.ult{display:flex;justify-content:space-between;align-items:center;gap:8px;border-top:1px solid var(--line);margin-top:14px;padding-top:12px;font-size:15px}
+.flash{animation:fl .7s}@keyframes fl{0%{background:#b9e6bb}100%{background:var(--card)}}
+.mini{font-size:13px;color:var(--muted)}
+.ok-msg{color:var(--v1);font-weight:700}
+.esc{display:none}
+</style>
+</head>
+<body>
+<div class="top"><img src="icone-caixa-gpl.png" alt=""><div><div class="t1">Manejo do Curral</div><div class="t2" id="topSub">GPL</div></div></div>
+<div class="wrap" id="app"></div>
+
+<script>
+/* =====================================================================
+   GPL — Manejo do Curral (vaqueiro)  ·  animais SEM número
+   - Salva na aba "Manejo" da planilha da pesagem (fora do GMD).
+   - Tempo do manejo vai pra aba "Lidas" (o vaqueiro não vê relógio).
+   - Balança Tru-Test S3 pelo Bluetooth (Chrome no Android / notebook).
+   - Funciona sem internet: guarda no celular e sobe sozinho.
+   ===================================================================== */
+var BACKEND_URL = "https://script.google.com/macros/s/AKfycby4lOB4zXu2dCBoA-pda6U_do8v9GDvNuH0dFOY6u5kc7FP7gZdPKofZX5Dt-QgnT4V/exec";
+var STORE = "gpl_manejo_v1";
+var TAREFAS_PADRAO = ["Pesar","Vacina de entrada 1ª dose","Vacina de entrada 2ª dose","Vermífugo","Brinco","Marca a fogo","Mosquicida/carrapaticida"];
+var PESO_MIN = 30;   // abaixo disso não é animal (mão, bota, balança balançando)
+var PESO_ZERO = 10;  // balança voltou perto do zero = animal saiu
+var PULO = 40;       // depois de travado, mudou mais que isso = alguém subiu
+var PAUSA_MIN = 15;  // buraco maior que isso sem animal = parada
+
+/* ---------- utilidades ---------- */
+function $(id){ return document.getElementById(id); }
+function esc(s){ return String(s==null?"":s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];}); }
+function fmtBR(n,d){ if(n==null||n===""||isNaN(n)) return "—"; return Number(n).toLocaleString("pt-BR",{minimumFractionDigits:d||0,maximumFractionDigits:d||0}); }
+function hojeISO(){ var d=new Date(); return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
+function dataBR(iso){ var p=String(iso||"").split("-"); return p.length===3?p[2]+"/"+p[1]:iso; }
+function horaTxt(iso){ var d=new Date(iso); return String(d.getHours()).padStart(2,"0")+":"+String(d.getMinutes()).padStart(2,"0"); }
+function params(){ try{ return new URLSearchParams(location.search); }catch(e){ return { get:function(){return null;} }; } }
+function jsonp(url){
+  return new Promise(function(res,rej){
+    var cb="__gpl_mj_"+Date.now()+"_"+Math.floor(Math.random()*10000), s=document.createElement("script");
+    var t=setTimeout(function(){ fim(); rej(new Error("timeout")); },20000);
+    function fim(){ try{ delete window[cb]; }catch(e){ window[cb]=undefined; } if(s.parentNode) s.parentNode.removeChild(s); }
+    window[cb]=function(d){ clearTimeout(t); fim(); res(d); };
+    s.onerror=function(){ clearTimeout(t); fim(); rej(new Error("rede")); };
+    s.src=url+(url.indexOf("?")<0?"?":"&")+"callback="+cb+"&t="+Date.now();
+    document.head.appendChild(s);
+  });
+}
+
+/* ---------- estado guardado no celular ---------- */
+var S = { atual:null, ultimoMontar:null };
+function carregar(){ try{ var r=localStorage.getItem(STORE); if(r){ var o=JSON.parse(r); if(o&&typeof o==="object") S=Object.assign(S,o); } }catch(e){} }
+function salvar(){ try{ localStorage.setItem(STORE, JSON.stringify(S)); }catch(e){} }
+carregar();
+try{ if(navigator.storage&&navigator.storage.persist) navigator.storage.persist(); }catch(e){}
+
+function validos(){ return S.atual ? S.atual.itens.filter(function(i){ return !i.desfeito; }) : []; }
+function pendentes(){ return S.atual ? S.atual.itens.filter(function(i){ return !i.sync; }).length + (S.atual.lidaSync?0:1) : 0; }
+function temPeso(){ return S.atual && S.atual.tarefas.indexOf("Pesar")>=0; }
+
+/* =====================================================================
+   BALANÇA S3 (Bluetooth) — canal padrão de peso
+   peso em kg = número que chega ÷ 20 (conferido com o vaqueiro: 65 kg)
+   byte 10: 00 = peso travou · ff = mexendo
+   ===================================================================== */
+var BAL = { dev:null, car:null, on:false, kg:null, estavel:false, tentando:false, ultimaLeitura:0, emLibras:false };
+function balSuportado(){ return !!(navigator.bluetooth && navigator.bluetooth.requestDevice); }
+async function balConectar(escolher){
+  if(!balSuportado()){ alert("Este navegador não liga na balança. Use o Chrome no celular Android ou no notebook."); return; }
+  try{
+    if(escolher || !BAL.dev){
+      BAL.dev = await navigator.bluetooth.requestDevice({ filters:[{namePrefix:"S3"},{services:["weight_scale"]}], optionalServices:["weight_scale"] });
+      BAL.dev.addEventListener("gattserverdisconnected", balCaiu);
+    }
+    await balLigarCanal();
+  }catch(e){
+    if(e && e.name==="NotFoundError") return; // fechou a lista sem escolher
+    BAL.on=false; render(); alert("Não conectou na balança: "+(e&&e.message?e.message:e));
+  }
+}
+async function balLigarCanal(){
+  var gatt = await BAL.dev.gatt.connect();
+  var serv = await gatt.getPrimaryService("weight_scale");
+  BAL.car = await serv.getCharacteristic("weight_measurement");
+  BAL.car.addEventListener("characteristicvaluechanged", balLeitura);
+  await BAL.car.startNotifications();
+  BAL.on=true; BAL.tentando=false; BAL.kg=null; BAL.estavel=false;
+  try{ localStorage.setItem("gpl_manejo_bal", BAL.dev.name||"S3"); }catch(e){}
+  render();
+}
+function balCaiu(){
+  BAL.on=false; BAL.estavel=false; aviso("desconectou");
+  render();
+  balReconectar(0);
+}
+function balReconectar(n){
+  if(BAL.on || !BAL.dev) return;
+  BAL.tentando=true; render();
+  setTimeout(function(){
+    if(BAL.on) return;
+    balLigarCanal().catch(function(){ if(n<20) balReconectar(n+1); else { BAL.tentando=false; render(); } });
+  }, n<5?2000:5000);
+}
+/* tenta religar sozinho a balança já usada antes (se o Chrome deixar) */
+async function balAutoReconectar(){
+  try{
+    if(!navigator.bluetooth || !navigator.bluetooth.getDevices) return;
+    var lista = await navigator.bluetooth.getDevices();
+    var nome = localStorage.getItem("gpl_manejo_bal");
+    var d = lista.filter(function(x){ return x.name && (x.name===nome || x.name.indexOf("S3")===0); })[0];
+    if(!d) return;
+    BAL.dev=d; BAL.dev.addEventListener("gattserverdisconnected", balCaiu);
+    await balLigarCanal();
+  }catch(e){ /* não deu: fica o botão Conectar */ }
+}
+function balLeitura(ev){
+  var dv = ev.target.value; if(!dv || dv.byteLength<3) return;
+  var flags = dv.getUint8(0), bruto = dv.getUint16(1,true);
+  BAL.emLibras = (flags & 1) === 1;
+  var kg = BAL.emLibras ? bruto*0.01*0.45359 : bruto/20;
+  var estavel = dv.byteLength>10 ? dv.getUint8(10)===0 : false;
+  BAL.kg = Math.round(kg*10)/10; BAL.estavel = estavel; BAL.ultimaLeitura = Date.now();
+  if(S.atual && !S.atual.fim) capturar(BAL.kg, estavel);
+  renderPesoAoVivo();
+}
+
+/* =====================================================================
+   REGRA DO PESO
+   - vale o PRIMEIRO peso que travar depois que a balança sai do zero
+   - depois de travado, nada substitui até a balança voltar perto do zero
+   - variação pequena (mão no brete) é ignorada; pulo grande só avisa
+   ===================================================================== */
+var CAP = { travado:null, aviso:"" };
+function capturar(kg, estavel){
+  var a=S.atual;
+  if(kg < PESO_ZERO){ CAP.travado=null; CAP.aviso=""; return; }
+  if(CAP.travado==null){
+    if(estavel && kg>=PESO_MIN){
+      if(a.pendente){ CAP.aviso="Confirme ou descarte o peso anterior"; return; }
+      CAP.travado = kg; CAP.aviso="";
+      if(a.modo==="auto") registrar(kg,"auto");
+      else { a.pendente={ peso:kg, hora:new Date().toISOString() }; salvar(); bip(1); render(); }
+    }
+    return;
+  }
+  if(Math.abs(kg-CAP.travado) > PULO) CAP.aviso="Peso mudou ("+fmtBR(kg,1)+" kg) — alguém subiu? Vale "+fmtBR(CAP.travado,1)+" kg";
+  else CAP.aviso="";
+}
+
+/* ---------- registrar / desfazer ---------- */
+function registrar(peso, como){
+  var a=S.atual; if(!a) return;
+  var n = validos().length + 1;
+  var item = a.itens.filter(function(i){ return i.n===n; })[0];
+  var novo = { n:n, peso:(peso===""||peso==null)?"":Math.round(peso*10)/10, hora:new Date().toISOString(), como:como, desfeito:false, sync:false, v:Date.now() };
+  if(item) Object.assign(item, novo); else a.itens.push(novo);
+  a.pendente=null; a.lidaSync=false;
+  salvar(); bip(2); piscar(); render(); sincronizarLogo();
+}
+function confirmarPendente(){
+  var a=S.atual; if(!a||!a.pendente) return;
+  var inp=$("pesoMao"); var p=a.pendente.peso;
+  if(inp && inp.value!==""){ var x=parseFloat(String(inp.value).replace(",",".")); if(!isNaN(x)) p=x; }
+  registrar(p,"confirmado");
+}
+function descartarPendente(){ var a=S.atual; if(!a) return; a.pendente=null; CAP.aviso=""; CAP.travado=null; salvar(); render(); }
+function desfazer(){
+  var v=validos(); if(!v.length) return;
+  var u=v[v.length-1];
+  if(!confirm("Desfazer o animal "+u.n+(u.peso!==""?" ("+fmtBR(u.peso,1)+" kg)":"")+"?")) return;
+  u.desfeito=true; u.sync=false; u.v=Date.now(); S.atual.lidaSync=false;
+  salvar(); render(); sincronizarLogo();
+}
+function pesoDigitado(){
+  var inp=$("pesoDigit"); if(!inp) return;
+  var x=parseFloat(String(inp.value).replace(",","."));
+  if(isNaN(x)||x<PESO_MIN||x>1500){ alert("Digite um peso entre "+PESO_MIN+" e 1500 kg."); return; }
+  registrar(x,"digitado");
+}
+function semPeso(){ registrar("","sem peso"); }
+
+/* ---------- som, vibração, tela acesa ---------- */
+var _ac=null;
+function bip(vezes){
+  try{ navigator.vibrate && navigator.vibrate(vezes>1?[120,80,120]:150); }catch(e){}
+  try{
+    _ac = _ac || new (window.AudioContext||window.webkitAudioContext)();
+    for(var i=0;i<vezes;i++){ var o=_ac.createOscillator(), g=_ac.createGain(); o.frequency.value=vezes>1?1400:900; o.connect(g); g.connect(_ac.destination);
+      var t=_ac.currentTime+i*0.18; g.gain.setValueAtTime(0.25,t); o.start(t); o.stop(t+0.12); }
+  }catch(e){}
+}
+function aviso(tipo){
+  try{ navigator.vibrate && navigator.vibrate([400,150,400,150,400]); }catch(e){}
+  try{ _ac = _ac || new (window.AudioContext||window.webkitAudioContext)(); var o=_ac.createOscillator(), g=_ac.createGain(); o.frequency.value=400; o.connect(g); g.connect(_ac.destination); g.gain.value=0.3; o.start(); o.stop(_ac.currentTime+0.8); }catch(e){}
+}
+function piscar(){ var c=$("cardPeso"); if(!c) return; c.classList.remove("flash"); void c.offsetWidth; c.classList.add("flash"); }
+var _wake=null;
+async function telaAcesa(){ try{ if(navigator.wakeLock && S.atual && !S.atual.fim && document.visibilityState==="visible") _wake=await navigator.wakeLock.request("screen"); }catch(e){} }
+document.addEventListener("visibilitychange", telaAcesa);
+
+/* =====================================================================
+   TEMPO DO MANEJO (o vaqueiro não vê) — mesma conta da lida da pesagem
+   ===================================================================== */
+function calcTempo(a){
+  var marcas=[new Date(a.inicio).getTime()];
+  a.itens.filter(function(i){return !i.desfeito;}).forEach(function(i){ marcas.push(new Date(i.hora).getTime()); });
+  marcas.push(a.fim?new Date(a.fim).getTime():Date.now());
+  marcas.sort(function(x,y){return x-y;});
+  var ativo=0, parado=0, paradas=[], m={n:0,min:0}, t={n:0,min:0};
+  for(var k=1;k<marcas.length;k++){
+    var g=(marcas[k]-marcas[k-1])/60000, tarde=new Date(marcas[k-1]).getHours()>=12;
+    if(g>PAUSA_MIN){ parado+=g; paradas.push({motivo:"Parada "+horaTxt(new Date(marcas[k-1]).toISOString()), min:Math.round(g)}); }
+    else { ativo+=g; (tarde?t:m).min+=g; }
+  }
+  validos().forEach(function(i){ (new Date(i.hora).getHours()>=12?t:m).n++; });
+  var n=validos().length;
+  return { animais:n, minAtivo:ativo, minParado:parado, porHora:ativo>0?n/(ativo/60):null, manha:m, tarde:t, paradas:paradas };
+}
+
+/* =====================================================================
+   SINCRONIZAR (planilha) — tenta sempre; sem sinal fica guardado
+   ===================================================================== */
+var _sincronizando=false, _deNovo=false, _tSync=null;
+function sincronizarLogo(){ clearTimeout(_tSync); _tSync=setTimeout(sincronizar, 800); }
+async function sincronizar(){
+  var a=S.atual; if(!a) return;
+  if(_sincronizando){ _deNovo=true; return; }
+  if(!navigator.onLine){ renderSync(); return; }
+  _sincronizando=true; _deNovo=false;
+  try{
+    var enviar=a.itens.filter(function(i){ return !i.sync; });
+    if(enviar.length){
+      var versoes={}; enviar.forEach(function(i){ versoes[i.n]=i.v; });
+      var body={ action:"manejo_salvar", data:{ token:"", fazenda:a.fazenda, id:a.id, data:a.data, tarefas:a.tarefas.join(", "),
+        itens:enviar.map(function(i){ return { n:i.n, peso:i.peso, hora:horaTxt(i.hora), como:i.como, desfeito:!!i.desfeito }; }) } };
+      var r=await fetch(BACKEND_URL,{method:"POST",body:JSON.stringify(body)});
+      var j=null; try{ j=JSON.parse(await r.text()); }catch(e){}
+      if(j && j.ok){ a.itens.forEach(function(i){ if(versoes[i.n]===i.v) i.sync=true; }); salvar(); }
+    }
+    if(!a.lidaSync){
+      var c=calcTempo(a), lv=a.itens.length+"|"+(a.fim||"")+"|"+validos().length;
+      var lb={ action:"lida_salvar", data:{ token:"", fazenda:a.fazenda, lida:{
+        id:"MV-"+a.id, data:a.data, inicio:horaTxt(a.inicio), fim:a.fim?horaTxt(a.fim):"", tipos:"Manejo vaqueiro: "+a.tarefas.join(", "), pessoas:"",
+        animais:c.animais, min_ativo:Math.round(c.minAtivo), min_parado:Math.round(c.minParado),
+        por_hora:c.porHora!=null?+c.porHora.toFixed(1):"", por_pessoa_hora:"",
+        manha_animais:c.manha.n, manha_min:Math.round(c.manha.min), tarde_animais:c.tarde.n, tarde_min:Math.round(c.tarde.min),
+        paradas:JSON.stringify(c.paradas), aberta:!a.fim } } };
+      var r2=await fetch(BACKEND_URL,{method:"POST",body:JSON.stringify(lb)});
+      var j2=null; try{ j2=JSON.parse(await r2.text()); }catch(e){}
+      var lvAgora=a.itens.length+"|"+(a.fim||"")+"|"+validos().length;
+      if(j2 && j2.ok && lv===lvAgora) { a.lidaSync=true; salvar(); }
+    }
+  }catch(e){ /* sem sinal: tenta de novo */ }
+  finally{ _sincronizando=false; renderSync(); if(_deNovo) setTimeout(sincronizar,1000); }
+}
+setInterval(function(){ if(S.atual && pendentes()>0) sincronizar(); }, 8000);
+setInterval(function(){ if(S.atual && !S.atual.fim){ S.atual.lidaSync=false; sincronizar(); } }, 120000); // tempo atualizado na planilha
+window.addEventListener("online", sincronizar);
+window.addEventListener("offline", renderSync);
+
+/* =====================================================================
+   TELAS
+   ===================================================================== */
+var TELA = "inicio";
+var _escolha = [];      // tarefas marcadas na tela de início
+var _cfg = null;        // configuração vinda do link
+function lerLink(){
+  var p=params();
+  if(p.get("montar")) return { montar:true };
+  var fz=p.get("fz"); if(!fz) return null;
+  var t=p.get("t"); var tarefas=t?t.split("|").map(function(x){return x.trim();}).filter(Boolean):[];
+  return { fazenda:fz, tarefas:tarefas, travado:tarefas.length>0, modo:p.get("m")==="auto"?"auto":"conf", esperados:parseInt(p.get("e"),10)||0 };
+}
+
+function render(){
+  var app=$("app");
+  if(TELA==="montar"){ app.innerHTML=telaMontar(); posMontar(); return; }
+  if(S.atual && !S.atual.fim){ TELA="pesando"; }
+  if(TELA==="pesando"){ app.innerHTML=telaPesando(); $("topSub").textContent=S.atual.fazenda+" · "+dataBR(S.atual.data); renderPesoAoVivo(); renderSync(); return; }
+  if(TELA==="fim"){ app.innerHTML=telaFim(); renderSync(); return; }
+  app.innerHTML=telaInicio();
+  $("topSub").textContent=_cfg?_cfg.fazenda+" · hoje":"GPL";
+}
+
+/* ---- 1) você monta o link ---- */
+function telaMontar(){
+  var u=S.ultimoMontar||{};
+  var marc=u.tarefas||["Pesar"];
+  return '<div class="card"><h2>Montar o link do vaqueiro</h2>'
+   +'<p class="lbl">Fazenda</p><input id="mFaz" list="mFazLista" value="'+esc(u.fazenda||"")+'" placeholder="Fazenda Estrela"><datalist id="mFazLista"></datalist>'
+   +'<p class="lbl" style="margin-top:12px">O que ele vai fazer <span class="mini">(sem marcar nada, ele escolhe na tela dele)</span></p>'
+   +TAREFAS_PADRAO.map(function(t){ var on=marc.indexOf(t)>=0; return '<div class="tag'+(on?' on':'')+'" data-t="'+esc(t)+'" onclick="this.classList.toggle(\'on\')"><span class="ck">✓</span>'+esc(t)+'</div>'; }).join("")
+   +'<input id="mOutro" placeholder="Outro (ex.: Castração)" value="'+esc(u.outro||"")+'">'
+   +'<div class="linha" style="margin-top:12px"><div><p class="lbl">Esperados (opcional)</p><input id="mEsp" type="number" inputmode="numeric" value="'+esc(u.esperados||"")+'" placeholder="48"></div>'
+   +'<div><p class="lbl">Peso</p><select id="mModo"><option value="conf"'+(u.modo!=="auto"?" selected":"")+'>Confirmar cada peso</option><option value="auto"'+(u.modo==="auto"?" selected":"")+'>Automático</option></select></div></div>'
+   +'<button class="bt" style="margin-top:14px" onclick="gerarLink(\'whats\')">Mandar link pro vaqueiro (WhatsApp)</button>'
+   +'<div class="linha" style="margin-top:8px"><button class="bt2" onclick="gerarLink(\'copiar\')">Copiar link</button><button class="bt3" onclick="gerarLink(\'abrir\')">Abrir aqui</button></div>'
+   +'<p class="mini" id="mMsg" style="margin-top:8px"></p></div>';
+}
+async function posMontar(){
+  $("topSub").textContent="Montar link";
+  try{ var r=await jsonp(BACKEND_URL+"?acao=fazendas&token="); var l=(r&&r.fazendas)||[];
+    $("mFazLista").innerHTML=l.map(function(f){ return '<option value="'+esc(f)+'">'; }).join("");
+    if(!$("mFaz").value && l.length===1) $("mFaz").value=l[0];
+  }catch(e){}
+}
+function gerarLink(acao){
+  var faz=$("mFaz").value.trim(); if(!faz){ $("mMsg").textContent="Escolha a fazenda."; $("mMsg").style.color="var(--danger)"; $("mFaz").focus(); return; }
+  var tar=[].slice.call(document.querySelectorAll(".tag.on")).map(function(e){ return e.getAttribute("data-t"); });
+  var outro=$("mOutro").value.trim(); if(outro) tar.push(outro);
+  var esp=parseInt($("mEsp").value,10)||0, modo=$("mModo").value;
+  S.ultimoMontar={ fazenda:faz, tarefas:tar, outro:outro, esperados:esp||"", modo:modo }; salvar();
+  var base=location.origin+location.pathname.replace(/\.html$/,"");
+  var q="?fz="+encodeURIComponent(faz)+(tar.length?"&t="+encodeURIComponent(tar.join("|")):"")+"&m="+modo+(esp?"&e="+esp:"");
+  var link=base+q;
+  var msg="Manejo de hoje — "+faz+(tar.length?"\n"+tar.join(" · "):"")+(esp?"\nEsperados: "+esp:"")+"\n\nAbra no Chrome:\n"+link;
+  if(acao==="whats"){ location.href="https://wa.me/?text="+encodeURIComponent(msg); return; }
+  if(acao==="abrir"){ location.href=link; return; }
+  (navigator.clipboard?navigator.clipboard.writeText(link):Promise.reject()).then(function(){ $("mMsg").textContent="Link copiado."; $("mMsg").style.color="var(--v1)"; },
+    function(){ prompt("Copie o link:", link); });
+}
+
+/* ---- 2) vaqueiro abre o link ---- */
+function telaInicio(){
+  if(!_cfg) return '<div class="card"><h2>Abra pelo link que o consultor mandou</h2><p class="lbl">Este endereço precisa vir com a fazenda. Peça o link no WhatsApp.</p></div>';
+  var lista=_cfg.travado?_cfg.tarefas:TAREFAS_PADRAO;
+  var h='<div class="card"><h2>'+esc(_cfg.fazenda)+' · '+dataBR(hojeISO())+'</h2><p class="lbl">O que vai fazer</p>';
+  h+=lista.map(function(t){ var on=_escolha.indexOf(t)>=0;
+    return '<div class="tag'+(on?' on':'')+'" '+(_cfg.travado?'':'onclick="marcar(\''+esc(t).replace(/'/g,"\\'")+'\')"')+'><span class="ck">✓</span>'+esc(t)+'</div>'; }).join("");
+  if(!_cfg.travado) h+='<input id="iOutro" placeholder="Outro" onchange="marcarOutro(this.value)">';
+  if(_escolha.indexOf("Pesar")>=0) h+=balLinha();
+  h+='<button class="bt grande" style="margin-top:14px" onclick="iniciar()">Iniciar</button>';
+  if(_cfg.esperados) h+='<p class="mini" style="text-align:center;margin-top:8px">Esperados: '+_cfg.esperados+' animais</p>';
+  return h+'</div>';
+}
+function balLinha(){
+  if(!balSuportado()) return '<div class="alerta warn" style="margin-top:12px">Este navegador não liga na balança. Abra o link no <b>Chrome</b> (celular Android ou notebook). Sem balança, o peso é digitado.</div>';
+  var st=BAL.on?'<span class="ok-msg">'+esc(BAL.dev&&BAL.dev.name||"Balança")+' conectada</span>':(BAL.tentando?'Reconectando…':'Balança não conectada');
+  return '<div class="bal" style="margin-top:12px"><span class="dot '+(BAL.on?'ok':'err')+'"></span><div style="flex:1">'+st+'</div>'
+    +(BAL.on?'':'<button class="bt2" style="flex:0 0 auto" onclick="balConectar(true)">Conectar</button>')+'</div>';
+}
+function marcar(t){ var i=_escolha.indexOf(t); if(i>=0) _escolha.splice(i,1); else _escolha.push(t); render(); }
+function marcarOutro(v){ v=String(v||"").trim(); if(v && _escolha.indexOf(v)<0) _escolha.push(v); }
+function iniciar(){
+  var o=$("iOutro"); if(o) marcarOutro(o.value);
+  if(!_escolha.length){ alert("Marque o que vai fazer."); return; }
+  if(_escolha.indexOf("Pesar")>=0 && !BAL.on && !confirm("A balança não está conectada. Começar assim mesmo? O peso vai ser digitado.")) return;
+  var agora=new Date();
+  S.atual={ id:agora.getTime().toString(36), fazenda:_cfg.fazenda, data:hojeISO(), inicio:agora.toISOString(), fim:null,
+    tarefas:_escolha.slice(), modo:_cfg.modo, esperados:_cfg.esperados||0, itens:[], pendente:null, lidaSync:false };
+  CAP.travado=null; CAP.aviso="";
+  salvar(); TELA="pesando"; telaAcesa(); render(); sincronizarLogo();
+}
+
+/* ---- 3) pesando ---- */
+function telaPesando(){
+  var a=S.atual, v=validos(), n=v.length, prox=n+1;
+  var h='';
+  if(temPeso()){
+    if(!balSuportado()) h+='<div class="alerta warn">Este navegador não liga na balança (use o Chrome). Digite o peso.</div>';
+    else if(!BAL.on) h+='<div class="alerta err">'+(BAL.tentando?'Balança desconectada — tentando reconectar…':'Balança desconectada')
+      +'<div style="margin-top:8px"><button class="btv" onclick="balConectar(!BAL.dev)">Conectar a balança</button></div></div>';
+    if(BAL.emLibras) h+='<div class="alerta warn">A balança está em libras. Mude a S3 para kg.</div>';
+  }
+  h+='<div class="card" id="cardPeso">';
+  h+='<div class="cab"><span>Animal <b>'+prox+'</b>'+(a.esperados?' de '+a.esperados:'')+'</span><span>'+esc(a.tarefas.filter(function(t){return t!=="Pesar";}).join(" · ")||"Pesagem")+'</span></div>';
+  if(temPeso()){
+    if(a.pendente){
+      h+='<div class="peso">'+fmtBR(a.pendente.peso,1)+' <small>kg</small></div><div class="est trav">Peso travou</div>'
+        +'<button class="bt grande" onclick="confirmarPendente()">Confirmar</button>'
+        +'<div class="linha" style="margin-top:8px"><input id="pesoMao" type="number" inputmode="decimal" placeholder="corrigir peso"><button class="bt3" style="flex:0 0 auto" onclick="descartarPendente()">Descartar</button></div>';
+    } else {
+      h+='<div class="peso" id="pesoVivo">—</div><div class="est" id="estVivo"></div>';
+      if(!BAL.on) h+='<div class="linha"><input id="pesoDigit" type="number" inputmode="decimal" placeholder="digitar peso"><button class="bt" style="flex:0 0 auto;width:auto;padding:12px 18px" onclick="pesoDigitado()">Registrar</button></div>';
+    }
+    h+='<div class="est" id="avisoPulo" style="color:var(--warn);font-weight:700"></div>';
+  } else {
+    h+='<button class="bt grande" style="margin-top:14px;padding:34px" onclick="semPeso()">+ Animal passou</button>';
+  }
+  var u=v[v.length-1];
+  h+='<div class="ult"><span>'+(u?'Último: nº '+u.n+(u.peso!==""?' · '+fmtBR(u.peso,1)+' kg':'')+' ✓':'Nenhum animal ainda')+'</span>'
+    +(u?'<button class="bt3" onclick="desfazer()">Desfazer</button>':'')+'</div>';
+  var comPeso=v.filter(function(i){return i.peso!=="";});
+  var media=comPeso.length?comPeso.reduce(function(s,i){return s+Number(i.peso);},0)/comPeso.length:null;
+  h+='<div class="mini" style="margin-top:8px">'+n+' animal(is)'+(media!=null?' · média '+fmtBR(media,0)+' kg':'')+(a.esperados?' · faltam '+Math.max(0,a.esperados-n):'')+'</div>';
+  h+='<div class="mini" id="syncTxt" style="margin-top:4px"></div>';
+  h+='</div>';
+  if(temPeso() && BAL.on && !a.pendente && a.modo!=="auto") h+='<p class="mini" style="text-align:center">Quando o peso travar, aparece o botão Confirmar.</p>';
+  h+='<button class="bt3" style="width:100%;margin-top:6px" onclick="encerrar()">Encerrar manejo</button>';
+  return h;
+}
+function renderPesoAoVivo(){
+  if(TELA!=="pesando") return;
+  var a=S.atual; if(!a) return;
+  var pv=$("pesoVivo"), ev=$("estVivo"), ap=$("avisoPulo");
+  if(ap) ap.textContent=CAP.aviso||"";
+  if(a.pendente){ if(!$("pesoMao") && !document.querySelector(".est.trav")) render(); return; }
+  if(!pv) { if(a.pendente===null && document.querySelector(".est.trav")) render(); return; }
+  if(!BAL.on || BAL.kg==null){ pv.innerHTML="—"; if(ev){ ev.textContent=BAL.on?"Esperando a balança…":""; ev.className="est"; } return; }
+  pv.innerHTML=fmtBR(BAL.kg,1)+' <small>kg</small>';
+  if(ev){
+    if(BAL.kg<PESO_ZERO){ ev.textContent="Balança vazia — pode entrar"; ev.className="est"; }
+    else if(CAP.travado!=null){ ev.textContent="Peso guardado: "+fmtBR(CAP.travado,1)+" kg"; ev.className="est trav"; }
+    else { ev.textContent=BAL.estavel?"Travou":"Esperando travar…"; ev.className="est"+(BAL.estavel?" trav":""); }
+  }
+}
+function renderSync(){
+  var el=$("syncTxt"); if(!el||!S.atual) return;
+  var p=S.atual.itens.filter(function(i){return !i.sync;}).length;
+  if(!p) el.innerHTML='<span class="ok-msg">Salvo na planilha</span>';
+  else if(!navigator.onLine) el.textContent="Sem sinal — "+p+" guardado(s) no celular, sobem sozinhos";
+  else el.textContent="Enviando "+p+"…";
+}
+function encerrar(){
+  var a=S.atual; if(!a) return;
+  if(a.pendente && !confirm("Tem um peso travado sem confirmar. Encerrar mesmo assim (ele não conta)?")) return;
+  if(!confirm("Encerrar o manejo com "+validos().length+" animal(is)?")) return;
+  a.pendente=null; a.fim=new Date().toISOString(); a.lidaSync=false;
+  salvar(); TELA="fim"; try{ _wake&&_wake.release(); }catch(e){} render(); sincronizar();
+}
+
+/* ---- 4) fim ---- */
+function telaFim(){
+  var a=S.atual; if(!a) return '<div class="card"><h2>Pronto</h2></div>';
+  var v=validos(), cp=v.filter(function(i){return i.peso!=="";});
+  var media=cp.length?cp.reduce(function(s,i){return s+Number(i.peso);},0)/cp.length:null;
+  return '<div class="card"><h2>Manejo encerrado</h2>'
+    +'<div style="font-size:40px;font-weight:900;color:var(--v1)">'+v.length+' <span style="font-size:18px">animais</span></div>'
+    +(media!=null?'<p class="lbl">Média '+fmtBR(media,1)+' kg</p>':'')
+    +'<p class="lbl">'+esc(a.tarefas.join(" · "))+'</p>'
+    +'<div class="mini" id="syncTxt"></div>'
+    +'<button class="bt2" style="width:100%;margin-top:14px" onclick="novoManejo()">Novo manejo</button></div>';
+}
+function novoManejo(){
+  if(pendentes()>0){ alert("Ainda tem animal guardado no celular que não subiu pra planilha. Espere ter sinal e o aviso ficar \"Salvo na planilha\"."); sincronizar(); return; }
+  S.atual=null; salvar(); TELA="inicio"; _escolha=_cfg&&_cfg.travado?_cfg.tarefas.slice():[]; render();
+}
+
+/* ---------- abrir ---------- */
+(function iniciarApp(){
+  var l=lerLink();
+  if(l && l.montar){ TELA="montar"; render(); return; }
+  _cfg=l;
+  if(_cfg && _cfg.travado) _escolha=_cfg.tarefas.slice();
+  if(S.atual && S.atual.fim){ TELA= pendentes()>0 ? "fim" : "inicio"; if(TELA==="inicio") { S.atual=null; salvar(); } }
+  render();
+  if(S.atual){ sincronizar(); telaAcesa(); }
+  balAutoReconectar();
+})();
+
+/* abrir sem internet (só esta página) */
+if("serviceWorker" in navigator){ window.addEventListener("load", function(){ navigator.serviceWorker.register("sw-manejo.js",{scope:"./manejo-curral"}).catch(function(){}); }); }
+</script>
+</body>
+</html>

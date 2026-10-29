@@ -48,7 +48,7 @@
     <button class="bt" id="btConectar">Procurar a balança</button>
     <div id="status" class="st" style="margin-top:10px">Desconectado</div>
     <div class="peso" id="peso">—</div>
-    <p style="text-align:center;margin:0">Suba um peso na balança (ou uma pessoa) e veja se aparece algo aqui embaixo.</p>
+    <p style="text-align:center;margin:0">Depois de conectar: suba na balança, espere o peso <b>travar</b> no visor, aperte o botão de <b>gravar</b> da S3 e <b>anote o peso do visor</b>. Repita com 2 ou 3 pesos diferentes. Não deixe a tela do celular apagar.</p>
   </div>
 
   <div class="card">
@@ -100,6 +100,25 @@ function tentaPeso(dv) {
   if (m) $('peso').textContent = m[0].replace('.', ',') + ' kg?';
 }
 
+// Canal padrão de balança (Weight Measurement 2A9D): 1º byte = opções, depois o peso em 2 bytes.
+// Não sei ainda a escala que a S3 usa, então mostro as leituras possíveis pra comparar com o visor.
+var _recebidos = 0, _inicio = 0;
+function pesoPadrao(dv) {
+  if (dv.byteLength < 3) return;
+  var flags = dv.getUint8(0), bruto = dv.getUint16(1, true);
+  var lb = (flags & 1) === 1;
+  var padrao = lb ? bruto * 0.01 * 0.4536 : bruto * 0.005;
+  log('    PESO (canal balança): número bruto=' + bruto + (lb ? ' (libras)' : '') +
+      ' → padrão ' + padrao.toFixed(1) + ' kg | ×0,1=' + (bruto * 0.1).toFixed(1) + ' | ×0,5=' + (bruto * 0.5).toFixed(1) + ' | ×1=' + bruto);
+  $('peso').textContent = padrao.toFixed(1).replace('.', ',') + ' kg?';
+}
+setInterval(function () {
+  if (!_inicio || !dispositivo || !dispositivo.gatt.connected) return;
+  var s = Math.round((Date.now() - _inicio) / 1000);
+  if (!_recebidos) status('Conectado há ' + s + 's — suba na balança e espere o peso travar no visor', 'ok');
+  else status('Conectado — ' + _recebidos + ' leitura(s) recebida(s)', 'ok');
+}, 1000);
+
 function renderSuporte() {
   var el = $('suporte');
   if (navigator.bluetooth) { el.textContent = 'Este navegador aceita Bluetooth. Pode testar.'; el.className = 'st ok'; }
@@ -137,8 +156,9 @@ async function conectar() {
           (function (car) {
             car.addEventListener('characteristicvaluechanged', function (ev) {
               var dv = ev.target.value;
+              _recebidos++;
               log('  ← ' + car.uuid.slice(0, 8) + ': ' + hex(dv) + '   "' + texto(dv) + '"');
-              tentaPeso(dv);
+              if (car.uuid.indexOf('00002a9d') === 0) pesoPadrao(dv); else if (car.uuid.indexOf('00002a19') !== 0) tentaPeso(dv);
             });
           })(c);
           try { await c.startNotifications(); log('    escutando…'); } catch (e) { log('    não deixou escutar: ' + e.message); }
@@ -147,6 +167,8 @@ async function conectar() {
       html += '</div>';
     }
     $('servicos').innerHTML = html;
+    _inicio = Date.now(); _recebidos = 0;
+    log('Pronto. Agora suba na balança, espere o peso TRAVAR no visor, aperte o botão de gravar da S3 e anote o peso que o visor mostrou.');
   } catch (e) {
     status('Não conectou: ' + e.message, 'err');
     log('ERRO: ' + e.name + ' — ' + e.message);

@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Teste da Balança — GPL</title>
+<link rel="icon" type="image/png" href="icone-caixa-gpl.png">
+<style>
+  :root{--verde:#1B5E20;--verde2:#2E7D32;--fundo:#F4F6F3;--borda:#DDE3DA;--txt:#1E2A1F;--cinza:#5F6B60}
+  *{box-sizing:border-box}
+  body{margin:0;font-family:Arial,Helvetica,sans-serif;background:var(--fundo);color:var(--txt)}
+  .top{background:var(--verde);color:#fff;padding:14px 16px;display:flex;align-items:center;gap:10px}
+  .top img{width:34px;height:34px;border-radius:8px}
+  .top b{font-size:17px}
+  .wrap{max-width:760px;margin:0 auto;padding:14px 16px 40px}
+  .card{background:#fff;border:1px solid var(--borda);border-radius:12px;padding:14px;margin-bottom:12px}
+  h3{margin:0 0 8px;font-size:15px}
+  p,li{font-size:14px;line-height:1.45;color:var(--cinza)}
+  ol{margin:6px 0 0;padding-left:20px}
+  button{font:inherit;font-weight:700;border:0;border-radius:10px;padding:12px 16px;cursor:pointer}
+  .bt{background:var(--verde2);color:#fff;width:100%;font-size:16px}
+  .bt2{background:#E8EFE6;color:var(--verde)}
+  .linha{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+  .peso{font-size:44px;font-weight:900;color:var(--verde);text-align:center;padding:8px 0}
+  .st{font-size:14px;font-weight:700;padding:8px 10px;border-radius:8px;background:#F1F4EF}
+  .st.ok{background:#E3F2E1;color:var(--verde)} .st.err{background:#FDECEA;color:#B71C1C}
+  #log{font-family:Consolas,monospace;font-size:12px;background:#10180F;color:#CFE8C9;border-radius:10px;padding:10px;height:320px;overflow:auto;white-space:pre-wrap;word-break:break-all}
+  input{font:inherit;width:100%;padding:10px;border:1px solid var(--borda);border-radius:8px}
+  .serv{font-size:13px;border-top:1px solid var(--borda);padding:6px 0}
+  .serv code{font-size:12px}
+</style>
+</head>
+<body>
+<div class="top"><img src="icone-caixa-gpl.png" alt=""><b>Teste da Balança S3</b></div>
+<div class="wrap">
+
+  <div class="card">
+    <h3>Antes de começar</h3>
+    <ol>
+      <li>Ligue a S3 com o Bluetooth ligado e deixe-a perto do notebook ou celular.</li>
+      <li><b>Feche o app Datamars</b> (no celular onde ele estiver). A balança só conversa com um aparelho por vez.</li>
+      <li>Use o <b>Chrome ou Edge</b> no notebook, ou o <b>Chrome no Android</b>. No iPhone só funciona pelo app Bluefy.</li>
+    </ol>
+    <div id="suporte" class="st" style="margin-top:10px"></div>
+  </div>
+
+  <div class="card">
+    <button class="bt" id="btConectar">Procurar a balança</button>
+    <div id="status" class="st" style="margin-top:10px">Desconectado</div>
+    <div class="peso" id="peso">—</div>
+    <p style="text-align:center;margin:0">Suba um peso na balança (ou uma pessoa) e veja se aparece algo aqui embaixo.</p>
+  </div>
+
+  <div class="card">
+    <h3>O que a balança mostrou</h3>
+    <div id="servicos"><p>Ainda nada.</p></div>
+  </div>
+
+  <div class="card">
+    <h3>Registro (é isso que você me manda)</h3>
+    <div id="log"></div>
+    <div class="linha">
+      <button class="bt2" id="btCopiar">Copiar registro</button>
+      <button class="bt2" id="btLimpar">Limpar</button>
+      <button class="bt2" id="btDesc">Desconectar</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Se não aparecer nenhum serviço</h3>
+    <p>No notebook, abra uma aba nova e digite <code>chrome://bluetooth-internals</code> → <b>Devices</b> → Start Scan → na S3 clique em <b>Inspect</b>. Copie os códigos que aparecem em "Services" (ex.: <code>0000fff0-0000-1000-8000-00805f9b34fb</code>), cole aqui separados por vírgula e procure de novo.</p>
+    <input id="extra" placeholder="códigos de serviço extras (opcional)">
+  </div>
+
+</div>
+<script>
+// Serviços comuns em balanças e módulos Bluetooth. O navegador só deixa ler os que estiverem nesta lista.
+var SERVICOS = [
+  'battery_service','device_information','weight_scale','generic_access','generic_attribute',
+  '6e400001-b5a3-f393-e0a9-e50e24dcca9e', // UART Nordic
+  '49535343-fe7d-4ae5-8fa9-9fafd205e455', // UART Microchip
+  '2456e1b9-26e2-8f83-e744-f34f01e9d701', // UART u-blox
+  '0000ffe0-0000-1000-8000-00805f9b34fb','0000fff0-0000-1000-8000-00805f9b34fb',
+  '0000ffe5-0000-1000-8000-00805f9b34fb','0000ff00-0000-1000-8000-00805f9b34fb',
+  '0000fee7-0000-1000-8000-00805f9b34fb','0000180d-0000-1000-8000-00805f9b34fb',
+  '0000ae30-0000-1000-8000-00805f9b34fb','0000fe59-0000-1000-8000-00805f9b34fb'
+];
+var dispositivo = null, linhas = [];
+var $ = function (id) { return document.getElementById(id); };
+
+function hora() { var d = new Date(); return d.toLocaleTimeString('pt-BR') + '.' + String(d.getMilliseconds()).padStart(3, '0'); }
+function log(t) { linhas.push(hora() + '  ' + t); var el = $('log'); el.textContent = linhas.join('\n'); el.scrollTop = el.scrollHeight; }
+function status(t, tipo) { var el = $('status'); el.textContent = t; el.className = 'st' + (tipo ? ' ' + tipo : ''); }
+function hex(dv) { var a = []; for (var i = 0; i < dv.byteLength; i++) a.push(dv.getUint8(i).toString(16).padStart(2, '0')); return a.join(' '); }
+function texto(dv) { var s = ''; for (var i = 0; i < dv.byteLength; i++) { var c = dv.getUint8(i); s += (c >= 32 && c < 127) ? String.fromCharCode(c) : '·'; } return s; }
+
+// Tentativa simples de achar um peso no que chegou (texto com número)
+function tentaPeso(dv) {
+  var m = texto(dv).match(/-?\d{1,4}[.,]\d|-?\d{2,4}/);
+  if (m) $('peso').textContent = m[0].replace('.', ',') + ' kg?';
+}
+
+function renderSuporte() {
+  var el = $('suporte');
+  if (navigator.bluetooth) { el.textContent = 'Este navegador aceita Bluetooth. Pode testar.'; el.className = 'st ok'; }
+  else { el.textContent = 'Este navegador NÃO aceita Bluetooth. Use Chrome/Edge no notebook, Chrome no Android, ou Bluefy no iPhone.'; el.className = 'st err'; $('btConectar').disabled = true; }
+}
+
+async function conectar() {
+  var extras = $('extra').value.split(',').map(function (s) { return s.trim().toLowerCase(); }).filter(Boolean);
+  try {
+    status('Escolha a balança na lista que abriu…');
+    dispositivo = await navigator.bluetooth.requestDevice({ acceptAllDevices: true, optionalServices: SERVICOS.concat(extras) });
+    log('Aparelho escolhido: ' + (dispositivo.name || '(sem nome)') + '  id=' + dispositivo.id);
+    dispositivo.addEventListener('gattserverdisconnected', function () { status('A balança desconectou', 'err'); log('— desconectou —'); });
+    status('Conectando…');
+    var gatt = await dispositivo.gatt.connect();
+    status('Conectado em ' + (dispositivo.name || 'aparelho'), 'ok');
+    log('Conectado.');
+    var servs = await gatt.getPrimaryServices();
+    var html = '';
+    if (!servs.length) { html = '<p>Conectou, mas nenhum serviço conhecido apareceu. Veja o último quadro ("Se não aparecer nenhum serviço").</p>'; log('Nenhum serviço da lista encontrado.'); }
+    for (var s of servs) {
+      log('SERVIÇO ' + s.uuid);
+      html += '<div class="serv"><b>Serviço</b> <code>' + s.uuid + '</code>';
+      var cars = [];
+      try { cars = await s.getCharacteristics(); } catch (e) { log('  (não deixou ler as características: ' + e.message + ')'); }
+      for (var c of cars) {
+        var p = c.properties, props = [];
+        ['read', 'write', 'writeWithoutResponse', 'notify', 'indicate'].forEach(function (k) { if (p[k]) props.push(k); });
+        log('  característica ' + c.uuid + '  [' + props.join(', ') + ']');
+        html += '<div>&nbsp;• <code>' + c.uuid + '</code> ' + props.join(', ') + '</div>';
+        if (p.read) {
+          try { var v = await c.readValue(); log('    leu: ' + hex(v) + '   "' + texto(v) + '"'); } catch (e) { log('    leitura falhou: ' + e.message); }
+        }
+        if (p.notify || p.indicate) {
+          (function (car) {
+            car.addEventListener('characteristicvaluechanged', function (ev) {
+              var dv = ev.target.value;
+              log('  ← ' + car.uuid.slice(0, 8) + ': ' + hex(dv) + '   "' + texto(dv) + '"');
+              tentaPeso(dv);
+            });
+          })(c);
+          try { await c.startNotifications(); log('    escutando…'); } catch (e) { log('    não deixou escutar: ' + e.message); }
+        }
+      }
+      html += '</div>';
+    }
+    $('servicos').innerHTML = html;
+  } catch (e) {
+    status('Não conectou: ' + e.message, 'err');
+    log('ERRO: ' + e.name + ' — ' + e.message);
+  }
+}
+
+$('btConectar').onclick = conectar;
+$('btLimpar').onclick = function () { linhas = []; $('log').textContent = ''; };
+$('btDesc').onclick = function () { if (dispositivo && dispositivo.gatt.connected) dispositivo.gatt.disconnect(); };
+$('btCopiar').onclick = function () {
+  var t = linhas.join('\n');
+  (navigator.clipboard ? navigator.clipboard.writeText(t) : Promise.reject()).then(
+    function () { status('Registro copiado. Cole na conversa comigo.', 'ok'); },
+    function () { var r = document.createRange(); r.selectNodeContents($('log')); getSelection().removeAllRanges(); getSelection().addRange(r); status('Selecionei o registro — copie e cole na conversa.', 'ok'); });
+};
+renderSuporte();
+log('Página de teste pronta. Navegador: ' + navigator.userAgent);
+</script>
+</body>
+</html>

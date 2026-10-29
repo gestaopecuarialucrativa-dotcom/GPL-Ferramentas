@@ -411,6 +411,7 @@ input:focus,select:focus{outline:2px solid var(--v3); border-color:var(--v3)}
 
   <div id="pesgResumo" onclick="pesgAbrir()" style="margin:10px 16px 0;display:flex;justify-content:space-between;align-items:center;gap:8px;background:#fff;border:1px solid var(--line);border-radius:12px;padding:9px 12px;font-size:14px;cursor:pointer">
     <span id="pesgResumoTxt" style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></span>
+    <span id="balDot" style="flex:none;font-size:12px;font-weight:800"></span>
     <span id="pesgResumoBtn" style="flex:none;color:var(--v2);font-weight:800;font-size:13px">trocar ▾</span>
   </div>
   <div id="pesgBar" style="display:none;gap:8px;margin:8px 16px 0">
@@ -429,17 +430,6 @@ input:focus,select:focus{outline:2px solid var(--v3); border-color:var(--v3)}
 
   <!-- ============ PESAR ============ -->
   <div class="screen on" id="scr-pesar">
-    <div id="lidaBox"></div>
-    <div class="card stripe" id="pesarLoteCard" style="display:none;padding:10px 12px">
-      <div style="display:flex;align-items:center;gap:8px">
-      <span style="font-size:13px;font-weight:800;color:var(--v1);flex:none">Lote a pesar</span>
-      <select id="pesarLoteSel" onchange="pesarSetLote()" style="flex:1;padding:8px 10px;border:1px solid var(--line);border-radius:10px;font-size:14px;background:#fff;color:var(--text);-webkit-appearance:none;appearance:none">
-        <option value="">Todos os lotes</option>
-      </select>
-      </div>
-      <div id="pesarLoteInfo" style="margin-top:8px;font-size:13px"></div>
-    </div>
-    <div id="ultimoBar" class="ult-bar" style="display:none"></div>
 
     <div class="card stripe">
       <h2><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7h18"/><path d="M3 12h18"/><path d="M3 17h18"/></svg> 1. Nº do animal / brinco</h2>
@@ -457,10 +447,7 @@ input:focus,select:focus{outline:2px solid var(--v3); border-color:var(--v3)}
       <h2><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v3"/><path d="M6 6l-3 7h6l-3-7z"/><path d="M18 6l-3 7h6l-3-7z"/><path d="M5 6h14"/><path d="M9 20h6"/><path d="M12 6v14"/></svg> 2. Peso na balança (kg)</h2>
       <input id="pesoIn" class="peso-input" inputmode="decimal" enterkeyhint="done" placeholder="0" autocomplete="off">
       <div id="ganhoBox"></div>
-      <button class="btn btn-ghost btn-sm" style="margin-top:8px" onclick="tryBalanca()">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16"/><path d="M4 7v10a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7"/><path d="M9 3h6"/></svg>
-        Conectar balança (experimental)
-      </button>
+      <div id="balBox" style="margin-top:8px"></div>
     </div>
 
     <div class="card stripe" id="loteCard">
@@ -476,6 +463,17 @@ input:focus,select:focus{outline:2px solid var(--v3); border-color:var(--v3)}
       </button>
     </div>
     <div id="okFlash" class="ok-flash" style="display:none"></div>
+    <div id="ultimoBar" class="ult-bar" style="display:none"></div>
+    <div id="lidaBox"></div>
+    <div class="card stripe" id="pesarLoteCard" style="display:none;padding:10px 12px">
+      <div style="display:flex;align-items:center;gap:8px">
+      <span style="font-size:13px;font-weight:800;color:var(--v1);flex:none">Lote a pesar</span>
+      <select id="pesarLoteSel" onchange="pesarSetLote()" style="flex:1;padding:8px 10px;border:1px solid var(--line);border-radius:10px;font-size:14px;background:#fff;color:var(--text);-webkit-appearance:none;appearance:none">
+        <option value="">Todos os lotes</option>
+      </select>
+      </div>
+      <div id="pesarLoteInfo" style="margin-top:8px;font-size:13px"></div>
+    </div>
     <div class="modal-bg" id="suspModal" onclick="if(event.target===this)closeSuspeitos()">
       <div class="modal">
         <div class="modal-h">Resolver suspeitos <span class="modal-x" onclick="closeSuspeitos()">✕</span></div>
@@ -1122,9 +1120,107 @@ function toggleNovo(){
   }else{ sel=null; document.getElementById("numIn").placeholder="Digite o número (ou termine com x se incerto)"; }
   renderDetail();
 }
-function tryBalanca(){
-  alert("Balança S3 Tru-Test usa Bluetooth Classic (SPP) — incompatível com navegador. Digite o peso manualmente.");
+/* =====================================================================
+   BALANÇA S3 (Bluetooth) — preenche o PESO sozinho quando trava
+   - canal padrão de peso; kg = número que chega ÷ 20 (conferido: 65 kg)
+   - byte 10: 00 = travou · ff = mexendo
+   - vale o 1º peso que travar depois do zero; só preenche se o campo
+     do peso estiver VAZIO (nunca troca um peso já digitado/preenchido)
+   - "Digitar manual": larga a balança e some o aviso vermelho
+   - Chrome no Android/notebook. iPhone: não aparece (digita como sempre)
+   ===================================================================== */
+var BALP={ dev:null, on:false, tentando:false, kg:null, estavel:false, travado:null, emLibras:false,
+  modo:(function(){ try{ return localStorage.getItem("gpl_pesg_bal_modo")==="balanca"?"balanca":"manual"; }catch(e){ return "manual"; } })() };
+var BAL_MIN=30, BAL_ZERO=10;
+function balSuporte(){ return !!(navigator.bluetooth && navigator.bluetooth.requestDevice); }
+function balModo(m){ BALP.modo=m; try{ localStorage.setItem("gpl_pesg_bal_modo",m); }catch(e){} renderBal(); }
+async function balConectarP(escolher){
+  if(!balSuporte()){ alert("Este navegador não liga na balança. Use o Chrome no celular Android ou no notebook."); return; }
+  balModo("balanca");
+  try{
+    if(escolher || !BALP.dev){
+      BALP.dev=await navigator.bluetooth.requestDevice({ filters:[{namePrefix:"S3"},{services:["weight_scale"]}], optionalServices:["weight_scale"] });
+      BALP.dev.addEventListener("gattserverdisconnected", balCaiuP);
+    }
+    await balCanalP();
+  }catch(e){
+    if(e && e.name==="NotFoundError"){ renderBal(); return; }
+    BALP.on=false; renderBal(); alert("Não conectou na balança: "+(e&&e.message?e.message:e));
+  }
 }
+async function balCanalP(){
+  var g=await BALP.dev.gatt.connect();
+  var sv=await g.getPrimaryService("weight_scale");
+  var ch=await sv.getCharacteristic("weight_measurement");
+  ch.addEventListener("characteristicvaluechanged", balLeituraP);
+  await ch.startNotifications();
+  BALP.on=true; BALP.tentando=false; BALP.kg=null;
+  try{ localStorage.setItem("gpl_pesg_bal_nome", BALP.dev.name||"S3"); }catch(e){}
+  renderBal();
+}
+function balCaiuP(){
+  BALP.on=false; BALP.estavel=false;
+  if(BALP.modo==="balanca"){ try{ navigator.vibrate && navigator.vibrate([400,150,400]); }catch(e){} }
+  renderBal(); balReconP(0);
+}
+function balReconP(n){
+  if(BALP.on || !BALP.dev || BALP.modo!=="balanca") { BALP.tentando=false; return; }
+  BALP.tentando=true; renderBal();
+  setTimeout(function(){ if(BALP.on || BALP.modo!=="balanca") return;
+    balCanalP().catch(function(){ if(n<20) balReconP(n+1); else { BALP.tentando=false; renderBal(); } }); }, n<5?2000:5000);
+}
+async function balAutoP(){
+  try{
+    if(BALP.modo!=="balanca" || !navigator.bluetooth || !navigator.bluetooth.getDevices) return;
+    var l=await navigator.bluetooth.getDevices(), nome=localStorage.getItem("gpl_pesg_bal_nome");
+    var d=l.filter(function(x){ return x.name && (x.name===nome || x.name.indexOf("S3")===0); })[0]; if(!d) return;
+    BALP.dev=d; d.addEventListener("gattserverdisconnected", balCaiuP); await balCanalP();
+  }catch(e){}
+}
+function balLeituraP(ev){
+  var dv=ev.target.value; if(!dv || dv.byteLength<3) return;
+  var fl=dv.getUint8(0), br=dv.getUint16(1,true); BALP.emLibras=(fl&1)===1;
+  var kg=BALP.emLibras? br*0.01*0.45359 : br/20; kg=Math.round(kg*10)/10;
+  BALP.kg=kg; BALP.estavel= dv.byteLength>10 ? dv.getUint8(10)===0 : false;
+  if(kg<BAL_ZERO){ BALP.travado=null; }
+  else if(BALP.travado==null && BALP.estavel && kg>=BAL_MIN){
+    BALP.travado=kg;
+    var pi=document.getElementById("pesoIn");
+    if(BALP.modo==="balanca" && pi && String(pi.value).trim()===""){
+      pi.value=String(kg).replace(".",","); pi.dataset.bal="1";
+      pi.dispatchEvent(new Event("input"));
+      try{ navigator.vibrate && navigator.vibrate(120); }catch(e){}
+    }
+  }
+  renderBalLinha();
+}
+function renderBalLinha(){
+  var el=document.getElementById("balLive"); if(!el) return;
+  if(!BALP.on || BALP.kg==null){ el.textContent=BALP.on?"esperando a balança…":""; return; }
+  el.textContent= BALP.kg<BAL_ZERO ? "balança vazia" : ("balança: "+fmtBR(BALP.kg,1)+" kg"+(BALP.travado!=null?" · travou":" · mexendo"));
+}
+function renderBal(){
+  var box=document.getElementById("balBox"), dot=document.getElementById("balDot");
+  if(dot) dot.innerHTML=(BALP.modo==="balanca"&&balSuporte())?(BALP.on?'<span style="color:var(--v2)">● S3</span>':'<span style="color:var(--danger)">● S3</span>'):"";
+  if(!box) return;
+  if(!balSuporte()){ box.innerHTML=""; return; }
+  var h="";
+  if(BALP.modo!=="balanca"){
+    h='<button class="btn btn-ghost btn-sm" onclick="balConectarP(!BALP.dev)">Conectar balança</button>';
+  } else if(BALP.on){
+    h='<div style="display:flex;align-items:center;gap:8px;font-size:13px"><span style="color:var(--v2);font-weight:800">● '+esc(BALP.dev&&BALP.dev.name||"S3")+'</span>'
+     +'<span id="balLive" style="flex:1;color:var(--muted)"></span>'
+     +'<button class="btn btn-ghost btn-sm" style="width:auto;flex:none" onclick="balModo(\'manual\')">Digitar manual</button></div>'
+     +(BALP.emLibras?'<div class="inline-warn" style="display:block">A balança está em libras. Mude a S3 para kg.</div>':'');
+  } else {
+    h='<div style="background:#fdecea;border:1.5px solid var(--danger);border-radius:10px;padding:9px 10px;color:var(--danger);font-weight:800;font-size:13px">'
+     +(BALP.tentando?'Balança desconectada — tentando reconectar…':'Balança desconectada')
+     +'<div style="display:flex;gap:8px;margin-top:8px"><button class="btn btn-ghost btn-sm" style="flex:1" onclick="balConectarP(!BALP.dev)">Conectar</button>'
+     +'<button class="btn btn-ghost btn-sm" style="flex:1" onclick="balModo(\'manual\')">Digitar manual</button></div></div>';
+  }
+  box.innerHTML=h; renderBalLinha();
+}
+document.addEventListener("DOMContentLoaded", function(){ renderBal(); balAutoP(); });
 
 var _vendidosMap = {};
 function _vendidoPorBase(base){

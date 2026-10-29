@@ -421,6 +421,7 @@ input:focus,select:focus{outline:2px solid var(--v3); border-color:var(--v3)}
     </div>
   </div>
 
+  <div id="offBanner" style="display:none;margin:8px 16px 0;padding:9px 12px;background:#FFF3E0;border:1px solid #f0c88a;border-radius:12px;font-size:13px;color:#7a4a00;font-weight:700"></div>
   <div id="pesgVendaAviso" style="display:none;margin:8px 16px 0;padding:9px 12px;background:#FFF3E0;border-left:4px solid #FF6F00;border-radius:10px;font-size:13px;color:#8a4b00;gap:8px;align-items:flex-start"></div>
 
   <!-- ============ PESAR ============ -->
@@ -1436,7 +1437,7 @@ function registrar(){
   renderDetail(); renderHoje(); renderFooter(); renderFaltantes(); renderPesarResumo();
   scheduleAutoSync();
   const _ult=state.today[state.today.length-1];
-  okFlash(_ult); renderLida();
+  okFlash(_ult); renderLida(); renderOffBanner();
   renderUltimo();
   document.getElementById("numIn").focus();
 }
@@ -1724,6 +1725,26 @@ async function renderLidaRel(){
   box.innerHTML=h;
 }
 
+/* ===================== OFFLINE: abrir e pesar sem internet ===================== */
+function ativarOffline(){
+  try{
+    if('serviceWorker' in navigator && /^https?:/.test(location.protocol))
+      navigator.serviceWorker.register('sw-pesagem.js',{scope:'./pesagem-curral'}).catch(function(){});
+  }catch(e){}
+  try{ if(navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(function(){}); }catch(e){}
+  window.addEventListener('online', renderOffBanner);
+  window.addEventListener('offline', renderOffBanner);
+  renderOffBanner();
+}
+function renderOffBanner(){
+  var b=document.getElementById('offBanner'); if(!b) return;
+  if(navigator.onLine===false){
+    var n=_temPendente()? state.today.length : 0;
+    b.innerHTML='Sem internet — pode pesar normal.'+(n?' '+n+(n>1?' animais guardados':' animal guardado')+' no celular, sobem sozinhos quando o sinal voltar.':' Tudo fica guardado no celular e sobe quando o sinal voltar.');
+    b.style.display='block';
+  } else b.style.display='none';
+}
+
 /* ---------- conferir o último lançado SEM parar o serviço ---------- */
 var _ultAberto=false;
 function _horaItem(t){
@@ -1758,7 +1779,7 @@ function renderUltimo(){
   }
   const pend=!!state.syncDirty;
   h+='<div style="font-size:11px;margin-top:4px;font-weight:700;color:'+(pend?'#b26a00':'#2E7D32')+'">'+
-     (pend?(!state.autoSync?'Envio automático desligado — envie em Ajustes':(_lastSyncFailed||(navigator.onLine===false)?'Sem sinal — guardado no aparelho, envia sozinho quando o sinal voltar':'Enviando pra planilha...'))
+     (pend?((_lastSyncFailed||(navigator.onLine===false))?'Sem sinal — '+n+(n>1?' animais guardados':' animal guardado')+' no celular, sobem sozinhos quando o sinal voltar':'Enviando pra planilha...')
           :'Salvo na planilha')+'</div>';
   bar.innerHTML=h; bar.style.display="block";
 }
@@ -3066,6 +3087,7 @@ function finExport(){
   document.getElementById("finExpSt").innerHTML='<span class="ok">✓ arquivo exportado — guarde para o próximo mês</span>';
 }
 function finConcluir(){
+  if(_temPendente()){ alert("Ainda tem "+state.today.length+" animais sem subir pra planilha.\n\nToque em \"1. Salvar na planilha\" com sinal antes de concluir."); return; }
   if(!confirm("Concluir a pesagem e começar uma nova?\n\nConfirme que você JÁ salvou na planilha e exportou o backup. Isso limpa os animais pesados hoje (mantém a planilha de referência).")) return;
   if(state.lida && !state.lida.fim) lidaEncerrar(true);
   state.today=[]; state.data=todayISO(); window._obsNova=""; sel=null; state.syncDirty=false; diaCompleto=false;
@@ -3073,7 +3095,12 @@ function finConcluir(){
   renderConfig(); renderHoje(); renderFooter(); renderFaltantes(); renderPesarResumo();
   go("pesar");
 }
+function _temPendente(){ return !!(state.syncDirty && state.today && state.today.length); }
+function _avisoPendente(acao){
+  return confirm("ATENÇÃO: "+state.today.length+" animais desta pesagem AINDA NÃO SUBIRAM pra planilha (sem sinal).\n\nSe "+acao+" agora, eles SE PERDEM.\n\nOK = "+acao+" mesmo assim (perde os animais)\nCancelar = esperar o sinal (recomendado)");
+}
 function novaPesagem(){
+  if(_temPendente() && !_avisoPendente("apagar")) return;
   if(!confirm("Isso apaga a pesagem de hoje (mantém planilhas importadas). Continuar?")) return;
   state.today=[]; state.data=todayISO(); window._obsNova=""; sel=null; diaCompleto=false;
   save(); renderConfig(); renderHoje(); renderFooter(); renderFaltantes(); go("pesar");
@@ -3111,6 +3138,7 @@ window.onload=function(){
   renderUltimo();
   renderLida(); lidaSync();
   setInterval(function(){ if(state.lida && !state.lida.fim) renderLida(true); }, 30000);   // relógio da lida
+  ativarOffline();
   document.getElementById("dataHoje").addEventListener("change", e=>{ state.data=e.target.value||todayISO(); save(); renderConfig(); renderFooter(); if(sel) renderDetail(); });
   document.getElementById("fazendaIn").addEventListener("input", e=>{ state.fazenda=e.target.value; save(); renderConfig(); });
   document.getElementById("respIn").addEventListener("input", e=>{ state.responsavel=e.target.value; save(); });

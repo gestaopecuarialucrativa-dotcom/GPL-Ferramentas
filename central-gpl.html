@@ -253,6 +253,7 @@ function render(){
   var h='<div class="abas">'+[["rotina","Rotina"],["plano","Plano"],["agenda","Agenda"],["sistemas","Sistemas"],["ajustes","Ajustes"]].map(function(a){
     return '<div class="aba'+(ABA===a[0]?' on':'')+'" onclick="ABA=\''+a[0]+'\';render()">'+a[1]+'</div>'; }).join("")+'</div>';
   if(D.erros.length) h+='<div class="erro">'+D.erros.map(esc).join("<br>")+'</div>';
+  if(ABA==="campo"){ app.innerHTML=telaCampo(); return; }
   if(ABA==="rotina") h+=telaRotina(); else if(ABA==="plano") h+=telaPlano(); else if(ABA==="agenda") h+=telaAgenda();
   else if(ABA==="sistemas") h+=telaSistemas(); else h+=telaAjustes();
   app.innerHTML=h;
@@ -358,7 +359,7 @@ function telaRotina(){
     ets.forEach(function(et,ei){
       var r=rotItem(f.nome,MES,et), ok=r&&r.feito;
       x+='<div class="item"><div class="ico '+(ok?'ok':'')+'" style="cursor:pointer" onclick="toggleRotina('+fi+','+ei+')">'+(ok?ICO.check:ICO.circulo)+'</div>'
-        +'<div style="flex:1;min-width:0"><div class="it1'+(ok?' feito':'')+'" style="font-size:14px">'+esc(et)+'</div>'
+        +'<div style="flex:1;min-width:0">'+(acaoEtapa(et)?'<div class="it1'+(ok?' feito':'')+'" style="font-size:14px;cursor:pointer;color:var(--v1);text-decoration:underline;text-underline-offset:3px" onclick="abrirEtapa('+fi+','+ei+')">'+esc(et)+'</div>':'<div class="it1'+(ok?' feito':'')+'" style="font-size:14px">'+esc(et)+'</div>')
         +(ok&&r.data?'<div class="it2">feito '+r.data.split("-").reverse().slice(0,2).join("/")+'</div>':'')+'</div>'
         +'<div class="acts">'+(ok?'<button class="b g" onclick="toggleRotina('+fi+','+ei+')">Desfazer</button>':'<button class="b" onclick="toggleRotina('+fi+','+ei+')">Feito</button><button class="b g" onclick="agendarEtapa('+fi+','+ei+')">Agendar</button>')+'</div></div>';
     });
@@ -442,6 +443,125 @@ function imprimirPlano(){
    +'<div class="cab"><img src="'+location.origin+'/icone-caixa-gpl.png"><div><h1>Plano de ação</h1><div class="sub">'+esc(faz)+' · '+h.split("-").reverse().join("/")+'</div></div></div>'
    +'<table><tr><th>Ação</th><th>Responsável</th><th>Prazo</th><th>Situação</th>'+(PL_FAZ?'':'<th>Fazenda</th>')+'</tr>'+(linhas||'<tr><td colspan="5">Nenhuma ação.</td></tr>')+'</table>'
    +'<div class="rod">Gestão Pecuária Lucrativa · Rogério · Consultor GPL</div><p class="np"><button onclick="print()">Imprimir / salvar PDF</button></p></body></html>');
+  w.document.close();
+}
+
+/* =====================================================================
+   RELATÓRIO DE CAMPO DO MÊS (abre ao tocar na etapa)
+   Pastagem, insumo, estoque, feno, pesagem (GMD por lote), manejos, diárias.
+   Mesmas contas do "Relatório do Dia" do app da fazenda, no mês escolhido.
+   ===================================================================== */
+var CAMPO={ fi:0, modo:"campo", dados:null, carregando:false, erro:"" };
+function acaoEtapa(et){ et=String(et||"").toLowerCase();
+  if(/campo|coleta/.test(et)) return "campo"; if(/inttegra/.test(et)) return "inttegra"; if(/reuni|pauta/.test(et)) return "pauta";
+  if(/plano/.test(et)) return "plano"; if(/relat/.test(et)) return "campo"; return ""; }
+function abrirEtapa(fi,ei){
+  var c=cfg(), a=acaoEtapa(c.rotinaEtapas[ei]);
+  if(a==="inttegra"){ window.open("https://portal.inttegra.com/dashboard","_blank","noopener"); return; }
+  if(a==="plano"){ PL_FAZ=c.fazendas[fi].nome; PL_FILTRO="abertos"; ABA="plano"; render(); return; }
+  CAMPO={ fi:fi, modo:(a==="pauta"?"pauta":"campo"), dados:null, carregando:true, erro:"" }; ABA="campo"; render(); window.scrollTo(0,0);
+  carregarCampo(c.fazendas[fi], MES).then(function(d){ CAMPO.dados=d; CAMPO.carregando=false; if(ABA==="campo") render(); })
+    .catch(function(e){ CAMPO.erro=e.message; CAMPO.carregando=false; if(ABA==="campo") render(); });
+}
+function fimMes(m){ var p=m.split("-"), d=new Date(+p[0],+p[1],0); var f=isoDe(d); return f>hoje()?hoje():f; }
+async function carregarCampo(f,mes){
+  var ini=mes+"-01", fim=fimMes(mes), q="&token=&fazenda="+encodeURIComponent(f.nome), out={ ini:ini, fim:fim, avisos:[] };
+  var noPer=function(dt){ dt=String(dt||"").slice(0,10); return dt>=ini && dt<=fim; };
+  var canon=function(x){ return String(x||"").replace(/\s*\(\d+\s*animais\)\s*$/i,"").trim(); };
+  var numLote=function(x){ return parseInt((String(x||"").match(/\d+/)||[9999])[0],10); };
+  var tarefas=[];
+  // app da fazenda
+  tarefas.push((f.app?jsonp(f.app+"?acao=carregar",45000):Promise.reject(new Error("sem endereço do app"))).then(function(data){
+    var S=null; if(data&&data.CONFIG&&data.CONFIG.length&&data.CONFIG[0]&&data.CONFIG[0][1]){ try{ S=JSON.parse(data.CONFIG[0][1]); }catch(e){} } else if(data&&(data.rT!==undefined||data.EST!==undefined)) S=data;
+    if(!S) throw new Error("app não respondeu com dados");
+    var rT=(S.rT||[]).filter(function(r){ return r&&!r._apagado; });
+    // consumo no mês por lote+produto
+    var cm={}; rT.forEach(function(r){ if(r.tipo!=="trato"||!noPer(r.dt)) return; var lo=canon(r.co||r.lote||""), pr=r.pr||r.prod||""; var k=lo+"||"+pr;
+      if(!cm[k]) cm[k]={lote:lo,prod:pr,sacos:0}; cm[k].sacos+=(parseFloat(r.q||r.qtd)||0); });
+    out.consumo=Object.keys(cm).map(function(k){ return cm[k]; }).sort(function(a,b){ return numLote(a.lote)-numLote(b.lote); });
+    // pasto atual de cada lote + dias no pasto
+    var ult={}, mud=[]; rT.forEach(function(r){ if(r.tipo!=="mudanca_pasto") return; var ln=canon(r.lote), dt=r.dt||"";
+      if(ln&&(!ult[ln]||dt>ult[ln].dt)) ult[ln]={dt:dt,destino:r.destino||""}; if(noPer(dt)) mud.push({lote:ln,de:r.origem||"",para:r.destino||"",dt:dt}); });
+    out.mudancas=mud.sort(function(a,b){ return b.dt.localeCompare(a.dt); });
+    out.lotes=(S.LOTES||[]).filter(function(l){ return (l.qtd||0)>0; }).sort(function(a,b){ return numLote(a.nome)-numLote(b.nome); }).map(function(l){
+      var m=ult[canon(l.nome)], dias=m&&m.dt?Math.max(0,difDias(m.dt,hoje())):null; return { lote:l.nome, cab:l.qtd, pasto:(m&&m.destino)||l.pasto||"—", dias:dias }; });
+    // estoque atual (saldo e dias que cobre pela média de 7 dias)
+    var lim7=isoDe(new Date(Date.now()-7*864e5)), trat={}, s7={};
+    rT.forEach(function(r){ if(r.tipo!=="trato") return; var p=r.pr||r.prod||"", qq=parseFloat(r.q||r.qtd)||0; trat[p]=(trat[p]||0)+qq; if((r.dt||"")>=lim7) s7[p]=(s7[p]||0)+qq; });
+    out.estoque=Object.keys(S.EST||{}).map(function(p){ var sd=(parseFloat((S.EST[p]||{}).q)||0)-(trat[p]||0), spd=(s7[p]||0)/7;
+      return { produto:p, saldo:Math.round(sd*10)/10, dias:spd>0?Math.floor(sd/spd):null }; }).sort(function(a,b){ return (a.dias==null?99999:a.dias)-(b.dias==null?99999:b.dias); });
+    // feno (saldo e rolos no mês)
+    var fq={}; (S.mFeno||[]).forEach(function(m){ if(m&&m.mov==="saida"&&noPer(m.dt)) fq[m.tipo]=(fq[m.tipo]||0)+(parseFloat(m.q)||0); });
+    out.feno=Object.keys(S.FENO||{}).map(function(t){ var e=S.FENO[t]||{}; return { tipo:t, saldo:(e.q!=null?e.q:0), u:e.u||"rolo", mes:fq[t]||0 }; });
+    // diárias e despesas no mês
+    var di=0, dv=0, de=0; (S.rD||[]).forEach(function(r){ if(!r||r._apagado||r.tipo!=="diaria"||!noPer(r.dt)) return; di++; dv+=parseFloat(r.v)||0; });
+    (S.rDesp||[]).forEach(function(r){ if(!r||r._apagado||!noPer(r.dt)) return; de+=parseFloat(r.val)||0; });
+    out.diarias={ n:di, valor:dv }; out.despesas=de;
+    var st=[]; rT.forEach(function(r){ if(r.tipo==="sem_trato"&&noPer(r.dt)) st.push(canon(r.lote)); }); out.semTrato=st;
+  }).catch(function(e){ out.avisos.push("App da fazenda: "+e.message); }));
+  // pesagem: GMD por lote nas pesagens do mês
+  tarefas.push((f.pesagem?jsonp(f.pesagem+"?acao=pesagem_todas"+q,45000):Promise.reject(new Error("sem endereço"))).then(function(r){
+    var P=(r&&r.pesagens)||{}, datas=Object.keys(P).sort(), noMes=datas.filter(noPer), por={};
+    noMes.forEach(function(d){ P[d].forEach(function(a){ if(a.lote==null||a.peso==null) return; var k=String(a.lote); if(!por[k]) por[k]={n:0,peso:0,g:0,ng:0,datas:{}};
+      por[k].n++; por[k].peso+=a.peso; por[k].datas[d]=1; if(a.gmd!=null&&!isNaN(a.gmd)){ por[k].g+=a.gmd; por[k].ng++; } }); });
+    out.pesagem=Object.keys(por).sort(function(a,b){ return a-b; }).map(function(k){ var x=por[k];
+      return { lote:k, n:x.n, peso:x.peso/x.n, gmd:x.ng?x.g/x.ng:null, ng:x.ng, datas:Object.keys(x.datas) }; });
+    out.ultPesagem=datas.length?datas[datas.length-1]:"";
+  }).catch(function(e){ out.avisos.push("Pesagem: "+e.message); }));
+  // manejos do vaqueiro no mês
+  tarefas.push((f.pesagem?jsonp(f.pesagem+"?acao=manejo_ler"+q,30000):Promise.reject(new Error("sem endereço"))).then(function(r){
+    var g={}; ((r&&r.itens)||[]).forEach(function(i){ if(!noPer(i.data)) return; if(String(i.situacao).toUpperCase()==="DESFEITO") return;
+      if(!g[i.id]) g[i.id]={data:i.data,tarefas:i.tarefas,n:0}; g[i.id].n++; });
+    out.manejos=Object.keys(g).map(function(k){ return g[k]; }).sort(function(a,b){ return a.data.localeCompare(b.data); });
+  }).catch(function(e){ out.avisos.push("Manejo: "+e.message); }));
+  await Promise.all(tarefas);
+  return out;
+}
+var LOTE_NOME_C={"11":"Vaca","12":"Reprodutor","13":"Bezerro mamando","14":"Enfermaria","15":"Compra","16":"Novilha"};
+function brd(iso){ return iso?iso.split("-").reverse().slice(0,2).join("/"):""; }
+function relCampoHTML(d,faz,modo){
+  var sec=function(t,corpo){ return '<div class="rsec"><h3>'+t+'</h3>'+corpo+'</div>'; };
+  var tab=function(cab,linhas){ return linhas.length?'<table><tr>'+cab.map(function(c){ return '<th>'+c+'</th>'; }).join("")+'</tr>'+linhas.map(function(l){ return '<tr>'+l.map(function(c){ return '<td>'+c+'</td>'; }).join("")+'</tr>'; }).join("")+'</table>':'<p class="vz">Sem registro no período.</p>'; };
+  var h='';
+  if(d.avisos&&d.avisos.length) h+='<p class="av">Não deu pra ler: '+d.avisos.map(esc).join(" · ")+'</p>';
+  if(d.lotes) h+=sec("Pastagem — onde está cada lote (hoje)", tab(["Lote","Cab.","Pasto","Dias no pasto"], d.lotes.map(function(l){ return [esc(l.lote), l.cab, esc(l.pasto), l.dias==null?"—":(l.dias>=35?'<b class="al">'+l.dias+'</b>':l.dias)]; })))
+    +(d.mudancas&&d.mudancas.length?'<p class="sub">Mudanças no mês: '+d.mudancas.map(function(m){ return esc(m.lote)+' '+brd(m.dt)+' → '+esc(m.para); }).join(" · ")+'</p>':'');
+  if(d.consumo) h+=sec("Insumo — consumo no mês (sacos)", tab(["Lote","Produto","Sacos"], d.consumo.map(function(c){ return [esc(c.lote), esc(c.prod), fmt(c.sacos,1)]; })))
+    +(d.semTrato&&d.semTrato.length?'<p class="sub">Dias sem trato: '+d.semTrato.length+'</p>':'');
+  if(d.estoque) h+=sec("Estoque — quanto dura (hoje)", tab(["Produto","Saldo","Dura"], d.estoque.map(function(e){ return [esc(e.produto), fmt(e.saldo,1), e.dias==null?"sem consumo":(e.dias<=15?'<b class="al">'+e.dias+' dias · programar compra</b>':e.dias+' dias')]; })))
+    +(d.feno&&d.feno.length?'<p class="sub">Feno: '+d.feno.map(function(x){ return esc(x.tipo)+' saldo '+fmt(x.saldo)+' '+esc(x.u)+'(s), '+fmt(x.mes)+' no mês'; }).join(" · ")+'</p>':'');
+  if(d.pesagem) h+=sec("Pesagem — GMD por lote no mês", d.pesagem.length?tab(["Lote","Pesados","Peso médio","GMD"], d.pesagem.map(function(x){ return [esc(LOTE_NOME_C[x.lote]||("Lote "+x.lote)), x.n, fmt(x.peso,0)+" kg", x.gmd==null?"—":fmt(x.gmd,3)+" kg/dia <span class=\"sub\">("+x.ng+" c/ GMD)</span>"]; }))
+    :'<p class="vz">Sem pesagem no mês'+(d.ultPesagem?' — última em '+d.ultPesagem.split("-").reverse().join("/"):'')+'.</p>');
+  if(d.manejos) h+=sec("Manejos do vaqueiro", tab(["Data","O que foi feito","Animais"], d.manejos.map(function(m){ return [brd(m.data), esc(m.tarefas), m.n]; })));
+  if(d.diarias) h+=sec("Mão de obra e despesas no mês", '<p>'+d.diarias.n+' diária(s) · R$ '+fmt(d.diarias.valor,2)+(d.despesas?' · despesas lançadas no app R$ '+fmt(d.despesas,2):'')+'</p>');
+  if(modo==="pauta"){
+    var ab=D.plano.filter(function(p){ return p.fazenda===faz && p.situacao!=="feito"; }).sort(function(a,b){ return (a.prazo||"9999").localeCompare(b.prazo||"9999"); });
+    h+=sec("Plano de ação em aberto", tab(["Ação","Responsável","Prazo"], ab.map(function(p){ var atr=p.prazo&&p.prazo<hoje(); return [esc(p.acao), esc(p.resp||""), p.prazo?(atr?'<b class="al">'+brd(p.prazo)+' (atrasada)</b>':brd(p.prazo)):""]; })))
+      +sec("Combinados desta reunião", '<div class="linhas"></div><div class="linhas"></div><div class="linhas"></div><div class="linhas"></div>');
+  }
+  return h;
+}
+var CSS_REL='.rsec{margin:0 0 16px}.rsec h3{font-size:15px;color:#1B5E20;margin:0 0 6px;border-bottom:2px solid #1B5E20;padding-bottom:4px}'
+  +'.rsec table{width:100%;border-collapse:collapse;font-size:13px}.rsec th{text-align:left;background:#f1f4ef;padding:6px}.rsec td{padding:6px;border-bottom:1px solid #e3e9e2}'
+  +'.al{color:#c0392b}.sub{font-size:12px;color:#5f6b60;margin:6px 0 0}.vz{color:#5f6b60;font-size:13px}.av{background:#fff4e0;color:#8a5a00;padding:8px;border-radius:8px;font-size:12px}'
+  +'.linhas{border-bottom:1px solid #9aa59a;height:28px}';
+function telaCampo(){
+  var c=cfg(), f=c.fazendas[CAMPO.fi]||{}, tit=CAMPO.modo==="pauta"?"Pauta da reunião de fechamento":"Relatório de campo";
+  var x='<div style="display:flex;gap:8px;align-items:center;margin-bottom:10px"><button class="b g" onclick="ABA=\'rotina\';render()">‹ Rotina</button><div style="flex:1"></div>'
+   +(CAMPO.dados?'<button class="b p" onclick="imprimirCampo()">Imprimir / PDF</button>':'')+'</div>'
+   +'<div class="card" style="padding:14px 16px"><b style="font-size:17px">'+tit+'</b><div class="mini" style="margin:2px 0 12px">'+esc(f.nome)+' · '+mesNome(MES)+'</div>';
+  if(CAMPO.carregando) return x+'<div class="vazio">Buscando no app da fazenda, na pesagem e no manejo… (pode levar uns 20 segundos)</div></div>';
+  if(CAMPO.erro) return x+'<div class="erro">'+esc(CAMPO.erro)+'</div></div>';
+  return x+'<style>'+CSS_REL+'</style>'+relCampoHTML(CAMPO.dados,f.nome,CAMPO.modo)+'</div>';
+}
+function imprimirCampo(){
+  var c=cfg(), f=c.fazendas[CAMPO.fi]||{}, tit=CAMPO.modo==="pauta"?"Pauta da reunião de fechamento":"Relatório de campo";
+  var w=window.open("","_blank"); if(!w){ alert("Libere as janelas (pop-up) pra imprimir."); return; }
+  w.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>'+tit+' — '+esc(f.nome)+'</title><style>body{font-family:Arial,sans-serif;color:#1c241c;margin:28px}'
+   +'.cab{display:flex;align-items:center;gap:12px;border-bottom:3px solid #1B5E20;padding-bottom:10px;margin-bottom:16px}.cab img{width:46px;height:46px;border-radius:8px}h1{font-size:20px;margin:0;color:#1B5E20}.s{font-size:13px;color:#5f6b60}'
+   +CSS_REL+'.rod{margin-top:22px;font-size:12px;color:#5f6b60}@media print{.np{display:none}}</style></head><body>'
+   +'<div class="cab"><img src="'+location.origin+'/icone-caixa-gpl.png"><div><h1>'+tit+'</h1><div class="s">'+esc(f.nome)+' · '+mesNome(MES)+' · gerado em '+hoje().split("-").reverse().join("/")+'</div></div></div>'
+   +relCampoHTML(CAMPO.dados,f.nome,CAMPO.modo)+'<div class="rod">Gestão Pecuária Lucrativa · Rogério · Consultor GPL</div><p class="np"><button onclick="print()">Imprimir / salvar PDF</button></p></body></html>');
   w.document.close();
 }
 

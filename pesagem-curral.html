@@ -1142,14 +1142,24 @@ async function balConectarP(escolher){
       BALP.dev=await navigator.bluetooth.requestDevice({ filters:[{namePrefix:"S3"},{services:["weight_scale"]}], optionalServices:["weight_scale"] });
       BALP.dev.addEventListener("gattserverdisconnected", balCaiuP);
     }
-    BALP.manual=true;
-    await balCanalP();
+    BALP.manual=true; BALP.erro="";
+    // a S3 às vezes derruba a conexão logo depois de aceitar: tenta de novo sozinho, sem janela de erro
+    for(var tent=1; tent<=4; tent++){
+      try{ await balCanalP(); return; }
+      catch(e2){
+        var m2=String(e2&&e2.message?e2.message:e2);
+        if(!/already in progress|disconnected|GATT|network|connection/i.test(m2) || tent===4) throw e2;
+        BALP.tentando=true; renderBal();
+        await new Promise(function(r){ setTimeout(r, 1500*tent); });
+        if(BALP.on) return;
+      }
+    }
   }catch(e){
     if(e && e.name==="NotFoundError"){ renderBal(); return; }
     var msg=String(e&&e.message?e.message:e);
-    // já tem uma conexão andando (religar automático): só espera, sem erro na tela
-    if(/already in progress|em andamento/i.test(msg)){ BALP.tentando=true; renderBal(); setTimeout(function(){ if(!BALP.on) balConectarP(false); }, 2500); return; }
-    BALP.on=false; renderBal(); alert("Não conectou na balança: "+msg+"\n\nConfira: balança ligada, perto do aparelho e o app da Datamars fechado no celular.");
+    BALP.on=false; BALP.tentando=false;
+    BALP.erro="Não conectou depois de 4 tentativas. Confira: balança ligada e perto; app da Datamars fechado e Bluetooth do celular do vaqueiro desligado (a S3 só aceita um aparelho por vez). Enquanto isso, use Digitar manual.";
+    console.warn("balança:", msg); renderBal();
   }
 }
 async function balCanalP(){
@@ -1158,11 +1168,13 @@ async function balCanalP(){
   try{
   if(BALP.dev.gatt.connected){ try{ BALP.dev.gatt.disconnect(); }catch(e){} await new Promise(function(r){ setTimeout(r,400); }); }
   var g=await BALP.dev.gatt.connect();
+  await new Promise(function(r){ setTimeout(r,300); });
+  if(BALP.dev.gatt.connected===false) throw new Error("GATT disconnected logo após conectar");
   var sv=await g.getPrimaryService("weight_scale");
   var ch=await sv.getCharacteristic("weight_measurement");
   ch.addEventListener("characteristicvaluechanged", balLeituraP);
   await ch.startNotifications();
-  BALP.on=true; BALP.tentando=false; BALP.kg=null;
+  BALP.on=true; BALP.tentando=false; BALP.kg=null; BALP.erro="";
   try{ localStorage.setItem("gpl_pesg_bal_nome", BALP.dev.name||"S3"); }catch(e){}
   renderBal();
   } finally { BALP.conectando=false; }
@@ -1225,6 +1237,7 @@ function renderBal(){
   } else {
     h='<div style="background:#fdecea;border:1.5px solid var(--danger);border-radius:10px;padding:9px 10px;color:var(--danger);font-weight:800;font-size:13px">'
      +(BALP.tentando?'Balança desconectada — tentando reconectar…':'Balança desconectada')
+     +(BALP.erro?'<div style="font-weight:400;color:#7a2a20;margin-top:4px;font-size:12px">'+esc(BALP.erro)+'</div>':'')
      +'<div style="display:flex;gap:8px;margin-top:8px"><button class="btn btn-ghost btn-sm" style="flex:1" onclick="balConectarP(!BALP.dev)">Conectar</button>'
      +'<button class="btn btn-ghost btn-sm" style="flex:1" onclick="balModo(\'manual\')">Digitar manual</button></div></div>';
   }

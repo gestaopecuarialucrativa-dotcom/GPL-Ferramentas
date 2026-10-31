@@ -123,12 +123,22 @@ async function balConectar(escolher){
       BAL.dev = await navigator.bluetooth.requestDevice({ filters:[{namePrefix:"S3"},{services:["weight_scale"]}], optionalServices:["weight_scale"] });
       BAL.dev.addEventListener("gattserverdisconnected", balCaiu);
     }
-    await balLigarCanal();
+    BAL.erro="";
+    for(var tent=1; tent<=4; tent++){
+      try{ await balLigarCanal(); return; }
+      catch(e2){
+        var m2=String(e2&&e2.message?e2.message:e2);
+        if(!/already in progress|disconnected|GATT|network|connection/i.test(m2) || tent===4) throw e2;
+        BAL.tentando=true; render();
+        await new Promise(function(r){ setTimeout(r, 1500*tent); });
+        if(BAL.on) return;
+      }
+    }
   }catch(e){
     if(e && e.name==="NotFoundError") return; // fechou a lista sem escolher
-    var msg=String(e&&e.message?e.message:e);
-    if(/already in progress/i.test(msg)){ BAL.tentando=true; render(); setTimeout(function(){ if(!BAL.on) balConectar(false); }, 2500); return; }
-    BAL.on=false; render(); alert("Não conectou na balança: "+msg+"\n\nConfira: balança ligada, perto do celular e o app da Datamars fechado.");
+    BAL.on=false; BAL.tentando=false;
+    BAL.erro="Não conectou depois de 4 tentativas. Confira: balança ligada e perto; app da Datamars fechado (a S3 só aceita um aparelho por vez). Enquanto isso, digite o peso.";
+    console.warn("balança:", e&&e.message); render();
   }
 }
 async function balLigarCanal(){
@@ -137,11 +147,13 @@ async function balLigarCanal(){
   try{
   if(BAL.dev.gatt.connected){ try{ BAL.dev.gatt.disconnect(); }catch(e){} await new Promise(function(r){ setTimeout(r,400); }); }
   var gatt = await BAL.dev.gatt.connect();
+  await new Promise(function(r){ setTimeout(r,300); });
+  if(BAL.dev.gatt.connected===false) throw new Error("GATT disconnected logo após conectar");
   var serv = await gatt.getPrimaryService("weight_scale");
   BAL.car = await serv.getCharacteristic("weight_measurement");
   BAL.car.addEventListener("characteristicvaluechanged", balLeitura);
   await BAL.car.startNotifications();
-  BAL.on=true; BAL.tentando=false; BAL.kg=null; BAL.estavel=false;
+  BAL.on=true; BAL.tentando=false; BAL.kg=null; BAL.estavel=false; BAL.erro="";
   try{ localStorage.setItem("gpl_manejo_bal", BAL.dev.name||"S3"); }catch(e){}
   render();
   } finally { BAL.conectando=false; }
@@ -540,7 +552,7 @@ function telaPesando(){
   var h='';
   if(temPeso()){
     if(!balSuportado()) h+='<div class="alerta warn">Este navegador não liga na balança (use o Chrome). Digite o peso.</div>';
-    else if(!BAL.on) h+='<div class="alerta err">'+(BAL.tentando?'Balança desconectada — tentando reconectar…':'Balança desconectada')
+    else if(!BAL.on) h+='<div class="alerta err">'+(BAL.tentando?'Balança desconectada — tentando reconectar…':'Balança desconectada')+(BAL.erro?'<div style="font-weight:400;font-size:13px;margin-top:4px">'+esc(BAL.erro)+'</div>':'')
       +'<div style="margin-top:8px"><button class="btv" onclick="balConectar(!BAL.dev)">Conectar a balança</button></div></div>';
     if(BAL.emLibras) h+='<div class="alerta warn">A balança está em libras. Mude a S3 para kg.</div>';
   }

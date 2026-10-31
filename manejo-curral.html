@@ -126,10 +126,16 @@ async function balConectar(escolher){
     await balLigarCanal();
   }catch(e){
     if(e && e.name==="NotFoundError") return; // fechou a lista sem escolher
-    BAL.on=false; render(); alert("Não conectou na balança: "+(e&&e.message?e.message:e));
+    var msg=String(e&&e.message?e.message:e);
+    if(/already in progress/i.test(msg)){ BAL.tentando=true; render(); setTimeout(function(){ if(!BAL.on) balConectar(false); }, 2500); return; }
+    BAL.on=false; render(); alert("Não conectou na balança: "+msg+"\n\nConfira: balança ligada, perto do celular e o app da Datamars fechado.");
   }
 }
 async function balLigarCanal(){
+  if(BAL.conectando) throw new Error("already in progress");
+  BAL.conectando=true;
+  try{
+  if(BAL.dev.gatt.connected){ try{ BAL.dev.gatt.disconnect(); }catch(e){} await new Promise(function(r){ setTimeout(r,400); }); }
   var gatt = await BAL.dev.gatt.connect();
   var serv = await gatt.getPrimaryService("weight_scale");
   BAL.car = await serv.getCharacteristic("weight_measurement");
@@ -138,6 +144,7 @@ async function balLigarCanal(){
   BAL.on=true; BAL.tentando=false; BAL.kg=null; BAL.estavel=false;
   try{ localStorage.setItem("gpl_manejo_bal", BAL.dev.name||"S3"); }catch(e){}
   render();
+  } finally { BAL.conectando=false; }
 }
 function balCaiu(){
   BAL.on=false; BAL.estavel=false; aviso("desconectou");
@@ -149,6 +156,7 @@ function balReconectar(n){
   BAL.tentando=true; render();
   setTimeout(function(){
     if(BAL.on) return;
+    if(BAL.conectando){ balReconectar(n); return; }
     balLigarCanal().catch(function(){ if(n<20) balReconectar(n+1); else { BAL.tentando=false; render(); } });
   }, n<5?2000:5000);
 }

@@ -1142,13 +1142,21 @@ async function balConectarP(escolher){
       BALP.dev=await navigator.bluetooth.requestDevice({ filters:[{namePrefix:"S3"},{services:["weight_scale"]}], optionalServices:["weight_scale"] });
       BALP.dev.addEventListener("gattserverdisconnected", balCaiuP);
     }
+    BALP.manual=true;
     await balCanalP();
   }catch(e){
     if(e && e.name==="NotFoundError"){ renderBal(); return; }
-    BALP.on=false; renderBal(); alert("Não conectou na balança: "+(e&&e.message?e.message:e));
+    var msg=String(e&&e.message?e.message:e);
+    // já tem uma conexão andando (religar automático): só espera, sem erro na tela
+    if(/already in progress|em andamento/i.test(msg)){ BALP.tentando=true; renderBal(); setTimeout(function(){ if(!BALP.on) balConectarP(false); }, 2500); return; }
+    BALP.on=false; renderBal(); alert("Não conectou na balança: "+msg+"\n\nConfira: balança ligada, perto do aparelho e o app da Datamars fechado no celular.");
   }
 }
 async function balCanalP(){
+  if(BALP.conectando) throw new Error("already in progress");
+  BALP.conectando=true;
+  try{
+  if(BALP.dev.gatt.connected){ try{ BALP.dev.gatt.disconnect(); }catch(e){} await new Promise(function(r){ setTimeout(r,400); }); }
   var g=await BALP.dev.gatt.connect();
   var sv=await g.getPrimaryService("weight_scale");
   var ch=await sv.getCharacteristic("weight_measurement");
@@ -1157,6 +1165,7 @@ async function balCanalP(){
   BALP.on=true; BALP.tentando=false; BALP.kg=null;
   try{ localStorage.setItem("gpl_pesg_bal_nome", BALP.dev.name||"S3"); }catch(e){}
   renderBal();
+  } finally { BALP.conectando=false; }
 }
 function balCaiuP(){
   BALP.on=false; BALP.estavel=false;
@@ -1167,6 +1176,7 @@ function balReconP(n){
   if(BALP.on || !BALP.dev || BALP.modo!=="balanca") { BALP.tentando=false; return; }
   BALP.tentando=true; renderBal();
   setTimeout(function(){ if(BALP.on || BALP.modo!=="balanca") return;
+    if(BALP.conectando){ balReconP(n); return; }
     balCanalP().catch(function(){ if(n<20) balReconP(n+1); else { BALP.tentando=false; renderBal(); } }); }, n<5?2000:5000);
 }
 async function balAutoP(){

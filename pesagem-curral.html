@@ -796,7 +796,7 @@ let novoMode = false;
 let diaCompleto = false;
 
 /* ---------- utils ---------- */
-function todayISO(){const d=new Date(); return d.toISOString().slice(0,10);}
+function todayISO(){const d=new Date(); return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");} /* data LOCAL (antes usava UTC e virava o dia às 21h) */
 function isoToBR(iso){ if(!iso) return "—"; const [y,m,d]=iso.split("-"); return `${d}/${m}/${y}`; }
 function addDays(iso, n){
   const d=new Date(iso+"T12:00:00"); d.setDate(d.getDate()+Math.round(n)); return d.toISOString().slice(0,10);
@@ -1466,7 +1466,42 @@ function gerarXlsxConsolidadoDownload(fazenda, datasStr, animais, dataArq){
   XLSX.writeFile(wb, nome);
 }
 
-function registrar(){
+/* aviso de peso fora do padrão: pergunta ANTES de salvar (Sim salva · Não volta pra corrigir) */
+function avisoPesoFora(num, peso, lote){
+  var base=String(num||"").replace(/\D/g,"");
+  if(base && +base===Math.round(peso)) return {motivo:"O peso digitado é igual ao número do animal. Pode ter ido o número no lugar do peso."};
+  var doLote=state.today.filter(function(t){ return String(t.lote)===String(lote) && t.peso>0; });
+  var ref=doLote.length>=5?doLote:(state.today.length>=5?state.today.filter(function(t){return t.peso>0;}):null), nome=doLote.length>=5?loteLabel(lote):"do dia";
+  if(!ref) return null;
+  var ps=ref.map(function(t){return t.peso;}), med=ps.reduce(function(a,b){return a+b;},0)/ps.length;
+  if(Math.abs(peso-med)/med<=0.4) return null;
+  return {motivo:"Peso muito longe da média "+(nome==="do dia"?"do dia":"do "+nome.toLowerCase())+" hoje (<b>"+fmtBR(med,0)+" kg</b>, "+ps.length+" animais pesados entre "+Math.min.apply(null,ps)+" e "+Math.max.apply(null,ps)+" kg)."};
+}
+function confirmaPeso(num, peso, lote, motivo){
+  return new Promise(function(res){
+    var bg=document.createElement("div");
+    bg.style.cssText="position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px";
+    var ln='display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid #eef1ed;font-size:15px';
+    bg.innerHTML='<div style="background:#fff;border-radius:16px;padding:20px 18px;max-width:400px;width:100%;box-shadow:0 10px 30px rgba(0,0,0,.25)">'+
+      '<div style="width:44px;height:44px;border-radius:50%;background:#FFF3E0;color:#E65100;font-size:24px;font-weight:900;display:flex;align-items:center;justify-content:center;margin-bottom:10px">!</div>'+
+      '<div style="font-size:19px;font-weight:800;color:#16261a;margin-bottom:12px">Esses números estão certos?</div>'+
+      '<div style="'+ln+'"><span style="color:#6b7b6f">Animal</span><b>'+(num?'Nº '+esc(num):'sem número')+'</b></div>'+
+      '<div style="'+ln+'"><span style="color:#6b7b6f">Peso</span><b style="font-size:30px;color:#B71C1C">'+fmtBR(peso,peso%1?1:0)+' kg</b></div>'+
+      '<div style="'+ln+'"><span style="color:#6b7b6f">Lote</span><b>'+esc(loteLabel(lote))+'</b></div>'+
+      '<div style="background:#FFF3E0;color:#8a4b00;font-size:13.5px;border-radius:10px;padding:10px 12px;margin:12px 0 16px;line-height:1.4">'+motivo+'</div>'+
+      '<div style="display:flex;gap:10px"><button type="button" data-r="0" style="flex:1;font-size:16px;font-weight:800;border-radius:12px;padding:15px 8px;border:2px solid #1B5E20;background:#fff;color:#1B5E20;font-family:inherit">Não, corrigir</button>'+
+      '<button type="button" data-r="1" style="flex:1;font-size:16px;font-weight:800;border-radius:12px;padding:15px 8px;border:2px solid #1B5E20;background:#1B5E20;color:#fff;font-family:inherit">Sim, salvar</button></div></div>';
+    bg.addEventListener("click", function(e){ var b=e.target.closest&&e.target.closest("button[data-r]"); if(!b) return; document.body.removeChild(bg); res(b.getAttribute("data-r")==="1"); });
+    document.body.appendChild(bg);
+  });
+}
+var _registrando=false;
+async function registrar(){
+  if(_registrando) return;
+  _registrando=true;
+  try{ await _registrar(); } finally{ _registrando=false; }
+}
+async function _registrar(){
   const peso=parseNum(document.getElementById("pesoIn").value);
   if(peso==null){ alert("Digite o peso."); document.getElementById("pesoIn").focus(); return; }
   const numRaw=document.getElementById("numIn").value.trim();
@@ -1519,8 +1554,13 @@ function registrar(){
   const pesoInEl=document.getElementById("pesoIn");
   const numInEl=document.getElementById("numIn");
   const numMostra=s.incerto?(baseBrinco(s.brinco)+"x"):s.brinco;
+  // 0) Peso fora do padrão do lote/dia, ou igual ao número do animal — pergunta antes de salvar
+  const _fora=avisoPesoFora(numMostra, peso, lote);
+  if(_fora){
+    if(!(await confirmaPeso(numMostra, peso, lote, _fora.motivo))){ if(pesoInEl){ pesoInEl.focus(); pesoInEl.select(); } return; }
+  }
   // 1) Peso ALTO (>700 kg) — possivel erro de digitacao (ex: 350 virou 3500)
-  if(peso>700){
+  if(peso>700 && !_fora){
     if(!confirm("Peso ALTO: "+peso+" kg.\n\nConfere o peso? As vezes 350 vira 3500 sem querer.\n\nOK = salvar assim   |   Cancelar = corrigir")){
       if(pesoInEl){ pesoInEl.focus(); pesoInEl.select(); } return;
     }

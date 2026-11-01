@@ -526,7 +526,7 @@ input:focus,select:focus{outline:2px solid var(--v3); border-color:var(--v3)}
           <div id="relHeader" style="font-size:12px; color:var(--muted); margin-top:2px"></div>
         </div>
         <div style="display:flex; gap:8px; flex-shrink:0">
-          <button class="btn btn-ghost btn-sm rel-actions" onclick="window.print()">
+          <button class="btn btn-ghost btn-sm rel-actions" onclick="abrirRelatorioPDF()">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><path d="M6 14h12v8H6z"/></svg>
             PDF
           </button>
@@ -2541,6 +2541,143 @@ function renderConfig(){
 /* ============================================================
    RELATÓRIO — Análise por lote para decisão do produtor
    ============================================================ */
+/* GMD do lote só vale com 70% ou mais do lote repesado (mesmo número) e no mínimo 5 animais */
+var GMD_MIN_PCT=0.7, GMD_MIN_N=5;
+function gmdLoteOk(s){ return !!(s && s.gmdN>=GMD_MIN_N && s.qtd>0 && s.gmdN/s.qtd>=GMD_MIN_PCT); }
+function gmdLote(s){ return gmdLoteOk(s)? s.gmdSum/s.gmdN : null; }
+function gmdLoteMotivo(s){ return s.gmdN? ('só '+s.gmdN+' de '+s.qtd+' repesados — GMD do lote precisa de 70% e no mínimo 5') : 'pesagem de referência — GMD na próxima pesagem'; }
+
+/* ===================== RELATÓRIO PDF no padrão GPL (abre dentro da página) ===================== */
+function _rpLogo(){ var i=document.querySelector('img.hdr-logo'); return i?i.src:''; }
+function _rpCss(){
+  return '@page{size:A4 portrait;margin:0}*{box-sizing:border-box;margin:0;padding:0}html,body{background:#7d857e}body{font-family:Arial,Helvetica,sans-serif;color:#16261a;-webkit-print-color-adjust:exact;print-color-adjust:exact}'+
+  '.pg{width:210mm;height:297mm;background:#fff;margin:12px auto;position:relative;overflow:hidden;page-break-after:always;break-after:page}.pg:last-child{page-break-after:auto;break-after:auto}@media print{html,body{background:#fff}.pg{margin:0}}'+
+  '.cap{background:#123d1d;color:#fff;padding:20mm 22mm}.cap img{height:15mm;filter:brightness(0) invert(1)}.cap .k{font-size:11pt;letter-spacing:3px;color:#9fc79f;margin-top:38mm;font-weight:700}.cap h1{font-size:40pt;font-weight:800;letter-spacing:-1px;margin-top:3mm;line-height:1.05}.cap .s{font-size:15pt;color:#d6e8d6;margin-top:3mm}.cap .ln{width:24mm;height:1.4mm;background:#8BC34A;margin:9mm 0}.cap .ft{position:absolute;left:22mm;right:22mm;bottom:15mm;display:flex;justify-content:space-between;font-size:10.5pt;color:#b9d3b9;border-top:1px solid #2f5f39;padding-top:5mm}'+
+  '.hd{display:flex;justify-content:space-between;align-items:center;padding:9mm 13mm 3.5mm;border-bottom:2px solid #1f6b33}.hd img{height:8mm}.hd span{font-size:8.5pt;color:#6b7b6f;letter-spacing:1px;text-transform:uppercase}'+
+  '.ey{font-size:8.5pt;font-weight:800;color:#1f6b33;letter-spacing:2px;margin:6mm 13mm 1mm;text-transform:uppercase}.tt{font-size:18pt;font-weight:800;margin:0 13mm 4mm}'+
+  '.kp{display:grid;grid-template-columns:repeat(4,1fr);gap:4mm;padding:0 13mm}.kp div{background:#f3f6f2;border-radius:3mm;padding:3.5mm 4mm}.kp b{display:block;font-size:16pt;color:#123d1d}.kp span{font-size:8pt;color:#6b7b6f}'+
+  '.g{font-size:8.5pt;font-weight:800;color:#1f6b33;letter-spacing:1.5px;margin:6mm 13mm 2mm;text-transform:uppercase}.sm{font-size:8pt;color:#7a8a7e;padding:1.5mm 13mm 0;line-height:1.4}'+
+  '.bars{display:flex;align-items:flex-end;gap:2.5mm;height:36mm;border-bottom:1.5px solid #c9d3c9;margin:0 13mm}.bars div{flex:1;text-align:center}.bars i{display:block;background:#1f6b33;border-radius:1.2mm 1.2mm 0 0}.bars b{display:block;font-size:9pt;color:#123d1d;margin-bottom:1mm}.lab{display:flex;gap:2.5mm;margin:1.2mm 13mm 0}.lab span{flex:1;text-align:center;font-size:7.3pt;color:#6b7b6f}'+
+  'table{width:calc(100% - 26mm);margin:0 13mm;border-collapse:collapse;font-size:9.3pt}th{text-align:left;font-size:7.5pt;color:#6b7b6f;font-weight:700;padding:1.5mm 1mm;border-bottom:2px solid #1f6b33;text-transform:uppercase}td{padding:1.8mm 1mm;border-bottom:1px solid #eef1ed;vertical-align:top}.n{text-align:right}.mu{color:#7a8a7e;font-size:8pt}'+
+  '.tm{display:grid;grid-template-columns:repeat(3,1fr);gap:4mm;padding:0 13mm}.tm div{border-top:1mm solid #8BC34A;padding-top:2mm}.tm b{display:block;font-size:14pt;color:#123d1d}.tm span{font-size:8pt;color:#6b7b6f}'+
+  '.mj{display:flex;flex-wrap:wrap;gap:2mm;padding:0 13mm}.mj span{background:#E8F5E9;color:#1f6b33;font-weight:700;font-size:9pt;padding:1.5mm 3.5mm;border-radius:4mm}'+
+  '.mel{padding:0 13mm}.mel div{display:flex;gap:3mm;padding:2.4mm 0;border-top:1px solid #e3e8e2;font-size:9.5pt;line-height:1.45}.mel .nn{flex:none;width:5.5mm;height:5.5mm;border-radius:50%;background:#123d1d;color:#fff;font-weight:800;font-size:8.5pt;display:flex;align-items:center;justify-content:center}'+
+  '.tx{padding:0 13mm;font-size:10pt;line-height:1.5;white-space:pre-wrap}.tag{font-size:7pt;font-weight:800;padding:.6mm 2mm;border-radius:3mm;white-space:nowrap}.ok{background:#E8F5E9;color:#2E7D32}.wa{background:#FFF3E0;color:#E65100}.er{background:#FDECEA;color:#B71C1C}'+
+  '.rod{position:absolute;bottom:6mm;left:13mm;right:13mm;display:flex;justify-content:space-between;font-size:7.5pt;color:#8a978d}';
+}
+function _rpMin(hm){ var m=String(hm||"").match(/(\d{1,2}):(\d{2})/); return m?(+m[1])*60+(+m[2]):null; }
+function _rpHM(min){ min=Math.round(min); return String(Math.floor(min/60)).padStart(2,"0")+":"+String(min%60).padStart(2,"0"); }
+async function _rpLida(){
+  var d=state.data||todayISO(), l=state.lida;
+  if(l && l.data===d && l.inicio){ var fim=l.fim||Date.now(), p=0; (l.pausas||[]).forEach(function(x){ p+=Math.max(0,x.fim-x.ini); });
+    var di=new Date(l.inicio), df=new Date(fim); return {ini:di.getHours()*60+di.getMinutes(), fim:df.getHours()*60+df.getMinutes(), pausa:p/60000, tipos:l.tipos||[], pessoas:l.pessoas||0, aberta:!l.fim}; }
+  try{ var r=await jsonp(BACKEND_URL+"?acao=lida_ler&token="+encodeURIComponent(gplToken())+"&fazenda="+encodeURIComponent(state.fazenda||"")); _lidaHist=(r&&r.lidas)||_lidaHist; }catch(e){}
+  var L=(_lidaHist||[]).filter(function(x){ return String(x.data).slice(0,10)===d && !/manejo vaqueiro/i.test(String(x.tipos||"")); })
+        .sort(function(a,b){ return (+b.animais||0)-(+a.animais||0); })[0];
+  if(!L) return null;
+  return {ini:_rpMin(L.inicio), fim:_rpMin(L.fim), pausa:(function(){ var t=0; try{ JSON.parse(L.paradas||"[]").forEach(function(x){ if(!/sem registro/i.test(x.motivo)) t+=+x.min||0; }); }catch(e){} return t; })(), tipos:String(L.tipos||"").split(/\s*,\s*/).filter(Boolean), pessoas:+L.pessoas||0, aberta:String(L.aberta)==="true"};
+}
+var _rpObs="";
+async function abrirRelatorioPDF(){
+  if(!state.today || !state.today.length){ alert("Nenhum animal pesado nesta data."); return; }
+  var ov=document.getElementById("rpOv");
+  if(!ov){
+    ov=document.createElement("div"); ov.id="rpOv";
+    ov.style.cssText="position:fixed;inset:0;z-index:9998;background:#2b322c;display:flex;flex-direction:column";
+    ov.innerHTML='<div style="display:flex;gap:8px;align-items:center;padding:8px 10px;background:#123d1d;color:#fff;flex-wrap:wrap">'+
+      '<b style="flex:1;font-size:14px;min-width:160px">Relatório da pesagem</b>'+
+      '<button type="button" onclick="_rpSalvar()" style="background:#8BC34A;color:#123d1d;border:0;border-radius:8px;padding:9px 14px;font-weight:800;font-size:14px">Salvar PDF</button>'+
+      '<button type="button" onclick="document.getElementById(\'rpOv\').style.display=\'none\';document.body.style.overflow=\'\'" style="background:transparent;color:#fff;border:1.5px solid #fff;border-radius:8px;padding:8px 14px;font-weight:800;font-size:14px">Fechar</button></div>'+
+      '<div style="padding:8px 10px;background:#eef3ee"><textarea id="rpObs" rows="2" placeholder="Observações do consultor (aparecem no relatório)" style="width:100%;font:14px Arial;padding:8px;border:1.5px solid #c9d3c9;border-radius:8px"></textarea></div>'+
+      '<iframe id="rpFr" style="flex:1;border:0;width:100%;background:#7d857e"></iframe>';
+    document.body.appendChild(ov);
+    var ta=document.getElementById("rpObs"), tm=null;
+    ta.addEventListener("input", function(){ _rpObs=ta.value; clearTimeout(tm); tm=setTimeout(_rpDesenhar, 500); });
+  }
+  ov.style.display="flex"; document.body.style.overflow="hidden";
+  document.getElementById("rpObs").value=_rpObs;
+  window._rpLidaDados=await _rpLida();
+  _rpDesenhar();
+}
+function _rpSalvar(){ var f=document.getElementById("rpFr"); if(f&&f.contentWindow){ f.contentWindow.focus(); f.contentWindow.print(); } }
+function _rpDesenhar(){
+  var f=document.getElementById("rpFr"); if(!f) return;
+  var html=relatorioPesagemHTML(window._rpLidaDados);
+  var d=f.contentDocument||f.contentWindow.document; d.open(); d.write(html); d.close();
+}
+function relatorioPesagemHTML(lida){
+  var T=state.today.filter(function(t){ return t.peso>0; }), fz=state.fazenda||"", dt=isoToBR(state.data||todayISO()), logo=_rpLogo();
+  var ASS='Rogério · Consultor GPL', CONT='(63) 99108-2453 · @gestaopecuarialucrativa';
+  var st=loteStats(), lotes=[]; for(var i=1;i<=N_LOTES;i++) if(st[i].qtd>0) lotes.push(i);
+  // pesos suspeitos: mais de 40% longe da média do lote (lote com 5+ animais)
+  var susp=[], medLote={};
+  lotes.forEach(function(L){ var a=T.filter(function(t){return parseInt(t.lote,10)===L;}); if(a.length<5) return;
+    var m=a.reduce(function(s,t){return s+t.peso;},0)/a.length; medLote[L]=m;
+    a.forEach(function(t){ if(Math.abs(t.peso-m)/m>0.4) susp.push(t); });
+    var bons=a.filter(function(t){ return susp.indexOf(t)<0; }); if(bons.length) medLote[L]=bons.reduce(function(s,t){return s+t.peso;},0)/bons.length; });
+  var limpo=T.filter(function(t){ return susp.indexOf(t)<0; });
+  var tot=limpo.reduce(function(s,t){return s+t.peso;},0), med=limpo.length?tot/limpo.length:0;
+  var novos=T.filter(function(t){return t.gmd==null;}).length, rep=T.length-novos;
+  var ehEntrada=novos>T.length/2;
+  // faixas de 20 kg
+  var fx={}; limpo.forEach(function(t){ var k=Math.floor(t.peso/20)*20; fx[k]=(fx[k]||0)+1; });
+  var ks=Object.keys(fx).map(Number).sort(function(a,b){return a-b;}), mx=Math.max.apply(null,ks.map(function(k){return fx[k];}).concat([1]));
+  var bars=ks.map(function(k){ return '<div><b>'+fx[k]+'</b><i style="height:'+Math.max(1.5,fx[k]/mx*30).toFixed(1)+'mm"></i></div>'; }).join('');
+  var labs=ks.map(function(k){ return '<span>'+k+'–'+(k+19)+'</span>'; }).join('');
+  var moda=ks.length?ks.reduce(function(a,b){return fx[b]>fx[a]?b:a;}):null;
+  // por lote
+  var linhas=lotes.map(function(L){ var s=st[L], a=T.filter(function(t){return parseInt(t.lote,10)===L && susp.indexOf(t)<0;}); if(!a.length) a=T.filter(function(t){return parseInt(t.lote,10)===L;});
+    var ps=a.map(function(t){return t.peso;}), m=ps.reduce(function(x,y){return x+y;},0)/ps.length, g=gmdLote(s);
+    var gtx=g!=null? '<b>'+fmtBR(g,3)+'</b> <span class="mu">kg/dia · '+s.gmdN+' de '+s.qtd+'</span>' : '<span class="mu">'+esc(gmdLoteMotivo(s))+'</span>';
+    return '<tr><td><b>'+esc(loteLabel(L))+'</b></td><td class="n">'+s.qtd+'</td><td class="n">'+fmtBR(m,1)+' kg</td><td class="n">'+fmtBR(m/AR_DIV,1)+' @</td><td class="n">'+Math.min.apply(null,ps)+'–'+Math.max.apply(null,ps)+'</td><td>'+gtx+'</td></tr>'; }).join('');
+  // tempo: hora de cada animal (quando gravada) ou início/fim da lida
+  var horas=T.map(function(t){ return _rpMin(t.hora); }).filter(function(x){return x!=null;}).sort(function(a,b){return a-b;});
+  var tIni=null,tFim=null,fonteT="";
+  if(horas.length>=2){ tIni=horas[0]; tFim=horas[horas.length-1]; fonteT="do primeiro ao último animal pesado"; }
+  else if(lida && lida.ini!=null && lida.fim!=null){ tIni=lida.ini; tFim=lida.fim; fonteT="início e fim da lida marcados no app"+(lida.aberta?" (lida ainda aberta)":""); }
+  var tempoHtml='';
+  if(tIni!=null && tFim>tIni){ var min=tFim-tIni-((lida&&lida.pausa)||0), ph=T.length/(min/60);
+    tempoHtml='<div class="g">Tempo de trabalho</div><div class="tm"><div><b>'+_rpHM(tIni)+' → '+_rpHM(tFim)+'</b><span>'+fonteT+'</span></div><div><b>'+(min>=60?Math.floor(min/60)+'h'+String(Math.round(min%60)).padStart(2,"0"):Math.round(min)+' min')+'</b><span>'+(lida&&lida.pausa>=1?'tirando '+Math.round(lida.pausa)+' min de pausa':'sem pausa marcada')+'</span></div><div><b>'+fmtBR(ph,0)+' por hora</b><span>'+(lida&&lida.pessoas?lida.pessoas+' pessoas · '+fmtBR(ph/lida.pessoas,1)+' por pessoa/hora':'animais por hora')+'</span></div></div>';
+    if(!horas.length) tempoHtml+='<div class="sm">A hora de cada animal ainda não é gravada: o tempo vem do botão Iniciar/Encerrar lida. Se a lida foi encerrada depois do último animal, o tempo real foi menor.</div>';
+  }
+  var tipos=(lida&&lida.tipos&&lida.tipos.length)?lida.tipos:[];
+  // repesados: melhores e piores, perderam peso
+  var R=T.filter(function(t){return t.gmd!=null;}).sort(function(a,b){return b.gmd-a.gmd;});
+  var perdeu=R.filter(function(t){return t.gmd<0;});
+  var linhaAn=function(t){ return '<tr><td><b>Nº '+esc(t.brinco)+'</b></td><td>'+esc(loteLabel(t.lote))+'</td><td class="n">'+fmtBR(t.pesoAnterior,0)+' → '+fmtBR(t.peso,0)+' kg</td><td class="n">'+(t.dias||'—')+' dias</td><td class="n"><b>'+fmtBR(t.gmd,3)+'</b></td></tr>'; };
+  // o que conferir / melhorar (só o que os dados mostram)
+  var mel=[];
+  susp.forEach(function(t){ mel.push('<b>Peso suspeito: Nº '+esc(t.brinco)+' com '+fmtBR(t.peso,0)+' kg</b> no '+esc(loteLabel(t.lote).toLowerCase())+' (média '+fmtBR(medLote[parseInt(t.lote,10)],0)+' kg). Conferir — ficou fora das médias.'); });
+  if(perdeu.length) mel.push('<b>'+perdeu.length+' animal(is) perderam peso</b> desde a última pesagem: '+perdeu.slice(0,8).map(function(t){return 'Nº '+esc(t.brinco);}).join(', ')+'. Ver saúde, pasto e cocho desses.');
+  var inc=T.filter(function(t){return t.incerto;}); if(inc.length) mel.push('<b>'+inc.length+' número(s) duvidoso(s)</b> para revisar: '+inc.slice(0,8).map(function(t){return esc(t.brinco);}).join(', ')+'.');
+  var sl=T.filter(function(t){return !t.lote;}); if(sl.length) mel.push('<b>'+sl.length+' animal(is) sem lote.</b>');
+  var ob=T.filter(function(t){return String(t.obs||"").trim() && !/revisar depois/.test(t.obs);});
+  var P=[];
+  P.push('<div class="pg cap"><img src="'+logo+'"><div class="k">'+(ehEntrada?'PESAGEM DE ENTRADA':'RELATÓRIO DE PESAGEM')+' · '+dt+'</div><h1>'+esc(fz)+'</h1><div class="s">'+T.length+' animais pesados'+(tipos.length?' · '+esc(tipos.join(', ').toLowerCase()):'')+'</div><div class="ln"></div>'+
+    '<div class="s" style="font-size:12.5pt;max-width:165mm;line-height:1.5">'+(ehEntrada?'Peso de entrada por lote e por faixa — base para o ganho de peso das próximas pesagens.':'Peso e ganho de peso por lote, animais que se destacaram e o que conferir.')+'</div>'+
+    '<div class="ft"><span>'+ASS+'</span><span>'+CONT+'</span></div></div>');
+  var pg='<div class="pg"><div class="hd"><img src="'+logo+'"><span>Pesagem · '+esc(fz)+' · '+dt+'</span></div>';
+  var rod='<div class="rod"><span>gestaopecuarialucrativa.com.br</span><span>'+ASS+' · __PG__</span></div></div>';
+  var c1='<div class="ey">O dia em números</div><div class="tt">'+(ehEntrada?'Pesagem de entrada':'Resumo da pesagem')+'</div>'+
+    '<div class="kp"><div><b>'+T.length+'</b><span>animais · '+novos+' sem pesagem anterior</span></div><div><b>'+fmtBR(med,1)+' kg</b><span>peso médio · '+fmtBR(med/AR_DIV,1)+' @</span></div><div><b>'+fmtBR(tot/AR_DIV,0)+' @</b><span>arrobas pesadas</span></div><div><b>'+rep+'</b><span>repesados (mesmo número)</span></div></div>'+
+    (susp.length?'<div class="sm">'+susp.length+' peso(s) suspeito(s) fora das médias — ver "O que conferir".</div>':'')+
+    tempoHtml+(tipos.length?'<div class="g">Manejo feito</div><div class="mj">'+tipos.map(function(t){return '<span>'+esc(t)+'</span>';}).join('')+'</div>':'')+
+    '<div class="g">Peso por faixa (kg)</div><div class="bars">'+bars+'</div><div class="lab">'+labs+'</div>'+
+    (moda!=null?'<div class="sm">A maior parte está entre '+moda+' e '+(moda+19)+' kg ('+fx[moda]+' animais).</div>':'')+
+    '<div class="g">Por lote</div><table><tr><th>Lote</th><th class="n">Cab.</th><th class="n">Peso médio</th><th class="n">Arroba</th><th class="n">Menor–maior</th><th>GMD do lote</th></tr>'+linhas+'</table>'+
+    '<div class="sm">GMD só de animal repesado com o mesmo número. GMD do lote só quando 70% ou mais do lote foi repesado (mínimo 5 animais).</div>';
+  P.push(pg+c1+rod);
+  var c2='';
+  if(R.length){ c2+='<div class="g">Animais repesados — maiores ganhos</div><table><tr><th>Animal</th><th>Lote</th><th class="n">Peso</th><th class="n">Intervalo</th><th class="n">GMD</th></tr>'+R.slice(0,5).map(linhaAn).join('')+'</table>';
+    if(R.length>5) c2+='<div class="g">Menores ganhos</div><table><tr><th>Animal</th><th>Lote</th><th class="n">Peso</th><th class="n">Intervalo</th><th class="n">GMD</th></tr>'+R.slice(-5).reverse().map(linhaAn).join('')+'</table>'; }
+  c2+='<div class="g">O que conferir</div><div class="mel">'+(mel.length?mel.map(function(m,i){return '<div><span class="nn">'+(i+1)+'</span><span>'+m+'</span></div>';}).join(''):'<div><span>Nenhum peso fora do padrão, número duvidoso ou animal sem lote.</span></div>')+'</div>';
+  if(ob.length) c2+='<div class="g">Observações do curral</div><div class="mel">'+ob.slice(0,14).map(function(t){return '<div><span><b>Nº '+esc(t.brinco)+'</b> · '+esc(t.obs)+'</span></div>';}).join('')+'</div>';
+  if(String(_rpObs||"").trim()) c2+='<div class="g">Observações do consultor</div><div class="tx">'+esc(_rpObs.trim())+'</div>';
+  P.push(pg+'<div class="ey">Detalhes</div><div class="tt">Animais e o que conferir</div>'+c2+rod);
+  var n=P.length; P=P.map(function(p,i){ return p.replace('__PG__',(i+1)+'/'+n); });
+  return '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Pesagem '+esc(fz)+' '+dt+'</title><style>'+_rpCss()+'</style></head><body>'+P.join('')+'</body></html>';
+}
+
 function gmdClassify(gmd){
   if(gmd==null) return {cls:"warn", icon:"⚠", label:"Sem dados de GMD", sub:"Necessário peso anterior para calcular", css:"rel-s-warn"};
   if(gmd>=0.5)  return {cls:"great", icon:'<svg width="16" height="16" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8" fill="#2E7D32"/></svg>', label:"Desempenho excelente", sub:`${fmtBR(gmd,3)} kg/dia — acima do esperado`, css:"rel-s-great"};
@@ -2610,7 +2747,7 @@ function renderDashboard(){
   if(!lotes.length){ box.innerHTML='<div class="dash-empty">Nenhum animal pesado ainda.<br>Registre pesagens para ver o painel.</div>'; return; }
 
   let pesoSum=0,pesoN=0,gs=0,gn=0;
-  for(let i=1;i<=N_LOTES;i++){ pesoSum+=st[i].peso; pesoN+=st[i].qtd; if(CATEG_FORA_GMD.indexOf(i)<0){ gs+=st[i].gmdSum; gn+=st[i].gmdN; } }
+  for(let i=1;i<=N_LOTES;i++){ pesoSum+=st[i].peso; pesoN+=st[i].qtd; if(CATEG_FORA_GMD.indexOf(i)<0 && gmdLoteOk(st[i])){ gs+=st[i].gmdSum; gn+=st[i].gmdN; } }
   const pesoMed=pesoN?pesoSum/pesoN:0;
   const gmdMed=gn?gs/gn:0;
 
@@ -2623,7 +2760,7 @@ function renderDashboard(){
   '</div>';
 
   // Gráfico GMD por lote
-  const gmdData=lotes.map(function(L){ const g=st[L].gmdN?st[L].gmdSum/st[L].gmdN:0;
+  const gmdData=lotes.map(function(L){ const g=gmdLote(st[L])||0;
     return {label:"L"+L, value:g, color:g>=0.5?"#2E7D32":g>=0.35?"#4CAF50":g>=0.18?"#c9820a":"#c0392b"}; });
   html+='<div class="dash-chart"><h3>GMD por lote</h3><div class="cap">kg/cab/dia — linha = meta 0,35</div>'+
         svgBars(gmdData,{dec:3, target:0.35, unit:""})+'</div>';
@@ -2636,7 +2773,7 @@ function renderDashboard(){
 
   // Gráfico retorno econômico (margem R$/cab/dia) — se houver dados
   const margData=[]; let temMarg=false;
-  lotes.forEach(function(L){ const g=st[L].gmdN?st[L].gmdSum/st[L].gmdN:0; const media=st[L].peso/st[L].qtd;
+  lotes.forEach(function(L){ const g=gmdLote(st[L])||0; const media=st[L].peso/st[L].qtd;
     const m=margemLote(L,g,media);
     if(m){ temMarg=true; margData.push({label:"L"+L, value:m.margem, color:m.margem>=0?"#2E7D32":"#c0392b"}); }
     else margData.push({label:"L"+L, value:0, color:"#c9d3c9"});
@@ -2674,10 +2811,10 @@ function renderRelatorio(){
     const s=st[L];
     const media=s.peso/s.qtd;
     const ar=fmtBR((media/AR_DIV),1);
-    const gmd=s.gmdN?s.gmdSum/s.gmdN:null;
+    const gmd=gmdLote(s);   /* só com 70% do lote repesado e no mínimo 5 */
     const diasMedio=s.diasN?s.diasSum/s.diasN:null;
     const ganhoTotal=gmd!=null&&diasMedio!=null?fmtBR((gmd*diasMedio),1):null;
-    const cls=gmdClassify(gmd);
+    const cls=gmd!=null?gmdClassify(gmd):{cls:"warn", icon:"⚠", label:"Sem GMD do lote", sub:gmdLoteMotivo(s), css:"rel-s-warn"};
 
     // Projeção de venda
     let projHtml='';
@@ -2721,7 +2858,7 @@ function renderRelatorio(){
         <div>
           <div class="rel-k">GMD do período</div>
           <div class="rel-v rel-gmd-big">${gmd!=null?fmtBR(gmd,3):'—'}</div>
-          <div class="rel-v-sub">${gmd!=null?'kg / cab / dia':'sem referência'}</div>
+          <div class="rel-v-sub">${gmd!=null?'kg / cab / dia · '+s.gmdN+' de '+s.qtd:'sem base'}</div>
         </div>
       </div>
 

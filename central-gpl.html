@@ -65,6 +65,9 @@ var LS="gpl_central_v1";
 var PADRAO={
   dose2Dias:30, semPesarDias:60, insumoDias:15,
   rotinaEtapas:["Coleta de campo do mês (pesagem, manejo, trato)","Lançamentos conferidos na Inttegra","Relatório do mês gerado","Reunião de fechamento com o dono","Plano de ação revisado"],
+  /* rotina nova (aula Rotina mensal do consultor certificado): "Nome | dia do prazo" — dia é opcional */
+  rotinaMes:["Cliente lançou o mês na Inttegra | 15","Coleta de campo (pesagem, manejo, trato)","Validação na Inttegra | 15","Fechamento: financeiro + econômico","Reunião mensal com o dono","Plano de ação revisado"],
+  rotinaTri:["Visita trimestral","Consolidado trimestral entregue"],
   fazendas:[{ nome:"Fazenda Estrela",
     pesagem:"https://script.google.com/macros/s/AKfycby4lOB4zXu2dCBoA-pda6U_do8v9GDvNuH0dFOY6u5kc7FP7gZdPKofZX5Dt-QgnT4V/exec",
     app:"https://script.google.com/macros/s/AKfycbxhLo4cpRZsBMSEzcfM8sBFCH25dCe1X_VFvElz3dfhMLdZhQF9CTrXfq2DE4QJ4d0rbg/exec" }]
@@ -320,13 +323,18 @@ function telaSistemas(){
 }
 function telaAjustes(){
   var c=cfg();
-  return '<div class="card" style="padding:12px 14px"><b>Etapas da rotina do mês</b> <span class="mini">(uma por linha — do seu método)</span>'
-   +'<textarea id="cEt" rows="6" style="font:inherit;font-size:15px;width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:10px;margin-top:8px">'+esc((c.rotinaEtapas||[]).join("\n"))+'</textarea>'
+  var TA='font:inherit;font-size:15px;width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:10px;margin-top:8px';
+  return '<div class="card" style="padding:12px 14px"><b>Rotina — todo mês</b> <span class="mini">(uma por linha · prazo opcional: "Validação na Inttegra | 15")</span>'
+   +'<textarea id="cEt" rows="7" style="'+TA+'">'+esc((c.rotinaMes||[]).join("\n"))+'</textarea>'
+   +'<div class="lbl" style="margin-top:12px"><b>Rotina — trimestre</b> <span class="mini">(aparece só nos meses marcados em cada fazenda)</span></div>'
+   +'<textarea id="cEtT" rows="3" style="'+TA+'">'+esc((c.rotinaTri||[]).join("\n"))+'</textarea>'
    +'<div class="lbl" style="margin-top:14px"><b>Fazendas</b> — nome igual ao da pesagem</div>'
    +c.fazendas.map(function(f,i){ return '<div style="border:1px solid var(--line);border-radius:10px;padding:8px 10px;margin-bottom:8px">'
       +'<input id="fN'+i+'" value="'+esc(f.nome)+'" placeholder="Nome da fazenda">'
       +'<div class="lbl">Endereço da pesagem (Apps Script)</div><input id="fP'+i+'" value="'+esc(f.pesagem||"")+'">'
-      +'<div class="lbl">Endereço do app da fazenda (Apps Script)</div><input id="fA'+i+'" value="'+esc(f.app||"")+'"></div>'; }).join("")
+      +'<div class="lbl">Endereço do app da fazenda (Apps Script)</div><input id="fA'+i+'" value="'+esc(f.app||"")+'">'
+      +'<div class="lbl">Meses do trimestre (visita e consolidado)</div><div style="display:flex;flex-wrap:wrap;gap:6px">'+MES_AB.map(function(m,k){ var on=(f.mesesTri||[]).indexOf(k+1)>=0;
+        return '<label style="display:flex;align-items:center;gap:4px;border:1px solid var(--line);border-radius:8px;padding:5px 8px;font-size:13px;'+(on?'background:var(--v7);border-color:var(--v3)':'')+'"><input type="checkbox" id="fT'+i+'_'+(k+1)+'"'+(on?' checked':'')+' style="width:auto;margin:0">'+m+'</label>'; }).join("")+'</div></div>'; }).join("")
    +'<button class="b" onclick="addFazenda()">+ Fazenda</button>'
    +'<button class="b p" style="width:100%;margin-top:12px;padding:12px" onclick="salvarAjustes()">Salvar ajustes</button><div class="mini" id="cMsg" style="margin-top:6px"></div></div>'
    +'<button class="b g" style="width:100%;padding:11px" onclick="sair()">Sair deste aparelho</button>';
@@ -347,30 +355,44 @@ var MES=hoje().slice(0,7);
 function mesNome(m){ var p=m.split("-"), n=MESES[+p[1]-1]; return n.charAt(0).toUpperCase()+n.slice(1)+" de "+p[0]; }
 function mesMais(m,n){ var p=m.split("-"), d=new Date(+p[0],+p[1]-1+n,1); return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0"); }
 function idRot(f,m,et){ return f+"|"+m+"|"+et; }
+var DICA_ET=[[/cliente lan/i,"dados para o score da Inttegra"],[/valida/i,"validar ou reprovar · conta na nota do certificado"],[/fechamento/i,"fluxo de caixa, receita e despesa · o que fugiu do padrão"],[/reuni/i,"pauta: dados → validação → financeiro → econômico → pendências → prioridades"],[/plano/i,"decisões da reunião viram ações"],[/visita/i,"preparar → campo → relatório da visita"],[/consolidado/i,"indicadores globais + fluxo de caixa previsto"],[/coleta/i,"pesagem, manejo e trato do mês"]];
+function lerEtapa(l,sec){ var p=String(l).split("|"), nome=p[0].trim(), dia=parseInt(p[1],10); var d=DICA_ET.filter(function(x){ return x[0].test(nome); })[0]; return { nome:nome, dia:(dia>=1&&dia<=31)?dia:null, sec:sec, dica:d?d[1]:"" }; }
+/* etapas da fazenda no mês: as de todo mês + as trimestrais nos meses marcados para aquela fazenda */
+function etapasDe(f,mes){ var c=cfg(), out=(c.rotinaMes||[]).map(function(l){ return lerEtapa(l,"mes"); });
+  var mm=+mes.split("-")[1]; if((f.mesesTri||[]).indexOf(mm)>=0) out=out.concat((c.rotinaTri||[]).map(function(l){ return lerEtapa(l,"tri"); }));
+  return out.filter(function(e){ return e.nome; }); }
+function etapaAtrasada(e,mes,ok){ if(ok) return false; var h=hoje(), hm=h.slice(0,7); if(mes<hm) return true; if(mes>hm) return false; return !!e.dia && +h.slice(8)>e.dia; }
+var MES_AB=["jan","fev","mar","abr","mai","jun","jul","ago","set","out","nov","dez"];
 function rotItem(f,m,et){ return D.rotina.filter(function(r){ return r.id===idRot(f,m,et); })[0]; }
 function telaRotina(){
-  var c=cfg(), ets=c.rotinaEtapas||[];
+  var c=cfg();
   var x='<div style="display:flex;align-items:center;justify-content:space-between;margin:2px 2px 10px"><button class="b g" onclick="MES=mesMais(MES,-1);render()">‹</button>'
     +'<b style="font-size:17px">'+mesNome(MES)+'</b><button class="b g" onclick="MES=mesMais(MES,1);render()">›</button></div>';
   c.fazendas.forEach(function(f,fi){
+    var EE=etapasDe(f,MES), ets=EE.map(function(e){ return e.nome; });
     var feitos=ets.filter(function(et){ var r=rotItem(f.nome,MES,et); return r&&r.feito; }).length, pct=ets.length?Math.round(feitos/ets.length*100):0;
     var abertosPl=D.plano.filter(function(p){ return p.fazenda===f.nome && p.situacao!=="feito"; }), atrasPl=abertosPl.filter(function(p){ return p.prazo && p.prazo<hoje(); });
     x+='<div class="card" style="padding:12px 14px"><div style="display:flex;justify-content:space-between;align-items:baseline"><b style="font-size:16px">'+esc(f.nome)+'</b><span class="mini">'+feitos+' de '+ets.length+'</span></div>'
       +'<div style="height:7px;background:#eef2ed;border-radius:4px;margin:8px 0 6px"><div style="width:'+pct+'%;height:7px;background:var(--v3);border-radius:4px"></div></div>'
       +cpLinha(f,fi);
-    ets.forEach(function(et,ei){
-      var r=rotItem(f.nome,MES,et), ok=r&&r.feito;
-      x+='<div class="item"><div class="ico '+(ok?'ok':'')+'" style="cursor:pointer" onclick="toggleRotina('+fi+','+ei+')">'+(ok?ICO.check:ICO.circulo)+'</div>'
+    var secAtual="";
+    EE.forEach(function(E,ei){
+      var et=E.nome, r=rotItem(f.nome,MES,et), ok=r&&r.feito, atr=etapaAtrasada(E,MES,ok);
+      if(E.sec!==secAtual){ secAtual=E.sec; x+='<div style="font-size:11px;font-weight:800;color:var(--v1);letter-spacing:1px;margin:10px 0 0;text-transform:uppercase">'+(E.sec==="tri"?'Trimestre':'Todo mês')+'</div>'; }
+      var icoTxt=ok?ICO.check:(E.dia?'<b style="font-size:13px">'+E.dia+'</b>':ICO.circulo);
+      var sub=ok&&r.data?'feito '+r.data.split("-").reverse().slice(0,2).join("/"):((E.dia?'até dia '+String(E.dia).padStart(2,"0"):'')+(E.dia&&E.dica?' · ':'')+E.dica+(atr?' · <b style="color:var(--danger)">atrasado</b>':''));
+      x+='<div class="item"><div class="ico '+(ok?'ok':(atr?'err':''))+'" style="cursor:pointer" onclick="toggleRotina('+fi+','+ei+')">'+icoTxt+'</div>'
         +'<div style="flex:1;min-width:0">'+(acaoEtapa(et)?'<div class="it1'+(ok?' feito':'')+'" style="font-size:14px;cursor:pointer;color:var(--v1);text-decoration:underline;text-underline-offset:3px" onclick="abrirEtapa('+fi+','+ei+')">'+esc(et)+'</div>':'<div class="it1'+(ok?' feito':'')+'" style="font-size:14px">'+esc(et)+'</div>')
-        +(ok&&r.data?'<div class="it2">feito '+r.data.split("-").reverse().slice(0,2).join("/")+'</div>':'')+'</div>'
+        +(sub?'<div class="it2">'+sub+'</div>':'')+'</div>'
         +'<div class="acts">'+(ok?'<button class="b g" onclick="toggleRotina('+fi+','+ei+')">Desfazer</button>':'<button class="b" onclick="toggleRotina('+fi+','+ei+')">Feito</button><button class="b g" onclick="agendarEtapa('+fi+','+ei+')">Agendar</button>')+'</div></div>';
     });
+    if(!(f.mesesTri||[]).length) x+='<div class="mini" style="padding:8px 0 0">Trimestre: escolha os meses desta fazenda em Ajustes.</div>';
     x+='<div class="mini" style="padding:8px 0 4px">Plano de ação: '+abertosPl.length+' em aberto'+(atrasPl.length?' · <b style="color:var(--danger)">'+atrasPl.length+' atrasada(s)</b>':'')+'</div></div>';
   });
   return x+'<p class="mini" style="text-align:center">As etapas você muda em Ajustes, do jeito do seu método.</p>';
 }
 async function toggleRotina(fi,ei){
-  var c=cfg(), faz=c.fazendas[fi].nome, et=c.rotinaEtapas[ei];
+  var c=cfg(), faz=c.fazendas[fi].nome, et=etapasDe(c.fazendas[fi],MES)[ei].nome;
   var r=rotItem(faz,MES,et), novo=r?Object.assign({},r):{ id:idRot(faz,MES,et), fazenda:faz, mes:MES, etapa:et, obs:"" };
   novo.feito=!(r&&r.feito); novo.data=novo.feito?hoje():"";
   D.rotina=D.rotina.filter(function(x){ return x.id!==novo.id; }).concat([novo]); render();
@@ -378,7 +400,7 @@ async function toggleRotina(fi,ei){
   catch(e){ D.rotina=D.rotina.filter(function(x){ return x.id!==novo.id; }).concat(r?[r]:[]); render(); alert("Não salvou: "+e.message); }
 }
 async function agendarEtapa(fi,ei){
-  var c=cfg(), faz=c.fazendas[fi].nome, et=c.rotinaEtapas[ei];
+  var c=cfg(), faz=c.fazendas[fi].nome, et=etapasDe(c.fazendas[fi],MES)[ei].nome;
   var d=prompt("Em que dia? (dd/mm)\n"+et+" — "+faz); if(!d) return;
   var p=d.split("/"); if(p.length<2){ alert("Use dd/mm"); return; }
   var ano=new Date().getFullYear(), iso=ano+"-"+p[1].padStart(2,"0")+"-"+p[0].padStart(2,"0"); if(iso<hoje()) iso=(ano+1)+iso.slice(4);
@@ -455,10 +477,10 @@ function imprimirPlano(){
    ===================================================================== */
 var CAMPO={ fi:0, modo:"campo", dados:null, carregando:false, erro:"" };
 function acaoEtapa(et){ et=String(et||"").toLowerCase();
-  if(/campo|coleta/.test(et)) return "campo"; if(/inttegra/.test(et)) return "inttegra"; if(/reuni|pauta/.test(et)) return "pauta";
+  if(/campo|coleta/.test(et)) return "campo"; if(/inttegra/.test(et)) return "inttegra"; if(/fechamento/.test(et)) return "campo"; if(/reuni|pauta/.test(et)) return "pauta";
   if(/plano/.test(et)) return "plano"; if(/relat/.test(et)) return "campo"; return ""; }
 function abrirEtapa(fi,ei){
-  var c=cfg(), a=acaoEtapa(c.rotinaEtapas[ei]);
+  var c=cfg(), a=acaoEtapa(etapasDe(c.fazendas[fi],MES)[ei].nome);
   if(a==="inttegra"){ window.open("https://portal.inttegra.com/dashboard","_blank","noopener"); return; }
   if(a==="plano"){ PL_FAZ=c.fazendas[fi].nome; PL_FILTRO="abertos"; ABA="plano"; render(); return; }
   CAMPO={ fi:fi, modo:(a==="pauta"?"pauta":"campo"), dados:null, carregando:true, erro:"" }; ABA="campo"; render(); window.scrollTo(0,0);
@@ -762,8 +784,10 @@ function linkDose2(faz,n){
 }
 function addFazenda(){ var c=cfg(); lerAjustes(c); c.fazendas.push({nome:"",pesagem:"",app:""}); L.config=c; render(); }
 function lerAjustes(c){
-  var et=($("cEt")?$("cEt").value:"").split("\n").map(function(x){ return x.trim(); }).filter(Boolean); if(et.length) c.rotinaEtapas=et;
-  c.fazendas=c.fazendas.map(function(f,i){ return { nome:($("fN"+i)?$("fN"+i).value.trim():f.nome), pesagem:($("fP"+i)?$("fP"+i).value.trim():f.pesagem), app:($("fA"+i)?$("fA"+i).value.trim():f.app) }; }).filter(function(f){ return f.nome; });
+  var et=($("cEt")?$("cEt").value:"").split("\n").map(function(x){ return x.trim(); }).filter(Boolean); if(et.length) c.rotinaMes=et;
+  if($("cEtT")) c.rotinaTri=$("cEtT").value.split("\n").map(function(x){ return x.trim(); }).filter(Boolean);
+  c.fazendas=c.fazendas.map(function(f,i){ var mt=$("fT"+i+"_1")?MES_AB.map(function(m,k){ return $("fT"+i+"_"+(k+1)).checked?k+1:0; }).filter(Boolean):(f.mesesTri||[]);
+    return { nome:($("fN"+i)?$("fN"+i).value.trim():f.nome), pesagem:($("fP"+i)?$("fP"+i).value.trim():f.pesagem), app:($("fA"+i)?$("fA"+i).value.trim():f.app), mesesTri:mt }; }).filter(function(f){ return f.nome; });
   return c;
 }
 async function salvarAjustes(){

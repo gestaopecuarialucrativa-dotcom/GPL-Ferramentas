@@ -585,14 +585,16 @@ async function garantirLembretesCP(){
 async function cpEnviado(faz,v){
   var mes=MES, a=cpAgenda(faz,mes);
   if(!a){ a={ id:idCP(faz,mes), data:mes+"-01", hora:"", titulo:"Enviar contas a pagar ao dono", fazenda:faz, tipo:"compromisso", origem:"auto-cp", feito:false }; D.agenda.push(a); }
-  var ant=a.feito; a.feito=v; render();
-  try{ await centralPost("agenda_salvar",{itens:[a]}); }catch(e){ a.feito=ant; render(); alert("Não salvou: "+e.message); }
+  var ant=a.feito, antObs=a.obs, n=new Date();
+  a.feito=v; a.obs=v?("enviado em "+String(n.getDate()).padStart(2,"0")+"/"+String(n.getMonth()+1).padStart(2,"0")+"/"+n.getFullYear()+" às "+String(n.getHours()).padStart(2,"0")+":"+String(n.getMinutes()).padStart(2,"0")):"";
+  render();
+  try{ await centralPost("agenda_salvar",{itens:[a]}); }catch(e){ a.feito=ant; a.obs=antObs; render(); alert("Não salvou: "+e.message); }
 }
 function cpLinha(f,fi){
   var a=cpAgenda(f.nome,MES), ok=a&&a.feito, atras=!ok && MES<=hoje().slice(0,7) && (MES+"-01")<hoje();
   return '<div class="item" style="background:'+(ok?'transparent':(atras?'#fdf3f1':'#f6f9f5'))+';margin:2px -8px 6px;padding:10px 8px;border-radius:10px;border-bottom:0">'
     +'<div class="ico '+(ok?'ok':(atras?'err':'warn'))+'">'+(ok?ICO.check:ICO.agenda)+'</div>'
-    +'<div style="flex:1;min-width:0"><div class="it1'+(ok?' feito':'')+'" style="font-size:14px">Contas a pagar do mês</div><div class="it2">'+(ok?'enviado ao dono':'enviar até o dia 01'+(atras?' · <b style="color:var(--danger)">atrasado</b>':''))+'</div></div>'
+    +'<div style="flex:1;min-width:0"><div class="it1'+(ok?' feito':'')+'" style="font-size:14px">Contas a pagar do mês</div><div class="it2">'+(ok?esc(/^enviado/.test(a.obs||"")?a.obs.replace(/^enviado/,"enviado ao dono"):"enviado ao dono"):'enviar até o dia 01'+(atras?' · <b style="color:var(--danger)">atrasado</b>':''))+'</div></div>'
     +'<div class="acts"><button class="b p" onclick="cpEscolher('+fi+')">Importar</button>'+(ok?'<button class="b g" onclick="cpEnviado(cfg().fazendas['+fi+'].nome,false)">Desfazer</button>':'<button class="b" onclick="cpEnviado(cfg().fazendas['+fi+'].nome,true)">Enviado</button>')+'</div></div>';
 }
 function cpEscolher(fi){

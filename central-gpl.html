@@ -389,7 +389,7 @@ function telaRotina(){
       if(E.sec!==secAtual){ secAtual=E.sec; x+='<div style="font-size:11px;font-weight:800;color:var(--v1);letter-spacing:1px;margin:10px 0 0;text-transform:uppercase">'+(E.sec==="tri"?'Trimestre':'Todo mês')+'</div>'; }
       var icoTxt=ok?ICO.check:(E.dia?'<b style="font-size:13px">'+E.dia+'</b>':ICO.circulo);
       var sub=ok&&r.data?(r.obs&&/^PDF gerado/.test(r.obs)?esc(r.obs):'feito '+r.data.split("-").reverse().slice(0,2).join("/")):((E.dia?'até dia '+String(E.dia).padStart(2,"0"):'')+(E.dia&&E.dica?' · ':'')+E.dica+(atr?' · <b style="color:var(--danger)">atrasado</b>':''));
-      if(!ok && /fechamento/i.test(et)){ var fp=fechPendente(f,MES); if(fp.length) sub='<b style="color:var(--warn)">aguardando: '+fp.join(" · ")+'</b> · Inttegra alimentada e validada antes de fechar'; else sub='Inttegra validada · toque para importar o DRE'; }
+      if(!ok && /fechamento/i.test(et)){ var fp=fechPendente(f,MES), mref=MESES[+mesMais(MES,-1).split("-")[1]-1]; if(fp.length) sub='<b style="color:var(--warn)">aguardando: '+fp.join(" · ")+'</b> · fecha '+mref; else sub='Inttegra validada · fecha '+mref; }
       x+='<div class="item"><div class="ico '+(ok?'ok':(atr?'err':''))+'" style="cursor:pointer" onclick="toggleRotina('+fi+','+ei+')">'+icoTxt+'</div>'
         +'<div style="flex:1;min-width:0">'+(acaoEtapa(et)?'<div class="it1'+(ok?' feito':'')+'" style="font-size:14px;cursor:pointer;color:var(--v1);text-decoration:underline;text-underline-offset:3px" onclick="abrirEtapa('+fi+','+ei+')">'+esc(et)+'</div>':'<div class="it1'+(ok?' feito':'')+'" style="font-size:14px">'+esc(et)+'</div>')
         +(sub?'<div class="it2">'+sub+'</div>':'')+'</div>'
@@ -796,52 +796,106 @@ var FE_CAMINHO=[
   ["Compras de gado (quando teve compra no mês)", ["Inttegra → Pecuária → Relatórios → Compras","Modo: Ano Safra · Safra: a atual · Período de / até: o mês que vai fechar","Gerar Relatório → Exportar → Excel (traz cabeças, peso e valor por cabeça)"]],
   ["Top Rentáveis (opcional — referência)", ["Inttegra → Painel Inicial","Safra: a atual · Período: início da safra até o fim do mês que vai fechar","Desça até o quadro \"Perfil de Desembolso Pecuário\"","Selecione com o mouse do título \"Centro de Custo\" até a linha \"Outros\" → Ctrl+C","Cole no campo \"Top Rentáveis\" aqui embaixo"]]];
 function feChave(){ return "gpl_fe_"+FE.faz+"_"+FE.mes; }
-function feAbrir(fi){
-  var f=cfg().fazendas[fi]; FE={ fi:fi, faz:f.nome, mes:MES, dre:null, desp:null, obs:"" };
+/* o fechamento da rotina de novembro fecha OUTUBRO: FE.mes = mês fechado; a rotina é a do mês seguinte */
+function feTrab(){ return mesMais(FE.mes,1); }
+function feMesCurto(m){ return MESES[+m.split("-")[1]-1]; }
+function feCarregarLocal(){
+  FE.dre=null; FE.desp=null; FE.obs=""; FE.top=null; FE.cab=""; FE.compras=null; FE.salvo=""; FE.topEd=false;
   try{ var g=JSON.parse(localStorage.getItem(feChave())||"null"); if(g){ FE.dre=g.dre; FE.desp=g.desp; FE.obs=g.obs||""; FE.top=g.top||null; FE.cab=g.cab||""; FE.compras=g.compras||null; FE.salvo=g._salvo||""; } }catch(e){}
+}
+var FE_CSS='#feOv{position:fixed;inset:0;z-index:50;background:#e9eee8;display:flex;flex-direction:column;font-family:Arial,Helvetica,sans-serif}'
+ +'.fe-top{display:flex;align-items:center;gap:12px;padding:9px 16px;background:#123d1d;color:#fff;flex-wrap:wrap}.fe-top b.t{font-size:15px}'
+ +'.fe-mes{display:flex;align-items:center;gap:4px;background:rgba(255,255,255,.1);border-radius:10px;padding:4px}.fe-mes button{border:0;background:transparent;color:#cfe3cf;font-size:13px;padding:5px 9px;border-radius:7px;cursor:pointer}.fe-mes button:hover{background:rgba(255,255,255,.12)}.fe-mes span{background:#fff;color:#123d1d;font-weight:800;font-size:13px;padding:5px 12px;border-radius:7px}'
+ +'.fe-bt{border:0;border-radius:9px;padding:9px 16px;font-weight:800;font-size:14px;cursor:pointer}.fe-bt.v{background:#8BC34A;color:#123d1d}.fe-bt.v[disabled]{opacity:.4;cursor:default}.fe-bt.l{background:transparent;border:1.5px solid #fff;color:#fff}'
+ +'.fe-corpo{flex:1;display:grid;grid-template-columns:420px 1fr;min-height:0}'
+ +'#fePainel{background:#f7f9f6;border-right:1px solid #d9e1d8;padding:16px 18px 24px;overflow:auto}#feFr{border:0;width:100%;height:100%;background:#e9eee8}'
+ +'.fe-ref{font-size:12px;color:#5b6b5e;margin-bottom:10px}.fe-chips{display:flex;gap:8px;margin-bottom:16px}.fe-chip{flex:1;border-radius:10px;padding:8px 10px;font-size:12px;line-height:1.35}.fe-chip b{display:block;font-size:13px}.fe-chip.ok{background:#e3f1e1;color:#1B5E20}.fe-chip.wa{background:#fff2dc;color:#8a5a00}'
+ +'.fe-h{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:#1B5E20;font-weight:800;margin:4px 0 8px;display:flex;justify-content:space-between}.fe-h span{letter-spacing:0;text-transform:none;color:#5b6b5e;font-weight:400}'
+ +'.fe-bar{height:6px;border-radius:4px;background:#dfe7de;margin-bottom:12px}.fe-bar i{display:block;height:100%;background:#4c9a2a;border-radius:4px;transition:width .3s}'
+ +'.fe-card{background:#fff;border:1px solid #dfe6de;border-radius:12px;padding:11px 12px;margin-bottom:8px;display:flex;gap:11px;align-items:flex-start}'
+ +'.fe-n{width:28px;height:28px;border-radius:50%;flex:none;display:grid;place-items:center;font-weight:800;font-size:13px}.fe-card.ok .fe-n{background:#1B5E20;color:#fff}.fe-card.falta{border:1.5px dashed #d9a441;background:#fffaf0}.fe-card.falta .fe-n{background:#fff;border:2px solid #d9a441;color:#b07a10}.fe-card.nao{opacity:.6}.fe-card.nao .fe-n{background:#e7ebe6;color:#7a867b}'
+ +'.fe-c{flex:1;min-width:0}.fe-c .t{font-weight:800;font-size:14px}.fe-c .s{font-size:12.5px;color:#5b6b5e;margin-top:2px;line-height:1.4}.fe-c textarea,.fe-c input{width:100%;margin-top:7px;border:1.5px solid #d9c49a;border-radius:8px;padding:7px 8px;font:13px Arial;background:#fff}'
+ +'.fe-ac{display:flex;flex-direction:column;align-items:flex-end;gap:6px}.fe-q{width:24px;height:24px;border-radius:50%;border:1.5px solid #a9bea7;color:#3f5f42;background:#fff;font-weight:800;font-size:12px;cursor:pointer;display:grid;place-items:center;padding:0}.fe-q:hover,.fe-q.on{background:#1B5E20;color:#fff;border-color:#1B5E20}.fe-tr{font-size:12px;color:#1B5E20;font-weight:700;cursor:pointer;background:none;border:0;padding:0}'
+ +'#fePop{display:none;position:fixed;width:360px;max-width:calc(100vw - 24px);background:#123d1d;color:#fff;border-radius:12px;padding:12px 14px;font-size:13px;line-height:1.55;z-index:60;box-shadow:0 10px 30px rgba(0,0,0,.25)}#fePop b{display:block;margin-bottom:5px;color:#c5e1a5}#fePop ol{margin:0;padding-left:18px}'
+ +'.fe-drop{border:2px dashed #9fbf98;border-radius:12px;background:#f0f6ee;text-align:center;padding:13px;font-size:13px;color:#3d5a3f;margin:12px 0 16px;cursor:pointer}.fe-drop b{display:block;font-size:14px;color:#1B5E20;margin-bottom:2px}#fePainel.arrasto .fe-drop{background:#dcefd6;border-color:#4c9a2a}'
+ +'#feObs{width:100%;border:1.5px solid #cbd6ca;border-radius:10px;padding:10px;font:14px Arial;min-height:86px;resize:vertical}#feBancoMsg{font-size:12px;margin-top:8px}'
+ +'@media(max-width:900px){.fe-corpo{display:flex;flex-direction:column;overflow:auto}#fePainel{border-right:0;overflow:visible}#feFr{min-height:70vh}}';
+function feAbrir(fi){
+  var f=cfg().fazendas[fi]; FE={ fi:fi, faz:f.nome, mes:mesMais(MES,-1) }; feCarregarLocal();
   var ov=$("feOv");
   if(!ov){
+    var st=document.createElement("style"); st.textContent=FE_CSS; document.head.appendChild(st);
     ov=document.createElement("div"); ov.id="feOv";
-    ov.style.cssText="position:fixed;inset:0;z-index:50;background:#2b322c;display:flex;flex-direction:column";
-    ov.innerHTML='<div style="display:flex;gap:8px;align-items:center;padding:8px 10px;background:#123d1d;color:#fff;flex-wrap:wrap">'
-      +'<b style="flex:1;font-size:14px;min-width:150px" id="feTit"></b>'
-      +'<button type="button" id="feBtSalvar" onclick="feSalvar()" style="background:#8BC34A;color:#123d1d;border:0;border-radius:8px;padding:9px 14px;font-weight:800;font-size:14px">Salvar PDF</button>'
-      +'<button type="button" onclick="$(\'feOv\').style.display=\'none\';document.body.style.overflow=\'\'" style="background:transparent;color:#fff;border:1.5px solid #fff;border-radius:8px;padding:8px 14px;font-weight:800;font-size:14px">Fechar</button></div>'
-      +'<div id="fePainel" style="background:#eef3ee;padding:10px;max-height:46vh;overflow:auto"></div>'
-      +'<iframe id="feFr" style="flex:1;border:0;width:100%;background:#7d857e"></iframe>';
+    ov.innerHTML='<div class="fe-top"><b class="t" id="feTit"></b><div class="fe-mes"><button type="button" id="feMesA" onclick="feTrocarMes(-1)"></button><span id="feMesN"></span><button type="button" id="feMesD" onclick="feTrocarMes(1)"></button></div>'
+      +'<div style="flex:1"></div><button type="button" class="fe-bt l" onclick="feFechar()">Fechar</button><button type="button" class="fe-bt v" id="feBtSalvar" onclick="feSalvar()">Gerar PDF</button></div>'
+      +'<div class="fe-corpo"><div id="fePainel"></div><iframe id="feFr"></iframe></div><div id="fePop"></div>';
     document.body.appendChild(ov);
+    var pn=$("fePainel");
+    pn.addEventListener("dragover",function(e){ e.preventDefault(); pn.classList.add("arrasto"); });
+    pn.addEventListener("dragleave",function(e){ if(e.target===pn) pn.classList.remove("arrasto"); });
+    pn.addEventListener("drop",function(e){ e.preventDefault(); pn.classList.remove("arrasto"); var fs=Array.prototype.slice.call(e.dataTransfer.files||[]); if(fs.length) feLer(fs); });
   }
   ov.style.display="flex"; document.body.style.overflow="hidden"; fePainel(); feDesenhar(); feSincronizar();
 }
+function feFechar(){ $("feOv").style.display="none"; document.body.style.overflow=""; feAjuda(-1); render(); }
+function feTrocarMes(n){ feGuardarJa(); feAjuda(-1); FE.mes=mesMais(FE.mes,n); feCarregarLocal(); fePainel(); feDesenhar(); feSincronizar(); }
+function feGuardarJa(){ if(feGuardar.t){ clearTimeout(feGuardar.t); feGuardar.t=null; if(FE.dre) feGuardar(true); } }
+/* orientação "como gerar": passa o mouse no "?" ou clica para deixar aberta */
+var FE_AJ=-1;
+function feAjuda(i,el,fixar){ var pop=$("fePop"); if(!pop) return;
+  if(i<0 || (fixar && FE_AJ===i)){ FE_AJ=-1; pop.style.display="none"; document.querySelectorAll(".fe-q.on").forEach(function(q){ q.classList.remove("on"); }); return; }
+  if(!fixar && FE_AJ>=0) return;
+  if(fixar){ document.querySelectorAll(".fe-q.on").forEach(function(q){ q.classList.remove("on"); }); }
+  var c=FE_CAMINHO[i]; pop.innerHTML='<b>'+esc(c[0].replace(/\s*\(.*\)$/,""))+' — como gerar</b><ol>'+c[1].map(function(x){ return '<li>'+esc(x)+'</li>'; }).join("")+'</ol>';
+  var r=el.getBoundingClientRect(), w=Math.min(360,window.innerWidth-24), x=r.right+12; if(x+w>window.innerWidth-12) x=Math.max(12,r.left-w-12); if(window.innerWidth<=900) x=12;
+  pop.style.left=x+"px"; pop.style.display="block"; var y=Math.min(r.top-8, window.innerHeight-pop.offsetHeight-12); pop.style.top=Math.max(12,y)+"px";
+  if(fixar){ FE_AJ=i; el.classList.add("on"); }
+}
+function feAjudaSai(){ if(FE_AJ<0){ var pop=$("fePop"); if(pop) pop.style.display="none"; } }
 function fePainel(){
-  var f=cfg().fazendas[FE.fi], falta=fechPendente(f,FE.mes);
-  $("feTit").textContent="Fechamento · "+FE.faz+" · "+mesNome(FE.mes);
-  var h='<div style="max-width:900px;margin:0 auto">';
-  h+=falta.length?'<div style="background:#fff4e0;color:#8a5a00;border-radius:10px;padding:9px 12px;font-size:13px;font-weight:700;margin-bottom:8px">Aguardando: '+esc(falta.join(" · "))+'. Feche só com a Inttegra alimentada e validada — se gerar agora, o relatório sai marcado como PRÉVIA.</div>'
-    :'<div style="background:#E8F5E9;color:#1B5E20;border-radius:10px;padding:9px 12px;font-size:13px;font-weight:700;margin-bottom:8px">Inttegra alimentada e validada neste mês.</div>';
-  h+='<details'+(FE.dre?'':' open')+' style="background:#fff;border:1px solid #dfe6de;border-radius:10px;padding:8px 12px;margin-bottom:8px"><summary style="font-weight:800;font-size:14px;cursor:pointer;color:#1B5E20">Caminho na Inttegra</summary>'
-    +FE_CAMINHO.map(function(c){ return '<div style="font-size:13px;font-weight:800;margin:8px 0 3px">'+esc(c[0])+'</div><ol style="margin:0 0 0 18px;padding:0;font-size:13px;line-height:1.55">'+c[1].map(function(x){ return '<li>'+esc(x)+'</li>'; }).join("")+'</ol>'; }).join("")+'</details>';
-  h+='<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center"><button class="b p" onclick="feEscolher()">Importar Excel da Inttegra</button><span class="mini">'
-    +(FE.dre?'DRE: '+esc(FE.dre.periodo||"")+' ✓':'falta o DRE')+(FE.desp?' · Despesas e Receitas ✓':' · Despesas e Receitas (opcional)')+(FE.compras?' · Compras ✓':'')+'</span></div><div class="mini" id="feBancoMsg" style="margin-top:4px"></div>';
+  var f=cfg().fazendas[FE.fi], trab=feTrab(), mc=feMesCurto(FE.mes), mC=mc.charAt(0).toUpperCase()+mc.slice(1);
+  $("feTit").textContent="Fechamento · "+FE.faz;
+  $("feMesA").textContent="‹ "+MES_AB[+mesMais(FE.mes,-1).split("-")[1]-1]; $("feMesD").textContent=MES_AB[+mesMais(FE.mes,1).split("-")[1]-1]+" ›"; $("feMesN").textContent=mC+" "+FE.mes.slice(0,4);
+  $("feBtSalvar").disabled=!FE.dre;
+  var h='<div class="fe-ref">Fechamento de '+mc+' · etapa da rotina de '+feMesCurto(trab)+'</div>';
+  var EE=etapasDe(f,trab).filter(function(e){ return /cliente lan|valida/i.test(e.nome); });
+  if(EE.length) h+='<div class="fe-chips">'+EE.map(function(e){ var r=rotItem(f.nome,trab,e.nome), ok=r&&r.feito, cli=/cliente/i.test(e.nome);
+      return '<div class="fe-chip '+(ok?'ok':'wa')+'"><b>'+(cli?'Cliente lançou':'Validação')+(ok?' ✓':': falta')+'</b>'+(ok?'marcado em '+(r.data?r.data.split("-").reverse().slice(0,2).join("/"):"")
+        :(e.dia?'até '+String(e.dia).padStart(2,"0")+'/'+trab.slice(5)+' — ':'')+'PDF sai como PRÉVIA')+'</div>'; }).join("")+'</div>';
   var compraMes=FE.dre?-(FE.dre.nos.filter(function(n){ return /^3\.1\s*-/.test(n.nome); }).reduce(function(s2,n){ return s2+n.mes; },0)):0;
-  if(compraMes>0 && FE.compras) h+='<div class="mini" style="margin-top:6px">Compras: '+FE.compras.rows.reduce(function(s2,c){ return s2+c.qtd; },0)+' cabeças (relatório de Compras da Inttegra) ✓</div>';
-  else if(compraMes>0) h+='<div style="display:flex;gap:8px;align-items:center;margin-top:8px;font-size:13px"><b>Compra de gado no mês: '+cpR(compraMes)+'</b> · cabeças compradas (ou importe o relatório de Compras): <input id="feCab" type="number" min="0" value="'+esc(FE.cab||"")+'" placeholder="ex.: 80" style="width:100px;padding:6px 8px;font-size:15px"></div>';
-  h+='<textarea id="feTop" rows="2" placeholder="Top Rentáveis: cole aqui o quadro Perfil de Desembolso Pecuário do Painel Inicial (opcional)" style="width:100%;font:13px Arial;padding:8px;border:1.5px solid #c9d3c9;border-radius:8px;margin-top:8px"></textarea>'
-    +'<div class="mini" id="feTopMsg">'+(FE.top?'Top Rentáveis: '+FE.top.rows.length+' centros de custo lidos'+(FE.top.periodo?' ('+esc(FE.top.periodo)+')':'')+' ✓':'')+'</div>';
-  h+='<textarea id="feObs" rows="2" placeholder="Observações do consultor (aparecem no relatório)" style="width:100%;font:14px Arial;padding:8px;border:1.5px solid #c9d3c9;border-radius:8px;margin-top:8px">'+esc(FE.obs)+'</textarea></div>';
+  var C=[];
+  C.push(FE.dre?{st:"ok",t:"DRE Financeiro",s:esc(FE.dre.periodo||"")+(FE.dre.lido?' · importado '+brd(FE.dre.lido):'')}:{st:"falta",t:"DRE Financeiro",s:"obrigatório — é dele que sai o relatório"});
+  C.push(FE.desp?{st:"ok",t:"Despesas e Receitas",s:FE.desp.itens.length+' lançamentos · '+cpR(FE.desp.itens.reduce(function(a,i){ return a-i.valor; },0))}:{st:"falta",t:"Despesas e Receitas",s:"mostra os lançamentos de cada gasto"});
+  if(!FE.dre) C.push({st:"nao",t:"Compras de gado",s:"só se teve compra de gado no mês",conta:false});
+  else if(compraMes<=0) C.push({st:"nao",t:"Compras de gado",s:"não precisa — sem compra de gado em "+mc,conta:false});
+  else if(FE.compras) C.push({st:"ok",t:"Compras de gado",s:'teve compra no mês · '+FE.compras.rows.reduce(function(a,c){ return a+c.qtd; },0)+' cabeças'});
+  else C.push({st:FE.cab?"ok":"falta",t:"Compras de gado",s:'teve compra de '+cpR(compraMes)+' — importe o relatório de Compras',cab:true});
+  C.push(FE.top&&!FE.topEd?{st:"ok",t:"Top Rentáveis",s:FE.top.rows.length+' centros de custo'+(FE.top.periodo?' · '+esc(FE.top.periodo):''),top:true}:{st:"falta",t:"Top Rentáveis",s:"copie o quadro do Painel Inicial e cole aqui",top:true,cola:true});
+  var conta=C.filter(function(c){ return c.conta!==false; }), feitos=conta.filter(function(c){ return c.st==="ok"; }).length;
+  h+='<div class="fe-h">Arquivos de '+mc+' <span>'+feitos+' de '+conta.length+'</span></div><div class="fe-bar"><i style="width:'+Math.round(feitos/conta.length*100)+'%"></i></div>';
+  C.forEach(function(c,i){
+    h+='<div class="fe-card '+c.st+'"><div class="fe-n">'+(c.st==="ok"?'✓':(c.st==="nao"?'–':i+1))+'</div><div class="fe-c"><div class="t">'+c.t+'</div><div class="s">'+c.s+'</div>'
+      +(c.cola?'<textarea id="feTop" rows="2" placeholder="cole aqui (Ctrl+V)"></textarea><div class="s" id="feTopMsg"></div>':'')
+      +(c.cab?'<input id="feCab" type="number" min="0" value="'+esc(FE.cab||"")+'" placeholder="sem o relatório? digite as cabeças compradas">':'')+'</div>'
+      +'<div class="fe-ac"><button type="button" class="fe-q" onmouseenter="feAjuda('+i+',this)" onmouseleave="feAjudaSai()" onclick="feAjuda('+i+',this,true)" title="Como gerar na Inttegra">?</button>'
+      +(c.st==="ok"?(c.top?'<button type="button" class="fe-tr" onclick="FE.topEd=true;fePainel()">trocar</button>':(c.cab&&!FE.compras?'':'<button type="button" class="fe-tr" onclick="feEscolher()">trocar</button>')):'')+'</div></div>';
+  });
+  h+='<div class="fe-drop" onclick="feEscolher()"><b>Arraste aqui os arquivos da pasta Downloads</b>pode soltar todos juntos — ou clique para escolher</div>';
+  h+='<div class="fe-h">Sua leitura do mês <span>vai na página 2</span></div><textarea id="feObs" maxlength="700" placeholder="Ex.: suplementação acima do Top é planejada — meta de GMD e @/ha. Compra de garrotes para a recria.">'+esc(FE.obs||"")+'</textarea><div id="feBancoMsg"></div>';
   $("fePainel").innerHTML=h;
-  if($("feCab")) $("feCab").addEventListener("input",function(){ FE.cab=this.value; feGuardar(); clearTimeout(tm); tm=setTimeout(feDesenhar,500); });
-  $("feTop").addEventListener("input",function(){ var r=feLerTop(this.value); if(r){ FE.top=r; feGuardar(); feDesenhar(); $("feTopMsg").textContent="Top Rentáveis: "+r.rows.length+" centros de custo lidos"+(r.periodo?" ("+r.periodo+")":"")+" ✓"; this.value=""; } else $("feTopMsg").textContent="Não reconheci o quadro — copie do título \"Centro de Custo\" até a linha \"Outros\"."; });
-  var tm=null; $("feObs").addEventListener("input",function(){ FE.obs=this.value; feGuardar(); clearTimeout(tm); tm=setTimeout(feDesenhar,500); });
-  $("feBtSalvar").style.display=FE.dre?"":"none";
+  var tm=null;
+  if($("feCab")) $("feCab").addEventListener("change",function(){ FE.cab=this.value; feGuardar(); fePainel(); feDesenhar(); });
+  if($("feTop")) $("feTop").addEventListener("input",function(){ var r=feLerTop(this.value); if(r){ FE.top=r; FE.topEd=false; feGuardar(); fePainel(); feDesenhar(); } else $("feTopMsg").textContent="Não reconheci — copie do título \"Centro de Custo\" até a linha \"Outros\"."; });
+  $("feObs").addEventListener("input",function(){ FE.obs=this.value; feGuardar(); clearTimeout(tm); tm=setTimeout(feDesenhar,600); });
 }
 function feObj(){ return {dre:FE.dre,desp:FE.desp,obs:FE.obs,top:FE.top,cab:FE.cab||"",compras:FE.compras||null,_salvo:FE.salvo||""}; }
 function feGuardar(ja){
   FE.salvo=new Date().toISOString();
   try{ localStorage.setItem(feChave(), JSON.stringify(feObj())); }catch(e){}
   if(!FE.dre) return;
+  var faz=FE.faz, mes=FE.mes, o=feObj();
   clearTimeout(feGuardar.t); feGuardar.t=setTimeout(async function(){
-    var faz=FE.faz, mes=FE.mes, o=feObj(), res="DRE "+(o.dre.periodo||"")+(o.desp?" · lançamentos":"")+(o.compras?" · compras":"")+(o.top?" · Top Rentáveis":"")+(o.obs?" · com observações":"");
+    feGuardar.t=null; var res="DRE "+(o.dre.periodo||"")+(o.desp?" · lançamentos":"")+(o.compras?" · compras":"")+(o.top?" · Top Rentáveis":"")+(o.obs?" · com observações":"");
     bancoMsg("feBancoMsg","salvando na planilha…");
     try{ await bancoGuardar("fe",faz,mes,o,res); bancoMsg("feBancoMsg","salvo na planilha ✓ — abre em qualquer aparelho",true); }
     catch(e){
@@ -880,6 +934,7 @@ async function feLer(files){
       var wb=XLSX.read(await files[k].arrayBuffer(),{type:"array"}), ws=wb.Sheets[wb.SheetNames[0]];
       var rows=XLSX.utils.sheet_to_json(ws,{header:1,raw:true,defval:""}), tit=cpNorm(rows[0]&&rows[0][0]);
       var filtro=String((rows[2]&&rows[2][0])||""), mp=filtro.match(/(\d{2}\/\d{2}\/\d{4})\s*→\s*(\d{2}\/\d{2}\/\d{4})/), periodo=mp?mp[1]+" a "+mp[2]:"";
+      if(mp && cpData(mp[1]).slice(0,7)!==FE.mes && /dre|despesas e receitas|relatorio compras/.test(tit)){ var mm=cpData(mp[1]).slice(0,7); avisos.push(files[k].name+" é de "+mesNome(mm).toLowerCase()+", mas aqui está fechando "+mesNome(FE.mes).toLowerCase()+". Para fechar "+feMesCurto(mm)+", troque o mês no topo."); continue; }
       if(/dre/.test(tit)){
         var hi=rows.findIndex(function(r){ return cpNorm(r[0])==="categoria"; }); if(hi<0) throw new Error(files[k].name+": não achei a coluna Categoria do DRE");
         var nos=[]; rows.slice(hi+1).forEach(function(r){ var raw=String(r[0]||""); if(!raw.trim()) return; var nb=(raw.match(/^[\s ]*/)||[""])[0].length;
@@ -897,14 +952,13 @@ async function feLer(files){
         var cr=[]; rows.slice(hc+1).forEach(function(r){ if(/^total/i.test(String(r[0]))) return; var q=cpNum(r[cc("qtd")]); if(!q) return;
           cr.push({ data:cpData(r[cc("data")]), cat:String(r[cc("categoria")]||"").trim(), qtd:q, peso:parseFloat(String(r[cc("peso cab kg")]||"").replace(",","."))||0, vcab:cpNum(r[cc("valor cab")]), total:cpNum(r[cc("valor total")]), forn:String(r[cc("fornecedor")]||"").trim() }); });
         FE.compras={ rows:cr, periodo:periodo, arquivo:files[k].name };
-      } else avisos.push(files[k].name+" não é DRE, Despesas e Receitas nem Compras");
+      } else avisos.push(files[k].name+" não é DRE, Despesas e Receitas nem Compras da Inttegra");
     }
-    if(FE.dre && FE.dre.ini) FE.mes=FE.dre.ini.slice(0,7);
     feGuardar(true); fePainel(); feDesenhar();
     if(avisos.length) alert(avisos.join("\n"));
   }catch(e){ alert("Não deu pra ler: "+e.message); }
 }
-function feDesenhar(){ var f=$("feFr"); if(!f) return; var d=f.contentDocument||f.contentWindow.document; d.open(); d.write(FE.dre?feHTML():'<body style="font:15px Arial;color:#fff;background:#7d857e;padding:30px;text-align:center">Importe o Excel do DRE Financeiro para gerar o relatório.</body>'); d.close(); }
+function feDesenhar(){ var f=$("feFr"); if(!f) return; var d=f.contentDocument||f.contentWindow.document; d.open(); d.write(FE.dre?feHTML():'<body style="font:15px Arial;color:#5b6b5e;background:#e9eee8;padding:60px 30px;text-align:center">O relatório de '+esc(feMesCurto(FE.mes))+' aparece aqui assim que entrar o DRE Financeiro.</body>'); d.close(); }
 function feNomeArq(){ return "Fechamento "+FE.faz+" "+mesNome(FE.mes).replace(" de "," "); }
 function feSalvar(){
   var f=$("feFr"); if(!f||!f.contentWindow||!FE.dre) return; var nome=feNomeArq(), velho=document.title;
@@ -913,11 +967,11 @@ function feSalvar(){
   f.contentWindow.focus(); f.contentWindow.print();
   feMarcarFeito(); envioRegistrar(FE.faz,FE.mes,"Fechamento",nome);
 }
-/* gerou o PDF do fechamento = etapa "Fechamento" marcada como feita no mês do relatório */
+/* gerou o PDF do fechamento = etapa "Fechamento" marcada como feita na rotina do mês seguinte (outubro fecha em novembro) */
 async function feMarcarFeito(){
-  var f=cfg().fazendas[FE.fi], E=etapasDe(f,FE.mes).filter(function(e){ return /fechamento/i.test(e.nome); })[0]; if(!E) return;
-  var r=rotItem(FE.faz,FE.mes,E.nome); if(r&&r.feito) return;
-  var novo=r?Object.assign({},r):{ id:idRot(FE.faz,FE.mes,E.nome), fazenda:FE.faz, mes:FE.mes, etapa:E.nome, obs:"" };
+  var f=cfg().fazendas[FE.fi], trab=feTrab(), E=etapasDe(f,trab).filter(function(e){ return /fechamento/i.test(e.nome); })[0]; if(!E) return;
+  var r=rotItem(FE.faz,trab,E.nome); if(r&&r.feito) return;
+  var novo=r?Object.assign({},r):{ id:idRot(FE.faz,trab,E.nome), fazenda:FE.faz, mes:trab, etapa:E.nome, obs:"" };
   var n=new Date(); novo.feito=true; novo.data=hoje(); novo.obs="PDF gerado em "+String(n.getDate()).padStart(2,"0")+"/"+String(n.getMonth()+1).padStart(2,"0")+" às "+String(n.getHours()).padStart(2,"0")+":"+String(n.getMinutes()).padStart(2,"0");
   D.rotina=D.rotina.filter(function(x){ return x.id!==novo.id; }).concat([novo]); render();
   try{ await centralPost("tabela_salvar",{tabela:"Rotina",itens:[novo]}); }catch(e){ alert("O PDF foi gerado, mas não salvou na Rotina: "+e.message); }
@@ -969,7 +1023,7 @@ function feOndeFoi(nos){
 /* meses da safra (jul→jun) até o mês do relatório — base da média mensal */
 function feMesesSafra(mes){ var p=mes.split("-"), m=+p[1]; return m>=7?m-6:m+6; }
 function feHTML(){
-  var d=FE.dre, nos=d.nos, faz=FE.faz, mesN=mesNome(FE.mes), f=cfg().fazendas[FE.fi], falta=fechPendente(f,FE.mes), previa=falta.length>0;
+  var d=FE.dre, nos=d.nos, faz=FE.faz, mesN=mesNome(FE.mes), f=cfg().fazendas[FE.fi], falta=fechPendente(f,feTrab()), previa=falta.length>0;
   var top=function(re){ return nos.filter(function(n){ return n.nivel===0 && re.test(n.nome); }); };
   var soma=function(L,k){ return L.reduce(function(s,n){ return s+n[k]; },0); };
   var rec=top(/^1\s*-/), inv=top(/^3\s*-/), cus=nos.filter(function(n){ return n.nivel===0 && !/^1\s*-|^3\s*-/.test(n.nome); });
@@ -995,7 +1049,7 @@ function feHTML(){
    +'.hb{padding:0 13mm}.hb>div{display:grid;grid-template-columns:52mm 1fr 30mm;gap:3mm;align-items:center;margin:1.6mm 0;font-size:9pt}.hb .t{height:3.6mm;background:#eef1ed;border-radius:2mm;overflow:hidden}.hb .t i{display:block;height:100%;background:#1f6b33}.hb .t i.lj{background:#c9820a}.hb b:last-child{text-align:right}'
    +'table{width:calc(100% - 26mm);margin:0 13mm;border-collapse:collapse;font-size:8.8pt}th{text-align:left;font-size:7.2pt;color:#6b7b6f;font-weight:700;padding:1.4mm 1mm;border-bottom:2px solid #1f6b33;text-transform:uppercase}td{padding:1.6mm 1mm;border-bottom:1px solid #eef1ed}.n{text-align:right;white-space:nowrap}'
    +'.tag{font-size:7pt;font-weight:800;padding:.6mm 2mm;border-radius:3mm;white-space:nowrap}.wa{background:#FFF3E0;color:#E65100}.ok{background:#E8F5E9;color:#2E7D32}.ac{background:#eaf0f6;color:#3b5b7a}.fr{font-family:Georgia,serif;font-size:14pt;line-height:1.4;margin:0 13mm 4mm;color:#16261a}.gd{margin:0 13mm 4mm;border-left:1.2mm solid #123d1d;padding:1mm 0 1mm 4mm}.gd .k{font-size:8.5pt;color:#6b7b6f}.gd .v{font-size:15pt;font-weight:700;color:#123d1d}.gd .v small{font-size:9.5pt;font-weight:400;color:#4a5a4e}.gd .s{font-size:8.5pt;color:#4a5a4e}.sub{font-size:9pt;color:#4a5a4e;margin:0 13mm 3mm}.rr{margin:0 13mm 3.6mm}.rr .h{display:flex;justify-content:space-between;font-size:10.5pt}.rr .h span{font-weight:700}.rr .t{height:1.8mm;background:#eef1ed;margin:1mm 0 .8mm}.rr .t i{display:block;height:100%;background:#1f6b33}.rr .d{font-size:8pt;color:#6b7b6f}.rs{margin:2mm 13mm 0;font-size:8.6pt;color:#4a5a4e;line-height:1.6;border-top:1px solid #e3e8e2;padding-top:2mm}.ax td{padding:.5mm 1mm;font-size:7.7pt;line-height:1.22}.ax td:first-child{white-space:nowrap;width:17mm}.ax td:nth-child(2){width:38mm}.ax tr.gh td{background:#f3f6f2;font-weight:700;color:#123d1d;font-size:8.6pt;padding-top:1.3mm}.nt{margin:0 13mm;background:#f3f6f9;color:#2b3d4f;border-radius:2.6mm;padding:3mm 4mm;font-size:9.2pt;line-height:1.5}'
-   +'.al{margin:0 13mm;background:#FFF3E0;color:#7a4a00;border-radius:2.6mm;padding:3mm 4mm;font-size:9.3pt;line-height:1.5}.tx{padding:0 13mm;font-size:10pt;line-height:1.5;white-space:pre-wrap}'
+   +'.al{margin:0 13mm;background:#FFF3E0;color:#7a4a00;border-radius:2.6mm;padding:3mm 4mm;font-size:9.3pt;line-height:1.5}.tx{padding:0 13mm;font-size:10pt;line-height:1.5;white-space:pre-wrap}.lc{margin:5mm 13mm 0;border-left:3px solid #8BC34A;background:#f3f7f1;padding:3mm 4mm;font-size:10pt;line-height:1.5;white-space:pre-wrap;color:#16261a}.lc b{display:block;font-size:8pt;letter-spacing:1.5px;text-transform:uppercase;color:#1f6b33;margin-bottom:1mm}'
    +'.rod{position:absolute;bottom:6mm;left:13mm;right:13mm;display:flex;justify-content:space-between;font-size:7.5pt;color:#8a978d}';
   var ASS='Rogério · Consultor GPL', CONT='(63) 99108-2453 · @gestaopecuarialucrativa', P=[];
   P.push('<div class="pg cap"><img src="'+LOGO_GPL+'"><div class="k">FECHAMENTO FINANCEIRO · '+esc(mesN.toUpperCase())+'</div><h1>'+esc(faz)+'</h1><div class="s">Receitas '+cpR(R.rec)+' · Saldo '+cpR(R.saldo)+'</div><div class="ln"></div>'
@@ -1006,6 +1060,7 @@ function feHTML(){
   var p2=cab+'<div class="ey">O mês em números</div><div class="tt">Resultado de '+esc(MESES[+FE.mes.split("-")[1]-1])+'</div>'
     +'<div class="kp"><div><b>'+cpR(R.rec)+'</b><span>receitas</span><i>safra: '+cpR(R.recA)+'</i></div><div><b>'+cpR(R.cus)+'</b><span>custeio (produção + suporte + mão de obra)</span><i>safra: '+cpR(R.cusA)+'</i></div><div><b>'+cpR(R.inv)+'</b><span>investimentos (gado, estrutura, máquinas)</span><i>safra: '+cpR(R.invA)+'</i></div><div><b>'+cpR(R.saldo)+'</b><span>saldo do mês</span><i>safra: '+cpR(R.saldoA)+'</i></div></div>'
     +'<div class="sm">Receita menos custeio no mês: <b>'+cpR(R.op)+'</b> (safra: '+cpR(R.opA)+'). Valores pelo regime de pagamento (caixa), como na Inttegra. Média/mês da safra = acumulado ÷ '+nm+' mês(es) (safra jul→jun), só como informação.</div>'
+    +(String(FE.obs||"").trim()?'<div class="lc"><b>Leitura do consultor</b>'+esc(FE.obs.trim())+'</div>':'')
     +feOndeFoi(nos)+rod();
   P.push(p2);
   var p3=cab+'<div class="ey">Referência</div><div class="tt">'+esc(faz.replace(/^Fazenda\s+/i,""))+' × Top Rentáveis</div>';
@@ -1020,7 +1075,7 @@ function feHTML(){
     var abaixo=TR.filter(function(r){ return r.top-r.cab>0.005; }).map(function(r){ return r.nome; });
     if(abaixo.length) p3+='<div class="sm">Abaixo do Top Rentáveis: '+esc(abaixo.join(" · "))+'.</div>';
   } else p3+='<div class="sm">Cole o quadro "Perfil de Desembolso Pecuário" do Painel Inicial da Inttegra para comparar com o Top Rentáveis.</div>';
-  if(FE.top){ if(String(FE.obs||"").trim()) p3+='<div class="g">Observações do consultor</div><div class="tx">'+esc(FE.obs.trim())+'</div>'; P.push(p3+rod()); p3=cab+'<div class="ey">Detalhe</div><div class="tt">Fornecedores e lançamentos do mês</div>'; }
+  if(FE.top){ P.push(p3+rod()); p3=cab+'<div class="ey">Detalhe</div><div class="tt">Fornecedores e lançamentos do mês</div>'; }
   if(FE.desp){ var it=FE.desp.itens, porP={}; it.forEach(function(i){ porP[i.pessoa]=(porP[i.pessoa]||0)+(-i.valor); });
     var pk=Object.keys(porP).sort(function(a,b){ return porP[b]-porP[a]; }).slice(0,8), tot=it.reduce(function(s,i){ return s-i.valor; },0)||1, mxp=porP[pk[0]]||1;
     p3+='<div class="g">Maiores fornecedores do mês</div><div class="hb">'+pk.map(function(k){ return '<div><b style="font-weight:700">'+esc(k)+'</b><div class="t"><i style="width:'+Math.max(2,porP[k]/mxp*100).toFixed(1)+'%"></i></div><b>'+cpR(porP[k])+' · '+fmt(porP[k]/tot*100)+'%</b></div>'; }).join("")+'</div>';
@@ -1028,7 +1083,6 @@ function feHTML(){
     p3+='<div class="g">Maiores lançamentos</div><table><tr><th>Pago em</th><th>Fornecedor</th><th>Produto</th><th class="n">Valor</th></tr>'+maiores.map(function(i){ return '<tr><td>'+(i.pag?brd(i.pag):"—")+'</td><td>'+esc(i.pessoa)+'</td><td>'+esc(i.produto)+'</td><td class="n">'+cpR(-i.valor)+'</td></tr>'; }).join("")+'</table>'
       +'<div class="sm">'+it.length+' lançamentos de despesa no mês · total '+cpR(tot)+'.</div>'; }
   else p3+='<div class="sm" style="margin-top:4mm">Importe também o "Despesas e Receitas" para ver fornecedores e maiores lançamentos.</div>';
-  if(!FE.top && String(FE.obs||"").trim()) p3+='<div class="g">Observações do consultor</div><div class="tx">'+esc(FE.obs.trim())+'</div>';
   P.push(p3+rod());
   /* junta lançamentos do mesmo fornecedor numa linha só: datas, produtos (com "2×" se repetir) e soma */
   function feJuntaForn(L,sub){ var por={}, ordem=[];

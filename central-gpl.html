@@ -388,12 +388,12 @@ function telaRotina(){
       var et=E.nome, r=rotItem(f.nome,MES,et), ok=r&&r.feito, atr=etapaAtrasada(E,MES,ok);
       if(E.sec!==secAtual){ secAtual=E.sec; x+='<div style="font-size:11px;font-weight:800;color:var(--v1);letter-spacing:1px;margin:10px 0 0;text-transform:uppercase">'+(E.sec==="tri"?'Trimestre':'Todo mês')+'</div>'; }
       var icoTxt=ok?ICO.check:(E.dia?'<b style="font-size:13px">'+E.dia+'</b>':ICO.circulo);
-      var sub=ok&&r.data?'feito '+r.data.split("-").reverse().slice(0,2).join("/"):((E.dia?'até dia '+String(E.dia).padStart(2,"0"):'')+(E.dia&&E.dica?' · ':'')+E.dica+(atr?' · <b style="color:var(--danger)">atrasado</b>':''));
+      var sub=ok&&r.data?(r.obs&&/^PDF gerado/.test(r.obs)?esc(r.obs):'feito '+r.data.split("-").reverse().slice(0,2).join("/")):((E.dia?'até dia '+String(E.dia).padStart(2,"0"):'')+(E.dia&&E.dica?' · ':'')+E.dica+(atr?' · <b style="color:var(--danger)">atrasado</b>':''));
       if(!ok && /fechamento/i.test(et)){ var fp=fechPendente(f,MES); if(fp.length) sub='<b style="color:var(--warn)">aguardando: '+fp.join(" · ")+'</b> · Inttegra alimentada e validada antes de fechar'; else sub='Inttegra validada · toque para importar o DRE'; }
       x+='<div class="item"><div class="ico '+(ok?'ok':(atr?'err':''))+'" style="cursor:pointer" onclick="toggleRotina('+fi+','+ei+')">'+icoTxt+'</div>'
         +'<div style="flex:1;min-width:0">'+(acaoEtapa(et)?'<div class="it1'+(ok?' feito':'')+'" style="font-size:14px;cursor:pointer;color:var(--v1);text-decoration:underline;text-underline-offset:3px" onclick="abrirEtapa('+fi+','+ei+')">'+esc(et)+'</div>':'<div class="it1'+(ok?' feito':'')+'" style="font-size:14px">'+esc(et)+'</div>')
         +(sub?'<div class="it2">'+sub+'</div>':'')+'</div>'
-        +'<div class="acts">'+(ok?'<button class="b g" onclick="toggleRotina('+fi+','+ei+')">Desfazer</button>':'<button class="b" onclick="toggleRotina('+fi+','+ei+')">Feito</button><button class="b g" onclick="agendarEtapa('+fi+','+ei+')">Agendar</button>')+'</div></div>';
+        +'<div class="acts">'+(/fechamento/i.test(et)?'<button class="b p" onclick="abrirEtapa('+fi+','+ei+')">'+(ok?'Abrir':'Importar')+'</button>':'')+(ok?'<button class="b g" onclick="toggleRotina('+fi+','+ei+')">Desfazer</button>':'<button class="b" onclick="toggleRotina('+fi+','+ei+')">Feito</button>'+(/fechamento/i.test(et)?'':'<button class="b g" onclick="agendarEtapa('+fi+','+ei+')">Agendar</button>'))+'</div></div>';
     });
     if(!(f.mesesTri||[]).length) x+='<div class="mini" style="padding:8px 0 0">Trimestre: escolha os meses desta fazenda em Ajustes.</div>';
     x+='<div class="mini" style="padding:8px 0 4px">Plano de ação: '+abertosPl.length+' em aberto'+(atrasPl.length?' · <b style="color:var(--danger)">'+atrasPl.length+' atrasada(s)</b>':'')+'</div></div>';
@@ -614,8 +614,8 @@ async function garantirLembretesCP(){
   if(!novos.length) return;
   try{ await centralPost("agenda_salvar",{itens:novos}); D.agenda=D.agenda.concat(novos); render(); }catch(e){}
 }
-async function cpEnviado(faz,v){
-  var mes=MES, a=cpAgenda(faz,mes);
+async function cpEnviado(faz,v,mesX){
+  var mes=mesX||MES, a=cpAgenda(faz,mes);
   if(!a){ a={ id:idCP(faz,mes), data:mes+"-01", hora:"", titulo:"Enviar contas a pagar ao dono", fazenda:faz, tipo:"compromisso", origem:"auto-cp", feito:false }; D.agenda.push(a); }
   var ant=a.feito, antObs=a.obs, n=new Date();
   a.feito=v; a.obs=v?("enviado em "+String(n.getDate()).padStart(2,"0")+"/"+String(n.getMonth()+1).padStart(2,"0")+"/"+n.getFullYear()+" às "+String(n.getHours()).padStart(2,"0")+":"+String(n.getMinutes()).padStart(2,"0")):"";
@@ -693,6 +693,7 @@ function cpSalvar(){
   try{ f.contentDocument.title=nome; }catch(e){} document.title=nome;
   var volta=function(){ document.title=velho; window.removeEventListener("afterprint",volta); }; window.addEventListener("afterprint",volta); setTimeout(volta,60000);
   f.contentWindow.focus(); f.contentWindow.print();
+  var a=cpAgenda(CP.faz,CP.dados.mes); if(!(a&&a.feito)) cpEnviado(CP.faz,true,CP.dados.mes);   // gerou o PDF = fica registrado (dá pra desfazer na Rotina)
 }
 function cpR(n){ if(Math.abs(n)<0.005) n=0; return "R$ "+fmt(n,2); }
 function cpHTML(){
@@ -833,6 +834,16 @@ function feSalvar(){
   try{ f.contentDocument.title=nome; }catch(e){} document.title=nome;
   var volta=function(){ document.title=velho; window.removeEventListener("afterprint",volta); }; window.addEventListener("afterprint",volta); setTimeout(volta,60000);
   f.contentWindow.focus(); f.contentWindow.print();
+  feMarcarFeito();
+}
+/* gerou o PDF do fechamento = etapa "Fechamento" marcada como feita no mês do relatório */
+async function feMarcarFeito(){
+  var f=cfg().fazendas[FE.fi], E=etapasDe(f,FE.mes).filter(function(e){ return /fechamento/i.test(e.nome); })[0]; if(!E) return;
+  var r=rotItem(FE.faz,FE.mes,E.nome); if(r&&r.feito) return;
+  var novo=r?Object.assign({},r):{ id:idRot(FE.faz,FE.mes,E.nome), fazenda:FE.faz, mes:FE.mes, etapa:E.nome, obs:"" };
+  var n=new Date(); novo.feito=true; novo.data=hoje(); novo.obs="PDF gerado em "+String(n.getDate()).padStart(2,"0")+"/"+String(n.getMonth()+1).padStart(2,"0")+" às "+String(n.getHours()).padStart(2,"0")+":"+String(n.getMinutes()).padStart(2,"0");
+  D.rotina=D.rotina.filter(function(x){ return x.id!==novo.id; }).concat([novo]); render();
+  try{ await centralPost("tabela_salvar",{tabela:"Rotina",itens:[novo]}); }catch(e){ alert("O PDF foi gerado, mas não salvou na Rotina: "+e.message); }
 }
 /* "Para onde foi o dinheiro": em palavras simples, 4 maiores em destaque, compra de gado só no mês que tem */
 var FE_NOMES={"3.2":"Obras e estrutura","3.3":"Formação de pasto","3.5":"Máquinas e veículos (compra)","4.1":"Salário e encargos","5.3":"Pasto","5.4.1":"Comissão e despesas de venda","5.4.4":"Suplemento do gado","5.4.6":"Remédios e vacinas","6.1":"Administração","6.2":"Manutenção da estrutura","6.3":"Outros animais","6.4":"Máquinas (combustível e manutenção)","6.5":"Taxas e impostos","6.6":"Outras despesas"};

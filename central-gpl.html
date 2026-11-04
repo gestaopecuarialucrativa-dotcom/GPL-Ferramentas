@@ -46,10 +46,28 @@ input,select{font:inherit;font-size:16px;width:100%;padding:10px 12px;border:1px
 .feito{text-decoration:line-through;color:#9aa59a}
 .erro{background:#fdecea;color:var(--danger);border-radius:10px;padding:10px 12px;font-size:13px;font-weight:700;margin-bottom:10px}
 .dia{font-size:13px;font-weight:800;color:var(--v1);margin:12px 2px 4px}
+/* notebook: abas no topo, Rotina larga com coluna ao lado, cartões que recolhem */
+.abasTop{display:none;gap:4px;margin-left:14px}.abasTop span{padding:8px 14px;border-radius:9px;font-size:14px;color:#d6e8d6;cursor:pointer}.abasTop span:hover{background:rgba(255,255,255,.08)}.abasTop span.on{background:rgba(255,255,255,.16);color:#fff;font-weight:700}
+.rot-g{display:block}.rot-lat{margin-top:14px}
+.rcab{display:flex;align-items:center;gap:12px;padding:12px 0 8px;cursor:pointer;user-select:none}.rcab b{font-size:16px}.rcab .pr{flex:1;height:7px;background:#eef2ed;border-radius:4px;min-width:60px}.rcab .pr i{display:block;height:7px;background:var(--v3);border-radius:4px}
+.seta{width:26px;height:26px;border-radius:8px;display:grid;place-items:center;color:var(--muted);background:#f1f4ef;font-size:12px;flex:none;transition:transform .2s}.fech .seta{transform:rotate(-90deg)}
+.rres{font-size:13px;color:var(--muted);padding:0 0 12px}.rres b{color:var(--warn)}
+.lcard{background:#fff;border:1px solid var(--line);border-radius:14px;padding:4px 16px;margin-bottom:12px}
+.lcard h4{margin:0;padding:12px 0;font-size:12px;letter-spacing:1px;text-transform:uppercase;color:var(--v1);display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none}
+.lcard .lc{padding-bottom:8px}.lcard.fech .lc{display:none}
+.pz{display:flex;gap:12px;align-items:center;padding:8px 0;border-bottom:1px solid #f0f3ef}.pz:last-child{border:0}.pz .d{width:46px;flex:none;text-align:center;border-radius:9px;background:#f3f6f2;padding:5px 0;font-size:11px;color:var(--muted)}.pz .d b{display:block;font-size:17px;color:var(--ink)}
+.pz .x{font-size:13.5px;font-weight:700;min-width:0}.pz .x small{display:block;font-weight:400;color:var(--muted);font-size:12px;margin-top:1px}.pz.urg .d{background:#fff2dc}.pz.urg .d b{color:#8a5a00}.pz.atr .d{background:#fdecea}.pz.atr .d b{color:var(--danger)}
+.ev{display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-bottom:1px solid #f0f3ef;font-size:13px}.ev:last-child{border:0}.ev small{color:var(--muted);white-space:nowrap}
+@media(min-width:1000px){
+  .abasTop{display:flex}.wrap .abas{display:none}
+  .wrap.larga{max-width:1240px;padding:22px 24px 40px}
+  .rot-g{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:22px;align-items:start}.rot-lat{margin-top:52px;position:sticky;top:80px}
+  .larga .card{padding:4px 20px}.larga .it1{font-size:15px}
+}
 </style>
 </head>
 <body>
-<div class="top"><img src="icone-caixa-gpl.png" alt=""><div><div class="t1">Central GPL</div><div class="t2" id="topSub"></div></div><div class="sp"></div>
+<div class="top"><img src="icone-caixa-gpl.png" alt=""><div><div class="t1">Central GPL</div><div class="t2" id="topSub"></div></div><div class="abasTop" id="topAbas"></div><div class="sp"></div>
   <button id="btAtualizar" onclick="carregarTudo(true)" style="display:none">Atualizar</button></div>
 <div class="wrap" id="app"></div>
 
@@ -149,7 +167,7 @@ async function centralPost(action,data){
 /* =====================================================================
    DADOS: agenda (Central) + cada fazenda (pesagem e app)
    ===================================================================== */
-var D={ agenda:[], rotina:[], plano:[], faz:{}, erros:[], quando:"" };
+var D={ agenda:[], rotina:[], plano:[], envios:[], faz:{}, erros:[], quando:"" };
 async function carregarTudo(forcar){
   var c=cfg(); D.erros=[];
   $("topSub").textContent="atualizando…";
@@ -157,6 +175,7 @@ async function carregarTudo(forcar){
     .catch(function(e){ D.erros.push("Agenda: "+e.message); }) ];
   tarefas.push(central("tabela_ler","&tabela=Rotina").then(function(r){ if(!r||!r.ok) throw new Error(r&&r.msg||"rotina"); D.rotina=r.itens||[]; }).catch(function(e){ D.erros.push("Rotina: "+e.message); }));
   tarefas.push(central("tabela_ler","&tabela=Plano").then(function(r){ if(!r||!r.ok) throw new Error(r&&r.msg||"plano"); D.plano=r.itens||[]; }).catch(function(e){ D.erros.push("Plano de ação: "+e.message); }));
+  tarefas.push(central("tabela_ler","&tabela=Envios").then(function(r){ D.envios=(r&&r.ok&&r.itens)||[]; }).catch(function(){}));   // sem v1.3 só fica vazio
   await Promise.all(tarefas);
   D.quando=new Date().toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"});
   L.cache={agenda:D.agenda,rotina:D.rotina,plano:D.plano,quando:D.quando,dia:hoje()}; salvarL();
@@ -252,10 +271,13 @@ function alertas(){
 var ABA="rotina";
 function render(){
   var app=$("app");
-  if(!L.url||!L.senha){ app.innerHTML=telaEntrar(); $("btAtualizar").style.display="none"; return; }
+  if(!L.url||!L.senha){ app.innerHTML=telaEntrar(); $("btAtualizar").style.display="none"; $("topAbas").innerHTML=""; return; }
   $("btAtualizar").style.display="";
   var h='<div class="abas">'+[["rotina","Rotina"],["plano","Plano"],["agenda","Agenda"],["sistemas","Sistemas"],["ajustes","Ajustes"]].map(function(a){
     return '<div class="aba'+(ABA===a[0]?' on':'')+'" onclick="ABA=\''+a[0]+'\';render()">'+a[1]+'</div>'; }).join("")+'</div>';
+  var abasT=[["rotina","Rotina"],["plano","Plano"],["agenda","Agenda"],["sistemas","Sistemas"],["ajustes","Ajustes"]];
+  $("topAbas").innerHTML=abasT.map(function(a){ return '<span class="'+(ABA===a[0]?'on':'')+'" onclick="ABA=\''+a[0]+'\';render()">'+a[1]+'</span>'; }).join("");
+  app.className="wrap"+(ABA==="rotina"?" larga":"");
   if(D.erros.length) h+='<div class="erro">'+D.erros.map(esc).join("<br>")+'</div>';
   if(ABA==="campo"){ app.innerHTML=telaCampo(); return; }
   if(ABA==="rotina") h+=telaRotina(); else if(ABA==="plano") h+=telaPlano(); else if(ABA==="agenda") h+=telaAgenda();
@@ -372,6 +394,40 @@ function fechPendente(f,mes){ var EE=etapasDe(f,mes), falta=[];
 function etapaAtrasada(e,mes,ok){ if(ok) return false; var h=hoje(), hm=h.slice(0,7); if(mes<hm) return true; if(mes>hm) return false; return !!e.dia && +h.slice(8)>e.dia; }
 var MES_AB=["jan","fev","mar","abr","mai","jun","jul","ago","set","out","nov","dez"];
 function rotItem(f,m,et){ return D.rotina.filter(function(r){ return r.id===idRot(f,m,et); })[0]; }
+var RECOLHE={}; try{ RECOLHE=JSON.parse(localStorage.getItem("gpl_central_recolhe")||"{}")||{}; }catch(e){}
+function recolher(k){ RECOLHE[k]=!RECOLHE[k]; try{ localStorage.setItem("gpl_central_recolhe",JSON.stringify(RECOLHE)); }catch(e){} render(); }
+function diasAte(iso){ var a=hoje().split("-"), b=iso.split("-"); return Math.round((new Date(+b[0],+b[1]-1,+b[2])-new Date(+a[0],+a[1]-1,+a[2]))/864e5); }
+function faltaTxt(n){ return n<0?(-n===1?'atrasado 1 dia':'atrasado '+(-n)+' dias'):(n===0?'vence hoje':(n===1?'falta 1 dia':'faltam '+n+' dias')); }
+/* coluna ao lado da Rotina: próximos prazos, o que foi enviado ao dono e o plano de ação */
+function rotinaLateral(){
+  var c=cfg(), pz=[], h=hoje();
+  c.fazendas.forEach(function(f){
+    etapasDe(f,MES).forEach(function(E){ var r=rotItem(f.nome,MES,E.nome); if(r&&r.feito) return;
+      var dt=E.dia?MES+"-"+String(Math.min(E.dia,28)).padStart(2,"0"):"";
+      pz.push({ data:dt, t:etapaTitulo(E.nome,MES), f:f.nome }); });
+    var prox=mesMais(MES,1); if(MES>=h.slice(0,7)) pz.push({ data:prox+"-01", t:"Contas a pagar de "+MESES[+prox.split("-")[1]-1], f:f.nome });
+  });
+  D.agenda.forEach(function(a){ if(a.feito || !a.data || a.data<h || /^cp\|/.test(a.id) || a.tipo==="auto") return; if(diasAte(a.data)>30) return; pz.push({ data:a.data, t:a.titulo, f:a.fazenda||"", hora:a.hora }); });
+  pz.sort(function(a,b){ return (a.data||"9999").localeCompare(b.data||"9999"); });
+  var varias=c.fazendas.length>1;
+  var hp=pz.slice(0,7).map(function(x){ var n=x.data?diasAte(x.data):null, cls=n===null?'':(n<0?'atr':(n<=5?'urg':''));
+      return '<div class="pz '+cls+'"><div class="d">'+(x.data?'<b>'+x.data.slice(8)+'</b>'+MES_AB[+x.data.slice(5,7)-1]:'<b>—</b>sem data')+'</div><div class="x">'+esc(x.t)+'<small>'+(varias&&x.f?esc(x.f)+' · ':'')+(n===null?'clique em Agendar na rotina':faltaTxt(n))+(x.hora?' · '+esc(x.hora):'')+'</small></div></div>'; }).join("")||'<div class="vazio">Nada pendente.</div>';
+  var ev=(D.envios||[]).slice();
+  D.agenda.forEach(function(a){ if(/^cp\|/.test(a.id) && a.feito && /^enviado em/.test(a.obs||"") && !ev.some(function(e){ return e.relatorio==="Contas a pagar" && e.fazenda===a.fazenda && e.mes===a.id.split("|")[2]; })) ev.push({ fazenda:a.fazenda, mes:a.id.split("|")[2], relatorio:"Contas a pagar", enviado:a.obs.replace(/^enviado em /,"") }); });
+  var dtEv=function(e){ var m=String(e.enviado||"").match(/(\d{2})\/(\d{2})\/(\d{4})(?: às (\d{2}):(\d{2}))?/); return m?m[3]+m[2]+m[1]+(m[4]||"00")+(m[5]||"00"):""; };
+  ev.sort(function(a,b){ return dtEv(b).localeCompare(dtEv(a)); });
+  var he=ev.slice(0,6).map(function(e){ var m=String(e.enviado||"").match(/(\d{2}\/\d{2})\/\d{4}(?: às (\d{2}:\d{2}))?/);
+      return '<div class="ev"><span>'+esc(e.relatorio)+' de '+(e.mes?MESES[+e.mes.split("-")[1]-1]:"")+(varias?' · '+esc(e.fazenda):'')+'</span><small>'+(m?m[1]+(m[2]?' '+m[2]:''):'')+'</small></div>'; }).join("")||'<div class="vazio">Nenhum relatório enviado ainda.</div>';
+  var ab=D.plano.filter(function(p){ return p.situacao!=="feito"; }), at=ab.filter(function(p){ return p.prazo && p.prazo<h; });
+  var bloco=function(k,tit,corpo){ return '<div class="lcard'+(RECOLHE[k]?' fech':'')+'"><h4 onclick="recolher(\''+k+'\')">'+tit+'<span class="seta">▾</span></h4><div class="lc">'+corpo+'</div></div>'; };
+  return bloco("lat_pz","Próximos prazos",hp)+bloco("lat_ev","Enviado ao dono",he)
+    +bloco("lat_pl","Plano de ação",'<div style="font-size:13.5px;color:var(--muted);padding:2px 0 8px;cursor:pointer" onclick="ABA=\'plano\';render()">'+ab.length+' em aberto'+(at.length?' · <b style="color:var(--danger)">'+at.length+' atrasada(s)</b>':' · nenhuma atrasada')+' ›</div>');
+}
+/* nome da etapa com o mês a que ela se refere (rotina de novembro trata dos dados de outubro) */
+function etapaTitulo(nome,mes){ var mref=MESES[+mesMais(mes,-1).split("-")[1]-1];
+  if(/fechamento/i.test(nome)) return "Fechamento de "+mref;
+  if(/cliente lan/i.test(nome)) return nome.replace(/\bo m[eê]s\b/i,mref).replace(/^(cliente lançou)(?! )/i,"$1");
+  return nome; }
 function telaRotina(){
   var c=cfg();
   var x='<div style="display:flex;align-items:center;justify-content:space-between;margin:2px 2px 10px"><button class="b g" onclick="MES=mesMais(MES,-1);render()">‹</button>'
@@ -380,24 +436,28 @@ function telaRotina(){
     var EE=etapasDe(f,MES), ets=EE.map(function(e){ return e.nome; });
     var feitos=ets.filter(function(et){ var r=rotItem(f.nome,MES,et); return r&&r.feito; }).length, pct=ets.length?Math.round(feitos/ets.length*100):0;
     var abertosPl=D.plano.filter(function(p){ return p.fazenda===f.nome && p.situacao!=="feito"; }), atrasPl=abertosPl.filter(function(p){ return p.prazo && p.prazo<hoje(); });
-    x+='<div class="card" style="padding:12px 14px"><div style="display:flex;justify-content:space-between;align-items:baseline"><b style="font-size:16px">'+esc(f.nome)+'</b><span class="mini">'+feitos+' de '+ets.length+'</span></div>'
-      +'<div style="height:7px;background:#eef2ed;border-radius:4px;margin:8px 0 6px"><div style="width:'+pct+'%;height:7px;background:var(--v3);border-radius:4px"></div></div>'
-      +cpLinha(f,fi);
+    var kf="faz_"+f.nome, fechada=!!RECOLHE[kf];
+    x+='<div class="card'+(fechada?' fech':'')+'"><div class="rcab" onclick="recolher(\''+esc(kf).replace(/'/g,"\\'")+'\')"><b>'+esc(f.nome)+'</b><div class="pr"><i style="width:'+pct+'%"></i></div><span class="mini">'+feitos+' de '+ets.length+'</span><span class="seta">▾</span></div>';
+    if(fechada){ var prox=EE.filter(function(E){ var r=rotItem(f.nome,MES,E.nome); return !(r&&r.feito); })[0];
+      x+='<div class="rres">'+(prox?'Próxima: '+esc(etapaTitulo(prox.nome,MES))+(prox.dia?' · <b>até '+String(prox.dia).padStart(2,"0")+'/'+MES.slice(5)+'</b>':''):'Tudo feito no mês ✓')+'</div></div>'; return; }
+    x+=cpLinha(f,fi);
     var secAtual="";
     EE.forEach(function(E,ei){
       var et=E.nome, r=rotItem(f.nome,MES,et), ok=r&&r.feito, atr=etapaAtrasada(E,MES,ok);
       if(E.sec!==secAtual){ secAtual=E.sec; x+='<div style="font-size:11px;font-weight:800;color:var(--v1);letter-spacing:1px;margin:10px 0 0;text-transform:uppercase">'+(E.sec==="tri"?'Trimestre':'Todo mês')+'</div>'; }
       var icoTxt=ok?ICO.check:(E.dia?'<b style="font-size:13px">'+E.dia+'</b>':ICO.circulo);
-      var sub=ok&&r.data?(r.obs&&/^PDF gerado/.test(r.obs)?esc(r.obs):'feito '+r.data.split("-").reverse().slice(0,2).join("/")):((E.dia?'até dia '+String(E.dia).padStart(2,"0"):'')+(E.dia&&E.dica?' · ':'')+E.dica+(atr?' · <b style="color:var(--danger)">atrasado</b>':''));
+      var mAtual=MES===hoje().slice(0,7), nD=E.dia&&mAtual?diasAte(MES+"-"+String(Math.min(E.dia,28)).padStart(2,"0")):null;
+      var sub=ok&&r.data?(r.obs&&/^PDF gerado/.test(r.obs)?esc(r.obs):'feito '+r.data.split("-").reverse().slice(0,2).join("/")):(nD!==null?'<b style="color:'+(nD<0?'var(--danger)':'var(--warn)')+'">'+faltaTxt(nD)+'</b>'+(E.dica?' · '+E.dica:''):((E.dia?'até dia '+String(E.dia).padStart(2,"0"):'')+(E.dia&&E.dica?' · ':'')+E.dica+(atr?' · <b style="color:var(--danger)">atrasado</b>':'')));
       if(!ok && /fechamento/i.test(et)){ var fp=fechPendente(f,MES), mref=MESES[+mesMais(MES,-1).split("-")[1]-1]; if(fp.length) sub='<b style="color:var(--warn)">aguardando: '+fp.join(" · ")+'</b> · fecha '+mref; else sub='Inttegra validada · fecha '+mref; }
       x+='<div class="item"><div class="ico '+(ok?'ok':(atr?'err':''))+'" style="cursor:pointer" onclick="toggleRotina('+fi+','+ei+')">'+icoTxt+'</div>'
-        +'<div style="flex:1;min-width:0">'+(acaoEtapa(et)?'<div class="it1'+(ok?' feito':'')+'" style="font-size:14px;cursor:pointer;color:var(--v1);text-decoration:underline;text-underline-offset:3px" onclick="abrirEtapa('+fi+','+ei+')">'+esc(et)+'</div>':'<div class="it1'+(ok?' feito':'')+'" style="font-size:14px">'+esc(et)+'</div>')
+        +'<div style="flex:1;min-width:0">'+(acaoEtapa(et)?'<div class="it1'+(ok?' feito':'')+'" style="font-size:14px;cursor:pointer;color:var(--v1);text-decoration:underline;text-underline-offset:3px" onclick="abrirEtapa('+fi+','+ei+')">'+esc(etapaTitulo(et,MES))+'</div>':'<div class="it1'+(ok?' feito':'')+'" style="font-size:14px">'+esc(etapaTitulo(et,MES))+'</div>')
         +(sub?'<div class="it2">'+sub+'</div>':'')+'</div>'
         +'<div class="acts">'+(/fechamento/i.test(et)?'<button class="b p" onclick="abrirEtapa('+fi+','+ei+')">'+(ok?'Abrir':'Importar')+'</button>':'')+(ok?'<button class="b g" onclick="toggleRotina('+fi+','+ei+')">Desfazer</button>':'<button class="b" onclick="toggleRotina('+fi+','+ei+')">Feito</button>'+(/fechamento/i.test(et)?'':'<button class="b g" onclick="agendarEtapa('+fi+','+ei+')">Agendar</button>'))+'</div></div>';
     });
     if(!(f.mesesTri||[]).length) x+='<div class="mini" style="padding:8px 0 0">Trimestre: escolha os meses desta fazenda em Ajustes.</div>';
     x+='<div class="mini" style="padding:8px 0 4px">Plano de ação: '+abertosPl.length+' em aberto'+(atrasPl.length?' · <b style="color:var(--danger)">'+atrasPl.length+' atrasada(s)</b>':'')+'</div></div>';
   });
+  x='<div class="rot-g"><div>'+x+'</div><div class="rot-lat">'+rotinaLateral()+'</div></div>';
   return x+'<p class="mini" style="text-align:center">As etapas você muda em Ajustes, do jeito do seu método.</p>';
 }
 async function toggleRotina(fi,ei){
@@ -624,7 +684,8 @@ async function bancoLer(tipo,faz,mes){
 }
 /* cada PDF gerado vira uma linha na aba "Envios" (histórico com data e hora) */
 async function envioRegistrar(faz,mes,rel,arquivo){
-  try{ await centralPost("tabela_salvar",{tabela:"Envios",itens:[{ id:"env|"+Date.now(), fazenda:faz, mes:mes, relatorio:rel, enviado:dhAgora(), arquivo:arquivo+".pdf" }]}); }
+  var ev={ id:"env|"+Date.now(), fazenda:faz, mes:mes, relatorio:rel, enviado:dhAgora(), arquivo:arquivo+".pdf" }; D.envios.push(ev);
+  try{ await centralPost("tabela_salvar",{tabela:"Envios",itens:[ev]}); }
   catch(e){ alert("O PDF foi gerado, mas o envio não ficou registrado na planilha: "+e.message+(/desconhecida/i.test(e.message)?" — falta atualizar o backend da Central para a v1.3.":"")); }
 }
 function bancoMsg(id,txt,ok){ var m=$(id); if(m){ m.textContent=txt; m.style.color=ok?"#1B5E20":(ok===false?"#b3261e":"#5b6b5e"); } }
@@ -651,7 +712,7 @@ function cpLinha(f,fi){
   var a=cpAgenda(f.nome,MES), ok=a&&a.feito, atras=!ok && MES<=hoje().slice(0,7) && (MES+"-01")<hoje();
   return '<div class="item" style="background:'+(ok?'transparent':(atras?'#fdf3f1':'#f6f9f5'))+';margin:2px -8px 6px;padding:10px 8px;border-radius:10px;border-bottom:0">'
     +'<div class="ico '+(ok?'ok':(atras?'err':'warn'))+'">'+(ok?ICO.check:ICO.agenda)+'</div>'
-    +'<div style="flex:1;min-width:0"><div class="it1'+(ok?' feito':'')+'" style="font-size:14px">Contas a pagar do mês</div><div class="it2">'+(ok?esc(/^enviado/.test(a.obs||"")?a.obs.replace(/^enviado/,"enviado ao dono"):"enviado ao dono"):'enviar até o dia 01'+(atras?' · <b style="color:var(--danger)">atrasado</b>':''))+'</div></div>'
+    +'<div style="flex:1;min-width:0"><div class="it1'+(ok?' feito':'')+'" style="font-size:14px">Contas a pagar de '+MESES[+MES.split("-")[1]-1]+'</div><div class="it2">'+(ok?esc(/^enviado/.test(a.obs||"")?a.obs.replace(/^enviado/,"enviado ao dono"):"enviado ao dono"):'enviar até o dia 01'+(atras?' · <b style="color:var(--danger)">atrasado</b>':''))+'</div></div>'
     +'<div class="acts">'+(ok?'<button class="b" onclick="cpAbrirSalvo('+fi+')">Abrir</button>':'')+'<button class="b p" onclick="cpEscolher('+fi+')">Importar</button>'+(ok?'<button class="b g" onclick="cpEnviado(cfg().fazendas['+fi+'].nome,false)">Desfazer</button>':'<button class="b" onclick="cpEnviado(cfg().fazendas['+fi+'].nome,true)">Enviado</button>')+'</div></div>';
 }
 function cpEscolher(fi){

@@ -751,11 +751,12 @@ var FE={ fi:0, faz:"", mes:"", dre:null, desp:null, obs:"" };
 var FE_CAMINHO=[
   ["DRE Financeiro (obrigatório)", ["Inttegra → Financeiro → Relatórios → DRE Financeiro","Modo: Ano Safra · Safra: a atual · Tipo de Data: Pagamento","Período de / até: o mês que vai fechar (ex.: Out/26 a Out/26)","Fazenda: a do cliente · Centro de Custo: todos","Gerar Relatório → Exportar → Excel"]],
   ["Despesas e Receitas (opcional — detalhe dos gastos)", ["Inttegra → Financeiro → Relatórios → Despesas e Receitas","Operação: Despesa · Tipo de Data: Pagamento","Período: dia 01 ao último dia do mês","Fazenda: a do cliente · Centro de Custo: todos","Gerar Relatório → Exportar → Excel"]],
+  ["Compras de gado (quando teve compra no mês)", ["Inttegra → Pecuária → Relatórios → Compras","Modo: Ano Safra · Safra: a atual · Período de / até: o mês que vai fechar","Gerar Relatório → Exportar → Excel (traz cabeças, peso e valor por cabeça)"]],
   ["Top Rentáveis (opcional — referência)", ["Inttegra → Painel Inicial","Safra: a atual · Período: início da safra até o fim do mês que vai fechar","Desça até o quadro \"Perfil de Desembolso Pecuário\"","Selecione com o mouse do título \"Centro de Custo\" até a linha \"Outros\" → Ctrl+C","Cole no campo \"Top Rentáveis\" aqui embaixo"]]];
 function feChave(){ return "gpl_fe_"+FE.faz+"_"+FE.mes; }
 function feAbrir(fi){
   var f=cfg().fazendas[fi]; FE={ fi:fi, faz:f.nome, mes:MES, dre:null, desp:null, obs:"" };
-  try{ var g=JSON.parse(localStorage.getItem(feChave())||"null"); if(g){ FE.dre=g.dre; FE.desp=g.desp; FE.obs=g.obs||""; FE.top=g.top||null; FE.cab=g.cab||""; } }catch(e){}
+  try{ var g=JSON.parse(localStorage.getItem(feChave())||"null"); if(g){ FE.dre=g.dre; FE.desp=g.desp; FE.obs=g.obs||""; FE.top=g.top||null; FE.cab=g.cab||""; FE.compras=g.compras||null; } }catch(e){}
   var ov=$("feOv");
   if(!ov){
     ov=document.createElement("div"); ov.id="feOv";
@@ -779,9 +780,10 @@ function fePainel(){
   h+='<details'+(FE.dre?'':' open')+' style="background:#fff;border:1px solid #dfe6de;border-radius:10px;padding:8px 12px;margin-bottom:8px"><summary style="font-weight:800;font-size:14px;cursor:pointer;color:#1B5E20">Caminho na Inttegra</summary>'
     +FE_CAMINHO.map(function(c){ return '<div style="font-size:13px;font-weight:800;margin:8px 0 3px">'+esc(c[0])+'</div><ol style="margin:0 0 0 18px;padding:0;font-size:13px;line-height:1.55">'+c[1].map(function(x){ return '<li>'+esc(x)+'</li>'; }).join("")+'</ol>'; }).join("")+'</details>';
   h+='<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center"><button class="b p" onclick="feEscolher()">Importar Excel da Inttegra</button><span class="mini">'
-    +(FE.dre?'DRE: '+esc(FE.dre.periodo||"")+' ✓':'falta o DRE')+(FE.desp?' · Despesas e Receitas ✓':' · Despesas e Receitas (opcional)')+'</span></div>';
+    +(FE.dre?'DRE: '+esc(FE.dre.periodo||"")+' ✓':'falta o DRE')+(FE.desp?' · Despesas e Receitas ✓':' · Despesas e Receitas (opcional)')+(FE.compras?' · Compras ✓':'')+'</span></div>';
   var compraMes=FE.dre?-(FE.dre.nos.filter(function(n){ return /^3\.1\s*-/.test(n.nome); }).reduce(function(s2,n){ return s2+n.mes; },0)):0;
-  if(compraMes>0) h+='<div style="display:flex;gap:8px;align-items:center;margin-top:8px;font-size:13px"><b>Compra de gado no mês: '+cpR(compraMes)+'</b> · cabeças compradas: <input id="feCab" type="number" min="0" value="'+esc(FE.cab||"")+'" placeholder="ex.: 80" style="width:100px;padding:6px 8px;font-size:15px"></div>';
+  if(compraMes>0 && FE.compras) h+='<div class="mini" style="margin-top:6px">Compras: '+FE.compras.rows.reduce(function(s2,c){ return s2+c.qtd; },0)+' cabeças (relatório de Compras da Inttegra) ✓</div>';
+  else if(compraMes>0) h+='<div style="display:flex;gap:8px;align-items:center;margin-top:8px;font-size:13px"><b>Compra de gado no mês: '+cpR(compraMes)+'</b> · cabeças compradas (ou importe o relatório de Compras): <input id="feCab" type="number" min="0" value="'+esc(FE.cab||"")+'" placeholder="ex.: 80" style="width:100px;padding:6px 8px;font-size:15px"></div>';
   h+='<textarea id="feTop" rows="2" placeholder="Top Rentáveis: cole aqui o quadro Perfil de Desembolso Pecuário do Painel Inicial (opcional)" style="width:100%;font:13px Arial;padding:8px;border:1.5px solid #c9d3c9;border-radius:8px;margin-top:8px"></textarea>'
     +'<div class="mini" id="feTopMsg">'+(FE.top?'Top Rentáveis: '+FE.top.rows.length+' centros de custo lidos'+(FE.top.periodo?' ('+esc(FE.top.periodo)+')':'')+' ✓':'')+'</div>';
   h+='<textarea id="feObs" rows="2" placeholder="Observações do consultor (aparecem no relatório)" style="width:100%;font:14px Arial;padding:8px;border:1.5px solid #c9d3c9;border-radius:8px;margin-top:8px">'+esc(FE.obs)+'</textarea></div>';
@@ -791,7 +793,7 @@ function fePainel(){
   var tm=null; $("feObs").addEventListener("input",function(){ FE.obs=this.value; feGuardar(); clearTimeout(tm); tm=setTimeout(feDesenhar,500); });
   $("feBtSalvar").style.display=FE.dre?"":"none";
 }
-function feGuardar(){ try{ localStorage.setItem(feChave(), JSON.stringify({dre:FE.dre,desp:FE.desp,obs:FE.obs,top:FE.top,cab:FE.cab||""})); }catch(e){} }
+function feGuardar(){ try{ localStorage.setItem(feChave(), JSON.stringify({dre:FE.dre,desp:FE.desp,obs:FE.obs,top:FE.top,cab:FE.cab||"",compras:FE.compras||null})); }catch(e){} }
 /* lê o quadro "Perfil de Desembolso Pecuário" copiado do Painel Inicial da Inttegra */
 function feLerTop(txt){ var t=String(txt||"").split(/\t|\r?\n/).map(function(x){ return x.trim(); }).filter(Boolean), rows=[], ehR=function(x){ return /^-?R\$\s*-?[\d.,]+$/.test(x); };
   for(var i=0;i<t.length-3;i++){ if(!ehR(t[i]) && ehR(t[i+1]) && ehR(t[i+2]) && ehR(t[i+3]) && !/centro de custo|total geral/i.test(t[i])){ rows.push({ nome:t[i], total:cpNum(t[i+1]), cab:cpNum(t[i+2]), top:cpNum(t[i+3]) }); i+=3; } }
@@ -820,7 +822,13 @@ async function feLer(files){
         var it=[]; rows.slice(hd+1).forEach(function(r){ if(/^total/i.test(String(r[0]))) return; var v=cpNum(r[iv]); if(!v) return;
           it.push({ pessoa:String(r[ci("pessoa")]||"").trim(), produto:String(r[ci("produto")]||"").trim(), pag:cpData(r[ci("pagamento")]), valor:v }); });
         FE.desp={ itens:it, periodo:periodo, arquivo:files[k].name };
-      } else avisos.push(files[k].name+" não é DRE nem Despesas e Receitas");
+      } else if(/relatorio compras/.test(tit)){
+        var hc=rows.findIndex(function(r){ return r.map(cpNorm).indexOf("qtd")>=0; }); if(hc<0) throw new Error(files[k].name+": não achei as colunas do relatório de Compras");
+        var HC=rows[hc].map(cpNorm), cc=function(n){ return HC.indexOf(n); };
+        var cr=[]; rows.slice(hc+1).forEach(function(r){ if(/^total/i.test(String(r[0]))) return; var q=cpNum(r[cc("qtd")]); if(!q) return;
+          cr.push({ data:cpData(r[cc("data")]), cat:String(r[cc("categoria")]||"").trim(), qtd:q, peso:parseFloat(String(r[cc("peso cab kg")]||"").replace(",","."))||0, vcab:cpNum(r[cc("valor cab")]), total:cpNum(r[cc("valor total")]), forn:String(r[cc("fornecedor")]||"").trim() }); });
+        FE.compras={ rows:cr, periodo:periodo, arquivo:files[k].name };
+      } else avisos.push(files[k].name+" não é DRE, Despesas e Receitas nem Compras");
     }
     if(FE.dre && FE.dre.ini) FE.mes=FE.dre.ini.slice(0,7);
     feGuardar(); fePainel(); feDesenhar();
@@ -847,7 +855,7 @@ async function feMarcarFeito(){
 }
 /* "Para onde foi o dinheiro": em palavras simples, 4 maiores em destaque, compra de gado só no mês que tem */
 var FE_NOMES={"3.2":"Obras e estrutura","3.3":"Formação de pasto","3.5":"Máquinas e veículos (compra)","4.1":"Salário e encargos","5.3":"Pasto","5.4.1":"Comissão e despesas de venda","5.4.4":"Suplemento do gado","5.4.6":"Remédios e vacinas","6.1":"Administração","6.2":"Manutenção da estrutura","6.3":"Outros animais","6.4":"Máquinas (combustível e manutenção)","6.5":"Taxas e impostos","6.6":"Outras despesas"};
-function feOndeFoi(nos){
+function feUnidades(nos){
   var cod=function(n){ return (n.nome.match(/^[\d.]+/)||[""])[0].replace(/\.$/,""); };
   var nomeBonito=function(t){ t=String(t).replace(/^[\d.]+\s*-\s*/,"").trim(); return /[a-zà-ú]/.test(t)?t:t.toLowerCase().replace(/(^|\s)(\S)/g,function(m,a,b){ return a+b.toUpperCase(); }); };
   var filhos=function(i){ var L=[], lv=nos[i].nivel; for(var j=i+1;j<nos.length && nos[j].nivel>lv;j++) L.push(j); return L; };
@@ -858,8 +866,16 @@ function feOndeFoi(nos){
     if(!usa || !(n.mes<0)) return;
     var fs=folhas(i).sort(function(a,b){ return a.mes-b.mes; }), vis={};
     fs=fs.filter(function(x){ var k=nomeBonito(x.nome).toLowerCase(); if(vis[k]) return false; vis[k]=1; return true; });
-    uni.push({ nome:FE_NOMES[c]||nomeBonito(n.nome), v:-n.mes, prod:fs.slice(0,3).map(function(x){ return nomeBonito(x.nome)+" R$ "+fmt(Math.round(-x.mes)); }).join(" · ") }); });
-  uni.sort(function(a,b){ return b.v-a.v; });
+    var sub={}; filhos(i).forEach(function(j){ if(nos[j+1] && nos[j+1].nivel>nos[j].nivel) return; for(var k=j;k>i;k--){ if(nos[k].nivel===2 && nos[k].nivel>n.nivel){ sub[cpNorm(nos[j].nome)]=nomeBonito(nos[k].nome); break; } } });
+    uni.push({ nome:FE_NOMES[c]||nomeBonito(n.nome), v:-n.mes, sub:sub, folhas:fs.map(function(x){ return cpNorm(x.nome); }), prod:fs.slice(0,3).map(function(x){ return nomeBonito(x.nome)+" R$ "+fmt(Math.round(-x.mes)); }).join(" · ") }); });
+  return uni.sort(function(a,b){ return b.v-a.v; });
+}
+function feOndeFoi(nos){
+  var cod=function(n){ return (n.nome.match(/^[\d.]+/)||[""])[0].replace(/\.$/,""); };
+  var nomeBonito=function(t){ t=String(t).replace(/^[\d.]+\s*-\s*/,"").trim(); return /[a-zà-ú]/.test(t)?t:t.toLowerCase().replace(/(^|\s)(\S)/g,function(m,a,b){ return a+b.toUpperCase(); }); };
+  var filhos=function(i){ var L=[], lv=nos[i].nivel; for(var j=i+1;j<nos.length && nos[j].nivel>lv;j++) L.push(j); return L; };
+  var folhas=function(i){ return filhos(i).filter(function(j){ return !(nos[j+1] && nos[j+1].nivel>nos[j].nivel); }).map(function(j){ return nos[j]; }).filter(function(n){ return n.mes<0; }); };
+  var uni=feUnidades(nos);
   var tot=uni.reduce(function(s2,u){ return s2+u.v; },0), top=uni.slice(0,4), resto=uni.slice(4), mesN=MESES[+FE.mes.split("-")[1]-1];
   var r0=function(v){ return "R$ "+fmt(Math.round(v)); };
   var h='<div class="g">Para onde foi o dinheiro</div>';
@@ -868,8 +884,11 @@ function feOndeFoi(nos){
   var ib=nos.findIndex(function(n){ return /^3\.1\s*-/.test(n.nome); }), compra=ib>=0?-nos[ib].mes:0;
   if(compra>0){ var forn=(FE.desp?FE.desp.itens:[]).filter(function(i2){ return /compra de gado/i.test(i2.produto); }), pf={};
     forn.forEach(function(i2){ pf[i2.pessoa]=(pf[i2.pessoa]||0)-i2.valor; });
-    var cabs=parseInt(FE.cab,10);
-    h+='<div class="gd"><div class="k">Compra de gado</div><div class="v">'+r0(compra)+(cabs>0?' <small>· '+cabs+' cabeças · '+r0(compra/cabs)+' por cabeça</small>':'')+'</div>'
+    var cabs=parseInt(FE.cab,10), det="";
+    if(FE.compras && FE.compras.rows.length){ var C=FE.compras.rows, q=C.reduce(function(s2,c){ return s2+c.qtd; },0), vt=C.reduce(function(s2,c){ return s2+c.total; },0), pk=C.reduce(function(s2,c){ return s2+c.qtd*c.peso; },0);
+      cabs=q; if(vt>0) compra=vt;
+      det=C.map(function(c){ return c.qtd+' '+esc(c.cat.toLowerCase())+(c.peso?' · '+fmt(c.peso)+' kg':'')+' · '+r0(c.vcab)+'/cab.'; }).join(' — ')+(pk&&q?' · peso médio '+fmt(pk/q)+' kg':''); }
+    h+='<div class="gd"><div class="k">Compra de gado</div><div class="v">'+r0(compra)+(cabs>0?' <small>· '+cabs+' cabeças · '+r0(compra/cabs)+' por cabeça</small>':'')+'</div>'+(det?'<div class="s">'+det+'</div>':'')
       +(Object.keys(pf).length?'<div class="s">'+Object.keys(pf).sort(function(a,b){ return pf[b]-pf[a]; }).map(function(k){ return esc(k)+' '+r0(pf[k]); }).join(' · ')+'</div>':'')+'</div>'; }
   if(!top.length) return h+'<div class="sm">Sem gastos de custeio no mês.</div>';
   h+='<div class="sub">Gastos do mês: <b>'+r0(tot)+'</b>.'+(uni.length>4?' Os quatro maiores somam '+fmt(top.reduce(function(s2,u){ return s2+u.v; },0)/tot*100)+'%.':'')+'</div>';
@@ -906,7 +925,7 @@ function feHTML(){
    +'.g{font-size:8.5pt;font-weight:800;color:#1f6b33;letter-spacing:1.5px;margin:6mm 13mm 2mm;text-transform:uppercase}.sm{font-size:8pt;color:#7a8a7e;padding:1.5mm 13mm 0;line-height:1.4}'
    +'.hb{padding:0 13mm}.hb>div{display:grid;grid-template-columns:52mm 1fr 30mm;gap:3mm;align-items:center;margin:1.6mm 0;font-size:9pt}.hb .t{height:3.6mm;background:#eef1ed;border-radius:2mm;overflow:hidden}.hb .t i{display:block;height:100%;background:#1f6b33}.hb .t i.lj{background:#c9820a}.hb b:last-child{text-align:right}'
    +'table{width:calc(100% - 26mm);margin:0 13mm;border-collapse:collapse;font-size:8.8pt}th{text-align:left;font-size:7.2pt;color:#6b7b6f;font-weight:700;padding:1.4mm 1mm;border-bottom:2px solid #1f6b33;text-transform:uppercase}td{padding:1.6mm 1mm;border-bottom:1px solid #eef1ed}.n{text-align:right;white-space:nowrap}'
-   +'.tag{font-size:7pt;font-weight:800;padding:.6mm 2mm;border-radius:3mm;white-space:nowrap}.wa{background:#FFF3E0;color:#E65100}.ok{background:#E8F5E9;color:#2E7D32}.ac{background:#eaf0f6;color:#3b5b7a}.fr{font-family:Georgia,serif;font-size:14pt;line-height:1.4;margin:0 13mm 4mm;color:#16261a}.gd{margin:0 13mm 4mm;border-left:1.2mm solid #123d1d;padding:1mm 0 1mm 4mm}.gd .k{font-size:8.5pt;color:#6b7b6f}.gd .v{font-size:15pt;font-weight:700;color:#123d1d}.gd .v small{font-size:9.5pt;font-weight:400;color:#4a5a4e}.gd .s{font-size:8.5pt;color:#4a5a4e}.sub{font-size:9pt;color:#4a5a4e;margin:0 13mm 3mm}.rr{margin:0 13mm 3.6mm}.rr .h{display:flex;justify-content:space-between;font-size:10.5pt}.rr .h span{font-weight:700}.rr .t{height:1.8mm;background:#eef1ed;margin:1mm 0 .8mm}.rr .t i{display:block;height:100%;background:#1f6b33}.rr .d{font-size:8pt;color:#6b7b6f}.rs{margin:2mm 13mm 0;font-size:8.6pt;color:#4a5a4e;line-height:1.6;border-top:1px solid #e3e8e2;padding-top:2mm}.nt{margin:0 13mm;background:#f3f6f9;color:#2b3d4f;border-radius:2.6mm;padding:3mm 4mm;font-size:9.2pt;line-height:1.5}'
+   +'.tag{font-size:7pt;font-weight:800;padding:.6mm 2mm;border-radius:3mm;white-space:nowrap}.wa{background:#FFF3E0;color:#E65100}.ok{background:#E8F5E9;color:#2E7D32}.ac{background:#eaf0f6;color:#3b5b7a}.fr{font-family:Georgia,serif;font-size:14pt;line-height:1.4;margin:0 13mm 4mm;color:#16261a}.gd{margin:0 13mm 4mm;border-left:1.2mm solid #123d1d;padding:1mm 0 1mm 4mm}.gd .k{font-size:8.5pt;color:#6b7b6f}.gd .v{font-size:15pt;font-weight:700;color:#123d1d}.gd .v small{font-size:9.5pt;font-weight:400;color:#4a5a4e}.gd .s{font-size:8.5pt;color:#4a5a4e}.sub{font-size:9pt;color:#4a5a4e;margin:0 13mm 3mm}.rr{margin:0 13mm 3.6mm}.rr .h{display:flex;justify-content:space-between;font-size:10.5pt}.rr .h span{font-weight:700}.rr .t{height:1.8mm;background:#eef1ed;margin:1mm 0 .8mm}.rr .t i{display:block;height:100%;background:#1f6b33}.rr .d{font-size:8pt;color:#6b7b6f}.rs{margin:2mm 13mm 0;font-size:8.6pt;color:#4a5a4e;line-height:1.6;border-top:1px solid #e3e8e2;padding-top:2mm}.ax td{padding:.5mm 1mm;font-size:7.7pt;line-height:1.22}.ax td:first-child{white-space:nowrap;width:17mm}.ax td:nth-child(2){width:38mm}.ax tr.gh td{background:#f3f6f2;font-weight:700;color:#123d1d;font-size:8.6pt;padding-top:1.3mm}.nt{margin:0 13mm;background:#f3f6f9;color:#2b3d4f;border-radius:2.6mm;padding:3mm 4mm;font-size:9.2pt;line-height:1.5}'
    +'.al{margin:0 13mm;background:#FFF3E0;color:#7a4a00;border-radius:2.6mm;padding:3mm 4mm;font-size:9.3pt;line-height:1.5}.tx{padding:0 13mm;font-size:10pt;line-height:1.5;white-space:pre-wrap}'
    +'.rod{position:absolute;bottom:6mm;left:13mm;right:13mm;display:flex;justify-content:space-between;font-size:7.5pt;color:#8a978d}';
   var ASS='Rogério · Consultor GPL', CONT='(63) 99108-2453 · @gestaopecuarialucrativa', P=[];
@@ -942,6 +961,31 @@ function feHTML(){
   else p3+='<div class="sm" style="margin-top:4mm">Importe também o "Despesas e Receitas" para ver fornecedores e maiores lançamentos.</div>';
   if(!FE.top && String(FE.obs||"").trim()) p3+='<div class="g">Observações do consultor</div><div class="tx">'+esc(FE.obs.trim())+'</div>';
   P.push(p3+rod());
+  /* junta lançamentos do mesmo fornecedor numa linha só: datas, produtos (com "2×" se repetir) e soma */
+  function feJuntaForn(L,sub){ var por={}, ordem=[];
+    L.forEach(function(i2){ var k=cpNorm(i2.pessoa||"—"); if(!por[k]){ por[k]={pessoa:i2.pessoa, valor:0, dias:[], prods:{}, po:[], subs:[]}; ordem.push(k); }
+      var g=por[k]; g.valor+=i2.valor; if(i2.pag){ var d=brd(i2.pag); if(g.dias.indexOf(d)<0) g.dias.push(d); }
+      var pn=i2.produto||""; if(!g.prods[pn]){ g.prods[pn]=0; g.po.push(pn); } g.prods[pn]++;
+      var sb=(sub[cpNorm(pn)]||"").toLowerCase(); if(sb && g.subs.indexOf(sb)<0) g.subs.push(sb); });
+    return ordem.map(function(k){ var g=por[k];
+      g.dias.sort(function(a,b){ return a.split("/").reverse().join("").localeCompare(b.split("/").reverse().join("")); });
+      var mesmos=g.dias.length>1 && g.dias.every(function(d){ return d.slice(3)===g.dias[0].slice(3); });
+      var datas=!g.dias.length?"—":g.dias.length>2?g.dias[0].slice(0,mesmos?2:5)+" a "+g.dias[g.dias.length-1]:mesmos?g.dias.map(function(d){ return d.slice(0,2); }).join(" e ")+"/"+g.dias[0].slice(3):g.dias.join(" e ");
+      return { pessoa:g.pessoa, valor:g.valor, datas:datas, sub:g.subs.join(", "),
+        produto:g.po.map(function(pn){ return pn+(g.prods[pn]>1?" ("+g.prods[pn]+"×)":""); }).join(" · ") }; })
+      .sort(function(a,b){ return a.valor-b.valor; }); }
+  /* anexo: cada grupo com os seus lançamentos — para quando o dono perguntar "o que é isso?" */
+  if(FE.desp){ var U=feUnidades(nos), usados={}, linhas=[];
+    U.forEach(function(u){ var L=FE.desp.itens.filter(function(i2,k2){ if(usados[k2]) return false; var ok=u.folhas.indexOf(cpNorm(i2.produto))>=0; if(ok) usados[k2]=1; return ok; }).sort(function(a,b){ return a.valor-b.valor; });
+      if(!L.length) return; linhas.push({h:u.nome, v:u.v}); feJuntaForn(L,u.sub).forEach(function(i2){ linhas.push(i2); }); });
+    var sobra=FE.desp.itens.filter(function(i2,k2){ return !usados[k2] && !/compra de gado/i.test(i2.produto); });
+    if(sobra.length){ linhas.push({h:"Outros lançamentos", v:sobra.reduce(function(s2,i2){ return s2-i2.valor; },0)}); feJuntaForn(sobra,{}).forEach(function(i2){ linhas.push(i2); }); }
+    var POR=34;
+    for(var a=0,tam;a<linhas.length;a+=tam){
+      tam=(linhas.length-a<=POR+5)?linhas.length-a:POR; /* não deixa sobrar 2–3 linhas sozinhas numa página */
+      var pedaco=linhas.slice(a,a+tam);
+      P.push(cab+'<div class="ey">Anexo · para consulta</div><div class="tt">Lançamentos de cada gasto'+(a?' (continuação)':'')+'</div><table class="ax"><tr><th>Pago em</th><th>Fornecedor</th><th>Produto / serviço</th><th class="n">Valor</th></tr>'
+        +pedaco.map(function(x){ return x.h?'<tr class="gh"><td colspan="3">'+esc(x.h)+'</td><td class="n">'+cpR(x.v)+'</td></tr>':'<tr><td>'+(x.datas||(x.pag?brd(x.pag):"—"))+'</td><td>'+esc(x.pessoa)+'</td><td>'+esc(x.produto)+(x.sub?' <span style="color:#8a978d">· '+esc(x.sub.toLowerCase())+'</span>':'')+'</td><td class="n">'+cpR(-x.valor)+'</td></tr>'; }).join("")+'</table>'+(a+tam>=linhas.length?'<div class="sm">Lançamentos pagos no mês, agrupados como na página "Para onde foi o dinheiro". O nome cinza é o grupo do plano de contas da Inttegra.</div>':'')+rod()); } }
   var n=P.length; P=P.map(function(pg,i){ return pg.replace("__PG__",(i+1)+"/"+n); });
   return '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>'+esc(feNomeArq())+'</title><style>'+CSS+'</style></head><body>'+P.join("")+'</body></html>';
 }

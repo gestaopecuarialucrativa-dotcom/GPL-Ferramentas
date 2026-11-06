@@ -1,7 +1,8 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-BR" translate="no">
 <head>
 <meta charset="UTF-8">
+<meta name="google" content="notranslate">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0">
 <title>GPL Viabilidade de Lote</title>
 <style>
@@ -138,6 +139,13 @@ body{font-family:Inter,system-ui,Arial,sans-serif;max-width:600px}
 .breakdown,.gmd-chart{border-radius:16px;box-shadow:0 2px 10px rgba(0,0,0,.05);border-left:4px solid #2E7D32}
 .adv-toggle{border-color:#1f6b33;border-radius:12px;background:#fff;color:#1f6b33;border-style:solid}
 .btn-wpp{background:#1f8f4a}
+.cst-leg{font-size:11.5px;color:var(--sub);line-height:1.45;margin-top:6px}
+.cst-btn{width:100%;margin-top:12px;padding:11px;border-radius:12px;border:1.5px solid #1f6b33;background:#fff;color:#1f6b33;font:700 13px Inter,Arial,sans-serif;cursor:pointer}
+.cst-sub{font-size:13px;font-weight:700;color:var(--tx);margin-top:14px;margin-bottom:6px}
+.cst-chips{display:flex;gap:6px;flex-wrap:wrap}.cst-chips button{background:#fff;border:1px solid var(--bge);border-radius:10px;padding:9px 11px;font:700 12.5px Inter,Arial,sans-serif;color:var(--tx);cursor:pointer}.cst-chips button.on{border:1.5px solid #1f6b33;background:#E8F5E9;color:#1f6b33}
+.cst-auto{background:#E8F5E9;color:#2E7D32;border-radius:10px;padding:8px 10px;font-size:12.5px;margin-top:8px}
+.cst-row{display:grid;grid-template-columns:1fr 130px;align-items:center;gap:10px;padding:5px 0;border-top:1px solid var(--bge);font-size:13px}
+.cst-tot{display:flex;justify-content:space-between;font-size:14px;font-weight:700;margin-top:12px;padding-top:10px;border-top:1px solid var(--bge)}
 </style>
 </head>
 <body>
@@ -175,7 +183,7 @@ body{font-family:Inter,system-ui,Arial,sans-serif;max-width:600px}
       <div class="fg">
         <label class="fl">Peso Médio Entrada (kg)</label>
         <div class="fi-wrap">
-          <input class="fi" type="text" inputmode="decimal" id="pesoEnt" placeholder="Ex: 240" oninput="calcLive()">
+          <input class="fi" type="text" inputmode="decimal" id="pesoEnt" placeholder="Ex: 240" oninput="calcLive();detLive()">
           <span class="fi-suffix">kg</span>
         </div>
       </div>
@@ -184,7 +192,7 @@ body{font-family:Inter,system-ui,Arial,sans-serif;max-width:600px}
       <div class="fg">
         <label class="fl">Peso Meta de Saída (kg)</label>
         <div class="fi-wrap">
-          <input class="fi" type="text" inputmode="decimal" id="pesoSai" placeholder="Ex: 420" oninput="calcLive()">
+          <input class="fi" type="text" inputmode="decimal" id="pesoSai" placeholder="Ex: 420" oninput="calcLive();detLive()">
           <span class="fi-suffix">kg</span>
         </div>
       </div>
@@ -222,43 +230,38 @@ body{font-family:Inter,system-ui,Arial,sans-serif;max-width:600px}
 
   <!-- CUSTOS -->
   <div class="section">
-    <div class="sec-title"><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="6" rx="8" ry="3"/><path d="M4 6v6c0 1.7 3.6 3 8 3s8-1.3 8-3V6M4 12v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6"/></svg></span> Custos Operacionais</div>
-    <div style="font-size:9.5px;color:var(--sub);background:#F1F8E9;border-left:3px solid var(--vc);border-radius:6px;padding:7px 10px;margin-bottom:12px;line-height:1.6">
-      Suplemento e pasto são <strong>por cabeça/dia</strong>. Sanidade e outros: informe o custo <strong>total por cabeça no período</strong>, e a ferramenta distribui pelos dias automaticamente.
+    <div class="sec-title"><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="6" rx="8" ry="3"/><path d="M4 6v6c0 1.7 3.6 3 8 3s8-1.3 8-3V6M4 12v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6"/></svg></span> Custo Operacional</div>
+    <div class="fg">
+      <label class="fl" for="custoMes">Custo por cabeça/mês (R$)</label>
+      <div class="fi-wrap">
+        <span class="fi-prefix">R$</span>
+        <input class="fi has-prefix" type="text" inputmode="decimal" id="custoMes" value="130,68" oninput="calcLive()">
+      </div>
+      <div class="cst-leg">Referência: custo médio das fazendas a pasto de recria-engorda até 500 ha (Inttegra, safra 25/26). Inclui suplemento, pasto, sanidade e mão de obra. Se souber o seu, troque.</div>
     </div>
-    <div class="g2" style="gap:10px;margin-bottom:10px;">
-      <div class="fg">
-        <label class="fl">Suplemento (R$/cab/dia)</label>
-        <div class="fi-wrap">
-          <span class="fi-prefix">R$</span>
-          <input class="fi has-prefix" type="text" inputmode="decimal" id="suplem" placeholder="Ex: 1,20" oninput="calcLive()">
-        </div>
+    <button type="button" class="cst-btn" id="detToggle" onclick="toggleDet()">+ Detalhar meus custos</button>
+    <div id="detBox" style="display:none">
+      <div class="cst-sub">Suplemento</div>
+      <div class="cst-chips" id="supChips">
+        <button type="button" data-pct="0.0005" onclick="setSup(this)">Sal adensado</button>
+        <button type="button" data-pct="0.001" class="on" onclick="setSup(this)">Proteinado</button>
+        <button type="button" data-pct="0.003" onclick="setSup(this)">Proteico-energético</button>
       </div>
-      <div class="fg">
-        <label class="fl">Pasto / Arrendamento (R$/cab/dia)</label>
-        <div class="fi-wrap">
-          <span class="fi-prefix">R$</span>
-          <input class="fi has-prefix" type="text" inputmode="decimal" id="pasto" placeholder="Ex: 0,80" oninput="calcLive()">
-        </div>
+      <div class="g2" style="gap:10px;margin-top:8px">
+        <div class="fg"><label class="fl" for="sacoPreco">Preço do saco (R$)</label><div class="fi-wrap"><span class="fi-prefix">R$</span><input class="fi has-prefix" type="text" inputmode="decimal" id="sacoPreco" placeholder="Ex: 90,00" oninput="detLive()"></div></div>
+        <div class="fg"><label class="fl" for="sacoKg">Peso do saco (kg)</label><div class="fi-wrap"><input class="fi" type="text" inputmode="decimal" id="sacoKg" value="30" oninput="detLive()"></div></div>
       </div>
-    </div>
-    <div class="g2" style="gap:10px;margin-bottom:10px;">
-      <div class="fg">
-        <label class="fl">Sanidade (R$/cab, total no período)</label>
-        <div class="fi-wrap">
-          <span class="fi-prefix">R$</span>
-          <input class="fi has-prefix" type="text" inputmode="decimal" id="sanidade" placeholder="Ex: 30,00" oninput="calcLive()">
-        </div>
-        <div style="font-size:9px;color:var(--sub);margin-top:4px">Vacinas + vermífugos + carrapaticida no lote inteiro ÷ cabeças</div>
-      </div>
-      <div class="fg">
-        <label class="fl">Outros (R$/cab/mês)</label>
-        <div class="fi-wrap">
-          <span class="fi-prefix">R$</span>
-          <input class="fi has-prefix" type="text" inputmode="decimal" id="outros" placeholder="Ex: 15,00" oninput="calcLive()">
-        </div>
-        <div style="font-size:9px;color:var(--sub);margin-top:4px">Mão de obra, combustível, energia, por mês por cabeça</div>
-      </div>
+      <div class="cst-auto" id="supAuto">Preencha os pesos do lote e o preço do saco.</div>
+      <div class="fg" style="margin-top:10px"><label class="fl" for="pastoMes">Pasto ou arrendamento (R$/cab/mês)</label><div class="fi-wrap"><span class="fi-prefix">R$</span><input class="fi has-prefix" type="text" inputmode="decimal" id="pastoMes" placeholder="Ex: 35,00" oninput="detLive()"></div></div>
+      <div class="cst-sub" style="margin-top:12px">Sanidade (R$ por cabeça)</div>
+      <div class="cst-row"><span>Clostridiose</span><div class="fi-wrap"><span class="fi-prefix">R$</span><input class="fi has-prefix san" type="text" inputmode="decimal" id="sanClos" placeholder="0,00" oninput="detLive()"></div></div>
+      <div class="cst-row"><span>Raiva</span><div class="fi-wrap"><span class="fi-prefix">R$</span><input class="fi has-prefix san" type="text" inputmode="decimal" id="sanRaiva" placeholder="0,00" oninput="detLive()"></div></div>
+      <div class="cst-row"><span>Vermífugo</span><div class="fi-wrap"><span class="fi-prefix">R$</span><input class="fi has-prefix san" type="text" inputmode="decimal" id="sanVerm" placeholder="0,00" oninput="detLive()"></div></div>
+      <div class="cst-row"><span>Carrapaticida</span><div class="fi-wrap"><span class="fi-prefix">R$</span><input class="fi has-prefix san" type="text" inputmode="decimal" id="sanCarr" placeholder="0,00" oninput="detLive()"></div></div>
+      <div class="fg" style="margin-top:10px"><label class="fl" for="outrosMes">Outros (R$/cab/mês)</label><div class="fi-wrap"><span class="fi-prefix">R$</span><input class="fi has-prefix" type="text" inputmode="decimal" id="outrosMes" placeholder="Mão de obra, combustível, energia" oninput="detLive()"></div></div>
+      <div class="cst-tot"><span>Seu custo por cabeça/mês</span><span id="detTotal">R$ 0</span></div>
+      <div class="cst-leg" id="detSan"></div>
+      <div class="cst-leg">Com o detalhe aberto, a conta usa os seus custos no lugar da referência. Preencha todos os itens que você tem.</div>
     </div>
   </div>
 
@@ -573,6 +576,42 @@ function setVenda(tv){
   }
 }
 
+
+window._det = false;
+function toggleDet(){
+  window._det = !window._det;
+  document.getElementById('detBox').style.display = window._det ? 'block' : 'none';
+  document.getElementById('detToggle').textContent = window._det ? '\u2212 Usar só o custo de referência' : '+ Detalhar meus custos';
+  detLive();
+}
+function setSup(b){
+  var bs=document.querySelectorAll('#supChips button');
+  for(var i=0;i<bs.length;i++){ bs[i].classList.remove('on'); }
+  b.classList.add('on'); detLive();
+}
+function supPct(){ var b=document.querySelector('#supChips button.on'); return b ? parseFloat(b.getAttribute('data-pct')) : 0; }
+function custosLote(pesoEnt, pesoSai){
+  if(!window._det){ return {suplem:0, pasto:0, sanid:0, outros:gv('custoMes'), detalhado:false}; }
+  var pesoMed = (pesoEnt + pesoSai) / 2;
+  var kg = gv('sacoKg'), preco = gv('sacoPreco');
+  var consumo = pesoMed * supPct();               // kg/cab/dia
+  var supDia = (kg > 0) ? consumo * (preco / kg) : 0;
+  var san = gv('sanClos') + gv('sanRaiva') + gv('sanVerm') + gv('sanCarr');
+  return {suplem:supDia, pasto:gv('pastoMes')/30, sanid:san, outros:gv('outrosMes'), detalhado:true, consumo:consumo};
+}
+function detLive(){
+  if(!window._det) return;
+  var pe=gv('pesoEnt'), ps=gv('pesoSai'), c=custosLote(pe, ps);
+  var a=document.getElementById('supAuto');
+  var pct=(supPct()*100).toFixed(2).replace(/0+$/,'').replace(/\.$/,'').replace('.',',');
+  if(pe>0 && ps>0 && gv('sacoPreco')>0 && gv('sacoKg')>0){
+    a.textContent = pct+'% do peso vivo \u00b7 '+c.consumo.toFixed(2).replace('.',',')+' kg/dia \u00b7 R$ '+c.suplem.toFixed(2).replace('.',',')+'/cab/dia';
+  } else { a.textContent = pct+'% do peso vivo. Preencha os pesos do lote e o preço do saco.'; }
+  var mes = c.suplem*30 + c.pasto*30 + c.outros;
+  document.getElementById('detTotal').textContent = 'R$ '+mes.toFixed(2).replace('.',',');
+  document.getElementById('detSan').textContent = c.sanid>0 ? '+ R$ '+c.sanid.toFixed(2).replace('.',',')+' de sanidade por cabeça no período.' : '';
+}
+
 function fmtR(v){ return 'R$'+(Math.round(v)).toLocaleString('pt-BR'); }
 function fmtP(v){ return v.toFixed(1).replace('.',',')+'%'; }
 function gv(id){ var e=document.getElementById(id); if(!e) return 0; var t=String(e.value||'').trim(); if(/^\d{1,3}(\.\d{3})+(,\d+)?$/.test(t)){ t=t.replace(/\./g,''); } t=t.replace(',','.'); return parseFloat(t)||0; }
@@ -585,10 +624,11 @@ function calcular(){
   var _gmdRaw = (document.getElementById('gmd').value||'').replace(',','.');
   var gmd = parseFloat(_gmdRaw) || 0;
   var mort    = gv('mort')/100;
-  var suplem  = gv('suplem');
-  var pasto   = gv('pasto');
-  var sanid   = gv('sanidade');
-  var outros  = gv('outros');
+  var _c = custosLote(pesoEnt, pesoSai);
+  var suplem  = _c.suplem;   // R$/cab/dia
+  var pasto   = _c.pasto;    // R$/cab/dia
+  var sanid   = _c.sanid;    // R$/cab no período
+  var outros  = _c.outros;   // R$/cab/mês
   var vlrArr  = gv('vlrArr');
   var rend    = gv('rend')/100 || 0.52;
 
@@ -729,6 +769,9 @@ function calcular(){
   document.getElementById('bPasto').textContent     = '- '+fmtR(pasto*dias);
   document.getElementById('bSanidade').textContent  = '- '+fmtR(sanid);
   document.getElementById('bOutros').textContent    = '- '+fmtR(outros*(dias/30));
+  var _simples = !_c.detalhado;
+  ['bSuplem','bPasto','bSanidade'].forEach(function(id){ var e=document.getElementById(id); if(e&&e.parentElement){ e.parentElement.style.display = _simples ? 'none' : ''; } });
+  var _lo=document.getElementById('bOutros'); if(_lo&&_lo.previousElementSibling){ _lo.previousElementSibling.textContent = _simples ? 'Custo operacional' : 'Outros custos'; }
   document.getElementById('bReceita2').textContent  = '+ '+fmtR(receitaLiq);
   var bLucroEl = document.getElementById('bLucro');
   bLucroEl.textContent = (lucro>=0?'+ ':'')+fmtR(lucro);
@@ -769,6 +812,7 @@ function calcular(){
     vbadge = 'NÃO RECOMENDADO';
     vbadgeClass = 'badge-nao';
   }
+  resultado.veredito = veredito;
   document.getElementById('resVeredito').textContent = veredito;
   document.getElementById('resSub').textContent = vsub;
   var badge = document.getElementById('resBadge');
@@ -813,7 +857,7 @@ function enviarWpp(){
   msg += 'Fiz a conta de um lote na calculadora da GPL:\n';
   msg += r.nCab + ' cabeças, de ' + r.pesoEnt + ' para ' + r.pesoSai + ' kg, em ' + r.dias + ' dias.\n';
   msg += (r.lucro >= 0 ? 'Lucro' : 'Prejuízo') + ' estimado: ' + num(r.lucro) + ' por cabeça (' + num(r.lucroTotal) + ' no lote).\n';
-  msg += 'Resultado na tela: ' + document.getElementById('resVeredito').textContent.replace('!','').toLowerCase() + '.\n\n';
+  msg += 'Resultado na tela: ' + (resultado.veredito||'').replace('!','').toLowerCase() + '.\n\n';
   msg += 'Quero entender melhor esse lote.';
   window.open('https://wa.me/5563991082453?text='+encodeURIComponent(msg), '_blank');
 }

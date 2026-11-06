@@ -49,6 +49,7 @@ input,select{font:inherit;font-size:16px;width:100%;padding:10px 12px;border:1px
 /* notebook: abas no topo, Rotina larga com coluna ao lado, cartões que recolhem */
 .abasTop{display:none;gap:4px;margin-left:14px}.abasTop span{padding:8px 14px;border-radius:9px;font-size:14px;color:#d6e8d6;cursor:pointer}.abasTop span:hover{background:rgba(255,255,255,.08)}.abasTop span.on{background:rgba(255,255,255,.16);color:#fff;font-weight:700}
 .rot-g{display:block}.rot-lat{margin-top:14px}
+@media(max-width:700px){.reu-nv{grid-template-columns:1fr 1fr!important}.reu-nv input:first-child{grid-column:1/-1}}
 .rcab{display:flex;align-items:center;gap:12px;padding:12px 0 8px;cursor:pointer;user-select:none}.rcab b{font-size:16px}.rcab .pr{flex:1;height:7px;background:#eef2ed;border-radius:4px;min-width:60px}.rcab .pr i{display:block;height:7px;background:var(--v3);border-radius:4px}
 .seta{width:26px;height:26px;border-radius:8px;display:grid;place-items:center;color:var(--muted);background:#f1f4ef;font-size:12px;flex:none;transition:transform .2s}.fech .seta{transform:rotate(-90deg)}
 .rres{font-size:13px;color:var(--muted);padding:0 0 12px}.rres b{color:var(--warn)}
@@ -276,10 +277,11 @@ function render(){
   var h='<div class="abas">'+[["rotina","Rotina"],["plano","Plano"],["agenda","Agenda"],["sistemas","Sistemas"],["ajustes","Ajustes"]].map(function(a){
     return '<div class="aba'+(ABA===a[0]?' on':'')+'" onclick="ABA=\''+a[0]+'\';render()">'+a[1]+'</div>'; }).join("")+'</div>';
   var abasT=[["rotina","Rotina"],["plano","Plano"],["agenda","Agenda"],["sistemas","Sistemas"],["ajustes","Ajustes"]];
-  $("topAbas").innerHTML=abasT.map(function(a){ return '<span class="'+(ABA===a[0]?'on':'')+'" onclick="ABA=\''+a[0]+'\';render()">'+a[1]+'</span>'; }).join("");
-  app.className="wrap"+(ABA==="rotina"?" larga":"");
+  $("topAbas").innerHTML=abasT.map(function(a){ return '<span class="'+(ABA===a[0]||(a[0]==="rotina"&&(ABA==="reuniao"||ABA==="campo"))?'on':'')+'" onclick="ABA=\''+a[0]+'\';render()">'+a[1]+'</span>'; }).join("");
+  app.className="wrap"+(ABA==="rotina"||ABA==="reuniao"?" larga":"");
   if(D.erros.length) h+='<div class="erro">'+D.erros.map(esc).join("<br>")+'</div>';
   if(ABA==="campo"){ app.innerHTML=telaCampo(); return; }
+  if(ABA==="reuniao"){ app.innerHTML=telaReuniao(); return; }
   if(ABA==="rotina") h+=telaRotina(); else if(ABA==="plano") h+=telaPlano(); else if(ABA==="agenda") h+=telaAgenda();
   else if(ABA==="sistemas") h+=telaSistemas(); else h+=telaAjustes();
   app.innerHTML=h;
@@ -355,6 +357,9 @@ function telaAjustes(){
       +'<input id="fN'+i+'" value="'+esc(f.nome)+'" placeholder="Nome da fazenda">'
       +'<div class="lbl">Endereço da pesagem (Apps Script)</div><input id="fP'+i+'" value="'+esc(f.pesagem||"")+'">'
       +'<div class="lbl">Endereço do app da fazenda (Apps Script)</div><input id="fA'+i+'" value="'+esc(f.app||"")+'">'
+      +'<div class="lbl">Perfil do dono <span class="mini">(material Gama: perfis de pecuarista + DISC)</span></div><div class="linha"><select id="fPf'+i+'"><option value="">— perfil —</option>'+Object.keys(PERFIL_DONO).map(function(k){ return '<option value="'+k+'"'+(f.perfil===k?' selected':'')+'>'+PERFIL_DONO[k].n+'</option>'; }).join("")+'</select>'
+      +'<select id="fDs'+i+'"><option value="">— cor DISC —</option>'+Object.keys(DISC_DONO).map(function(k){ return '<option value="'+k+'"'+(f.disc===k?' selected':'')+'>'+DISC_DONO[k].n+'</option>'; }).join("")+'</select></div>'
+      +'<div class="lbl">Objetivo do dono pros próximos 12 meses</div><input id="fOb'+i+'" value="'+esc(f.objetivo||"")+'" placeholder="ex.: melhorar a margem por hectare">'
       +'<div class="lbl">Fechamento financeiro</div><select id="fF'+i+'"><option value="mes"'+(f.fechFreq!=="tri"?' selected':'')+'>Mensal</option><option value="tri"'+(f.fechFreq==="tri"?' selected':'')+'>Trimestral (nos meses marcados abaixo)</option></select>'
       +'<div class="lbl">Meses do trimestre (visita e consolidado)</div><div style="display:flex;flex-wrap:wrap;gap:6px">'+MES_AB.map(function(m,k){ var on=(f.mesesTri||[]).indexOf(k+1)>=0;
         return '<label style="display:flex;align-items:center;gap:4px;border:1px solid var(--line);border-radius:8px;padding:5px 8px;font-size:13px;'+(on?'background:var(--v7);border-color:var(--v3)':'')+'"><input type="checkbox" id="fT'+i+'_'+(k+1)+'"'+(on?' checked':'')+' style="width:auto;margin:0">'+m+'</label>'; }).join("")+'</div></div>'; }).join("")
@@ -497,7 +502,7 @@ function telaPlano(){
   x+='<div class="card">'+lista.map(function(p){
     var feito=p.situacao==="feito", atr=!feito&&p.prazo&&p.prazo<h;
     return '<div class="item"><div class="ico '+(feito?'ok':(atr?'err':''))+'">'+(feito?ICO.check:ICO.circulo)+'</div><div style="flex:1;min-width:0"><div class="it1'+(feito?' feito':'')+'" style="font-size:14px">'+esc(p.acao)+'</div>'
-      +'<div class="it2">'+esc([p.resp,p.fazenda].filter(Boolean).join(" · "))+(p.prazo?' · '+(atr?'<b style="color:var(--danger)">atrasada, era '+p.prazo.split("-").reverse().slice(0,2).join("/")+'</b>':'até '+p.prazo.split("-").reverse().slice(0,2).join("/")):'')+(p.origem?' · '+esc(p.origem):'')+'</div></div>'
+      +'<div class="it2">'+esc([p.resp,p.fazenda].filter(Boolean).join(" · "))+(p.prazo?' · '+(atr?'<b style="color:var(--danger)">atrasada, era '+p.prazo.split("-").reverse().slice(0,2).join("/")+'</b>':'até '+p.prazo.split("-").reverse().slice(0,2).join("/")):'')+(p.origem?' · '+esc(p.origem):'')+(p.situacao==="andamento"?' · <b style="color:var(--v2)">andando</b>':(p.situacao==="travado"?' · <b style="color:var(--danger)">travou</b>':''))+'</div></div>'
       +'<div class="acts">'+(feito?'<button class="b g" onclick="sitPlano(\''+p.id+'\',\'aberto\')">Reabrir</button>':'<button class="b" onclick="sitPlano(\''+p.id+'\',\'feito\')">Feito</button>')
       +'<button class="b g" onclick="apagarPlano(\''+p.id+'\')">Apagar</button></div></div>'; }).join("")+'</div>';
   return x;
@@ -545,6 +550,132 @@ function imprimirPlano(){
    Mesmas contas do "Relatório do Dia" do app da fazenda, no mês escolhido.
    ===================================================================== */
 var CAMPO={ fi:0, modo:"campo", dados:null, carregando:false, erro:"" };
+/* =====================================================================
+   REUNIÃO MENSAL — 3 passos (Certificação Gama): o que foi combinado → números do mês → novo plano
+   A reunião de novembro trata dos números de OUTUBRO (mesma regra do Fechamento).
+   ===================================================================== */
+var PERFIL_DONO={
+  raiz:{ n:"Raiz", d:["Fale em quanto sobrou por boi e em produzir mais gastando menos.","Comece pelo que não custa: água limpa, sal em dia, manejo de pasto.","Mostre em dinheiro e em cabeça, não em TIR."] },
+  apaixonado:{ n:"Apaixonado", d:["Reconheça o que ele já fez na fazenda.","Use foto, mapa e o projeto: fazenda vitrine.","Organize o básico sem podar o sonho dele."] },
+  investidor:{ n:"Investidor", d:["Fale de margem, geração de caixa e retorno.","Traga cenário e risco, com conta realista.","Compare com outras opções de investimento."] },
+  gestor:{ n:"Gestor", d:["Compare com o Top Rentáveis e mostre o caminho, não só o número.","Metas por safra e revisão trimestral de resultado.","Feche cada assunto com meta, responsável e prazo."] }
+};
+var DISC_DONO={
+  azul:{ n:"Azul · analítico", d:"Leve as premissas e a fonte de cada conta. Evite exagero." },
+  verde:{ n:"Verde · segurança", d:"Mostre passo a passo, sem pressionar. Mudança aos poucos." },
+  vermelho:{ n:"Vermelho · direto", d:"Seja objetivo: ganho, decisão e prazo." },
+  amarelo:{ n:"Amarelo · comunicativo", d:"Conte casos, mostre a visão e valorize a relação." }
+};
+var REU=null;
+async function reuAbrir(fi){
+  var f=cfg().fazendas[fi], ref=mesMais(MES,-1);
+  REU={ fi:fi, ref:ref, fe:null, campo:null, carregando:true, mexidos:{}, novos:[] }; ABA="reuniao"; render(); window.scrollTo(0,0);
+  try{ REU.fe=JSON.parse(localStorage.getItem("gpl_fe_"+f.nome+"_"+ref)||"null"); }catch(e){}
+  var tarefas=[ carregarCampo(f,ref).then(function(d){ REU.campo=d; }).catch(function(e){ REU.campoErro=e.message; }) ];
+  if(!REU.fe) tarefas.push(bancoLer("fe",f.nome,ref).then(function(g){ REU.fe=g; }).catch(function(){}));
+  await Promise.all(tarefas); REU.carregando=false; if(ABA==="reuniao") render();
+}
+function reuResumo(o){
+  var nos=o.dre.nos, top=function(re){ return nos.filter(function(n){ return n.nivel===0 && re.test(n.nome); }); }, soma=function(L){ return L.reduce(function(a,n){ return a+n.mes; },0); };
+  var r={ rec:soma(top(/^1\s*-/)), inv:-soma(top(/^3\s*-/)), cus:-soma(nos.filter(function(n){ return n.nivel===0 && !/^1\s*-|^3\s*-/.test(n.nome); })) };
+  r.saldo=r.rec-r.cus-r.inv; r.top=feUnidades(nos).slice(0,4);
+  var ib=nos.filter(function(n){ return /^3\.1\s*-/.test(n.nome); })[0]; r.compra=ib?-ib.mes:0;
+  r.cab=o.compras&&o.compras.rows?o.compras.rows.reduce(function(a,c){ return a+c.qtd; },0):(parseInt(o.cab,10)||0);
+  if(o.compras&&o.compras.rows&&o.compras.rows.length){ var vt=o.compras.rows.reduce(function(a,c){ return a+c.total; },0); if(vt>0) r.compra=vt; }   // igual ao relatório do Fechamento
+  return r;
+}
+function reuAcoes(){ var f=cfg().fazendas[REU.fi];
+  return D.plano.filter(function(p){ return p.fazenda===f.nome && (p.situacao!=="feito" || REU.mexidos[p.id]) && REU.novos.indexOf(p.id)<0; })
+    .sort(function(a,b){ return (a.prazo||"9999").localeCompare(b.prazo||"9999"); }); }
+function reuSit(id,sit){ REU.mexidos[id]=1; sitPlano(id,sit); }
+async function reuNova(){
+  var f=cfg().fazendas[REU.fi], ac=$("rNa").value.trim(); if(!ac){ $("rNa").focus(); return; }
+  var it={ id:"p"+Date.now().toString(36), fazenda:f.nome, acao:ac, resp:$("rNr").value.trim(), prazo:$("rNp").value, situacao:"aberto", origem:"Reunião de "+MESES[+MES.split("-")[1]-1], obs:"", criado:hoje() };
+  try{ await centralPost("tabela_salvar",{tabela:"Plano",itens:[it]}); D.plano.push(it); REU.novos.push(it.id); render(); setTimeout(function(){ var e=$("rNa"); if(e) e.focus(); },30); }
+  catch(e){ alert("Não salvou: "+e.message); }
+}
+/* marca uma etapa da rotina do mês como feita (com observação) */
+async function marcarEtapa(fi,mes,re,obs){
+  var f=cfg().fazendas[fi], E=etapasDe(f,mes).filter(function(e){ return re.test(e.nome); })[0]; if(!E) return false;
+  var r=rotItem(f.nome,mes,E.nome); if(r&&r.feito) return true;
+  var novo=r?Object.assign({},r):{ id:idRot(f.nome,mes,E.nome), fazenda:f.nome, mes:mes, etapa:E.nome, obs:"" };
+  novo.feito=true; novo.data=hoje(); novo.obs=obs;
+  D.rotina=D.rotina.filter(function(x){ return x.id!==novo.id; }).concat([novo]);
+  try{ await centralPost("tabela_salvar",{tabela:"Rotina",itens:[novo]}); return true; }catch(e){ alert("Não marcou na rotina: "+e.message); return false; }
+}
+async function reuEncerrar(){
+  var d=hoje().split("-").reverse().slice(0,2).join("/");
+  await marcarEtapa(REU.fi,MES,/reuni/i,"reunião em "+d);
+  if(REU.novos.length || Object.keys(REU.mexidos).length) await marcarEtapa(REU.fi,MES,/plano/i,"revisado na reunião de "+d);
+  ABA="rotina"; REU=null; render();
+}
+function telaReuniao(){
+  var c=cfg(), f=c.fazendas[REU.fi]||{}, mref=MESES[+REU.ref.split("-")[1]-1], r0=function(v){ return "R$ "+fmt(Math.round(v)); };
+  var x='<div style="display:flex;gap:12px;align-items:center;margin-bottom:14px;flex-wrap:wrap"><button class="b g" onclick="ABA=\'rotina\';REU=null;render()">‹ Rotina</button>'
+    +'<div style="flex:1;min-width:200px"><b style="font-size:20px">Reunião mensal · '+esc(f.nome)+'</b><div class="mini">'+MESES[+MES.split("-")[1]-1]+' · números de '+mref+'</div></div>'
+    +'<button class="b" onclick="imprimirReuniao()">Imprimir pauta</button><button class="b p" onclick="reuEncerrar()">Encerrar reunião</button></div>';
+  var passo=function(n,t,s,corpo){ return '<div class="card" style="padding:14px 18px;margin-bottom:14px"><div style="display:flex;align-items:center;gap:12px;margin-bottom:6px;flex-wrap:wrap"><span style="width:30px;height:30px;border-radius:50%;background:var(--v1);color:#fff;font-weight:800;display:grid;place-items:center;flex:none">'+n+'</span><b style="font-size:16px">'+t+'</b><span class="mini">'+s+'</span></div>'+corpo+'</div>'; };
+  // passo 1
+  var A=reuAcoes(), h=hoje();
+  var p1=A.length?A.map(function(p){ var atr=p.situacao!=="feito"&&p.prazo&&p.prazo<h, bt=function(sit,t,cor){ var on=p.situacao===sit; return '<button class="b'+(on?'':' g')+'" style="padding:6px 10px;'+(on?'background:'+cor[0]+';border-color:'+cor[1]+';color:'+cor[2]:'')+'" onclick="reuSit(\''+p.id+'\',\''+sit+'\')">'+t+'</button>'; };
+      return '<div class="item"><div style="flex:1;min-width:0"><div class="it1" style="font-size:14px">'+esc(p.acao)+'</div><div class="it2">'+esc(p.resp||"sem responsável")+(p.prazo?' · '+(atr?'<b style="color:var(--danger)">era até '+brd(p.prazo)+'</b>':'até '+brd(p.prazo)):'')+(p.criado?' · combinado em '+brd(p.criado):'')+'</div></div>'
+        +'<div class="acts">'+bt("feito","Feito",["#e3f1e1","#9fcf96","#1B5E20"])+bt("andamento","Andando",["#eef4fb","#a9c3e6","#1d4f91"])+bt("travado","Travou",["#fdecea","#efb3ab","#c0392b"])+'</div></div>'; }).join("")
+    :'<div class="vazio">Nenhuma ação em aberto. O que for combinado no passo 3 aparece aqui na próxima reunião.</div>';
+  x+='<div class="rot-g"><div>'+passo(1,"O que combinamos da última vez","marque como ficou cada ação",p1);
+  // passo 2
+  var p2;
+  if(REU.carregando) p2='<div class="vazio">Buscando o Fechamento de '+mref+' e os dados do campo…</div>';
+  else {
+    p2='';
+    if(REU.fe && REU.fe.dre){ var r=reuResumo(REU.fe);
+      p2+='<div class="kpis" style="grid-template-columns:repeat(auto-fit,minmax(140px,1fr))">'+[["Receitas",r.rec],["Custeio",r.cus],["Investimentos",r.inv],["Saldo do mês",r.saldo]].map(function(k){ return '<div class="kpi"><div class="k1">'+k[0]+'</div><div class="k2">'+r0(k[1])+'</div></div>'; }).join("")+'</div>'
+        +r.top.map(function(u){ return '<div style="display:flex;justify-content:space-between;font-size:14px;padding:6px 0;border-bottom:1px solid #f0f3ef"><span>'+esc(u.nome)+'</span><span class="mini">'+r0(u.v)+'</span></div>'; }).join("")
+        +(r.compra>0?'<div style="display:flex;justify-content:space-between;font-size:14px;padding:6px 0"><span>Compra de gado'+(r.cab?' · '+r.cab+' cabeças':'')+'</span><span class="mini">'+r0(r.compra)+'</span></div>':'')
+        +'<div style="margin:8px 0 4px"><button class="b" onclick="feAbrir('+REU.fi+')">Ver o Fechamento completo</button></div>';
+    } else p2+='<div class="vazio">O Fechamento de '+mref+' ainda não foi importado. <button class="b" onclick="feAbrir('+REU.fi+')">Abrir Fechamento</button></div>';
+    p2+=REU.campo?'<div style="margin-top:12px"><b style="font-size:14px">No campo</b><style>'+CSS_REL+'</style>'+relCampoHTML(REU.campo,f.nome,"campo")+'</div>':(REU.campoErro?'<div class="mini">Campo: '+esc(REU.campoErro)+'</div>':'');
+  }
+  x+=passo(2,"Os números do mês","do Fechamento de "+mref+" e do campo",p2);
+  // passo 3
+  var N=D.plano.filter(function(p){ return REU.novos.indexOf(p.id)>=0; });
+  var p3='<div style="display:grid;grid-template-columns:minmax(0,1fr) 150px 150px auto;gap:8px" class="reu-nv"><input id="rNa" placeholder="O que fazer…" onkeydown="if(event.key===\'Enter\')reuNova()"><input id="rNr" placeholder="Quem"><input id="rNp" type="date"><button class="b p" onclick="reuNova()">+ Incluir</button></div>'
+    +(N.length?N.map(function(p){ return '<div class="item"><div style="flex:1"><div class="it1" style="font-size:14px">'+esc(p.acao)+'</div><div class="it2">'+esc(p.resp||"sem responsável")+(p.prazo?' · até '+brd(p.prazo):'')+'</div></div><span class="mini" style="color:var(--v1)">no Plano ✓</span></div>'; }).join(""):'')
+    +'<div class="mini" style="margin-top:8px">Ao encerrar: a etapa "Reunião mensal" fica feita na Rotina e as ações novas aparecem no passo 1 da próxima reunião.</div>';
+  x+=passo(3,"O que fica combinado agora","cada ação com responsável e prazo · vai pro Plano",p3)+'</div>';
+  // lateral
+  var P=PERFIL_DONO[f.perfil], Dc=DISC_DONO[f.disc];
+  var lat='<div class="lcard"><h4 style="cursor:default">Como conduzir com o dono</h4><div class="lc">';
+  if(P||Dc||f.objetivo){
+    lat+=(P?'<span style="display:inline-block;border-radius:7px;padding:3px 9px;font-size:12px;font-weight:700;background:#e3f1e1;color:#1B5E20;margin:0 4px 6px 0">'+P.n+'</span>':'')
+      +(Dc?'<span style="display:inline-block;border-radius:7px;padding:3px 9px;font-size:12px;font-weight:700;background:#eef4fb;color:#1d4f91;margin:0 4px 6px 0">'+Dc.n+'</span>':'')
+      +(f.objetivo?'<p style="font-size:13.5px;margin:6px 0"><b>Objetivo dele pros próximos 12 meses:</b> '+esc(f.objetivo)+'</p>':'')
+      +'<ul style="margin:4px 0 0;padding-left:18px;font-size:13px;line-height:1.55">'+(P?P.d:[]).concat(Dc?[Dc.d]:[]).map(function(t){ return '<li>'+esc(t)+'</li>'; }).join("")+'</ul>';
+  } else lat+='<p class="mini">Preencha o perfil do dono e o objetivo dele em Ajustes. Aqui aparece como conduzir a conversa.</p><button class="b" onclick="ABA=\'ajustes\';REU=null;render()">Abrir Ajustes</button>';
+  lat+='</div></div>';
+  var fp=fechPendente(f,MES), ef=etapasDe(f,MES).filter(function(e){ return /fechamento/i.test(e.nome); })[0], rf=ef?rotItem(f.nome,MES,ef.nome):null;
+  var trav=D.plano.filter(function(p){ return p.fazenda===f.nome && p.situacao==="travado"; }).length, atr=D.plano.filter(function(p){ return p.fazenda===f.nome && p.situacao!=="feito" && p.prazo && p.prazo<h; }).length;
+  lat+='<div class="lcard"><h4 style="cursor:default">Antes de começar</h4><div class="lc"><ul style="margin:0;padding-left:18px;font-size:13px;line-height:1.7">'
+    +'<li>Fechamento de '+mref+': '+(rf&&rf.feito?(rf.obs&&/^PDF/.test(rf.obs)?esc(rf.obs.replace(/^PDF gerado em/,"PDF gerado em")):'feito')+' ✓':'<b style="color:var(--warn)">ainda não gerado</b>')+'</li>'
+    +(fp.length?'<li>Inttegra: <b style="color:var(--warn)">falta '+fp.join(" e ")+'</b></li>':'<li>Inttegra: alimentada e validada ✓</li>')
+    +'<li>Plano: '+(trav||atr?(trav?'<b style="color:var(--danger)">'+trav+' travada(s)</b>':'')+(trav&&atr?' · ':'')+(atr?'<b style="color:var(--danger)">'+atr+' atrasada(s)</b>':''):'nada travado nem atrasado')+'</li></ul></div></div>';
+  return x+'<div class="rot-lat" style="margin-top:0">'+lat+'</div></div>';
+}
+function imprimirReuniao(){
+  var c=cfg(), f=c.fazendas[REU.fi]||{}, mref=MESES[+REU.ref.split("-")[1]-1], r0=function(v){ return "R$ "+fmt(Math.round(v)); };
+  var nums='';
+  if(REU.fe&&REU.fe.dre){ var r=reuResumo(REU.fe); nums='<div class="rsec"><h3>Números de '+mref+'</h3><table><tr><th>Receitas</th><th>Custeio</th><th>Investimentos</th><th>Saldo</th></tr><tr><td>'+r0(r.rec)+'</td><td>'+r0(r.cus)+'</td><td>'+r0(r.inv)+'</td><td>'+r0(r.saldo)+'</td></tr></table>'
+    +'<p class="sub">Maiores gastos: '+r.top.map(function(u){ return esc(u.nome)+' '+r0(u.v); }).join(" · ")+(r.compra>0?' · Compra de gado '+r0(r.compra):'')+'</p></div>'; }
+  var w=window.open("","_blank"); if(!w){ alert("Libere as janelas (pop-up) pra imprimir."); return; }
+  w.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Pauta da reunião — '+esc(f.nome)+'</title><style>body{font-family:Arial,sans-serif;color:#1c241c;margin:28px}'
+   +'.cab{display:flex;align-items:center;gap:12px;border-bottom:3px solid #1B5E20;padding-bottom:10px;margin-bottom:16px}.cab img{width:46px;height:46px;border-radius:8px}h1{font-size:20px;margin:0;color:#1B5E20}.s{font-size:13px;color:#5f6b60}'
+   +CSS_REL+'.rod{margin-top:22px;font-size:12px;color:#5f6b60}@media print{.np{display:none}}</style></head><body>'
+   +'<div class="cab"><img src="'+location.origin+'/icone-caixa-gpl.png"><div><h1>Pauta da reunião mensal</h1><div class="s">'+esc(f.nome)+' · '+mesNome(MES)+' · números de '+mref+'</div></div></div>'
+   +'<div class="rsec"><h3>1 · O que combinamos da última vez</h3>'+(reuAcoes().length?'<table><tr><th>Ação</th><th>Responsável</th><th>Prazo</th><th>Como ficou</th></tr>'+reuAcoes().map(function(p){ return '<tr><td>'+esc(p.acao)+'</td><td>'+esc(p.resp||"")+'</td><td>'+(p.prazo?brd(p.prazo):"")+'</td><td></td></tr>'; }).join("")+'</table>':'<p class="vz">Nenhuma ação em aberto.</p>')+'</div>'
+   +'<h3 style="font-size:15px;color:#1B5E20">2 · Os números do mês</h3>'+nums+(REU.campo?relCampoHTML(REU.campo,f.nome,"campo"):'')
+   +'<div class="rsec"><h3>3 · O que fica combinado agora</h3><table><tr><th>Ação</th><th>Responsável</th><th>Prazo</th></tr>'+[1,2,3,4,5].map(function(){ return '<tr><td style="height:26px"></td><td></td><td></td></tr>'; }).join("")+'</table></div>'
+   +'<div class="rod">Gestão Pecuária Lucrativa · Rogério · Consultor GPL</div><p class="np"><button onclick="print()">Imprimir / salvar PDF</button></p></body></html>');
+  w.document.close();
+}
 function acaoEtapa(et){ et=String(et||"").toLowerCase();
   if(/campo|coleta/.test(et)) return "campo"; if(/inttegra/.test(et)) return "inttegra"; if(/fechamento/.test(et)) return "fech"; if(/reuni|pauta/.test(et)) return "pauta";
   if(/plano/.test(et)) return "plano"; if(/relat/.test(et)) return "campo"; return ""; }
@@ -553,6 +684,7 @@ function abrirEtapa(fi,ei){
   if(a==="inttegra"){ window.open("https://portal.inttegra.com/dashboard","_blank","noopener"); return; }
   if(a==="plano"){ PL_FAZ=c.fazendas[fi].nome; PL_FILTRO="abertos"; ABA="plano"; render(); return; }
   if(a==="fech"){ feAbrir(fi); return; }
+  if(a==="pauta"){ reuAbrir(fi); return; }
   CAMPO={ fi:fi, modo:(a==="pauta"?"pauta":"campo"), dados:null, carregando:true, erro:"" }; ABA="campo"; render(); window.scrollTo(0,0);
   carregarCampo(c.fazendas[fi], MES).then(function(d){ CAMPO.dados=d; CAMPO.carregando=false; if(ABA==="campo") render(); })
     .catch(function(e){ CAMPO.erro=e.message; CAMPO.carregando=false; if(ABA==="campo") render(); });
@@ -1230,7 +1362,8 @@ function lerAjustes(c){
   var et=($("cEt")?$("cEt").value:"").split("\n").map(function(x){ return x.trim(); }).filter(Boolean); if(et.length) c.rotinaMes=et;
   if($("cEtT")) c.rotinaTri=$("cEtT").value.split("\n").map(function(x){ return x.trim(); }).filter(Boolean);
   c.fazendas=c.fazendas.map(function(f,i){ var mt=$("fT"+i+"_1")?MES_AB.map(function(m,k){ return $("fT"+i+"_"+(k+1)).checked?k+1:0; }).filter(Boolean):(f.mesesTri||[]);
-    return { nome:($("fN"+i)?$("fN"+i).value.trim():f.nome), pesagem:($("fP"+i)?$("fP"+i).value.trim():f.pesagem), app:($("fA"+i)?$("fA"+i).value.trim():f.app), mesesTri:mt, fechFreq:($("fF"+i)?$("fF"+i).value:(f.fechFreq||"mes")) }; }).filter(function(f){ return f.nome; });
+    return { nome:($("fN"+i)?$("fN"+i).value.trim():f.nome), pesagem:($("fP"+i)?$("fP"+i).value.trim():f.pesagem), app:($("fA"+i)?$("fA"+i).value.trim():f.app), mesesTri:mt, fechFreq:($("fF"+i)?$("fF"+i).value:(f.fechFreq||"mes")),
+      perfil:($("fPf"+i)?$("fPf"+i).value:(f.perfil||"")), disc:($("fDs"+i)?$("fDs"+i).value:(f.disc||"")), objetivo:($("fOb"+i)?$("fOb"+i).value.trim():(f.objetivo||"")) }; }).filter(function(f){ return f.nome; });
   return c;
 }
 async function salvarAjustes(){

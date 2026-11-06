@@ -227,7 +227,7 @@ footer a{color:var(--verde)}
     </details>
   </div>
   <footer>
-    Benchmarks: Instituto Inttegra / Antonio Chaker · Safras 2020-2025<br>
+    Benchmarks: Instituto Inttegra · Safras 2020-2025<br>
     Esta ferramenta é um diagnóstico estimado. Valores podem variar por região e safra.<br>
     <a href="#">Gestão Pecuária Lucrativa</a>
   </footer>
@@ -304,7 +304,7 @@ const F={
   valorHa:  {label:'Valor do ha',unit:'R$/ha',val:30000,hint:'valor de mercado atual do hectare'},
   meta:     {label:'Meta de retorno',unit:'%',val:4,step:0.5,
              hint:'% de lucro sobre o valor total da fazenda por ano',
-             bench:'Referência Chaker: 4% ao ano sobre o valor da propriedade'},
+             bench:'Referência Inttegra: 4% ao ano sobre o valor da propriedade'},
   /* --- financeiro --- */
   margem:   {label:'Margem sobre a venda',unit:'%',val:28,step:1,
              hint:'% que sobra do faturamento após todos os custos operacionais (lucro ÷ faturamento)',
@@ -322,7 +322,7 @@ const F={
               bench:'Referência: 55-65% do rebanho. Quanto maior, mais eficiente o uso da área'},
   pesoDesmama:{label:'Peso médio ao desmame',unit:'kg/cab',val:200,
                hint:'peso do bezerro na hora da desmama — influencia diretamente o valor de venda',
-               benchFn:sys=>sys==='cria'?'Top 10: 228 kg · Com prejuízo: 203 kg (Inttegra 2026)':sys==='cc'?'Meta Chaker CC: 158 kg/vaca exposta':''},
+               benchFn:sys=>sys==='cria'?'Top 10: 228 kg · Com prejuízo: 203 kg (Inttegra 2026)':sys==='cc'?'Meta CC: 158 kg/vaca exposta':''},
   taxaDescarte:{label:'Taxa de descarte de matrizes',unit:'%',val:17,step:1,
                 hint:'% das matrizes vendidas por ano (vacas vazias, velhas ou improdutivas)',
                 bench:'Recomendação: 15-20%/ano. Descarte rápido da vaca vazia é chave das top fazendas'},
@@ -342,7 +342,7 @@ const F={
   /* --- lotação --- */
   lotUA:    {label:'Lotação atual',unit:'UA/ha',val:1.0,step:0.1,
              hint:'carga animal atual em unidades animal por hectare (1 UA = 450 kg PV)',
-             benchFn:sys=>({cc:'Meta Chaker CC: 1,8 UA/ha',re:'Top RE: 3,08 UA/ha (Inttegra 24/25)',cria:'Varia conforme bioma e manejo'}[sys]||'')},
+             benchFn:sys=>({cc:'Meta CC: 1,8 UA/ha',re:'Top RE: 3,08 UA/ha (Inttegra 24/25)',cria:'Varia conforme bioma e manejo'}[sys]||'')},
   /* --- arrendamento --- */
   arrModo:  {label:'Cobrar o arrendamento em',type:'select',val:'at',
              opts:[['at','@ por ha / ano'],['reais','R$ por ha / ano'],['cabAno','R$/cabeça/ano'],['cabMes','R$/cabeça/mês']]},
@@ -645,7 +645,7 @@ function renderResults(R){
     rows+='<div class="gap-row" style="background:#dcedc8;border-radius:8px;padding:4px 8px"><span class="gl" style="font-weight:bold;color:#1B5E20">Potencial top fazenda</span><span class="gv pos">'+brl(resultTop)+'</span></div>';
     rows+='<div class="gap-row" style="background:#fff9c4;border-radius:8px;padding:8px;margin-top:4px"><span class="gl" style="font-weight:bold;color:#5D4037">Deixando na mesa/ano</span><span class="gv" style="color:#E65100;font-size:1.1rem">'+brl(gap)+'</span></div>';
     gc.innerHTML='<h3>'+IC.trend+' Potencial × Realidade</h3>'+rows
-      +'<div class="foot">Benchmarks: Instituto Inttegra · Safras 2020-2025 · Antonio Chaker. Potencial calculado com o mesmo rebanho aplicando indicadores das fazendas top rentáveis do Brasil.</div>';
+      +'<div class="foot">Benchmarks: Instituto Inttegra · Safras 2020-2025. Potencial calculado com o mesmo rebanho aplicando indicadores das fazendas top rentáveis do Brasil.</div>';
   } else {
     gc.style.display='none';
   }
@@ -670,7 +670,7 @@ function renderResults(R){
   add('Desembolso anual',brl(c.desembolso),'faturamento − resultado');
   if(posse==='arrendamento') add('Desembolso operacional',brl(c.desembolso-c.custoArrend),'desembolso − arrendamento');
   addB('Desembolho/cab/mês',brl2(c.desembPerHead),'desembolso / rebanho / 12',
-       ({cria:'Ref. top: R$65/cab·mês',cc:'Ref. Chaker: R$52/cab·mês',re:'Top 24/25: R$168/cab·mês'}[sys]||''));
+       ({cria:'Ref. top: R$65/cab·mês',cc:'Ref. Inttegra: R$52/cab·mês',re:'Top 24/25: R$168/cab·mês'}[sys]||''));
 
   sep('Produção e rebanho');
   add('Vendas/ano',num(c.vendas,0)+' cab','animais vendidos por ano');

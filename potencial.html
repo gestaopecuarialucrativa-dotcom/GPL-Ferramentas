@@ -265,7 +265,7 @@ tr.sep td{background:#E8F5E9!important;color:#1f6b33}
     </details>
   </div>
   <footer>
-    Benchmarks: Instituto Inttegra · Safras 2020-2025<br>
+    Benchmarks: Instituto Inttegra (recria-engorda: safra 25/26 · cria e ciclo completo: safras anteriores)<br>
     Esta ferramenta é um diagnóstico estimado. Valores podem variar por região e safra.<br>
     <a href="https://gestaopecuarialucrativa.com.br/">Gestão Pecuária Lucrativa</a>
   </footer>
@@ -301,7 +301,7 @@ const gsel=id=>{const el=document.getElementById(id);return el?el.value:'';};
    ============================================================ */
 const BENCH={
   cria:{
-    margem:40,          // % — excelência top fazendas (Chaker: 35-40%)
+    margem:30,          // % — referência do Rogério para cria
     desmame:72,         // % — top 10 (Inttegra 2026)
     pesoDesmama:228,    // kg — top 10 (vs 203 kg com prejuízo)
     taxaDescarte:17,    // % — reposição anual de matrizes (~15-20%)
@@ -312,7 +312,7 @@ const BENCH={
     retTerra:4,         // % retorno sobre valor da terra — meta Chaker
   },
   cc:{
-    margem:32,          // % — excelência (Chaker: 28-32%)
+    margem:40,          // % — referência do Rogério para ciclo completo
     desmame:80,         // % — benchmark CC
     pesoDesmama:158,    // kg/vaca exposta — meta Chaker CC
     taxaDescarte:17,    // %
@@ -322,13 +322,13 @@ const BENCH={
     retTerra:4,         // %
   },
   re:{
-    margem:35,          // % — top 10 safra 24/25 (Inttegra 2025)
-    gmd:0.691,          // kg/dia — top fazendas <1000ha (Inttegra)
-    lotUA:3.08,         // UA/ha — top fazendas 24/25
-    arrobaHa:59.7,      // @/ha — top 10 24/25
-    desembCabMes:168,   // R$/cab/mês — top 10 24/25
-    retTerra:5.8,       // % — top 30% 24/25
-    retRebanho:27.2,    // % — top 30% 24/25
+    margem:20,          // % — referência do Rogério para recria-engorda
+    gmd:0.779,          // kg/dia — top rentáveis RE safra 25/26 (média 0,632)
+    lotUA:3.17,         // UA/ha — top rentáveis RE 25/26 (média 2,31)
+    arrobaHa:50.3,      // @/ha — top rentáveis RE 25/26 (média 30,1)
+    desembCabMes:205.19,// R$/cab/mês — top rentáveis RE 25/26 (média 196,22)
+    retTerra:7.6,       // % — top rentáveis RE 25/26 (média 1,8)
+    retRebanho:24.6,    // % — top rentáveis RE 25/26 (média 7,3)
   },
 };
 
@@ -343,10 +343,12 @@ const F={
   meta:     {label:'Meta de retorno',unit:'%',val:4,step:0.5,
              hint:'% de lucro sobre o valor total da fazenda por ano',
              bench:'Referência Inttegra: 4% ao ano sobre o valor da propriedade'},
+  resReal:  {label:'Resultado da fazenda hoje (opcional)',unit:'R$/ano',val:'',
+             hint:'lucro da pecuária no último ano. Se deixar vazio, o quadro compara a sua meta com as top fazendas'},
   /* --- financeiro --- */
   margem:   {label:'Margem sobre a venda',unit:'%',val:28,step:1,
              hint:'% que sobra do faturamento após todos os custos operacionais (lucro ÷ faturamento)',
-             benchFn:sys=>({cc:'Top CC: 28-32% · Excelência: 32%',cria:'Top Cria: 35-40% · Excelência: 40%',re:'Top RE: 16-22% · Excelência: 35% (Inttegra 24/25)'}[sys]||'')},
+             benchFn:sys=>({cc:'Referência ciclo completo: 40%',cria:'Referência cria: 30%',re:'Referência recria-engorda: 20%'}[sys]||'')},
   /* --- bezerro / venda --- */
   valorVenda:{label:'Valor médio de venda',unit:'R$/cab',val:5000,
               hint:'preço médio recebido por animal vendido (bezerro na cria, boi gordo na RE)',
@@ -380,7 +382,7 @@ const F={
   /* --- lotação --- */
   lotUA:    {label:'Lotação atual',unit:'UA/ha',val:1.0,step:0.1,
              hint:'carga animal atual em unidades animal por hectare (1 UA = 450 kg PV)',
-             benchFn:sys=>({cc:'Meta CC: 1,8 UA/ha',re:'Top RE: 3,08 UA/ha (Inttegra 24/25)',cria:'Varia conforme bioma e manejo'}[sys]||'')},
+             benchFn:sys=>({cc:'Meta CC: 1,8 UA/ha',re:'Top rentáveis RE: 3,17 UA/ha · Média: 2,31 (Inttegra 25/26)',cria:'Varia conforme bioma e manejo'}[sys]||'')},
   /* --- arrendamento --- */
   arrModo:  {label:'Cobrar o arrendamento em',type:'select',val:'at',
              opts:[['at','@ por ha / ano'],['reais','R$ por ha / ano'],['cabAno','R$/cabeça/ano'],['cabMes','R$/cabeça/mês']]},
@@ -397,7 +399,7 @@ const F={
   pesoAbate:{label:'Peso ao abate',unit:'kg',val:560,hint:'peso do animal na venda/abate'},
   gmd:      {label:'GMD atual (Ganho Médio Diário)',unit:'kg/dia',val:0.5,step:0.05,
              hint:'ganho de peso diário após a compra',
-             bench:'Top <1000ha: 0,691 kg/dia · Referência RE: 0,533 kg/dia (Inttegra)'},
+             bench:'Top rentáveis RE: 0,779 kg/dia · Média: 0,632 kg/dia (Inttegra 25/26)'},
 };
 
 /* ============================================================
@@ -405,8 +407,8 @@ const F={
    ============================================================ */
 function fieldsFor(sys,posse){
   let list=[];
-  if(posse==='proprio') list=['areaTotal','areaProd','valorHa','meta','margem'];
-  else list=['areaProd','arrModo','arrArrobas','arrReais','arrCabAno','arrCabMes','margem','rebDriver','lotUA','rebInformado'];
+  if(posse==='proprio') list=['areaTotal','areaProd','valorHa','meta','margem','resReal'];
+  else list=['areaProd','arrModo','arrArrobas','arrReais','arrCabAno','arrCabMes','margem','rebDriver','lotUA','rebInformado','resReal'];
   if(sys==='cria'||sys==='cc'){
     list.push('valorVenda','desmame','partMatriz','pesoDesmama','taxaDescarte','pesoVacaDescarte','valorArrobaVaca','mortalidade','pesoMedio','valorArroba');
   }
@@ -430,8 +432,8 @@ function skip(id){
 
 function grpAFor(posse){
   return posse==='proprio'
-    ?['areaTotal','areaProd','valorHa','meta','margem']
-    :['areaProd','arrModo','arrArrobas','arrReais','arrCabAno','arrCabMes','margem','rebDriver','lotUA','rebInformado'];
+    ?['areaTotal','areaProd','valorHa','meta','margem','resReal']
+    :['areaProd','arrModo','arrArrobas','arrReais','arrCabAno','arrCabMes','margem','rebDriver','lotUA','rebInformado','resReal'];
 }
 
 /* ============================================================
@@ -535,7 +537,7 @@ function compute(){
     valorRebanho=(pesoMedio/30)*valorArroba*rebanho;
 
     // GAP vs benchmark
-    const margemTop=B.margem/100;
+    const margemTop=Math.max(B.margem/100,margem); // nunca usa margem menor que a do produtor
     const desmameTop=B.desmame/100;
     const pesoTop=(sys==='cria'&&B.pesoDesmama)?B.pesoDesmama:g('pesoDesmama'); // CC: referência é kg por vaca exposta, não entra no preço do bezerro
     // potencial com benchmark: mesmo rebanho, margem e produtividade top
@@ -568,7 +570,7 @@ function compute(){
     valorRebanho=(pesoMedio/30)*valorArroba*rebanho;
     const arrobaHa=areaProd?((pa-pe)/30)*vendas/areaProd:0; // @ produzida em peso vivo (30 kg)
     // GAP
-    const margemTop=B.margem/100;
+    const margemTop=Math.max(B.margem/100,margem); // nunca usa margem menor que a do produtor
     const gmdTop=B.gmd;
     const permDiasTop=gmdTop?(pa-pe)/gmdTop:0;
     const giroTop=permDiasTop?365/permDiasTop:0;
@@ -646,7 +648,7 @@ function renderResults(R){
   kpis.push(['','Rebanho necessário',num(c.rebanho,0)+' cab']);
   kpis.push(['','Resultado / ha / ano',brl(resHaAno)]);
   kpis.push(['destaque','Resultado / rebanho',pct(resRebanho)]);
-  kpis.push(['destaque','Desembolso/cab/mês',brl2(c.desembPerHead)]);
+  kpis.push(['destaque',sys==='re'?'Desembolso/cab/mês (com compra)':'Desembolso/cab/mês',brl2(c.desembPerHead)]);
   if(posse==='arrendamento'){
     kpis.push(['alerta','Arrendamento/ano',brl(c.custoArrend)]);
     kpis.push(['alerta','Arrend. / faturamento',pct(c.faturamento?c.custoArrend/c.faturamento:NaN)]);
@@ -659,16 +661,18 @@ function renderResults(R){
   if(R._cria){resultTop=R._cria.resultTop;fatTop=R._cria.fatTop;}
   if(R._re){resultTop=R._re.resultTop;fatTop=R._re.fatTop;}
 
-  if(isFinite(resultTop)&&resultTop>c.resultadoEsp){
-    const gap=resultTop-c.resultadoEsp;
+  const real=g('resReal'),temReal=real>0,base=temReal?real:c.resultadoEsp;
+  const nomeBase=posse==='proprio'?'sua meta':'sua estimativa';
+  if(isFinite(resultTop)&&resultTop>base){
+    const gap=resultTop-base;
     gc.style.display='';
     let rows='';
     const addG=(l,v,b,vIsTop)=>{
       rows+='<div class="gap-row"><span class="gl">'+l+'</span>'
         +'<span class="gv'+(vIsTop?' pos':'')+'">'+v+(b?' <span style="color:var(--azul);font-size:.7rem">→ '+b+'</span>':'')+'</span></div>';
     };
-    rows+='<div class="gap-row" style="font-size:.75rem;color:var(--azul);font-weight:bold"><span>Seu cenário atual</span><span>Potencial top fazenda</span></div>';
-    addG('Margem sobre a venda',pct(c.margem),'top: '+pct(R._cria?.margemTop||R._re?.margemTop));
+    rows+='<div class="gap-row" style="font-size:.75rem;color:var(--azul);font-weight:bold"><span>Seus indicadores</span><span>Top fazendas</span></div>';
+    addG('Margem sobre a venda',pct(c.margem),'ref.: '+pct(B.margem/100));
     if(R._cria){
       addG('Taxa de desmame',pct(g('desmame')/100),'top: '+pct(R._cria.desmameTop));
       if(sys==='cria') addG('Peso desmama',num(g('pesoDesmama'),0)+' kg','top: '+num(R._cria.pesoTop,0)+' kg');
@@ -678,13 +682,14 @@ function renderResults(R){
       addG('GMD atual',num(g('gmd'),3)+' kg/dia','top: '+num(R._re.gmdTop,3)+' kg/dia');
       addG('Giro de estoque',num(c.rebanho?c.faturamento/(c.rebanho*g('valorVenda')):0,2)+'×/ano','top: '+num(R._re.giroTop,2)+'×/ano');
     }
-    rows+='<div class="gap-row"><span class="gl" style="font-weight:bold">Faturamento atual</span><span class="gv">'+brl(c.faturamento)+'</span></div>';
+    rows+='<div class="gap-row"><span class="gl" style="font-weight:bold">Faturamento da '+nomeBase+'</span><span class="gv">'+brl(c.faturamento)+'</span></div>';
     rows+='<div class="gap-row"><span class="gl" style="font-weight:bold">Faturamento potencial</span><span class="gv pos">'+brl(fatTop)+'</span></div>';
-    rows+='<div class="gap-row" style="background:#dcedc8;border-radius:8px;padding:8px;margin-top:4px"><span class="gl" style="font-weight:bold;color:#1B5E20">Resultado atual</span><span class="gv pos">'+brl(c.resultadoEsp)+'</span></div>';
+    if(temReal) rows+='<div class="gap-row" style="background:#dcedc8;border-radius:8px;padding:8px;margin-top:4px"><span class="gl" style="font-weight:bold;color:#1B5E20">Resultado hoje (informado)</span><span class="gv pos">'+brl(real)+'</span></div>';
+    rows+='<div class="gap-row" style="background:#dcedc8;border-radius:8px;padding:'+(temReal?'4px 8px':'8px')+';margin-top:'+(temReal?'0':'4px')+'"><span class="gl" style="font-weight:bold;color:#1B5E20">Resultado da '+nomeBase+'</span><span class="gv pos">'+brl(c.resultadoEsp)+'</span></div>';
     rows+='<div class="gap-row" style="background:#dcedc8;border-radius:8px;padding:4px 8px"><span class="gl" style="font-weight:bold;color:#1B5E20">Potencial top fazenda</span><span class="gv pos">'+brl(resultTop)+'</span></div>';
-    rows+='<div class="gap-row" style="background:#fff9c4;border-radius:8px;padding:8px;margin-top:4px"><span class="gl" style="font-weight:bold;color:#5D4037">Deixando na mesa/ano</span><span class="gv" style="color:#E65100;font-size:1.1rem">'+brl(gap)+'</span></div>';
-    gc.innerHTML='<h3>'+IC.trend+' Potencial × Realidade</h3>'+rows
-      +'<div class="foot">Benchmarks: Instituto Inttegra · Safras 2020-2025. Potencial calculado com o mesmo rebanho aplicando indicadores das fazendas top rentáveis do Brasil.</div>';
+    rows+='<div class="gap-row" style="background:#fff9c4;border-radius:8px;padding:8px;margin-top:4px"><span class="gl" style="font-weight:bold;color:#5D4037">'+(temReal?'Deixando na mesa/ano':'Quanto as top fariam a mais/ano')+'</span><span class="gv" style="color:#E65100;font-size:1.1rem">'+brl(gap)+'</span></div>';
+    gc.innerHTML='<h3>'+IC.trend+(temReal?' Potencial × Realidade':(posse==='proprio'?' Sua meta × Top fazendas':' Sua estimativa × Top fazendas'))+'</h3>'+rows
+      +'<div class="foot">Benchmarks: Instituto Inttegra. Potencial calculado com o rebanho da '+nomeBase+', aplicando os indicadores das fazendas top rentáveis.'+(temReal?'':' Informe o resultado de hoje para ver quanto fica na mesa.')+'</div>';
   } else {
     gc.style.display='none';
   }
@@ -708,8 +713,15 @@ function renderResults(R){
   add('Faturamento anual',brl(c.faturamento),posse==='proprio'?'resultado / margem':'rebanho × produção × preço');
   add('Desembolso anual',brl(c.desembolso),'faturamento − resultado');
   if(posse==='arrendamento') add('Desembolso operacional',brl(c.desembolso-c.custoArrend),'desembolso − arrendamento');
-  addB('Desembolho/cab/mês',brl2(c.desembPerHead),'desembolso / rebanho / 12',
-       ({cria:'Ref. top: R$65/cab·mês',cc:'Ref. Inttegra: R$52/cab·mês',re:'Top 24/25: R$168/cab·mês'}[sys]||''));
+  if(sys==='re'&&R._re){
+    const semCompra=c.rebanho?(c.desembolso-R._re.desembReposAno)/c.rebanho/12:NaN;
+    add('Desembolso/cab/mês com a compra dos bois',brl2(c.desembPerHead),'desembolso / rebanho / 12');
+    addB('Desembolso/cab/mês sem a compra dos bois',brl2(semCompra),'(desembolso − reposição) / rebanho / 12',
+         'Ref. Inttegra RE 25/26: média R$196 · top rentáveis R$205/cab·mês. Confira se a referência inclui a compra');
+  } else {
+    addB('Desembolso/cab/mês',brl2(c.desembPerHead),'desembolso / rebanho / 12',
+         ({cria:'Ref. top: R$65/cab·mês',cc:'Ref. Inttegra: R$52/cab·mês'}[sys]||''));
+  }
 
   sep('Produção e rebanho');
   add('Vendas/ano',num(c.vendas,0)+' cab',sys==='re'?'animais vendidos por ano':'matrizes × taxa de desmame');
@@ -728,7 +740,7 @@ function renderResults(R){
   if(posse==='arrendamento'&&c.tipoCusto==='ha'&&isFinite(c.rebMin))
     add('Rebanho mínimo (arrendamento)',num(c.rebMin,0)+' cab','arrendamento / sobra por cabeça');
   addB('Lotação (cab/ha)',num(lotCab,2)+' cab/ha','rebanho / área produtiva',
-       ({cc:'Meta: ~1,8 UA/ha',re:'Top: 3,08 UA/ha (Inttegra 24/25)',cria:'Varia conforme bioma'}[sys]||''));
+       ({cc:'Meta: ~1,8 UA/ha',re:'Top rentáveis: 3,17 UA/ha (Inttegra 25/26)',cria:'Varia conforme bioma'}[sys]||''));
   add('Lotação (UA/ha)',num(lotUA,2)+' UA/ha','lotação × peso / 450 kg');
 
   sep('Receitas');
@@ -742,16 +754,16 @@ function renderResults(R){
     add('Produção/cab',num(R._re.producao,0)+' kg','peso abate − entrada');
     add('Permanência',num(R._re.permMeses,1)+' meses ('+num(R._re.permDias,0)+' d)','produção / GMD');
     addB('Giro de estoque',num(R._re.giro,2)+'×/ano','12 / permanência',
-         'Top <1000ha: '+num(BENCH.re.gmd,3)+' kg/dia GMD → mais giros');
+         'Top rentáveis: '+num(BENCH.re.gmd,3)+' kg/dia de GMD → mais giros');
     add('Custo de reposição/ano',brl(R._re.desembReposAno),'custo reposição × vendas');
     addB('Arrobas produzidas/ha/ano',num(R._re.arrobaHa,1)+' @/ha','(peso abate − entrada) ÷ 30 × vendas / área',
-         'Top 10: 59,7 @/ha (Inttegra 24/25)');
+         'Top rentáveis: 50,3 @/ha · Média: 30,1 (Inttegra 25/26)');
   }
 
   sep('Patrimônio');
   add('Valor do rebanho',brl(c.valorRebanho),'peso/30 × @ × rebanho');
   addB('Retorno sobre o rebanho',pct(resRebanho),'resultado / valor do rebanho',
-       ({cria:'Top 10: 23,6% (Inttegra 2026)',cc:'Meta: >10%',re:'Top 30%: 27,2% (Inttegra 24/25)'}[sys]||''));
+       ({cria:'Top 10: 23,6% (Inttegra 2026)',cc:'Meta: >10%',re:'Top rentáveis: 24,6% · Média: 7,3% (Inttegra 25/26)'}[sys]||''));
   add('Resultado / ha / ano',brl(resHaAno),'resultado / área produtiva');
   if(posse==='arrendamento') add('Lucro por cabeça/ano',brl2(lucroCab),'resultado / rebanho');
 

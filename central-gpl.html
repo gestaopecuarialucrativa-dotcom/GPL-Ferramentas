@@ -168,7 +168,7 @@ async function centralPost(action,data){
 /* =====================================================================
    DADOS: agenda (Central) + cada fazenda (pesagem e app)
    ===================================================================== */
-var D={ agenda:[], rotina:[], plano:[], envios:[], faz:{}, erros:[], quando:"" };
+var D={ agenda:[], rotina:[], plano:[], envios:[], boletins:{}, faz:{}, erros:[], quando:"" };
 async function carregarTudo(forcar){
   var c=cfg(); D.erros=[];
   $("topSub").textContent="atualizando…";
@@ -176,6 +176,8 @@ async function carregarTudo(forcar){
     .catch(function(e){ D.erros.push("Agenda: "+e.message); }) ];
   tarefas.push(central("tabela_ler","&tabela=Rotina").then(function(r){ if(!r||!r.ok) throw new Error(r&&r.msg||"rotina"); D.rotina=r.itens||[]; }).catch(function(e){ D.erros.push("Rotina: "+e.message); }));
   tarefas.push(central("tabela_ler","&tabela=Plano").then(function(r){ if(!r||!r.ok) throw new Error(r&&r.msg||"plano"); D.plano=r.itens||[]; }).catch(function(e){ D.erros.push("Plano de ação: "+e.message); }));
+  // boletim semanal: o app da fazenda grava cada boletim gerado (aba 📰 Boletins); a Central só lê (acao boletins_ler, Code.gs do app v4.45+)
+  c.fazendas.forEach(function(f){ if(!f.app) return; tarefas.push(jsonp(f.app+"?acao=boletins_ler",20000).then(function(r){ D.boletins[f.nome]=(r&&r.ok&&r.itens)?r.itens:null; }).catch(function(){ D.boletins[f.nome]=null; })); });
   tarefas.push(central("tabela_ler","&tabela=Envios").then(function(r){ D.envios=(r&&r.ok&&r.itens)||[]; }).catch(function(){}));   // sem v1.3 só fica vazio
   await Promise.all(tarefas);
   D.quando=new Date().toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"});
@@ -357,6 +359,7 @@ function telaAjustes(){
       +'<input id="fN'+i+'" value="'+esc(f.nome)+'" placeholder="Nome da fazenda">'
       +'<div class="lbl">Endereço da pesagem (Apps Script)</div><input id="fP'+i+'" value="'+esc(f.pesagem||"")+'">'
       +'<div class="lbl">Endereço do app da fazenda (Apps Script)</div><input id="fA'+i+'" value="'+esc(f.app||"")+'">'
+      +'<div class="lbl">Link do app da fazenda (site, pra abrir o boletim)</div><input id="fW'+i+'" value="'+esc(f.appWeb||"")+'" placeholder="https://…github.io/fazenda-gpl/">'
       +'<div class="lbl">Perfil do dono <span class="mini">(material Gama: perfis de pecuarista + DISC)</span></div><div class="linha"><select id="fPf'+i+'"><option value="">— perfil —</option>'+Object.keys(PERFIL_DONO).map(function(k){ return '<option value="'+k+'"'+(f.perfil===k?' selected':'')+'>'+PERFIL_DONO[k].n+'</option>'; }).join("")+'</select>'
       +'<select id="fDs'+i+'"><option value="">— cor DISC —</option>'+Object.keys(DISC_DONO).map(function(k){ return '<option value="'+k+'"'+(f.disc===k?' selected':'')+'>'+DISC_DONO[k].n+'</option>'; }).join("")+'</select></div>'
       +'<div class="lbl">Atendimento</div><select id="fAt'+i+'">'+[["","— escolher —"],["online","Online"],["presencial","Presencial"],["hibrido","Híbrido (online + visita)"]].map(function(o){ return '<option value="'+o[0]+'"'+((f.atendimento||"")===o[0]?' selected':'')+'>'+o[1]+'</option>'; }).join("")+'</select>'
@@ -420,10 +423,12 @@ function rotinaLateral(){
       return '<div class="pz '+cls+'"><div class="d">'+(x.data?'<b>'+x.data.slice(8)+'</b>'+MES_AB[+x.data.slice(5,7)-1]:'<b>—</b>sem data')+'</div><div class="x">'+esc(x.t)+'<small>'+(varias&&x.f?esc(x.f)+' · ':'')+(n===null?'clique em Agendar na rotina':faltaTxt(n))+(x.hora?' · '+esc(x.hora):'')+'</small></div></div>'; }).join("")||'<div class="vazio">Nada pendente.</div>';
   var ev=(D.envios||[]).slice();
   D.agenda.forEach(function(a){ if(/^cp\|/.test(a.id) && a.feito && /^enviado em/.test(a.obs||"") && !ev.some(function(e){ return e.relatorio==="Contas a pagar" && e.fazenda===a.fazenda && e.mes===a.id.split("|")[2]; })) ev.push({ fazenda:a.fazenda, mes:a.id.split("|")[2], relatorio:"Contas a pagar", enviado:a.obs.replace(/^enviado em /,"") }); });
+  Object.keys(D.boletins||{}).forEach(function(fz){ (D.boletins[fz]||[]).forEach(function(b){ var g=String(b.gerado||"").match(/(\d{4})-(\d{2})-(\d{2})\s*(\d{2}):(\d{2})/); if(!g) return;
+    ev.push({ fazenda:fz, mes:"", relatorio:"Boletim da semana "+brd(b.semana_ini), enviado:g[3]+"/"+g[2]+"/"+g[1]+" às "+g[4]+":"+g[5] }); }); });
   var dtEv=function(e){ var m=String(e.enviado||"").match(/(\d{2})\/(\d{2})\/(\d{4})(?: às (\d{2}):(\d{2}))?/); return m?m[3]+m[2]+m[1]+(m[4]||"00")+(m[5]||"00"):""; };
   ev.sort(function(a,b){ return dtEv(b).localeCompare(dtEv(a)); });
   var he=ev.slice(0,6).map(function(e){ var m=String(e.enviado||"").match(/(\d{2}\/\d{2})\/\d{4}(?: às (\d{2}:\d{2}))?/);
-      return '<div class="ev"><span>'+esc(e.relatorio)+' de '+(e.mes?MESES[+e.mes.split("-")[1]-1]:"")+(varias?' · '+esc(e.fazenda):'')+'</span><small>'+(m?m[1]+(m[2]?' '+m[2]:''):'')+'</small></div>'; }).join("")||'<div class="vazio">Nenhum relatório enviado ainda.</div>';
+      return '<div class="ev"><span>'+esc(e.relatorio)+(e.mes?' de '+MESES[+e.mes.split("-")[1]-1]:"")+(varias?' · '+esc(e.fazenda):'')+'</span><small>'+(m?m[1]+(m[2]?' '+m[2]:''):'')+'</small></div>'; }).join("")||'<div class="vazio">Nenhum relatório enviado ainda.</div>';
   var ab=D.plano.filter(function(p){ return p.situacao!=="feito"; }), at=ab.filter(function(p){ return p.prazo && p.prazo<h; });
   var bloco=function(k,tit,corpo){ return '<div class="lcard'+(RECOLHE[k]?' fech':'')+'"><h4 onclick="recolher(\''+k+'\')">'+tit+'<span class="seta">▾</span></h4><div class="lc">'+corpo+'</div></div>'; };
   return bloco("lat_pz","Próximos prazos",hp)+bloco("lat_ev","Enviado ao dono",he)
@@ -446,7 +451,7 @@ function telaRotina(){
     x+='<div class="card'+(fechada?' fech':'')+'"><div class="rcab" onclick="recolher(\''+esc(kf).replace(/'/g,"\\'")+'\')"><b>'+esc(f.nome)+'</b><div class="pr"><i style="width:'+pct+'%"></i></div><span class="mini">'+feitos+' de '+ets.length+'</span><span class="seta">▾</span></div>';
     if(fechada){ var prox=EE.filter(function(E){ var r=rotItem(f.nome,MES,E.nome); return !(r&&r.feito); })[0];
       x+='<div class="rres">'+(prox?'Próxima: '+esc(etapaTitulo(prox.nome,MES))+(prox.dia?' · <b>até '+String(prox.dia).padStart(2,"0")+'/'+MES.slice(5)+'</b>':''):'Tudo feito no mês ✓')+'</div></div>'; return; }
-    x+=cpLinha(f,fi);
+    x+=cpLinha(f,fi)+bolLinha(f);
     var secAtual="";
     EE.forEach(function(E,ei){
       var et=E.nome, r=rotItem(f.nome,MES,et), ok=r&&r.feito, atr=etapaAtrasada(E,MES,ok);
@@ -847,6 +852,23 @@ async function cpEnviado(faz,v,mesX){
   a.feito=v; a.obs=v?("enviado em "+String(n.getDate()).padStart(2,"0")+"/"+String(n.getMonth()+1).padStart(2,"0")+"/"+n.getFullYear()+" às "+String(n.getHours()).padStart(2,"0")+":"+String(n.getMinutes()).padStart(2,"0")):"";
   render();
   try{ await centralPost("agenda_salvar",{itens:[a]}); }catch(e){ a.feito=ant; a.obs=antObs; render(); alert("Não salvou: "+e.message); }
+}
+/* boletim semanal do app da fazenda: uma marca por semana (segunda a sábado) que começa no mês */
+function bolSemanas(mes){ var p=mes.split("-"), d=new Date(+p[0],+p[1]-1,1), out=[]; while(d.getDay()!==1) d.setDate(d.getDate()+1);
+  while(d.getMonth()===+p[1]-1){ out.push(isoDe(d)); d.setDate(d.getDate()+7); } return out; }
+function bolLinha(f){
+  var B=D.boletins[f.nome]; if(B===undefined) return '';
+  if(B===null) return '<div class="item" style="padding:8px 0"><div class="ico">'+ICO.agenda+'</div><div style="flex:1;min-width:0"><div class="it1" style="font-size:14px">Boletim semanal</div><div class="it2">não consegui ler o app da fazenda (falta atualizar o Code.gs do app para a v4.45?)</div></div></div>';
+  var h=hoje(), feitos={}; B.forEach(function(b){ if(b.semana_ini) feitos[b.semana_ini]=b; });
+  var sem=bolSemanas(MES), nOk=0, nAtr=0;
+  var chips=sem.map(function(seg){ var sab=somaDias(seg,5), b=feitos[seg], cor, t=seg.slice(8)+"/"+seg.slice(5,7);
+    if(b){ nOk++; cor='background:var(--v7);color:var(--v1);border-color:#9fcf96'; t+=' ✓'; }
+    else if(sab<h){ nAtr++; cor='background:#fdecea;color:var(--danger);border-color:#efb3ab'; }
+    else cor='background:#fff;color:var(--muted)';
+    return '<span title="'+(b?'gerado em '+esc(b.gerado):'semana de '+brd(seg)+' a '+brd(sab))+'" style="border:1px solid var(--line);border-radius:8px;padding:3px 8px;font-size:12px;font-weight:700;'+cor+'">'+t+'</span>'; }).join(" ");
+  return '<div class="item"><div class="ico '+(nAtr?'err':(nOk?'ok':''))+'">'+(nAtr?ICO.agenda:ICO.check)+'</div><div style="flex:1;min-width:0"><div class="it1" style="font-size:14px">Boletim semanal ao dono</div>'
+    +'<div class="it2" style="display:flex;flex-wrap:wrap;gap:5px;margin-top:4px">'+chips+'</div>'+(nAtr?'<div class="it2" style="color:var(--danger);font-weight:700;margin-top:3px">'+nAtr+' semana'+(nAtr>1?'s':'')+' sem boletim</div>':'')+'</div>'
+    +'<div class="acts">'+(f.appWeb?'<a class="b" href="'+esc(f.appWeb)+'" target="_blank" rel="noopener" style="text-decoration:none">Abrir app</a>':'')+'</div></div>';
 }
 function cpLinha(f,fi){
   var a=cpAgenda(f.nome,MES), ok=a&&a.feito, atras=!ok && MES<=hoje().slice(0,7) && (MES+"-01")<hoje();
@@ -1385,7 +1407,7 @@ function lerAjustes(c){
   if($("cEtT")) c.rotinaTri=$("cEtT").value.split("\n").map(function(x){ return x.trim(); }).filter(Boolean);
   c.fazendas=c.fazendas.map(function(f,i){ var mt=$("fT"+i+"_1")?MES_AB.map(function(m,k){ return $("fT"+i+"_"+(k+1)).checked?k+1:0; }).filter(Boolean):(f.mesesTri||[]);
     return { nome:($("fN"+i)?$("fN"+i).value.trim():f.nome), pesagem:($("fP"+i)?$("fP"+i).value.trim():f.pesagem), app:($("fA"+i)?$("fA"+i).value.trim():f.app), mesesTri:mt, fechFreq:($("fF"+i)?$("fF"+i).value:(f.fechFreq||"mes")),
-      perfil:($("fPf"+i)?$("fPf"+i).value:(f.perfil||"")), disc:($("fDs"+i)?$("fDs"+i).value:(f.disc||"")), objetivo:($("fOb"+i)?$("fOb"+i).value.trim():(f.objetivo||"")), atendimento:($("fAt"+i)?$("fAt"+i).value:(f.atendimento||"")) }; }).filter(function(f){ return f.nome; });
+      perfil:($("fPf"+i)?$("fPf"+i).value:(f.perfil||"")), disc:($("fDs"+i)?$("fDs"+i).value:(f.disc||"")), objetivo:($("fOb"+i)?$("fOb"+i).value.trim():(f.objetivo||"")), atendimento:($("fAt"+i)?$("fAt"+i).value:(f.atendimento||"")), appWeb:($("fW"+i)?$("fW"+i).value.trim():(f.appWeb||"")) }; }).filter(function(f){ return f.nome; });
   return c;
 }
 async function salvarAjustes(){

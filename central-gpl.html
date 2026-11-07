@@ -359,6 +359,7 @@ function telaAjustes(){
       +'<div class="lbl">Endereço do app da fazenda (Apps Script)</div><input id="fA'+i+'" value="'+esc(f.app||"")+'">'
       +'<div class="lbl">Perfil do dono <span class="mini">(material Gama: perfis de pecuarista + DISC)</span></div><div class="linha"><select id="fPf'+i+'"><option value="">— perfil —</option>'+Object.keys(PERFIL_DONO).map(function(k){ return '<option value="'+k+'"'+(f.perfil===k?' selected':'')+'>'+PERFIL_DONO[k].n+'</option>'; }).join("")+'</select>'
       +'<select id="fDs'+i+'"><option value="">— cor DISC —</option>'+Object.keys(DISC_DONO).map(function(k){ return '<option value="'+k+'"'+(f.disc===k?' selected':'')+'>'+DISC_DONO[k].n+'</option>'; }).join("")+'</select></div>'
+      +'<div class="lbl">Atendimento</div><select id="fAt'+i+'">'+[["","— escolher —"],["online","Online"],["presencial","Presencial"],["hibrido","Híbrido (online + visita)"]].map(function(o){ return '<option value="'+o[0]+'"'+((f.atendimento||"")===o[0]?' selected':'')+'>'+o[1]+'</option>'; }).join("")+'</select>'
       +'<div class="lbl">Objetivo do dono pros próximos 12 meses</div><input id="fOb'+i+'" value="'+esc(f.objetivo||"")+'" placeholder="ex.: melhorar a margem por hectare">'
       +'<div class="lbl">Fechamento financeiro</div><select id="fF'+i+'"><option value="mes"'+(f.fechFreq!=="tri"?' selected':'')+'>Mensal</option><option value="tri"'+(f.fechFreq==="tri"?' selected':'')+'>Trimestral (nos meses marcados abaixo)</option></select>'
       +'<div class="lbl">Meses do trimestre (visita e consolidado)</div><div style="display:flex;flex-wrap:wrap;gap:6px">'+MES_AB.map(function(m,k){ var on=(f.mesesTri||[]).indexOf(k+1)>=0;
@@ -587,6 +588,8 @@ function reuResumo(o){
 function reuAcoes(){ var f=cfg().fazendas[REU.fi];
   return D.plano.filter(function(p){ return p.fazenda===f.nome && (p.situacao!=="feito" || REU.mexidos[p.id]) && REU.novos.indexOf(p.id)<0; })
     .sort(function(a,b){ return (a.prazo||"9999").localeCompare(b.prazo||"9999"); }); }
+function reuUsar(i){ var f=cfg().fazendas[REU.fi]; var L=feAcoesFazer(REU.fe&&REU.fe.fazer).filter(function(t){ return !D.plano.some(function(p){ return p.fazenda===f.nome && p.acao.trim().toLowerCase()===t.toLowerCase(); }); });
+  var e=$("rNa"); if(e&&L[i]){ e.value=L[i]; $("rNr").focus(); } }
 function reuSit(id,sit){ REU.mexidos[id]=1; sitPlano(id,sit); }
 async function reuNova(){
   var f=cfg().fazendas[REU.fi], ac=$("rNa").value.trim(); if(!ac){ $("rNa").focus(); return; }
@@ -612,7 +615,7 @@ async function reuEncerrar(){
 function telaReuniao(){
   var c=cfg(), f=c.fazendas[REU.fi]||{}, mref=MESES[+REU.ref.split("-")[1]-1], r0=function(v){ return "R$ "+fmt(Math.round(v)); };
   var x='<div style="display:flex;gap:12px;align-items:center;margin-bottom:14px;flex-wrap:wrap"><button class="b g" onclick="ABA=\'rotina\';REU=null;render()">‹ Rotina</button>'
-    +'<div style="flex:1;min-width:200px"><b style="font-size:20px">Reunião mensal · '+esc(f.nome)+'</b><div class="mini">'+MESES[+MES.split("-")[1]-1]+' · números de '+mref+'</div></div>'
+    +'<div style="flex:1;min-width:200px"><b style="font-size:20px">Reunião mensal · '+esc(f.nome)+'</b><div class="mini">'+MESES[+MES.split("-")[1]-1]+' · números de '+mref+(f.atendimento?' · atendimento '+({online:"online",presencial:"presencial",hibrido:"híbrido"}[f.atendimento]||""):'')+'</div></div>'
     +'<button class="b" onclick="imprimirReuniao()">Imprimir pauta</button><button class="b p" onclick="reuEncerrar()">Encerrar reunião</button></div>';
   var passo=function(n,t,s,corpo){ return '<div class="card" style="padding:14px 18px;margin-bottom:14px"><div style="display:flex;align-items:center;gap:12px;margin-bottom:6px;flex-wrap:wrap"><span style="width:30px;height:30px;border-radius:50%;background:var(--v1);color:#fff;font-weight:800;display:grid;place-items:center;flex:none">'+n+'</span><b style="font-size:16px">'+t+'</b><span class="mini">'+s+'</span></div>'+corpo+'</div>'; };
   // passo 1
@@ -628,9 +631,11 @@ function telaReuniao(){
   else {
     p2='';
     if(REU.fe && REU.fe.dre){ var r=reuResumo(REU.fe);
+      p2+='<div class="mini" style="background:#f6f8f5;border-radius:8px;padding:7px 10px;margin:2px 0 10px;color:#3d5a3f">'+esc(feContexto(REU.fe,REU.ref))+'</div>';
       p2+='<div class="kpis" style="grid-template-columns:repeat(auto-fit,minmax(140px,1fr))">'+[["Receitas",r.rec],["Custeio",r.cus],["Investimentos",r.inv],["Saldo do mês",r.saldo]].map(function(k){ return '<div class="kpi"><div class="k1">'+k[0]+'</div><div class="k2">'+r0(k[1])+'</div></div>'; }).join("")+'</div>'
         +r.top.map(function(u){ return '<div style="display:flex;justify-content:space-between;font-size:14px;padding:6px 0;border-bottom:1px solid #f0f3ef"><span>'+esc(u.nome)+'</span><span class="mini">'+r0(u.v)+'</span></div>'; }).join("")
         +(r.compra>0?'<div style="display:flex;justify-content:space-between;font-size:14px;padding:6px 0"><span>Compra de gado'+(r.cab?' · '+r.cab+' cabeças':'')+'</span><span class="mini">'+r0(r.compra)+'</span></div>':'')
+        +(String(REU.fe.obs||"").trim()?'<div style="border-left:3px solid #8BC34A;background:#f3f7f1;padding:8px 12px;margin-top:10px;font-size:14px;border-radius:0 8px 8px 0"><b style="display:block;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:#1f6b33">O que os números mostram</b>'+esc(REU.fe.obs.trim())+'</div>':'')
         +'<div style="margin:8px 0 4px"><button class="b" onclick="feAbrir('+REU.fi+')">Ver o Fechamento completo</button></div>';
     } else p2+='<div class="vazio">O Fechamento de '+mref+' ainda não foi importado. <button class="b" onclick="feAbrir('+REU.fi+')">Abrir Fechamento</button></div>';
     p2+=REU.campo?'<div style="margin-top:12px"><b style="font-size:14px">No campo</b><style>'+CSS_REL+'</style>'+relCampoHTML(REU.campo,f.nome,"campo")+'</div>':(REU.campoErro?'<div class="mini">Campo: '+esc(REU.campoErro)+'</div>':'');
@@ -638,7 +643,10 @@ function telaReuniao(){
   x+=passo(2,"Os números do mês","do Fechamento de "+mref+" e do campo",p2);
   // passo 3
   var N=D.plano.filter(function(p){ return REU.novos.indexOf(p.id)>=0; });
-  var p3='<div style="display:grid;grid-template-columns:minmax(0,1fr) 150px 150px auto;gap:8px" class="reu-nv"><input id="rNa" placeholder="O que fazer…" onkeydown="if(event.key===\'Enter\')reuNova()"><input id="rNr" placeholder="Quem"><input id="rNp" type="date"><button class="b p" onclick="reuNova()">+ Incluir</button></div>'
+  var jaTem=function(t){ return D.plano.some(function(p){ return p.fazenda===f.nome && p.acao.trim().toLowerCase()===t.toLowerCase(); }); };
+  var sug=REU.fe?feAcoesFazer(REU.fe.fazer).filter(function(t){ return !jaTem(t); }):[];
+  var p3=(sug.length?'<div class="mini" style="margin:0 0 6px">Do Fechamento ("o que fazer agora") — toque para usar:</div><div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px">'+sug.map(function(t,i){ return '<button class="b g" style="text-align:left" onclick="reuUsar('+i+')">+ '+esc(t)+'</button>'; }).join("")+'</div>':'')
+    +'<div style="display:grid;grid-template-columns:minmax(0,1fr) 150px 150px auto;gap:8px" class="reu-nv"><input id="rNa" placeholder="O que fazer…" onkeydown="if(event.key===\'Enter\')reuNova()"><input id="rNr" placeholder="Quem"><input id="rNp" type="date"><button class="b p" onclick="reuNova()">+ Incluir</button></div>'
     +(N.length?N.map(function(p){ return '<div class="item"><div style="flex:1"><div class="it1" style="font-size:14px">'+esc(p.acao)+'</div><div class="it2">'+esc(p.resp||"sem responsável")+(p.prazo?' · até '+brd(p.prazo):'')+'</div></div><span class="mini" style="color:var(--v1)">no Plano ✓</span></div>'; }).join(""):'')
     +'<div class="mini" style="margin-top:8px">Ao encerrar: a etapa "Reunião mensal" fica feita na Rotina e as ações novas aparecem no passo 1 da próxima reunião.</div>';
   x+=passo(3,"O que fica combinado agora","cada ação com responsável e prazo · vai pro Plano",p3)+'</div>';
@@ -993,8 +1001,8 @@ function feChave(){ return "gpl_fe_"+FE.faz+"_"+FE.mes; }
 function feTrab(){ return mesMais(FE.mes,1); }
 function feMesCurto(m){ return MESES[+m.split("-")[1]-1]; }
 function feCarregarLocal(){
-  FE.dre=null; FE.desp=null; FE.obs=""; FE.top=null; FE.cab=""; FE.compras=null; FE.salvo=""; FE.topEd=false;
-  try{ var g=JSON.parse(localStorage.getItem(feChave())||"null"); if(g){ FE.dre=g.dre; FE.desp=g.desp; FE.obs=g.obs||""; FE.top=g.top||null; FE.cab=g.cab||""; FE.compras=g.compras||null; FE.salvo=g._salvo||""; } }catch(e){}
+  FE.dre=null; FE.desp=null; FE.obs=""; FE.fazer=""; FE.top=null; FE.cab=""; FE.compras=null; FE.salvo=""; FE.topEd=false;
+  try{ var g=JSON.parse(localStorage.getItem(feChave())||"null"); if(g){ FE.dre=g.dre; FE.desp=g.desp; FE.obs=g.obs||""; FE.fazer=g.fazer||""; FE.top=g.top||null; FE.cab=g.cab||""; FE.compras=g.compras||null; FE.salvo=g._salvo||""; } }catch(e){}
 }
 var FE_CSS='#feOv{position:fixed;inset:0;z-index:50;background:#e9eee8;display:flex;flex-direction:column;font-family:Arial,Helvetica,sans-serif}'
  +'.fe-top{display:flex;align-items:center;gap:12px;padding:9px 16px;background:#123d1d;color:#fff;flex-wrap:wrap}.fe-top b.t{font-size:15px}'
@@ -1074,14 +1082,16 @@ function fePainel(){
       +(c.st==="ok"?(c.top?'<button type="button" class="fe-tr" onclick="FE.topEd=true;fePainel()">trocar</button>':(c.cab&&!FE.compras?'':'<button type="button" class="fe-tr" onclick="feEscolher()">trocar</button>')):'')+'</div></div>';
   });
   h+='<div class="fe-drop" onclick="feEscolher()"><b>Arraste aqui os arquivos da pasta Downloads</b>pode soltar todos juntos — ou clique para escolher</div>';
-  h+='<div class="fe-h">Sua leitura do mês <span>vai na página 2</span></div><textarea id="feObs" maxlength="700" placeholder="Ex.: suplementação acima do Top é planejada — meta de GMD e @/ha. Compra de garrotes para a recria.">'+esc(FE.obs||"")+'</textarea><div id="feBancoMsg"></div>';
+  h+='<div class="fe-h">O que os números mostram <span>o que aconteceu · página 2</span></div><textarea id="feObs" maxlength="600" placeholder="Ex.: suplementação acima do Top é planejada — meta de GMD e @/ha. Compra de garrotes para a recria.">'+esc(FE.obs||"")+'</textarea>'
+    +'<div class="fe-h" style="margin-top:12px">O que fazer agora <span>uma ação por linha · vira ação na reunião</span></div><textarea id="feFazer" maxlength="500" style="width:100%;border:1.5px solid #cbd6ca;border-radius:10px;padding:10px;font:14px Arial;min-height:70px;resize:vertical" placeholder="Ex.: cotar o sal com 2 fornecedores">'+esc(FE.fazer||"")+'</textarea><div id="feBancoMsg"></div>';
   $("fePainel").innerHTML=h;
   var tm=null;
   if($("feCab")) $("feCab").addEventListener("change",function(){ FE.cab=this.value; feGuardar(); fePainel(); feDesenhar(); });
   if($("feTop")) $("feTop").addEventListener("input",function(){ var r=feLerTop(this.value); if(r){ FE.top=r; FE.topEd=false; feGuardar(); fePainel(); feDesenhar(); } else $("feTopMsg").textContent="Não reconheci — copie do título \"Centro de Custo\" até a linha \"Outros\"."; });
   $("feObs").addEventListener("input",function(){ FE.obs=this.value; feGuardar(); clearTimeout(tm); tm=setTimeout(feDesenhar,600); });
+  $("feFazer").addEventListener("input",function(){ FE.fazer=this.value; feGuardar(); clearTimeout(tm); tm=setTimeout(feDesenhar,600); });
 }
-function feObj(){ return {dre:FE.dre,desp:FE.desp,obs:FE.obs,top:FE.top,cab:FE.cab||"",compras:FE.compras||null,_salvo:FE.salvo||""}; }
+function feObj(){ return {dre:FE.dre,desp:FE.desp,obs:FE.obs,fazer:FE.fazer||"",top:FE.top,cab:FE.cab||"",compras:FE.compras||null,_salvo:FE.salvo||""}; }
 function feGuardar(ja){
   FE.salvo=new Date().toISOString();
   try{ localStorage.setItem(feChave(), JSON.stringify(feObj())); }catch(e){}
@@ -1103,7 +1113,7 @@ async function feSincronizar(){
   try{
     var g=await bancoLer("fe",faz,mes); if(FE.faz!==faz||FE.mes!==mes) return;
     if(g && (!FE.dre || String(g._salvo||"")>String(FE.salvo||""))){
-      FE.dre=g.dre; FE.desp=g.desp||FE.desp; FE.obs=g.obs||""; FE.top=g.top||null; FE.cab=g.cab||""; FE.compras=g.compras||null; FE.salvo=g._salvo||"";
+      FE.dre=g.dre; FE.desp=g.desp||FE.desp; FE.obs=g.obs||""; FE.fazer=g.fazer||""; FE.top=g.top||null; FE.cab=g.cab||""; FE.compras=g.compras||null; FE.salvo=g._salvo||"";
       try{ localStorage.setItem(feChave(), JSON.stringify(feObj())); }catch(e){}
       fePainel(); feDesenhar(); bancoMsg("feBancoMsg","aberto da planilha ✓",true);
     } else bancoMsg("feBancoMsg",g?"igual à planilha ✓":(FE.dre?"ainda não está na planilha — salvando…":""),!!g);
@@ -1215,6 +1225,16 @@ function feOndeFoi(nos){
 }
 /* meses da safra (jul→jun) até o mês do relatório — base da média mensal */
 function feMesesSafra(mes){ var p=mes.split("-"), m=+p[1]; return m>=7?m-6:m+6; }
+/* linha de contexto antes dos números: mês da safra, rebanho médio (do Top Rentáveis) e o que teve de diferente no mês */
+function feContexto(o,mes){
+  var m=+mes.split("-")[1], a=+mes.slice(2,4), saf=m>=7?a+"/"+(a+1):(a-1)+"/"+a, nm=feMesesSafra(mes), nos=o.dre?o.dre.nos:[], x=["Safra "+saf+", "+nm+"º mês"];
+  if(o.top&&o.top.rebanho) x.push("rebanho médio "+fmt(o.top.rebanho)+" cab.");
+  var compra=nos.some(function(n){ return /^3\.1\s*-/.test(n.nome) && n.mes<0; }), venda=nos.some(function(n){ return /^1\./.test(n.nome) && /pecu[aá]ri|venda|bovino|gado|animal|macho|f[eê]mea|boi|vaca|bezerr|novilh/i.test(n.nome) && n.mes>0; });
+  if(compra||venda) x.push("mês com "+(compra&&venda?"compra de gado e venda":(compra?"compra de gado":"venda de gado")));
+  return x.join(" · ");
+}
+/* "o que fazer agora": uma ação por linha */
+function feAcoesFazer(t){ return String(t||"").split(/\r?\n/).map(function(x){ return x.replace(/^[\s•\-–·*]+/,"").trim(); }).filter(Boolean); }
 function feHTML(){
   var d=FE.dre, nos=d.nos, faz=FE.faz, mesN=mesNome(FE.mes), f=cfg().fazendas[FE.fi], falta=fechPendente(f,feTrab()), previa=falta.length>0;
   var top=function(re){ return nos.filter(function(n){ return n.nivel===0 && re.test(n.nome); }); };
@@ -1242,7 +1262,7 @@ function feHTML(){
    +'.hb{padding:0 13mm}.hb>div{display:grid;grid-template-columns:52mm 1fr 30mm;gap:3mm;align-items:center;margin:1.6mm 0;font-size:9pt}.hb .t{height:3.6mm;background:#eef1ed;border-radius:2mm;overflow:hidden}.hb .t i{display:block;height:100%;background:#1f6b33}.hb .t i.lj{background:#c9820a}.hb b:last-child{text-align:right}'
    +'table{width:calc(100% - 26mm);margin:0 13mm;border-collapse:collapse;font-size:8.8pt}th{text-align:left;font-size:7.2pt;color:#6b7b6f;font-weight:700;padding:1.4mm 1mm;border-bottom:2px solid #1f6b33;text-transform:uppercase}td{padding:1.6mm 1mm;border-bottom:1px solid #eef1ed}.n{text-align:right;white-space:nowrap}'
    +'.tag{font-size:7pt;font-weight:800;padding:.6mm 2mm;border-radius:3mm;white-space:nowrap}.wa{background:#FFF3E0;color:#E65100}.ok{background:#E8F5E9;color:#2E7D32}.ac{background:#eaf0f6;color:#3b5b7a}.fr{font-family:Georgia,serif;font-size:14pt;line-height:1.4;margin:0 13mm 4mm;color:#16261a}.gd{margin:0 13mm 4mm;border-left:1.2mm solid #123d1d;padding:1mm 0 1mm 4mm}.gd .k{font-size:8.5pt;color:#6b7b6f}.gd .v{font-size:15pt;font-weight:700;color:#123d1d}.gd .v small{font-size:9.5pt;font-weight:400;color:#4a5a4e}.gd .s{font-size:8.5pt;color:#4a5a4e}.sub{font-size:9pt;color:#4a5a4e;margin:0 13mm 3mm}.rr{margin:0 13mm 3.6mm}.rr .h{display:flex;justify-content:space-between;font-size:10.5pt}.rr .h span{font-weight:700}.rr .t{height:1.8mm;background:#eef1ed;margin:1mm 0 .8mm}.rr .t i{display:block;height:100%;background:#1f6b33}.rr .d{font-size:8pt;color:#6b7b6f}.rs{margin:2mm 13mm 0;font-size:8.6pt;color:#4a5a4e;line-height:1.6;border-top:1px solid #e3e8e2;padding-top:2mm}.ax td{padding:.5mm 1mm;font-size:7.7pt;line-height:1.22}.ax td:first-child{white-space:nowrap;width:17mm}.ax td:nth-child(2){width:38mm}.ax tr.gh td{background:#f3f6f2;font-weight:700;color:#123d1d;font-size:8.6pt;padding-top:1.3mm}.nt{margin:0 13mm;background:#f3f6f9;color:#2b3d4f;border-radius:2.6mm;padding:3mm 4mm;font-size:9.2pt;line-height:1.5}'
-   +'.al{margin:0 13mm;background:#FFF3E0;color:#7a4a00;border-radius:2.6mm;padding:3mm 4mm;font-size:9.3pt;line-height:1.5}.tx{padding:0 13mm;font-size:10pt;line-height:1.5;white-space:pre-wrap}.lc{margin:5mm 13mm 0;border-left:3px solid #8BC34A;background:#f3f7f1;padding:3mm 4mm;font-size:10pt;line-height:1.5;white-space:pre-wrap;color:#16261a}.lc b{display:block;font-size:8pt;letter-spacing:1.5px;text-transform:uppercase;color:#1f6b33;margin-bottom:1mm}'
+   +'.al{margin:0 13mm;background:#FFF3E0;color:#7a4a00;border-radius:2.6mm;padding:3mm 4mm;font-size:9.3pt;line-height:1.5}.tx{padding:0 13mm;font-size:10pt;line-height:1.5;white-space:pre-wrap}.ctx{margin:0 13mm 3mm;font-size:9pt;color:#3d5a3f;background:#f6f8f5;border-radius:1.6mm;padding:2mm 3mm}.lc.o{border-left-color:#e6a13a;background:#fff8ec}.lc.o b{color:#8a5a00}.lc{margin:5mm 13mm 0;border-left:3px solid #8BC34A;background:#f3f7f1;padding:3mm 4mm;font-size:10pt;line-height:1.5;white-space:pre-wrap;color:#16261a}.lc b{display:block;font-size:8pt;letter-spacing:1.5px;text-transform:uppercase;color:#1f6b33;margin-bottom:1mm}'
    +'.rod{position:absolute;bottom:6mm;left:13mm;right:13mm;display:flex;justify-content:space-between;font-size:7.5pt;color:#8a978d}';
   var ASS='Rogério · Consultor GPL', CONT='(63) 99108-2453 · @gestaopecuarialucrativa', P=[];
   P.push('<div class="pg cap"><img src="'+LOGO_GPL+'"><div class="k">FECHAMENTO FINANCEIRO · '+esc(mesN.toUpperCase())+'</div><h1>'+esc(faz)+'</h1><div class="s">Receitas '+cpR(R.rec)+' · Saldo '+cpR(R.saldo)+'</div><div class="ln"></div>'
@@ -1251,9 +1271,11 @@ function feHTML(){
     +'<div class="ft"><span>'+ASS+'</span><span>'+CONT+'</span></div></div>');
   var cab='<div class="pg"><div class="hd"><img src="'+LOGO_GPL+'"><span>Fechamento · '+esc(faz)+' · '+esc(mesN)+'</span></div>', rod=function(n){ return '<div class="rod"><span>Fonte: Inttegra · DRE Financeiro'+(FE.desp?' e Despesas e Receitas':'')+' · '+esc(d.periodo)+'</span><span>'+ASS+' · __PG__</span></div></div>'; };
   var p2=cab+'<div class="ey">O mês em números</div><div class="tt">Resultado de '+esc(MESES[+FE.mes.split("-")[1]-1])+'</div>'
+    +'<div class="ctx">'+esc(feContexto(FE,FE.mes))+'</div>'
     +'<div class="kp"><div><b>'+cpR(R.rec)+'</b><span>receitas</span><i>safra: '+cpR(R.recA)+'</i></div><div><b>'+cpR(R.cus)+'</b><span>custeio (produção + suporte + mão de obra)</span><i>safra: '+cpR(R.cusA)+'</i></div><div><b>'+cpR(R.inv)+'</b><span>investimentos (gado, estrutura, máquinas)</span><i>safra: '+cpR(R.invA)+'</i></div><div><b>'+cpR(R.saldo)+'</b><span>saldo do mês</span><i>safra: '+cpR(R.saldoA)+'</i></div></div>'
     +'<div class="sm">Receita menos custeio no mês: <b>'+cpR(R.op)+'</b> (safra: '+cpR(R.opA)+'). Valores pelo regime de pagamento (caixa), como na Inttegra. Média/mês da safra = acumulado ÷ '+nm+' mês(es) (safra jul→jun), só como informação.</div>'
-    +(String(FE.obs||"").trim()?'<div class="lc"><b>Leitura do consultor</b>'+esc(FE.obs.trim())+'</div>':'')
+    +(String(FE.obs||"").trim()?'<div class="lc"><b>O que os números mostram</b>'+esc(FE.obs.trim())+'</div>':'')
+    +(feAcoesFazer(FE.fazer).length?'<div class="lc o"><b>O que fazer agora</b>'+feAcoesFazer(FE.fazer).map(esc).join(' · ')+'</div>':'')
     +feOndeFoi(nos)+rod();
   P.push(p2);
   var p3=cab+'<div class="ey">Referência</div><div class="tt">'+esc(faz.replace(/^Fazenda\s+/i,""))+' × Top Rentáveis</div>';
@@ -1363,7 +1385,7 @@ function lerAjustes(c){
   if($("cEtT")) c.rotinaTri=$("cEtT").value.split("\n").map(function(x){ return x.trim(); }).filter(Boolean);
   c.fazendas=c.fazendas.map(function(f,i){ var mt=$("fT"+i+"_1")?MES_AB.map(function(m,k){ return $("fT"+i+"_"+(k+1)).checked?k+1:0; }).filter(Boolean):(f.mesesTri||[]);
     return { nome:($("fN"+i)?$("fN"+i).value.trim():f.nome), pesagem:($("fP"+i)?$("fP"+i).value.trim():f.pesagem), app:($("fA"+i)?$("fA"+i).value.trim():f.app), mesesTri:mt, fechFreq:($("fF"+i)?$("fF"+i).value:(f.fechFreq||"mes")),
-      perfil:($("fPf"+i)?$("fPf"+i).value:(f.perfil||"")), disc:($("fDs"+i)?$("fDs"+i).value:(f.disc||"")), objetivo:($("fOb"+i)?$("fOb"+i).value.trim():(f.objetivo||"")) }; }).filter(function(f){ return f.nome; });
+      perfil:($("fPf"+i)?$("fPf"+i).value:(f.perfil||"")), disc:($("fDs"+i)?$("fDs"+i).value:(f.disc||"")), objetivo:($("fOb"+i)?$("fOb"+i).value.trim():(f.objetivo||"")), atendimento:($("fAt"+i)?$("fAt"+i).value:(f.atendimento||"")) }; }).filter(function(f){ return f.nome; });
   return c;
 }
 async function salvarAjustes(){

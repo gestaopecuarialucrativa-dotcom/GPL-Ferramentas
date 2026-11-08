@@ -280,7 +280,7 @@ function render(){
     return '<div class="aba'+(ABA===a[0]?' on':'')+'" onclick="ABA=\''+a[0]+'\';render()">'+a[1]+'</div>'; }).join("")+'</div>';
   var abasT=[["rotina","Rotina"],["plano","Plano"],["agenda","Agenda"],["sistemas","Sistemas"],["ajustes","Ajustes"]];
   $("topAbas").innerHTML=abasT.map(function(a){ return '<span class="'+(ABA===a[0]||(a[0]==="rotina"&&(ABA==="reuniao"||ABA==="campo"))?'on':'')+'" onclick="ABA=\''+a[0]+'\';render()">'+a[1]+'</span>'; }).join("");
-  app.className="wrap"+(ABA==="rotina"||ABA==="reuniao"?" larga":"");
+  app.className="wrap"+(ABA==="rotina"||ABA==="reuniao"||ABA==="plano"?" larga":"");
   if(D.erros.length) h+='<div class="erro">'+D.erros.map(esc).join("<br>")+'</div>';
   if(ABA==="campo"){ app.innerHTML=telaCampo(); return; }
   if(ABA==="reuniao"){ app.innerHTML=telaReuniao(); return; }
@@ -362,6 +362,9 @@ function telaAjustes(){
       +'<div class="lbl">Link do app da fazenda (site, pra abrir o boletim)</div><input id="fW'+i+'" value="'+esc(f.appWeb||"")+'" placeholder="https://…github.io/fazenda-gpl/">'
       +'<div class="lbl">Perfil do dono <span class="mini">(material Gama: perfis de pecuarista + DISC)</span></div><div class="linha"><select id="fPf'+i+'"><option value="">— perfil —</option>'+Object.keys(PERFIL_DONO).map(function(k){ return '<option value="'+k+'"'+(f.perfil===k?' selected':'')+'>'+PERFIL_DONO[k].n+'</option>'; }).join("")+'</select>'
       +'<select id="fDs'+i+'"><option value="">— cor DISC —</option>'+Object.keys(DISC_DONO).map(function(k){ return '<option value="'+k+'"'+(f.disc===k?' selected':'')+'>'+DISC_DONO[k].n+'</option>'; }).join("")+'</select></div>'
+      +'<div class="lbl">WhatsApp da fazenda <span class="mini">(pra mandar tarefa pela aba Plano)</span></div>'
+      +'<div class="linha"><input id="fVn'+i+'" value="'+esc(f.vaqNome||"")+'" placeholder="Nome do vaqueiro"><input id="fVt'+i+'" value="'+esc(f.vaqTel||"")+'" placeholder="WhatsApp (63) 9…"></div>'
+      +'<div class="linha" style="margin-top:6px"><input id="fDn'+i+'" value="'+esc(f.donoNome||"")+'" placeholder="Nome do dono"><input id="fDt'+i+'" value="'+esc(f.donoTel||"")+'" placeholder="WhatsApp (63) 9…"></div>'
       +'<div class="lbl">Atendimento</div><select id="fAt'+i+'">'+[["","— escolher —"],["online","Online"],["presencial","Presencial"],["hibrido","Híbrido (online + visita)"]].map(function(o){ return '<option value="'+o[0]+'"'+((f.atendimento||"")===o[0]?' selected':'')+'>'+o[1]+'</option>'; }).join("")+'</select>'
       +'<div class="lbl">Objetivo do dono pros próximos 12 meses</div><input id="fOb'+i+'" value="'+esc(f.objetivo||"")+'" placeholder="ex.: melhorar a margem por hectare">'
       +'<div class="lbl">Fechamento financeiro</div><select id="fF'+i+'"><option value="mes"'+(f.fechFreq!=="tri"?' selected':'')+'>Mensal</option><option value="tri"'+(f.fechFreq==="tri"?' selected':'')+'>Trimestral (nos meses marcados abaixo)</option></select>'
@@ -492,7 +495,90 @@ async function agendarEtapa(fi,ei){
    PLANO DE AÇÃO — o que foi combinado, quem faz, até quando
    ===================================================================== */
 var PL_FILTRO="abertos", PL_FAZ="";
-function telaPlano(){
+/* =====================================================================
+   MANDAR TAREFA PRA FAZENDA — escreve do seu jeito, a IA (a do app da fazenda) arruma,
+   você confere e abre no WhatsApp; a tarefa vira ação no Plano com prazo.
+   ===================================================================== */
+var WA={ fi:0, bruto:"", msg:"", dest:"vaq", nome:"", tel:"", prazo:"", assina:true, carregando:false, erro:"" };
+function waTel(t){ var d=String(t||"").replace(/\D/g,""); if(!d) return ""; if(d.length<=11) d="55"+d; return d; }
+function waDestinos(f){ var L=[]; if(f.vaqTel) L.push({k:"vaq",nome:f.vaqNome||"Vaqueiro",papel:"vaqueiro",tel:f.vaqTel}); if(f.donoTel) L.push({k:"dono",nome:f.donoNome||"Dono",papel:"dono",tel:f.donoTel}); L.push({k:"outro",nome:"",papel:"outro número",tel:""}); return L; }
+function waDest(){ var f=cfg().fazendas[WA.fi]||{}, d=waDestinos(f).filter(function(x){ return x.k===WA.dest; })[0]||waDestinos(f)[0]; if(d.k==="outro") return { k:"outro", nome:WA.nome, tel:WA.tel, papel:"" }; return d; }
+function waSaudacao(){ var hr=new Date().getHours(); return hr<12?"Bom dia":(hr<18?"Boa tarde":"Boa noite"); }
+async function waArrumar(){
+  var f=cfg().fazendas[WA.fi]||{}; WA.bruto=($("waBruto")||{}).value||WA.bruto;
+  if(!WA.bruto.trim()){ WA.erro="Escreva o que você viu."; render(); return; }
+  if(!f.app){ WA.erro="Falta o endereço do app da fazenda em Ajustes (é a IA de lá que arruma o texto)."; render(); return; }
+  var d=waDest(), nm=String(d.nome||"").split(" ")[0];
+  var sys="Você escreve mensagens de WhatsApp do consultor de pecuária Rogério para "+(d.papel==="dono"?"o dono":"a equipe")+" da fazenda. "
+    +"Reescreva o recado abaixo em português do Brasil, linguagem simples do dia a dia de fazenda, curta e clara, tom educado e direto. "
+    +"Comece com \""+waSaudacao()+(nm?", "+nm:"")+"!\". Se houver mais de uma tarefa, numere uma por linha. "
+    +(WA.prazo?"Diga que é pra resolver até "+brd(WA.prazo)+". ":"")
+    +"Termine pedindo pra avisar ou mandar foto quando fizer. NÃO invente tarefa, local ou número que não esteja no recado; mantenha os nomes de lote e pasto como estão. "
+    +"Sem markdown, sem asterisco, no máximo 1 emoji. Responda só com a mensagem, sem explicação.";
+  WA.carregando=true; WA.erro=""; render();
+  try{
+    var data=JSON.stringify({ model:"claude-haiku-4-5", max_tokens:500, system:sys, messages:[{role:"user",content:WA.bruto}] });
+    var r=await jsonp(f.app+"?acao=ai&data="+encodeURIComponent(data),40000);
+    var t=r&&r.content&&r.content[0]&&r.content[0].text;
+    if(!t) throw new Error((r&&(r.erro||r.error&&(r.error.message||r.error)))||"a IA não respondeu");
+    WA.msg=String(t).trim();
+  }catch(e){ WA.erro="Não deu pra arrumar agora ("+(e.message||e)+"). Você pode escrever a mensagem direto no campo abaixo."; if(!WA.msg) WA.msg=WA.bruto; }
+  WA.carregando=false; render();
+}
+function waTexto(){ var m=(($("waMsg")||{}).value||WA.msg).trim(); if(m && WA.assina && !/rog[ée]rio\s*$/i.test(m)) m+="\n— Rogério"; return m; }
+async function waEnviar(soCopiar){
+  var f=cfg().fazendas[WA.fi]||{}, d=waDest(), m=waTexto(), tel=waTel(d.tel);
+  WA.msg=($("waMsg")||{}).value||WA.msg;
+  if(!m){ WA.erro="A mensagem está vazia."; render(); return; }
+  if(!soCopiar && !tel){ WA.erro="Falta o número. Cadastre em Ajustes ou use 'outro número'."; render(); return; }
+  if(soCopiar){ try{ await navigator.clipboard.writeText(m); }catch(e){} }
+  else window.open("https://wa.me/"+tel+"?text="+encodeURIComponent(m),"_blank","noopener");
+  var n=new Date(), hm=String(n.getDate()).padStart(2,"0")+"/"+String(n.getMonth()+1).padStart(2,"0")+" "+String(n.getHours()).padStart(2,"0")+":"+String(n.getMinutes()).padStart(2,"0");
+  var titulo=WA.bruto.trim().replace(/\s+/g," "); if(titulo.length>110) titulo=titulo.slice(0,107)+"…";
+  var it={ id:"p"+Date.now().toString(36), fazenda:f.nome, acao:titulo||m.split("\n")[1]||"Tarefa", resp:d.nome||"", prazo:WA.prazo||"", situacao:"aberto",
+    origem:"WhatsApp "+hm+(tel?" · "+tel:"")+(soCopiar?" (copiado)":""), obs:m, criado:hoje() };
+  try{ await centralPost("tabela_salvar",{tabela:"Plano",itens:[it]}); D.plano.push(it); WA.bruto=""; WA.msg=""; WA.prazo=""; WA.erro=soCopiar?"Copiado. A tarefa ficou no Plano.":""; render(); }
+  catch(e){ WA.erro="A mensagem foi aberta, mas não salvou no Plano: "+e.message; render(); }
+}
+function waCobrar(id){
+  var p=D.plano.filter(function(x){ return x.id===id; })[0]; if(!p) return; var tel=(String(p.origem||"").match(/·\s*(\d{10,13})/)||[])[1];
+  if(!tel){ alert("Essa tarefa não tem número salvo."); return; }
+  var dt=(String(p.origem).match(/(\d{2}\/\d{2})/)||[])[1]||"";
+  var m=waSaudacao()+(p.resp?", "+String(p.resp).split(" ")[0]:"")+"! Conseguiu fazer o que te passei"+(dt?" dia "+dt:"")+"? ("+p.acao+") Me avisa como ficou."+(WA.assina?"\n— Rogério":"");
+  window.open("https://wa.me/"+tel+"?text="+encodeURIComponent(m),"_blank","noopener");
+}
+function waCard(){
+  var c=cfg(); if(WA.fi>=c.fazendas.length) WA.fi=0; var f=c.fazendas[WA.fi]||{}, DS=waDestinos(f);
+  if(!DS.some(function(x){ return x.k===WA.dest; })) WA.dest=DS[0].k;
+  var lb='style="font-size:12px;font-weight:800;color:var(--v1);letter-spacing:.6px;text-transform:uppercase;margin:14px 0 6px"';
+  var x='<div class="card" style="padding:14px 18px"><b style="font-size:17px">Mandar tarefa pra fazenda</b><div class="mini">Escreva do seu jeito · o sistema arruma o texto · você confere e manda no WhatsApp</div>';
+  if(c.fazendas.length>1) x+='<div '+lb+'>Fazenda</div><select onchange="WA.fi=+this.value;WA.dest=\'vaq\';render()">'+c.fazendas.map(function(z,i){ return '<option value="'+i+'"'+(i===WA.fi?' selected':'')+'>'+esc(z.nome)+'</option>'; }).join("")+'</select>';
+  x+='<div '+lb+'>O que você viu</div><textarea id="waBruto" rows="3" style="width:100%;font:15px Arial;padding:10px 12px;border:1.5px solid #cbd6ca;border-radius:10px" placeholder="ex.: cocho do lote 3 vazio de manhã, boia do bebedouro m2p4 vazando…" oninput="WA.bruto=this.value">'+esc(WA.bruto)+'</textarea>';
+  x+='<div '+lb+'>Pra quem</div><div style="display:flex;gap:8px;flex-wrap:wrap">'+DS.map(function(d){ var on=d.k===WA.dest; return '<button class="b'+(on?' p':'')+'" style="border-radius:999px" onclick="WA.dest=\''+d.k+'\';render()">'+esc(d.k==="outro"?"outro número":d.nome+" · "+d.papel)+'</button>'; }).join("")+'</div>';
+  if(DS.length===1) x+='<div class="mini" style="margin-top:6px">Cadastre o WhatsApp do vaqueiro e do dono em Ajustes pra aparecerem aqui.</div>';
+  if(WA.dest==="outro") x+='<div class="linha" style="margin-top:8px"><input id="waNome" placeholder="Nome" value="'+esc(WA.nome)+'" oninput="WA.nome=this.value"><input id="waTel" placeholder="WhatsApp (63) 9…" value="'+esc(WA.tel)+'" oninput="WA.tel=this.value"></div>';
+  x+='<div '+lb+'>Prazo</div><div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap"><input type="date" style="width:180px" value="'+esc(WA.prazo)+'" onchange="WA.prazo=this.value"><span class="mini">vira ação no Plano · aparece na Rotina e na próxima reunião</span></div>';
+  x+='<div style="margin-top:12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap"><button class="b p" onclick="waArrumar()"'+(WA.carregando?' disabled':'')+'>'+(WA.carregando?'Arrumando…':'Arrumar o texto')+'</button><span class="mini">usa a IA do app da fazenda · centavos por uso</span></div>';
+  x+='<div '+lb+'>Mensagem pronta (dá pra editar)</div><textarea id="waMsg" rows="6" style="width:100%;font:15px Arial;line-height:1.5;padding:10px 12px;border:1.5px solid #c6e6cc;background:#e7f6ea;border-radius:12px" placeholder="Clique em Arrumar o texto, ou escreva aqui direto" oninput="WA.msg=this.value">'+esc(WA.msg)+'</textarea>';
+  x+='<label style="display:flex;align-items:center;gap:7px;font-size:13px;margin-top:8px;cursor:pointer"><input type="checkbox" style="width:auto;margin:0"'+(WA.assina?' checked':'')+' onchange="WA.assina=this.checked"> Assinar "— Rogério" no fim</label>';
+  if(WA.erro) x+='<div class="mini" style="margin-top:8px;color:'+(/^Copiado/.test(WA.erro)?'var(--v1)':'var(--danger)')+';font-weight:700">'+esc(WA.erro)+'</div>';
+  x+='<div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap"><button class="b" style="background:#25D366;border-color:#25D366;color:#fff;padding:10px 16px" onclick="waEnviar(false)">Abrir no WhatsApp e enviar</button><button class="b" onclick="waEnviar(true)">Só copiar</button></div>'
+    +'<div class="mini" style="margin-top:6px">O WhatsApp abre com a mensagem pronta; você toca em enviar. A Central registra no Plano: tarefa, pra quem, quando mandou e prazo.</div></div>';
+  return x;
+}
+function waLateral(){
+  var h=hoje(), L=D.plano.filter(function(p){ return /^WhatsApp/.test(p.origem||""); }).sort(function(a,b){ var fa=a.situacao==="feito"?1:0, fb=b.situacao==="feito"?1:0; if(fa!==fb) return fa-fb; return String(b.criado||"").localeCompare(String(a.criado||"")); }).slice(0,12);
+  var x='<div class="lcard"><h4 style="cursor:default">Mandadas pra fazenda</h4><div class="lc">';
+  if(!L.length) x+='<div class="vazio">Nada mandado ainda.</div>';
+  x+=L.map(function(p){ var feito=p.situacao==="feito", atr=!feito&&p.prazo&&p.prazo<h, dt=(String(p.origem).match(/(\d{2}\/\d{2} \d{2}:\d{2})/)||[])[1]||"";
+    var tag=feito?['feito','var(--v7)','var(--v1)']:(atr?['atrasada','#fdecea','var(--danger)']:['aguardando','#fff2dc','#8a5a00']);
+    return '<div style="display:flex;gap:8px;padding:9px 0;border-bottom:1px solid #f0f3ef"><div style="flex:1;min-width:0;font-size:13.5px"><span title="'+esc(p.obs||"")+'">'+esc(p.acao)+'</span><div class="mini">'+esc(p.resp||"")+(dt?' · mandado '+dt:'')+(p.prazo?' · prazo '+brd(p.prazo):'')+'</div>'
+      +(feito?'':'<div style="display:flex;gap:6px;margin-top:5px"><button class="b" style="padding:4px 9px;font-size:12px" onclick="sitPlano(\''+p.id+'\',\'feito\')">Feito</button>'+(/·\s*\d{10,13}/.test(p.origem)?'<button class="b g" style="padding:4px 9px;font-size:12px" onclick="waCobrar(\''+p.id+'\')">Cobrar no WhatsApp</button>':'')+'</div>')+'</div>'
+      +'<span style="align-self:flex-start;border-radius:7px;padding:2px 8px;font-size:11.5px;font-weight:700;background:'+tag[1]+';color:'+tag[2]+'">'+tag[0]+'</span></div>'; }).join("");
+  return x+'</div></div>';
+}
+function telaPlano(){ return '<div class="rot-g"><div>'+waCard()+telaPlanoLista()+'</div><div class="rot-lat" style="margin-top:0">'+waLateral()+'</div></div>'; }
+function telaPlanoLista(){
   var c=cfg(), h=hoje();
   var x='<div class="card" style="padding:12px 14px"><b>Nova ação</b>'
    +'<div class="lbl">O que fazer</div><input id="pAc" placeholder="Reformar o cocho do pasto 4">'
@@ -1407,7 +1493,9 @@ function lerAjustes(c){
   if($("cEtT")) c.rotinaTri=$("cEtT").value.split("\n").map(function(x){ return x.trim(); }).filter(Boolean);
   c.fazendas=c.fazendas.map(function(f,i){ var mt=$("fT"+i+"_1")?MES_AB.map(function(m,k){ return $("fT"+i+"_"+(k+1)).checked?k+1:0; }).filter(Boolean):(f.mesesTri||[]);
     return { nome:($("fN"+i)?$("fN"+i).value.trim():f.nome), pesagem:($("fP"+i)?$("fP"+i).value.trim():f.pesagem), app:($("fA"+i)?$("fA"+i).value.trim():f.app), mesesTri:mt, fechFreq:($("fF"+i)?$("fF"+i).value:(f.fechFreq||"mes")),
-      perfil:($("fPf"+i)?$("fPf"+i).value:(f.perfil||"")), disc:($("fDs"+i)?$("fDs"+i).value:(f.disc||"")), objetivo:($("fOb"+i)?$("fOb"+i).value.trim():(f.objetivo||"")), atendimento:($("fAt"+i)?$("fAt"+i).value:(f.atendimento||"")), appWeb:($("fW"+i)?$("fW"+i).value.trim():(f.appWeb||"")) }; }).filter(function(f){ return f.nome; });
+      perfil:($("fPf"+i)?$("fPf"+i).value:(f.perfil||"")), disc:($("fDs"+i)?$("fDs"+i).value:(f.disc||"")), objetivo:($("fOb"+i)?$("fOb"+i).value.trim():(f.objetivo||"")), atendimento:($("fAt"+i)?$("fAt"+i).value:(f.atendimento||"")), appWeb:($("fW"+i)?$("fW"+i).value.trim():(f.appWeb||"")),
+      vaqNome:($("fVn"+i)?$("fVn"+i).value.trim():(f.vaqNome||"")), vaqTel:($("fVt"+i)?$("fVt"+i).value.trim():(f.vaqTel||"")),
+      donoNome:($("fDn"+i)?$("fDn"+i).value.trim():(f.donoNome||"")), donoTel:($("fDt"+i)?$("fDt"+i).value.trim():(f.donoTel||"")) }; }).filter(function(f){ return f.nome; });
   return c;
 }
 async function salvarAjustes(){

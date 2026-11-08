@@ -5,12 +5,15 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#1B5E20">
 <title>Anotar no campo · GPL</title>
+<link rel="apple-touch-icon" href="icone-caixa-gpl.png">
+<link rel="icon" type="image/png" href="icone-caixa-gpl.png">
 <style>
 :root{--v1:#1B5E20;--v2:#2E7D32;--v3:#4CAF50;--v7:#E8F5E9;--bg:#eef2ec;--line:#dfe6de;--ink:#1c241c;--muted:#5f6b60;--warn:#8a5a00;--danger:#c0392b}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 body{margin:0;font-family:Arial,Helvetica,sans-serif;background:var(--bg);color:var(--ink)}
 .top{position:sticky;top:0;z-index:5;background:var(--v1);color:#fff;padding:12px 14px;display:flex;align-items:center;gap:8px}
 .top b{font-size:16px;flex:1}
+.top .volta{color:#fff;text-decoration:none;font-size:14px;font-weight:600;background:rgba(255,255,255,.16);border-radius:8px;padding:6px 10px;white-space:nowrap}
 .st{font-size:11.5px;border-radius:999px;padding:4px 10px;background:rgba(255,255,255,.16);white-space:nowrap}
 .st.off{background:#fff2dc;color:var(--warn);font-weight:700}
 .abas{display:flex;gap:6px;padding:10px 12px 0;max-width:560px;margin:0 auto}
@@ -49,7 +52,7 @@ textarea{min-height:80px;resize:vertical;line-height:1.45}
 </style>
 </head>
 <body>
-<div class="top"><b>Anotar no campo</b><span class="st" id="st"></span></div>
+<div class="top"><a class="volta" href="central-gpl.html">‹ Central</a><b>Anotar no campo</b><span class="st" id="st"></span></div>
 <div class="abas"><div class="aba on" id="abA" onclick="aba('anotar')">Anotar</div><div class="aba" id="abL" onclick="aba('lista')">Anotações <span id="nL"></span></div></div>
 <div class="wrap" id="app"></div>
 

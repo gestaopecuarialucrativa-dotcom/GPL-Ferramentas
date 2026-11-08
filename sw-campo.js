@@ -6,7 +6,7 @@
    - Planilha (script.google.com): nunca passa por aqui.
    Para forçar atualizar este arquivo no celular: mude a VERSAO.
    ===================================================================== */
-var VERSAO = 'gpl-campo-v2';
+var VERSAO = 'gpl-campo-v3';
 var PAGINA = '/campo-gpl.html';
 
 self.addEventListener('install', function (e) {

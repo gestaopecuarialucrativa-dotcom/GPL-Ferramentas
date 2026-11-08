@@ -218,7 +218,7 @@ async function mdEnviar(soCopiar){
   else {
     var fs=arquivosNota(n), ok=function(L){ try{ return !!(navigator.canShare&&navigator.canShare({files:L})); }catch(e){ return false; } };
     if(fs.length && !ok(fs)){ var soFotos=fs.filter(function(f){ return /^image\//.test(f.type); }); if(soFotos.length<fs.length) aviso="O áudio não pôde ir junto (formato). "; fs=ok(soFotos)?soFotos:[]; }
-    if(fs.length && navigator.share){ try{ await navigator.share({ text:m, files:fs }); foi="compartilhado"; }catch(e){ if(e&&e.name==="AbortError") return; } }
+    if(fs.length && navigator.share){ try{ if(navigator.clipboard&&navigator.clipboard.writeText){ navigator.clipboard.writeText(m).catch(function(){}); } await navigator.share({ files:fs }); foi="compartilhado"; }catch(e){ if(e&&e.name==="AbortError") return; } } /* iPhone: o WhatsApp recusa foto + texto juntos (bug do Safari 251500); a foto vai sozinha e o texto fica copiado para colar na legenda */
     if(!foi){ if(!tel){ MD.erro="Falta o número. Cadastre o vaqueiro e o dono nos Ajustes da Central, ou use 'outro número'."; render(); return; }
       location.href="https://wa.me/"+tel+"?text="+encodeURIComponent(m); foi="whatsapp"; if((n.fotos||[]).length) aviso+="Só o texto foi (este celular não deixou compartilhar a foto). "; }
   }
@@ -241,7 +241,7 @@ function telaMandar(){
   if(MD.erro) h+='<div class="msg" style="color:var(--danger);text-align:left">'+esc(MD.erro)+'</div>';
   h+='<button class="btn" style="background:#25D366;margin-top:14px" onclick="mdEnviar(false)">'+(fs.length?'Compartilhar no WhatsApp':'Abrir no WhatsApp')+'</button>'
     +'<button class="btn" style="background:#fff;color:var(--v1);border:1.5px solid #c9d6c7;margin-top:8px" onclick="mdEnviar(true)">Copiar o texto</button>'
-    +'<div class="mini" style="margin-top:8px">'+(fs.length?'No compartilhar, escolha o WhatsApp e depois a pessoa. ':'')+'Sem sinal, o WhatsApp guarda e manda sozinho quando pegar rede. A tarefa entra no Plano da Central quando tiver internet.</div></div>';
+    +'<div class="mini" style="margin-top:8px">'+(fs.length?'No compartilhar, escolha o WhatsApp e depois a pessoa. O texto já fica copiado: na foto, toque na legenda e cole. ':'')+'Sem sinal, o WhatsApp guarda e manda sozinho quando pegar rede. A tarefa entra no Plano da Central quando tiver internet.</div></div>';
   return h;
 }
 /* ---------- a tarefa vai pro Plano da Central (quando tiver internet) ---------- */

@@ -55,10 +55,12 @@ textarea{min-height:80px;resize:vertical;line-height:1.45}
 
 <script>
 /* =====================================================================
-   ANOTAR NO CAMPO — GPL (parte 1: anotar e guardar SEM INTERNET)
-   Foto, áudio e texto ficam no próprio celular (IndexedDB).
-   Parte 2 (depois de testar esta): subir pra Central quando pegar sinal.
-   Parte 3: mandar no WhatsApp (fotos + texto) e virar tarefa no Plano.
+   ANOTAR NO CAMPO — GPL
+   Parte 1: anotar e guardar SEM INTERNET (foto, áudio, texto no IndexedDB do celular).
+   Parte 2: "Mandar no WhatsApp" (fotos + áudio + texto pelo compartilhar do celular;
+            funciona sem sinal — o WhatsApp segura e manda quando pegar rede) e a
+            tarefa entra no Plano da Central quando tiver internet (com prazo).
+   Fotos/áudio NÃO sobem pra Central (ficam no celular e no WhatsApp).
    ===================================================================== */
 function $(i){ return document.getElementById(i); }
 function esc(t){ return String(t==null?"":t).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
@@ -76,9 +78,12 @@ function todasNotas(){ return tx("readonly",function(s){ return s.getAll(); }).t
 function salvarNota(n){ return tx("readwrite",function(s){ s.put(n); }); }
 function apagarNota(id){ return tx("readwrite",function(s){ s.delete(id); }); }
 
-/* ---------- fazendas: as mesmas da Central (mesmo site, mesmo aparelho) ---------- */
-function fazendas(){ var L=[];
-  try{ var c=JSON.parse(localStorage.getItem("gpl_central_v1")||"null"); if(c&&c.config&&c.config.fazendas) L=c.config.fazendas.map(function(f){ return f.nome; }).filter(Boolean); }catch(e){}
+/* ---------- fazendas e contatos: os mesmos da Central (mesmo site, mesmo aparelho) ---------- */
+var URL_CENTRAL="https://script.google.com/macros/s/AKfycbzTIa9TZj69T5GtLuouKI3C5R8Hb3ceCUvjwHF7zuxp7pWJ10R9rBtGzhyn3FBsa7hh/exec";
+function centralL(){ try{ return JSON.parse(localStorage.getItem("gpl_central_v1")||"null")||{}; }catch(e){ return {}; } }
+function fazCfg(nome){ var c=centralL(); return ((c.config&&c.config.fazendas)||[]).filter(function(f){ return f.nome===nome; })[0]||{}; }
+function fazendas(){ var L=[], c=centralL();
+  if(c.config&&c.config.fazendas) L=c.config.fazendas.map(function(f){ return f.nome; }).filter(Boolean);
   if(!L.length) L=["Fazenda Estrela"];
   return L; }
 
@@ -127,6 +132,7 @@ async function guardar(){
   try{ localStorage.setItem("gpl_campo_faz",n.fazenda); }catch(e){}
   NOVA={ fazenda:n.fazenda, texto:"", fotos:[], audios:[] };
   await carregar(); render(); msg("Guardada no celular ✓",false);
+  var e=$("msg"); if(e){ var b=document.createElement("button"); b.className="btn"; b.style.cssText="background:#25D366;margin-top:10px"; b.textContent="Mandar esta no WhatsApp"; b.onclick=function(){ aba("lista"); mdAbrir(n.id); }; e.parentNode.insertBefore(b,e.nextSibling); }
 }
 function msg(t,erro){ var e=$("msg"); if(!e) return; e.textContent=t; e.style.color=erro?"var(--danger)":"var(--v1)"; clearTimeout(msg.t); msg.t=setTimeout(function(){ if(e) e.textContent=""; },4000); }
 
@@ -146,14 +152,15 @@ function telaAnotar(){
   h+='<button class="btn" onclick="guardar()">Guardar anotação</button><div class="mini" style="text-align:center;margin-top:6px">fica guardada neste celular · funciona sem sinal</div><div class="msg" id="msg"></div>';
   return h;
 }
-function tagNota(n){ return n.status==="mandada"?'<span class="tag t3">mandada</span>':(n.status==="central"?'<span class="tag t2">na Central</span>':'<span class="tag t1">no celular</span>'); }
+function tagNota(n){ return n.status==="mandada"?'<span class="tag t3">mandada'+(n.mandada&&n.mandada.para?' · '+esc(String(n.mandada.para).split(" ")[0]):'')+'</span>':'<span class="tag t1">não mandada</span>'; }
 function telaLista(){
+  if(MD) return telaMandar();
   if(VER) return telaVer();
   if(!NOTAS.length) return '<div class="c"><div class="vazio">Nenhuma anotação ainda.</div></div>';
   return '<div class="c">'+NOTAS.map(function(n){ var tit=n.texto||((n.fotos.length?n.fotos.length+" foto"+(n.fotos.length>1?"s":""):"")+(n.audios.length?(n.fotos.length?" · ":"")+"áudio":""));
     return '<div class="it" onclick="VER=\''+n.id+'\';render()">'+(n.fotos[0]?'<div class="mi"><img src="'+urlDe(n.fotos[0])+'" alt=""></div>':'')
       +'<div class="tx"><b>'+esc(tit)+'</b><span class="mini">'+esc(n.fazenda)+' · '+dataHora(n.criado)+(n.fotos.length?' · '+n.fotos.length+' foto'+(n.fotos.length>1?'s':''):'')+(n.audios.length?' · '+n.audios.length+' áudio'+(n.audios.length>1?'s':''):'')+'</span></div>'+tagNota(n)+'</div>'; }).join("")+'</div>'
-    +'<div class="mini" style="text-align:center">Toque numa anotação pra ver. Subir pra Central e mandar no WhatsApp vêm na próxima parte.</div>';
+    +'<div class="mini" style="text-align:center">Toque numa anotação pra ver e mandar no WhatsApp.</div>';
 }
 function telaVer(){
   var n=NOTAS.filter(function(x){ return x.id===VER; })[0]; if(!n){ VER=null; return telaLista(); }
@@ -162,22 +169,105 @@ function telaVer(){
     +(n.texto?'<div style="font-size:15px;line-height:1.5;white-space:pre-wrap;margin-bottom:10px">'+esc(n.texto)+'</div>':'')
     +n.fotos.map(function(b){ return '<img src="'+urlDe(b)+'" alt="">'; }).join("")
     +n.audios.map(function(a){ return '<div class="au"><audio controls src="'+urlDe(a.blob)+'"></audio><span class="mini">'+seg(a.dur)+'</span></div>'; }).join("")
+    +(n.mandada?'<div class="mini" style="margin-top:8px;background:#e4eefb;color:#1d4f91;border-radius:8px;padding:7px 9px">Mandada pra '+esc(n.mandada.para||"")+' em '+dataHora(n.mandada.quando)+(n.mandada.prazo?' · prazo '+n.mandada.prazo.split("-").reverse().slice(0,2).join("/"):'')+(n.planoOk?' · está no Plano da Central ✓':' · vai pro Plano da Central quando tiver internet')+'</div>':'')
+    +'<button class="btn" style="background:#25D366;margin-top:12px" onclick="mdAbrir(\''+n.id+'\')">'+(n.mandada?'Mandar de novo no WhatsApp':'Mandar no WhatsApp')+'</button>'
     +'<button class="lk" style="color:var(--danger);margin-top:12px" onclick="apagar(\''+n.id+'\')">Apagar esta anotação</button></div>';
   return h;
 }
+/* ---------- mandar no WhatsApp ---------- */
+var MD=null;   // { id, dest, nome, tel, prazo, msg, assina, carregando, erro }
+function pad2(n){ return String(n).padStart(2,"0"); }
+function waTel(t){ var d=String(t||"").replace(/\D/g,""); if(!d) return ""; if(d.length<=11) d="55"+d; return d; }
+function destinos(f){ var L=[]; if(f.vaqTel) L.push({k:"vaq",nome:f.vaqNome||"Vaqueiro",papel:"vaqueiro",tel:f.vaqTel}); if(f.donoTel) L.push({k:"dono",nome:f.donoNome||"Dono",papel:"dono",tel:f.donoTel}); L.push({k:"outro",nome:"",papel:"outro número",tel:""}); return L; }
+function mdDest(){ var n=notaAtual(), f=fazCfg(n.fazenda), d=destinos(f).filter(function(x){ return x.k===MD.dest; })[0]||destinos(f)[0]; return d.k==="outro"?{k:"outro",nome:MD.nome,tel:MD.tel,papel:""}:d; }
+function notaAtual(){ return NOTAS.filter(function(x){ return x.id===(MD?MD.id:VER); })[0]; }
+function saud(){ var h=new Date().getHours(); return h<12?"Bom dia":(h<18?"Boa tarde":"Boa noite"); }
+function mdAbrir(id){ var n=NOTAS.filter(function(x){ return x.id===id; })[0]; if(!n) return; var f=fazCfg(n.fazenda), DS=destinos(f);
+  MD={ id:id, dest:DS[0].k, nome:"", tel:"", prazo:"", msg:"", assina:true, carregando:false, erro:"" };
+  var nm=DS[0].k==="outro"?"":String(DS[0].nome).split(" ")[0]; MD.msg=saud()+(nm?", "+nm:"")+"!\n"+(n.texto||"");
+  render(); window.scrollTo(0,0); }
+function mdTexto(){ var m=(($("mdMsg")||{}).value||MD.msg).trim(); if(m && MD.assina && !/rog[ée]rio\s*$/i.test(m)) m+="\n— Rogério"; return m; }
+async function mdArrumar(){
+  var n=notaAtual(), f=fazCfg(n.fazenda), d=mdDest(), nm=String(d.nome||"").split(" ")[0]; MD.msg=($("mdMsg")||{}).value||MD.msg;
+  if(!navigator.onLine){ MD.erro="Sem internet: a IA não reescreve agora. Mande seu texto, ou guarde e mande quando tiver sinal."; render(); return; }
+  if(!f.app){ MD.erro="Falta o endereço do app da fazenda nos Ajustes da Central (é a IA de lá que reescreve)."; render(); return; }
+  var sys="Você escreve mensagens de WhatsApp do consultor de pecuária Rogério para "+(d.papel==="dono"?"o dono":"a equipe")+" da fazenda. Reescreva o recado em português do Brasil, linguagem simples de fazenda, curta e clara, tom educado e direto. "
+    +"Comece com \""+saud()+(nm?", "+nm:"")+"!\". Se houver mais de uma tarefa, numere uma por linha. "+(MD.prazo?"Diga que é pra resolver até "+MD.prazo.split("-").reverse().slice(0,2).join("/")+". ":"")
+    +"Termine pedindo pra avisar ou mandar foto quando fizer. NÃO invente nada que não esteja no recado; mantenha nomes de lote e pasto. Sem markdown, no máximo 1 emoji. Responda só com a mensagem.";
+  MD.carregando=true; MD.erro=""; render();
+  try{ var url=f.app+(f.app.indexOf("?")<0?"?":"&")+"acao=ai&data="+encodeURIComponent(JSON.stringify({model:"claude-haiku-4-5",max_tokens:500,system:sys,messages:[{role:"user",content:n.texto||MD.msg}]}));
+    var r=await jsonp(url,40000), t=r&&r.content&&r.content[0]&&r.content[0].text; if(!t) throw new Error((r&&(r.erro||(r.error&&(r.error.message||r.error))))||"a IA não respondeu"); MD.msg=String(t).trim(); }
+  catch(e){ MD.erro="Não deu pra reescrever agora ("+(e.message||e)+"). Mande seu texto mesmo."; }
+  MD.carregando=false; render();
+}
+function jsonp(url,ms){ return new Promise(function(res,rej){ var cb="__cp_"+Date.now()+"_"+Math.floor(Math.random()*1e5), sc=document.createElement("script"), t=setTimeout(function(){ fim(); rej(new Error("demorou demais")); },ms||30000);
+  function fim(){ try{ delete window[cb]; }catch(e){ window[cb]=undefined; } if(sc.parentNode) sc.parentNode.removeChild(sc); }
+  window[cb]=function(d){ clearTimeout(t); fim(); res(d); }; sc.onerror=function(){ clearTimeout(t); fim(); rej(new Error("sem conexão")); };
+  sc.src=url+"&callback="+cb+"&t="+Date.now(); document.head.appendChild(sc); }); }
+function arquivosNota(n){ var fs=[]; (n.fotos||[]).forEach(function(b,i){ fs.push(new File([b],"foto-"+(i+1)+".jpg",{type:b.type||"image/jpeg"})); });
+  (n.audios||[]).forEach(function(a,i){ var tp=(a.blob.type||"audio/webm").split(";")[0], ext=/ogg/.test(tp)?"ogg":(/mp4|aac|m4a/.test(tp)?"m4a":"webm"); fs.push(new File([a.blob],"audio-"+(i+1)+"."+ext,{type:tp})); });
+  return fs; }
+async function mdEnviar(soCopiar){
+  var n=notaAtual(), d=mdDest(), m=mdTexto(), tel=waTel(d.tel); MD.msg=($("mdMsg")||{}).value||MD.msg;
+  if(!m){ MD.erro="A mensagem está vazia."; render(); return; }
+  var foi="", aviso="";
+  if(soCopiar){ try{ await navigator.clipboard.writeText(m); foi="copiado"; }catch(e){ MD.erro="Não consegui copiar."; render(); return; } }
+  else {
+    var fs=arquivosNota(n), ok=function(L){ try{ return !!(navigator.canShare&&navigator.canShare({files:L})); }catch(e){ return false; } };
+    if(fs.length && !ok(fs)){ var soFotos=fs.filter(function(f){ return /^image\//.test(f.type); }); if(soFotos.length<fs.length) aviso="O áudio não pôde ir junto (formato). "; fs=ok(soFotos)?soFotos:[]; }
+    if(fs.length && navigator.share){ try{ await navigator.share({ text:m, files:fs }); foi="compartilhado"; }catch(e){ if(e&&e.name==="AbortError") return; } }
+    if(!foi){ if(!tel){ MD.erro="Falta o número. Cadastre o vaqueiro e o dono nos Ajustes da Central, ou use 'outro número'."; render(); return; }
+      location.href="https://wa.me/"+tel+"?text="+encodeURIComponent(m); foi="whatsapp"; if((n.fotos||[]).length) aviso+="Só o texto foi (este celular não deixou compartilhar a foto). "; }
+  }
+  n.status="mandada"; n.mandada={ para:d.nome||"", tel:tel, quando:new Date().toISOString(), prazo:MD.prazo||"", msg:m, como:foi }; n.planoOk=false;
+  await salvarNota(n); MD=null; VER=n.id; await carregar(); render(); sincronizar();
+  if(aviso) setTimeout(function(){ alert(aviso.trim()); },300);
+}
+function telaMandar(){
+  var n=notaAtual(); if(!n){ MD=null; return telaLista(); } var f=fazCfg(n.fazenda), DS=destinos(f); if(!DS.some(function(x){ return x.k===MD.dest; })) MD.dest=DS[0].k;
+  var lb='<div class="lbl" style="margin-top:12px">', fs=arquivosNota(n);
+  var h='<div class="c"><button class="lk" onclick="MD=null;render()">‹ voltar</button><div style="font-size:17px;font-weight:800;margin:4px 0 2px">Mandar no WhatsApp</div><div class="mini">'+esc(n.fazenda)+' · '+(n.fotos.length?n.fotos.length+' foto'+(n.fotos.length>1?'s':''):'sem foto')+(n.audios.length?' · '+n.audios.length+' áudio':'')+' vão junto</div>';
+  if(n.fotos.length) h+='<div class="thumbs">'+n.fotos.map(function(b){ return '<div class="th"><img src="'+urlDe(b)+'" alt=""></div>'; }).join("")+'</div>';
+  h+=lb+'Pra quem</div><div style="display:flex;gap:6px;flex-wrap:wrap">'+DS.map(function(d){ var on=d.k===MD.dest; return '<button class="aba'+(on?' on':'')+'" style="flex:none;padding:8px 12px;border-radius:999px" onclick="MD.dest=\''+d.k+'\';render()">'+esc(d.k==="outro"?"outro número":d.nome+" · "+d.papel)+'</button>'; }).join("")+'</div>';
+  if(DS.length===1) h+='<div class="mini" style="margin-top:5px">Cadastre o vaqueiro e o dono nos Ajustes da Central (com internet) e abra a Central uma vez neste celular.</div>';
+  if(MD.dest==="outro") h+='<div style="display:flex;gap:6px;margin-top:8px"><input placeholder="Nome" value="'+esc(MD.nome)+'" oninput="MD.nome=this.value"><input placeholder="WhatsApp (63) 9…" inputmode="tel" value="'+esc(MD.tel)+'" oninput="MD.tel=this.value"></div>';
+  h+=lb+'Prazo</div><input type="date" value="'+esc(MD.prazo)+'" onchange="MD.prazo=this.value" style="max-width:200px">';
+  h+=lb+'Mensagem <span style="text-transform:none;letter-spacing:0;font-weight:400;color:var(--muted)">· dá pra editar</span></div><textarea id="mdMsg" rows="6" oninput="MD.msg=this.value" style="background:#e7f6ea;border-color:#c6e6cc">'+esc(MD.msg)+'</textarea>'
+    +'<div style="display:flex;gap:8px;align-items:center;margin-top:6px;flex-wrap:wrap"><button class="aba" style="flex:none;padding:8px 12px" onclick="mdArrumar()"'+(MD.carregando||!navigator.onLine?' disabled':'')+'>'+(MD.carregando?'Reescrevendo…':(navigator.onLine?'Reescrever com a IA':'IA: precisa de internet'))+'</button>'
+    +'<label style="display:flex;align-items:center;gap:6px;font-size:13px"><input type="checkbox" style="width:auto"'+(MD.assina?' checked':'')+' onchange="MD.assina=this.checked"> assinar "— Rogério"</label></div>';
+  if(MD.erro) h+='<div class="msg" style="color:var(--danger);text-align:left">'+esc(MD.erro)+'</div>';
+  h+='<button class="btn" style="background:#25D366;margin-top:14px" onclick="mdEnviar(false)">'+(fs.length?'Compartilhar no WhatsApp':'Abrir no WhatsApp')+'</button>'
+    +'<button class="btn" style="background:#fff;color:var(--v1);border:1.5px solid #c9d6c7;margin-top:8px" onclick="mdEnviar(true)">Copiar o texto</button>'
+    +'<div class="mini" style="margin-top:8px">'+(fs.length?'No compartilhar, escolha o WhatsApp e depois a pessoa. ':'')+'Sem sinal, o WhatsApp guarda e manda sozinho quando pegar rede. A tarefa entra no Plano da Central quando tiver internet.</div></div>';
+  return h;
+}
+/* ---------- a tarefa vai pro Plano da Central (quando tiver internet) ---------- */
+var SINC=false;
+async function sincronizar(){
+  if(SINC||!navigator.onLine) return; var c=centralL(); if(!c.senha) return;
+  var pend=NOTAS.filter(function(n){ return n.status==="mandada" && !n.planoOk; }); if(!pend.length) return;
+  SINC=true;
+  try{ for(var i=0;i<pend.length;i++){ var n=pend[i], md=n.mandada||{}, q=new Date(md.quando||n.criado), hm=pad2(q.getDate())+"/"+pad2(q.getMonth()+1)+" "+pad2(q.getHours())+":"+pad2(q.getMinutes());
+      var tit=String(n.texto||md.msg||"Anotação do campo").replace(/\s+/g," ").trim(); if(tit.length>110) tit=tit.slice(0,107)+"…";
+      var it={ id:"n"+n.id, fazenda:n.fazenda, acao:tit, resp:md.para||"", prazo:md.prazo||"", situacao:"aberto", origem:"Anotação do campo · WhatsApp "+hm+(md.tel?" · "+md.tel:""), obs:md.msg||"", criado:(n.criado||"").slice(0,10) };
+      var r=await fetch(c.url||URL_CENTRAL,{method:"POST",body:JSON.stringify({action:"tabela_salvar",data:{tabela:"Plano",itens:[it],senha:c.senha}}),credentials:"omit"});
+      var j=null; try{ j=JSON.parse(await r.text()); }catch(e){}
+      if(j&&j.ok){ n.planoOk=true; await salvarNota(n); } }
+  }catch(e){} finally{ SINC=false; await carregar(); render(); }
+}
 async function apagar(id){ if(!confirm("Apagar esta anotação do celular? Não dá pra desfazer.")) return; await apagarNota(id); VER=null; await carregar(); render(); }
-function aba(a){ ABA=a; VER=null; $("abA").className="aba"+(a==="anotar"?" on":""); $("abL").className="aba"+(a==="lista"?" on":""); render(); window.scrollTo(0,0); }
-function statusTopo(){ var e=$("st"), pend=NOTAS.filter(function(n){ return n.status==="celular"; }).length, on=navigator.onLine;
-  e.className="st"+(on?"":" off"); e.textContent=(on?"com sinal":"sem sinal")+(pend?" · "+pend+" guardada"+(pend>1?"s":""):"");
+function aba(a){ ABA=a; VER=null; MD=null; $("abA").className="aba"+(a==="anotar"?" on":""); $("abL").className="aba"+(a==="lista"?" on":""); render(); window.scrollTo(0,0); }
+function statusTopo(){ var e=$("st"), pend=NOTAS.filter(function(n){ return n.status!=="mandada"; }).length, on=navigator.onLine;
+  e.className="st"+(on?"":" off"); e.textContent=(on?"com sinal":"sem sinal")+(pend?" · "+pend+" pra mandar":"");
   $("nL").textContent=NOTAS.length?"("+NOTAS.length+")":""; }
 function render(){ limparURLs(); $("app").innerHTML=ABA==="anotar"?telaAnotar():telaLista(); statusTopo(); }
 async function carregar(){ NOTAS=await todasNotas(); }
 
-window.addEventListener("online",statusTopo); window.addEventListener("offline",statusTopo);
+window.addEventListener("online",function(){ statusTopo(); sincronizar(); if(MD) render(); }); window.addEventListener("offline",function(){ statusTopo(); if(MD) render(); });
 (async function(){
   try{ await abrirDB(); await carregar(); }catch(e){ $("app").innerHTML='<div class="c">Este navegador não deixou guardar dados no celular: '+esc(e.message||e)+'</div>'; return; }
   try{ if(navigator.storage&&navigator.storage.persist) navigator.storage.persist(); }catch(e){}   // pede pro Chrome não apagar as anotações
-  render();
+  render(); sincronizar();
   if("serviceWorker" in navigator && /^https?:/.test(location.protocol)) navigator.serviceWorker.register("sw-campo.js",{scope:"./campo-gpl"}).catch(function(){});
 })();
 </script>

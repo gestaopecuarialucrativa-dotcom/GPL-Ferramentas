@@ -172,6 +172,8 @@ var D={ agenda:[], rotina:[], plano:[], envios:[], boletins:{}, faz:{}, erros:[]
 async function carregarTudo(forcar){
   var c=cfg(); D.erros=[];
   $("topSub").textContent="atualizando…";
+  // ajustes salvos em outro aparelho (ex.: contatos do WhatsApp cadastrados no notebook) chegam no celular também
+  central("config_ler").then(function(r){ if(r&&r.ok&&r.config&&r.config.fazendas){ var antes=JSON.stringify(L.config||null); L.config=r.config; salvarL(); if(JSON.stringify(r.config)!==antes) render(); } }).catch(function(){});
   var tarefas=[ central("agenda_ler").then(function(r){ if(!r||!r.ok) throw new Error(r&&r.msg||"agenda"); D.agenda=r.itens||[]; })
     .catch(function(e){ D.erros.push("Agenda: "+e.message); }) ];
   tarefas.push(central("tabela_ler","&tabela=Rotina").then(function(r){ if(!r||!r.ok) throw new Error(r&&r.msg||"rotina"); D.rotina=r.itens||[]; }).catch(function(e){ D.erros.push("Rotina: "+e.message); }));

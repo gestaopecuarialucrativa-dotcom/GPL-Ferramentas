@@ -567,7 +567,7 @@ async function waEnviar(soCopiar){
   if(!m){ WA.erro="A mensagem está vazia."; render(); return; }
   if(!soCopiar && !tel){ WA.erro="Falta o número. Cadastre em Ajustes ou use 'outro número'."; render(); return; }
   if(soCopiar){ try{ await navigator.clipboard.writeText(m); }catch(e){} }
-  else if(WA.fotos.length && navigator.share){ try{ await navigator.share({ text:m, files:WA.fotos }); }catch(e){ if(e&&e.name==="AbortError") return; window.open("https://wa.me/"+tel+"?text="+encodeURIComponent(m),"_blank","noopener"); } }
+  else if(WA.fotos.length && navigator.share){ try{ if(navigator.clipboard&&navigator.clipboard.writeText){ navigator.clipboard.writeText(m).catch(function(){}); } await navigator.share({ files:WA.fotos }); } /* iPhone: o WhatsApp recusa foto + texto juntos (bug do Safari 251500); a foto vai sozinha e o texto fica copiado pra colar na legenda */catch(e){ if(e&&e.name==="AbortError") return; window.open("https://wa.me/"+tel+"?text="+encodeURIComponent(m),"_blank","noopener"); } }
   else window.open("https://wa.me/"+tel+"?text="+encodeURIComponent(m),"_blank","noopener");
   var n=new Date(), hm=String(n.getDate()).padStart(2,"0")+"/"+String(n.getMonth()+1).padStart(2,"0")+" "+String(n.getHours()).padStart(2,"0")+":"+String(n.getMinutes()).padStart(2,"0");
   var titulo=WA.bruto.trim().replace(/\s+/g," "); if(titulo.length>110) titulo=titulo.slice(0,107)+"…";

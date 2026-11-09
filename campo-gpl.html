@@ -185,7 +185,7 @@ function destinos(f){ var L=[]; if(f.vaqTel) L.push({k:"vaq",nome:f.vaqNome||"Va
 function mdDest(){ var n=notaAtual(), f=fazCfg(n.fazenda), d=destinos(f).filter(function(x){ return x.k===MD.dest; })[0]||destinos(f)[0]; return d.k==="outro"?{k:"outro",nome:MD.nome,tel:MD.tel,papel:""}:d; }
 function notaAtual(){ return NOTAS.filter(function(x){ return x.id===(MD?MD.id:VER); })[0]; }
 function saud(){ var h=new Date().getHours(); return h<12?"Bom dia":(h<18?"Boa tarde":"Boa noite"); }
-function mdAbrir(id){ var n=NOTAS.filter(function(x){ return x.id===id; })[0]; if(!n) return; var f=fazCfg(n.fazenda), DS=destinos(f);
+function mdAbrir(id){ var n=NOTAS.filter(function(x){ return x.id===id; })[0]; if(!n) return; sincronizar(); var f=fazCfg(n.fazenda), DS=destinos(f);
   MD={ id:id, dest:DS[0].k, nome:"", tel:"", prazo:"", msg:"", assina:true, carregando:false, erro:"" };
   var nm=DS[0].k==="outro"?"":String(DS[0].nome).split(" ")[0]; MD.msg=saud()+(nm?", "+nm:"")+"!\n"+(n.texto||"");
   render(); window.scrollTo(0,0); }
@@ -214,9 +214,10 @@ async function mdEnviar(soCopiar){
   var n=notaAtual(), d=mdDest(), m=mdTexto(), tel=waTel(d.tel); MD.msg=($("mdMsg")||{}).value||MD.msg;
   if(!m){ MD.erro="A mensagem está vazia."; render(); return; }
   var foi="", aviso="";
+  m=comAudio(n,m); if((n.audios||[]).length && !linksAudio(n).length) aviso="O áudio não foi: ele ainda não subiu pra planilha (precisa de sinal). Mande de novo depois. ";
   if(soCopiar){ try{ await navigator.clipboard.writeText(m); foi="copiado"; }catch(e){ MD.erro="Não consegui copiar."; render(); return; } }
   else {
-    var fs=arquivosNota(n), ok=function(L){ try{ return !!(navigator.canShare&&navigator.canShare({files:L})); }catch(e){ return false; } };
+    var fs=arquivosNota(n).filter(function(f){ return /^image\//.test(f.type); }), ok=function(L){ try{ return !!(navigator.canShare&&navigator.canShare({files:L})); }catch(e){ return false; } };
     if(fs.length && !ok(fs)){ var soFotos=fs.filter(function(f){ return /^image\//.test(f.type); }); if(soFotos.length<fs.length) aviso="O áudio não pôde ir junto (formato). "; fs=ok(soFotos)?soFotos:[]; }
     if(fs.length && navigator.share){ try{ if(navigator.clipboard&&navigator.clipboard.writeText){ navigator.clipboard.writeText(m).catch(function(){}); } await navigator.share({ files:fs }); foi="compartilhado"; }catch(e){ if(e&&e.name==="AbortError") return; } } /* iPhone: o WhatsApp recusa foto + texto juntos (bug do Safari 251500); a foto vai sozinha e o texto fica copiado para colar na legenda */
     if(!foi){ if(!tel){ MD.erro="Falta o número. Cadastre o vaqueiro e o dono nos Ajustes da Central, ou use 'outro número'."; render(); return; }
@@ -229,7 +230,7 @@ async function mdEnviar(soCopiar){
 function telaMandar(){
   var n=notaAtual(); if(!n){ MD=null; return telaLista(); } var f=fazCfg(n.fazenda), DS=destinos(f); if(!DS.some(function(x){ return x.k===MD.dest; })) MD.dest=DS[0].k;
   var lb='<div class="lbl" style="margin-top:12px">', fs=arquivosNota(n);
-  var h='<div class="c"><button class="lk" onclick="MD=null;render()">‹ voltar</button><div style="font-size:17px;font-weight:800;margin:4px 0 2px">Mandar no WhatsApp</div><div class="mini">'+esc(n.fazenda)+' · '+(n.fotos.length?n.fotos.length+' foto'+(n.fotos.length>1?'s':''):'sem foto')+(n.audios.length?' · '+n.audios.length+' áudio':'')+' vão junto</div>';
+  var h='<div class="c"><button class="lk" onclick="MD=null;render()">‹ voltar</button><div style="font-size:17px;font-weight:800;margin:4px 0 2px">Mandar no WhatsApp</div><div class="mini">'+esc(n.fazenda)+' · '+(n.fotos.length?n.fotos.length+' foto'+(n.fotos.length>1?'s':''):'sem foto')+(n.audios.length?' · áudio vai como link':'')+' vão junto</div>';
   if(n.fotos.length) h+='<div class="thumbs">'+n.fotos.map(function(b){ return '<div class="th"><img src="'+urlDe(b)+'" alt=""></div>'; }).join("")+'</div>';
   h+=lb+'Pra quem</div><div style="display:flex;gap:6px;flex-wrap:wrap">'+DS.map(function(d){ var on=d.k===MD.dest; return '<button class="aba'+(on?' on':'')+'" style="flex:none;padding:8px 12px;border-radius:999px" onclick="MD.dest=\''+d.k+'\';render()">'+esc(d.k==="outro"?"outro número":d.nome+" · "+d.papel)+'</button>'; }).join("")+'</div>';
   if(DS.length===1) h+='<div class="mini" style="margin-top:5px">Cadastre o vaqueiro e o dono nos Ajustes da Central (com internet) e abra a Central uma vez neste celular.</div>';
@@ -263,7 +264,13 @@ async function sincronizar(){
 }
 /* ---------- toda anotação vai pra planilha (aba "Anotacoes") e foto/áudio pro Google Drive ---------- */
 var NUVEM_ERRO="";
-function pendNuvem(){ return NOTAS.filter(function(n){ return !n.nuvemOk || n.nuvemSit!==n.status; }); }
+var PUB_TENTOU={};
+function pendNuvem(){ return NOTAS.filter(function(n){ return !n.nuvemOk || n.nuvemSit!==n.status || ((n.audios||[]).length && !n.audPub && !PUB_TENTOU[n.id]); }); }
+/* links do áudio no Drive (o WhatsApp não aceita o arquivo de áudio gravado no navegador do iPhone) */
+function linksAudio(n){ var arq=n.nuvemArq||{}; return arquivosNota(n).filter(function(f){ return !/^image\//.test(f.type); }).map(function(f){ return arq[n.id+"-"+f.name]; }).filter(Boolean); }
+function comAudio(n,m){ if(!(n.audios||[]).length) return m; var L=linksAudio(n); if(!L.length) return m;
+  var bl="\n\n🎧 Áudio"+(L.length>1?"s":"")+" (toque pra ouvir):\n"+L.join("\n"), ass="\n— Rogério";
+  return m.slice(-ass.length)===ass ? m.slice(0,-ass.length)+bl+"\n"+ass : m+bl; }
 function b64De(blob){ return new Promise(function(res,rej){ var r=new FileReader(); r.onload=function(){ res(String(r.result).split(",")[1]||""); }; r.onerror=function(){ rej(r.error); }; r.readAsDataURL(blob); }); }
 async function postCentral(c,action,data){ data.senha=c.senha;
   var r=await fetch(c.url||URL_CENTRAL,{method:"POST",body:JSON.stringify({action:action,data:data}),credentials:"omit"});
@@ -271,13 +278,14 @@ async function postCentral(c,action,data){ data.senha=c.senha;
 async function subirNuvem(c){
   var pend=pendNuvem(); NUVEM_ERRO="";
   for(var i=0;i<pend.length;i++){ var n=pend[i]; n.nuvemArq=n.nuvemArq||{};
-    var fs=arquivosNota(n), urlsF=[], urlsA=[];
-    for(var k=0;k<fs.length;k++){ var f=fs[k], nome=n.id+"-"+f.name;
-      if(!n.nuvemArq[nome]){
+    var fs=arquivosNota(n), urlsF=[], urlsA=[], ehAud, pubTodos=true;
+    for(var k=0;k<fs.length;k++){ var f=fs[k], nome=n.id+"-"+f.name; ehAud=!/^image\//.test(f.type);
+      if(!n.nuvemArq[nome] || (ehAud && !n.audPub)){   /* áudio: pede pra Central abrir o link (v1.5) */
         var j=await postCentral(c,"arquivo_salvar",{ nome:nome, tipo:f.type, fazenda:n.fazenda, b64:await b64De(f) });
         if(!j.ok){ NUVEM_ERRO=j.msg||"não subiu"; return; }
-        n.nuvemArq[nome]=j.url; await salvarNota(n); }
-      (/^image\//.test(f.type)?urlsF:urlsA).push(n.nuvemArq[nome]); }
+        n.nuvemArq[nome]=j.url; if(ehAud && !j.pub) pubTodos=false; await salvarNota(n); }
+      (ehAud?urlsA:urlsF).push(n.nuvemArq[nome]); }
+    if(urlsA.length){ if(pubTodos) n.audPub=true; else PUB_TENTOU[n.id]=true; }
     var md=n.mandada||{};
     var q=new Date(n.criado), it={ id:n.id, fazenda:n.fazenda, criado:q.getFullYear()+"-"+pad2(q.getMonth()+1)+"-"+pad2(q.getDate())+" "+pad2(q.getHours())+":"+pad2(q.getMinutes()), texto:n.texto||"", fotos:urlsF.join("\n"), audios:urlsA.join("\n"),
       situacao:n.status==="mandada"?"mandada no WhatsApp":"só anotada", para:md.para||"" };

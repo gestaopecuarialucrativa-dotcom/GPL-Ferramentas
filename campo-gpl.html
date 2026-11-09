@@ -134,7 +134,7 @@ async function guardar(){
   try{ await salvarNota(n); }catch(e){ msg("Não guardou: "+(e.message||e),true); return; }
   try{ localStorage.setItem("gpl_campo_faz",n.fazenda); }catch(e){}
   NOVA={ fazenda:n.fazenda, texto:"", fotos:[], audios:[] };
-  await carregar(); render(); msg("Guardada no celular ✓",false);
+  await carregar(); render(); msg("Guardada no celular ✓",false); sincronizar();
   var e=$("msg"); if(e){ var b=document.createElement("button"); b.className="btn"; b.style.cssText="background:#25D366;margin-top:10px"; b.textContent="Mandar esta no WhatsApp"; b.onclick=function(){ aba("lista"); mdAbrir(n.id); }; e.parentNode.insertBefore(b,e.nextSibling); }
 }
 function msg(t,erro){ var e=$("msg"); if(!e) return; e.textContent=t; e.style.color=erro?"var(--danger)":"var(--v1)"; clearTimeout(msg.t); msg.t=setTimeout(function(){ if(e) e.textContent=""; },4000); }
@@ -159,8 +159,8 @@ function tagNota(n){ return n.status==="mandada"?'<span class="tag t3">mandada'+
 function telaLista(){
   if(MD) return telaMandar();
   if(VER) return telaVer();
-  if(!NOTAS.length) return '<div class="c"><div class="vazio">Nenhuma anotação ainda.</div></div>';
-  return '<div class="c">'+NOTAS.map(function(n){ var tit=n.texto||((n.fotos.length?n.fotos.length+" foto"+(n.fotos.length>1?"s":""):"")+(n.audios.length?(n.fotos.length?" · ":"")+"áudio":""));
+  if(!NOTAS.length) return cardNuvem()+'<div class="c"><div class="vazio">Nenhuma anotação ainda.</div></div>';
+  return cardNuvem()+'<div class="c">'+NOTAS.map(function(n){ var tit=n.texto||((n.fotos.length?n.fotos.length+" foto"+(n.fotos.length>1?"s":""):"")+(n.audios.length?(n.fotos.length?" · ":"")+"áudio":""));
     return '<div class="it" onclick="VER=\''+n.id+'\';render()">'+(n.fotos[0]?'<div class="mi"><img src="'+urlDe(n.fotos[0])+'" alt=""></div>':'')
       +'<div class="tx"><b>'+esc(tit)+'</b><span class="mini">'+esc(n.fazenda)+' · '+dataHora(n.criado)+(n.fotos.length?' · '+n.fotos.length+' foto'+(n.fotos.length>1?'s':''):'')+(n.audios.length?' · '+n.audios.length+' áudio'+(n.audios.length>1?'s':''):'')+'</span></div>'+tagNota(n)+'</div>'; }).join("")+'</div>'
     +'<div class="mini" style="text-align:center">Toque numa anotação pra ver e mandar no WhatsApp.</div>';
@@ -248,7 +248,8 @@ function telaMandar(){
 var SINC=false;
 async function sincronizar(){
   if(SINC||!navigator.onLine) return; var c=centralL(); if(!c.senha) return;
-  var pend=NOTAS.filter(function(n){ return n.status==="mandada" && !n.planoOk; }); if(!pend.length) return;
+  var pend=NOTAS.filter(function(n){ return n.status==="mandada" && !n.planoOk; });
+  if(!pend.length && !pendNuvem().length) return;
   SINC=true;
   try{ for(var i=0;i<pend.length;i++){ var n=pend[i], md=n.mandada||{}, q=new Date(md.quando||n.criado), hm=pad2(q.getDate())+"/"+pad2(q.getMonth()+1)+" "+pad2(q.getHours())+":"+pad2(q.getMinutes());
       var tit=String(n.texto||md.msg||"Anotação do campo").replace(/\s+/g," ").trim(); if(tit.length>110) tit=tit.slice(0,107)+"…";
@@ -256,7 +257,50 @@ async function sincronizar(){
       var r=await fetch(c.url||URL_CENTRAL,{method:"POST",body:JSON.stringify({action:"tabela_salvar",data:{tabela:"Plano",itens:[it],senha:c.senha}}),credentials:"omit"});
       var j=null; try{ j=JSON.parse(await r.text()); }catch(e){}
       if(j&&j.ok){ n.planoOk=true; await salvarNota(n); } }
-  }catch(e){} finally{ SINC=false; await carregar(); render(); }
+  }catch(e){}
+  try{ await subirNuvem(c); }catch(e){ NUVEM_ERRO=String(e.message||e); }
+  SINC=false; await carregar(); if(!MD) render(); else statusTopo();
+}
+/* ---------- toda anotação vai pra planilha (aba "Anotacoes") e foto/áudio pro Google Drive ---------- */
+var NUVEM_ERRO="";
+function pendNuvem(){ return NOTAS.filter(function(n){ return !n.nuvemOk || n.nuvemSit!==n.status; }); }
+function b64De(blob){ return new Promise(function(res,rej){ var r=new FileReader(); r.onload=function(){ res(String(r.result).split(",")[1]||""); }; r.onerror=function(){ rej(r.error); }; r.readAsDataURL(blob); }); }
+async function postCentral(c,action,data){ data.senha=c.senha;
+  var r=await fetch(c.url||URL_CENTRAL,{method:"POST",body:JSON.stringify({action:action,data:data}),credentials:"omit"});
+  var j=null; try{ j=JSON.parse(await r.text()); }catch(e){} return j||{ok:false,msg:"resposta estranha da Central"}; }
+async function subirNuvem(c){
+  var pend=pendNuvem(); NUVEM_ERRO="";
+  for(var i=0;i<pend.length;i++){ var n=pend[i]; n.nuvemArq=n.nuvemArq||{};
+    var fs=arquivosNota(n), urlsF=[], urlsA=[];
+    for(var k=0;k<fs.length;k++){ var f=fs[k], nome=n.id+"-"+f.name;
+      if(!n.nuvemArq[nome]){
+        var j=await postCentral(c,"arquivo_salvar",{ nome:nome, tipo:f.type, fazenda:n.fazenda, b64:await b64De(f) });
+        if(!j.ok){ NUVEM_ERRO=j.msg||"não subiu"; return; }
+        n.nuvemArq[nome]=j.url; await salvarNota(n); }
+      (/^image\//.test(f.type)?urlsF:urlsA).push(n.nuvemArq[nome]); }
+    var md=n.mandada||{};
+    var q=new Date(n.criado), it={ id:n.id, fazenda:n.fazenda, criado:q.getFullYear()+"-"+pad2(q.getMonth()+1)+"-"+pad2(q.getDate())+" "+pad2(q.getHours())+":"+pad2(q.getMinutes()), texto:n.texto||"", fotos:urlsF.join("\n"), audios:urlsA.join("\n"),
+      situacao:n.status==="mandada"?"mandada no WhatsApp":"só anotada", para:md.para||"" };
+    var r=await postCentral(c,"tabela_salvar",{ tabela:"Anotacoes", itens:[it] });
+    if(!r.ok){ NUVEM_ERRO=r.msg||"não salvou na planilha"; return; }
+    n.nuvemOk=true; n.nuvemSit=n.status; await salvarNota(n); }
+}
+/* senha da Central (o app da tela inicial do iPhone não enxerga a senha do Safari) */
+async function ligarCentral(){ var v=(($("snh")||{}).value||"").trim(); if(!v){ NUVEM_ERRO="Digite a senha."; render(); return; }
+  var c=centralL(), u=c.url||URL_CENTRAL;
+  try{ var j=await jsonp(u+(u.indexOf("?")>-1?"&":"?")+"acao=config_ler&senha="+encodeURIComponent(v),20000); }catch(e){ NUVEM_ERRO="Sem conexão com a Central. Tente com sinal."; render(); return; }
+  if(!j||!j.ok){ NUVEM_ERRO="Senha errada."; render(); return; }
+  c.senha=v; if(j.config && !c.config) c.config=j.config;
+  try{ localStorage.setItem("gpl_central_v1",JSON.stringify(c)); }catch(e){}
+  NUVEM_ERRO=""; render(); sincronizar(); }
+function cardNuvem(){
+  var c=centralL();
+  if(!c.senha) return '<div class="c"><div class="lbl">Salvar na planilha</div><div class="mini" style="margin-bottom:8px">Pra cada anotação ir pra planilha e as fotos e áudios pro seu Google Drive, digite a senha da Central uma vez neste aparelho.</div>'
+    +'<input id="snh" type="password" placeholder="Senha da Central" autocomplete="current-password">'
+    +(NUVEM_ERRO?'<div class="mini" style="color:#b23b2e;margin-top:6px">'+esc(NUVEM_ERRO)+'</div>':'')
+    +'<button class="btn" style="margin-top:8px" onclick="ligarCentral()">Ligar à planilha</button></div>';
+  var p=pendNuvem().length;
+  return '<div class="mini" style="text-align:center;margin:0 0 8px">'+(p?(navigator.onLine?(SINC?"☁ Salvando na planilha…":"☁ "+p+" pra subir pra planilha"+(NUVEM_ERRO?" · "+esc(NUVEM_ERRO):"")):"☁ "+p+" sobem pra planilha quando tiver sinal"):"☁ Tudo salvo na planilha ✓")+'</div>';
 }
 async function apagar(id){ if(!confirm("Apagar esta anotação do celular? Não dá pra desfazer.")) return; await apagarNota(id); VER=null; await carregar(); render(); }
 function aba(a){ ABA=a; VER=null; MD=null; $("abA").className="aba"+(a==="anotar"?" on":""); $("abL").className="aba"+(a==="lista"?" on":""); render(); window.scrollTo(0,0); }

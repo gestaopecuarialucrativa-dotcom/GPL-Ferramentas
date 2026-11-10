@@ -520,8 +520,8 @@ function waSheet(){
     +'<div style="background:#fff;border-radius:18px 18px 0 0;width:100%;max-width:620px;max-height:92vh;overflow:auto;padding:16px 16px 22px">'
     +'<div style="display:flex;justify-content:space-between;align-items:center"><b style="font-size:17px">Mandar no WhatsApp</b><button class="b g" onclick="waFechar()">Fechar</button></div>';
   x+='<div '+lb+'>O que você escreveu</div><div style="background:#f3f6f2;border-radius:10px;padding:9px 11px;font-size:14px">'+esc(WA.bruto)+'</div>';
-  x+='<div '+lb+'>Pra quem</div><div style="display:flex;gap:6px;flex-wrap:wrap">'+DS.map(function(d){ var on=d.k===WA.dest; return '<button class="b'+(on?' p':'')+'" style="border-radius:999px" onclick="WA.dest=\''+d.k+'\';render()">'+esc(d.k==="outro"?"outro número":d.nome+" · "+d.papel)+'</button>'; }).join("")+'</div>';
-  if(DS.length===1) x+='<div class="mini" style="margin-top:5px">Cadastre o WhatsApp do vaqueiro e do dono em Ajustes pra aparecerem aqui.</div>';
+  x+='<div '+lb+'>Pra quem</div><div style="display:flex;gap:6px;flex-wrap:wrap">'+DS.map(function(d){ var on=d.k===WA.dest; return '<button class="b'+(on?' p':'')+'" style="border-radius:999px" onclick="WA.dest=\''+d.k+'\';render()">'+esc(d.k==="outro"?"outro número":(d.k==="agenda"?"escolher no WhatsApp":d.nome+" · "+d.papel))+'</button>'; }).join("")+'</div>';
+  if(DS.length<=2) x+='<div class="mini" style="margin-top:5px">Cadastre o WhatsApp do vaqueiro e do dono em Ajustes pra aparecerem aqui.</div>';
   if(WA.dest==="outro") x+='<div class="linha" style="margin-top:8px"><input id="waNome" placeholder="Nome" value="'+esc(WA.nome)+'" oninput="WA.nome=this.value"><input id="waTel" placeholder="WhatsApp (63) 9…" value="'+esc(WA.tel)+'" oninput="WA.tel=this.value"></div>';
   x+='<div '+lb+'>Prazo</div><input type="date" style="max-width:200px" value="'+esc(WA.prazo)+'" onchange="WA.prazo=this.value">';
   x+='<div '+lb+'>Mensagem <span style="text-transform:none;letter-spacing:0;font-weight:400;color:var(--muted)">· a IA reescreve · dá pra editar</span></div>'
@@ -535,7 +535,7 @@ function waSheet(){
   return x;
 }
 function waTel(t){ var d=String(t||"").replace(/\D/g,""); if(!d) return ""; if(d.length<=11) d="55"+d; return d; }
-function waDestinos(f){ var L=[]; if(f.vaqTel) L.push({k:"vaq",nome:f.vaqNome||"Vaqueiro",papel:"vaqueiro",tel:f.vaqTel}); if(f.donoTel) L.push({k:"dono",nome:f.donoNome||"Dono",papel:"dono",tel:f.donoTel}); L.push({k:"outro",nome:"",papel:"outro número",tel:""}); return L; }
+function waDestinos(f){ var L=[]; if(f.vaqTel) L.push({k:"vaq",nome:f.vaqNome||"Vaqueiro",papel:"vaqueiro",tel:f.vaqTel}); if(f.donoTel) L.push({k:"dono",nome:f.donoNome||"Dono",papel:"dono",tel:f.donoTel}); L.push({k:"agenda",nome:"",papel:"escolher no WhatsApp",tel:""}); L.push({k:"outro",nome:"",papel:"outro número",tel:""}); return L; }
 function waDest(){ var f=cfg().fazendas[WA.fi]||{}, d=waDestinos(f).filter(function(x){ return x.k===WA.dest; })[0]||waDestinos(f)[0]; if(d.k==="outro") return { k:"outro", nome:WA.nome, tel:WA.tel, papel:"" }; return d; }
 function waSaudacao(){ var hr=new Date().getHours(); return hr<12?"Bom dia":(hr<18?"Boa tarde":"Boa noite"); }
 async function waArrumar(){
@@ -565,7 +565,7 @@ async function waEnviar(soCopiar){
   var f=cfg().fazendas[WA.fi]||{}, d=waDest(), m=waTexto(), tel=waTel(d.tel);
   WA.msg=($("waMsg")||{}).value||WA.msg;
   if(!m){ WA.erro="A mensagem está vazia."; render(); return; }
-  if(!soCopiar && !tel){ WA.erro="Falta o número. Cadastre em Ajustes ou use 'outro número'."; render(); return; }
+  if(!soCopiar && !tel && d.k!=="agenda"){ WA.erro="Falta o número. Cadastre em Ajustes ou use 'outro número'."; render(); return; }
   if(soCopiar){ try{ await navigator.clipboard.writeText(m); }catch(e){} }
   else if(WA.fotos.length && navigator.share){ try{ if(navigator.clipboard&&navigator.clipboard.writeText){ navigator.clipboard.writeText(m).catch(function(){}); } await navigator.share({ files:WA.fotos }); } /* iPhone: o WhatsApp recusa foto + texto juntos (bug do Safari 251500); a foto vai sozinha e o texto fica copiado pra colar na legenda */catch(e){ if(e&&e.name==="AbortError") return; window.open("https://wa.me/"+tel+"?text="+encodeURIComponent(m),"_blank","noopener"); } }
   else window.open("https://wa.me/"+tel+"?text="+encodeURIComponent(m),"_blank","noopener");
@@ -585,7 +585,7 @@ async function waEnviar(soCopiar){
 function waCobrar(id){
   var p=D.plano.filter(function(x){ return x.id===id; })[0]; if(!p) return; var tel=(String(p.origem||"").match(/·\s*(\d{10,13})/)||[])[1];
   if(!tel){ var f=(cfg().fazendas.filter(function(z){ return z.nome===p.fazenda; })[0])||{}; if(p.resp&&f.donoNome&&cpNorm(p.resp)===cpNorm(f.donoNome)) tel=waTel(f.donoTel); else if(p.resp&&f.vaqNome&&cpNorm(p.resp)===cpNorm(f.vaqNome)) tel=waTel(f.vaqTel); }
-  if(!tel){ alert("Essa tarefa não tem número salvo."); return; }
+  /* sem número salvo (ex.: mandada escolhendo o contato no WhatsApp): abre o WhatsApp pra escolher de novo */
   var dt=(String(p.origem).match(/(\d{2}\/\d{2})/)||[])[1]||"";
   var m=waSaudacao()+(p.resp?", "+String(p.resp).split(" ")[0]:"")+"! Conseguiu fazer o que te passei"+(dt?" dia "+dt:"")+"? ("+p.acao+") Me avisa como ficou."+(WA.assina?"\n— Rogério":"");
   window.open("https://wa.me/"+tel+"?text="+encodeURIComponent(m),"_blank","noopener");
@@ -597,8 +597,8 @@ function waCard(){
   var x='<div class="card" style="padding:14px 18px"><b style="font-size:17px">Mandar tarefa pra fazenda</b><div class="mini">Escreva do seu jeito · o sistema arruma o texto · você confere e manda no WhatsApp</div>';
   if(c.fazendas.length>1) x+='<div '+lb+'>Fazenda</div><select onchange="WA.fi=+this.value;WA.dest=\'vaq\';render()">'+c.fazendas.map(function(z,i){ return '<option value="'+i+'"'+(i===WA.fi?' selected':'')+'>'+esc(z.nome)+'</option>'; }).join("")+'</select>';
   x+='<div '+lb+'>O que você viu</div><textarea id="waBruto" rows="3" style="width:100%;font:15px Arial;padding:10px 12px;border:1.5px solid #cbd6ca;border-radius:10px" placeholder="ex.: cocho do lote 3 vazio de manhã, boia do bebedouro m2p4 vazando…" oninput="WA.bruto=this.value">'+esc(WA.bruto)+'</textarea>';
-  x+='<div '+lb+'>Pra quem</div><div style="display:flex;gap:8px;flex-wrap:wrap">'+DS.map(function(d){ var on=d.k===WA.dest; return '<button class="b'+(on?' p':'')+'" style="border-radius:999px" onclick="WA.dest=\''+d.k+'\';render()">'+esc(d.k==="outro"?"outro número":d.nome+" · "+d.papel)+'</button>'; }).join("")+'</div>';
-  if(DS.length===1) x+='<div class="mini" style="margin-top:6px">Cadastre o WhatsApp do vaqueiro e do dono em Ajustes pra aparecerem aqui.</div>';
+  x+='<div '+lb+'>Pra quem</div><div style="display:flex;gap:8px;flex-wrap:wrap">'+DS.map(function(d){ var on=d.k===WA.dest; return '<button class="b'+(on?' p':'')+'" style="border-radius:999px" onclick="WA.dest=\''+d.k+'\';render()">'+esc(d.k==="outro"?"outro número":(d.k==="agenda"?"escolher no WhatsApp":d.nome+" · "+d.papel))+'</button>'; }).join("")+'</div>';
+  if(DS.length<=2) x+='<div class="mini" style="margin-top:6px">Cadastre o WhatsApp do vaqueiro e do dono em Ajustes pra aparecerem aqui.</div>';
   if(WA.dest==="outro") x+='<div class="linha" style="margin-top:8px"><input id="waNome" placeholder="Nome" value="'+esc(WA.nome)+'" oninput="WA.nome=this.value"><input id="waTel" placeholder="WhatsApp (63) 9…" value="'+esc(WA.tel)+'" oninput="WA.tel=this.value"></div>';
   x+='<div '+lb+'>Prazo</div><div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap"><input type="date" style="width:180px" value="'+esc(WA.prazo)+'" onchange="WA.prazo=this.value"><span class="mini">vira ação no Plano · aparece na Rotina e na próxima reunião</span></div>';
   x+='<div style="margin-top:12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap"><button class="b p" onclick="waArrumar()"'+(WA.carregando?' disabled':'')+'>'+(WA.carregando?'Arrumando…':'Arrumar o texto')+'</button><span class="mini">usa a IA do app da fazenda · centavos por uso</span></div>';

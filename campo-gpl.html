@@ -76,9 +76,19 @@ var DB=null;
 function abrirDB(){ return new Promise(function(res,rej){ var r=indexedDB.open("gpl_campo",1);
   r.onupgradeneeded=function(){ r.result.createObjectStore("notas",{keyPath:"id"}); };
   r.onsuccess=function(){ DB=r.result; res(DB); }; r.onerror=function(){ rej(r.error); }; }); }
-function tx(modo,fn){ return new Promise(function(res,rej){ var t=DB.transaction("notas",modo), s=t.objectStore("notas"), out=fn(s); t.oncomplete=function(){ res(out&&out.result!==undefined?out.result:out); }; t.onerror=function(){ rej(t.error); }; }); }
-function todasNotas(){ return tx("readonly",function(s){ return s.getAll(); }).then(function(L){ return (L||[]).sort(function(a,b){ return b.criado.localeCompare(a.criado); }); }); }
-function salvarNota(n){ return tx("readwrite",function(s){ s.put(n); }); }
+function tx(modo,fn){ return new Promise(function(res,rej){ var t=DB.transaction("notas",modo), s=t.objectStore("notas"), out=fn(s); t.oncomplete=function(){ res(out&&out.result!==undefined?out.result:out); }; t.onerror=function(){ rej(t.error); }; t.onabort=function(){ rej(t.error||new Error("o celular recusou guardar")); }; }); }
+/* iPhone (Safari): às vezes recusa guardar o áudio como "arquivo" no banco do celular e o botão parecia não fazer nada.
+   Agora foto e áudio são guardados como dados puros (ArrayBuffer) e voltam a ser arquivo na hora de ler. */
+function lerBuf(b){ if(b.arrayBuffer) return b.arrayBuffer(); return new Promise(function(res,rej){ var r=new FileReader(); r.onload=function(){ res(r.result); }; r.onerror=function(){ rej(r.error); }; r.readAsArrayBuffer(b); }); }
+async function paraBuf(b){ return (b instanceof Blob) ? { __ab:await lerBuf(b), type:b.type||"" } : b; }
+function deBuf(x){ return (x && x.__ab) ? new Blob([x.__ab],{type:x.type||""}) : x; }
+async function serial(n){ var c=Object.assign({},n);
+  c.fotos=await Promise.all((n.fotos||[]).map(paraBuf));
+  c.audios=await Promise.all((n.audios||[]).map(async function(a){ return Object.assign({},a,{ blob:await paraBuf(a.blob) }); }));
+  return c; }
+function desserial(n){ n.fotos=(n.fotos||[]).map(deBuf); n.audios=(n.audios||[]).map(function(a){ a.blob=deBuf(a.blob); return a; }); return n; }
+function todasNotas(){ return tx("readonly",function(s){ return s.getAll(); }).then(function(L){ return (L||[]).map(desserial).sort(function(a,b){ return b.criado.localeCompare(a.criado); }); }); }
+async function salvarNota(n){ var c=await serial(n); return tx("readwrite",function(s){ s.put(c); }); }
 function apagarNota(id){ return tx("readwrite",function(s){ s.delete(id); }); }
 
 /* ---------- fazendas e contatos: os mesmos da Central (mesmo site, mesmo aparelho) ---------- */
@@ -107,11 +117,13 @@ function tirarFoto(){ var i=document.createElement("input"); i.type="file"; i.ac
 
 /* áudio: grava pelo microfone do celular (funciona sem internet) */
 var REC=null;
+/* iPhone/iPad: grava em MP4 (AAC). O WebM que o iPhone novo também grava sai com "Erro" no tocador do próprio iPhone. */
+function ehIOS(){ var u=navigator.userAgent||""; return /iPhone|iPad|iPod/.test(u) || (/Macintosh/.test(u) && navigator.maxTouchPoints>1) || (/Safari/.test(u) && !/Chrome|CriOS|Android/.test(u)); }
 async function gravar(){
   if(REC){ REC.mr.stop(); return; }
   if(!(navigator.mediaDevices&&window.MediaRecorder)){ alert("Este navegador não grava áudio. Use o Chrome do celular."); return; }
   try{
-    var stream=await navigator.mediaDevices.getUserMedia({audio:true}), partes=[], tipo=["audio/webm;codecs=opus","audio/webm","audio/ogg;codecs=opus","audio/mp4"].filter(function(t){ return MediaRecorder.isTypeSupported&&MediaRecorder.isTypeSupported(t); })[0]||"";
+    var stream=await navigator.mediaDevices.getUserMedia({audio:true}), partes=[], tipo=(ehIOS()?["audio/mp4","audio/webm;codecs=opus","audio/webm"]:["audio/webm;codecs=opus","audio/webm","audio/ogg;codecs=opus","audio/mp4"]).filter(function(t){ return MediaRecorder.isTypeSupported&&MediaRecorder.isTypeSupported(t); })[0]||"";
     var mr=new MediaRecorder(stream,tipo?{mimeType:tipo}:undefined), ini=Date.now();
     REC={ mr:mr, ini:ini, t:setInterval(function(){ var e=$("recT"); if(e) e.textContent=seg(Math.round((Date.now()-ini)/1000)); },500) };
     mr.ondataavailable=function(e){ if(e.data&&e.data.size) partes.push(e.data); };
@@ -250,7 +262,7 @@ var SINC=false;
 async function sincronizar(){
   if(SINC||!navigator.onLine) return; var c=centralL(); if(!c.senha) return;
   var pend=NOTAS.filter(function(n){ return n.status==="mandada" && !n.planoOk; });
-  if(!pend.length && !pendNuvem().length) return;
+  if(!pend.length && !pendNuvem().length && !filaApagar().length) return;
   SINC=true;
   try{ for(var i=0;i<pend.length;i++){ var n=pend[i], md=n.mandada||{}, q=new Date(md.quando||n.criado), hm=pad2(q.getDate())+"/"+pad2(q.getMonth()+1)+" "+pad2(q.getHours())+":"+pad2(q.getMinutes());
       var tit=String(n.texto||md.msg||"Anotação do campo").replace(/\s+/g," ").trim(); if(tit.length>110) tit=tit.slice(0,107)+"…";
@@ -277,6 +289,9 @@ async function postCentral(c,action,data){ data.senha=c.senha;
   var j=null; try{ j=JSON.parse(await r.text()); }catch(e){} return j||{ok:false,msg:"resposta estranha da Central"}; }
 async function subirNuvem(c){
   var pend=pendNuvem(); NUVEM_ERRO="";
+  var fila=filaApagar();
+  if(fila.length){ var ra=await postCentral(c,"tabela_salvar",{ tabela:"Anotacoes", itens:fila.map(function(id){ return {id:id,apagar:true}; }) });
+    if(ra.ok){ var resto=filaApagar().filter(function(id){ return fila.indexOf(id)<0; }); try{ localStorage.setItem("gpl_campo_apagar",JSON.stringify(resto)); }catch(e){} } }
   for(var i=0;i<pend.length;i++){ var n=pend[i]; n.nuvemArq=n.nuvemArq||{};
     var fs=arquivosNota(n), urlsF=[], urlsA=[], ehAud, pubTodos=true;
     for(var k=0;k<fs.length;k++){ var f=fs[k], nome=n.id+"-"+f.name; ehAud=!/^image\//.test(f.type);
@@ -310,7 +325,11 @@ function cardNuvem(){
   var p=pendNuvem().length;
   return '<div class="mini" style="text-align:center;margin:0 0 8px">'+(p?(navigator.onLine?(SINC?"☁ Salvando na planilha…":"☁ "+p+" pra subir pra planilha"+(NUVEM_ERRO?" · "+esc(NUVEM_ERRO):"")):"☁ "+p+" sobem pra planilha quando tiver sinal"):"☁ Tudo salvo na planilha ✓")+'</div>';
 }
-async function apagar(id){ if(!confirm("Apagar esta anotação do celular? Não dá pra desfazer.")) return; await apagarNota(id); VER=null; await carregar(); render(); }
+async function apagar(id){ if(!confirm("Apagar esta anotação do celular e da planilha? Não dá pra desfazer. (A foto e o áudio continuam guardados no seu Google Drive.)")) return;
+  var L=filaApagar(); if(L.indexOf(id)<0) L.push(id); try{ localStorage.setItem("gpl_campo_apagar",JSON.stringify(L)); }catch(e){}
+  await apagarNota(id); VER=null; await carregar(); render(); sincronizar(); }
+/* apagadas no celular que ainda faltam sair da planilha (sai quando tiver sinal) */
+function filaApagar(){ try{ return JSON.parse(localStorage.getItem("gpl_campo_apagar")||"[]")||[]; }catch(e){ return []; } }
 function aba(a){ ABA=a; VER=null; MD=null; $("abA").className="aba"+(a==="anotar"?" on":""); $("abL").className="aba"+(a==="lista"?" on":""); render(); window.scrollTo(0,0); }
 function statusTopo(){ var e=$("st"), pend=NOTAS.filter(function(n){ return n.status!=="mandada"; }).length, on=navigator.onLine;
   e.className="st"+(on?"":" off"); e.textContent=(on?"com sinal":"sem sinal")+(pend?" · "+pend+" pra mandar":"");

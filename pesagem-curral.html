@@ -408,6 +408,13 @@ input:focus,select:focus{outline:2px solid var(--v3); border-color:var(--v3)}
 .lf-an{background:#f6f9f5;border-radius:12px;padding:6px 10px;margin:0 0 10px}
 .lf-an table{width:100%;border-collapse:collapse;font-size:12.5px}.lf-an th{text-align:left;font-size:10px;color:#7a8a7e;text-transform:uppercase;padding:5px 3px}
 .lf-an td{padding:5px 3px;border-top:1px solid #e6ebe5}.lf-an .r{text-align:right}
+.lf-res{display:flex;gap:7px;margin:10px 0 4px}.lf-res div{flex:1;background:#f3f6f2;border-radius:12px;padding:8px 9px}
+.lf-res b{display:block;font-size:19px;font-weight:800;color:#123d1d}.lf-res span{font-size:10px;color:#7a8a7e;font-weight:700;text-transform:uppercase}
+.lf-mv{display:grid;grid-template-columns:minmax(56px,auto) 18px minmax(56px,auto) 1fr 14px;align-items:center;gap:6px;padding:10px 0;border-top:1px solid #edf1ec;font-size:13px;cursor:pointer}
+.lf-mv .de{font-weight:700;color:#7a8a7e}.lf-mv .pa{font-weight:800;color:#123d1d}.lf-mv .ar{color:#3f8f3a;font-weight:800;text-align:center}
+.lf-mv .qt{font-size:12px;line-height:1.35}.lf-mv .qt b{font-size:16px}.lf-mv .qt span{display:block;color:#7a8a7e;font-size:11px}
+.lf-mb{height:6px;background:#eef2ed;border-radius:4px;margin-top:4px}.lf-mb i{display:block;height:100%;border-radius:4px;background:#3f8f3a}
+.lf-pdf{background:rgba(255,255,255,.16);color:#fff;border:0;border-radius:10px;padding:8px 12px;font:700 13px Inter,system-ui,Arial,sans-serif;cursor:pointer;white-space:nowrap}
 .lf-nota{background:#FFF3E0;border-radius:12px;padding:9px 12px;font-size:12px;color:#8a4b00;font-weight:600;margin-bottom:12px}
 </style>
 </head>
@@ -3363,7 +3370,7 @@ async function calcEstoque(){
    último peso e o último lote entre as datas escolhidas. Vendido depois da
    pesagem fica fora. GMD = o que foi gravado na pesagem do animal.
    Só leitura: não grava nada na planilha nem no aparelho. */
-var LF={sel:{}, cache:{}, datas:[], aberto:null, iniciou:false, buscando:0, erro:"", faz:null};
+var LF={sel:{}, cache:{}, datas:[], aberto:null, iniciou:false, buscando:0, erro:"", faz:null, ant:{}, antPend:{}, movAberto:null};
 var LF_GMD_BAIXO=0.400;   // abaixo disso a barra do lote fica laranja
 /* Na aba Lotes vale o lote que está formando, não de onde o animal veio:
    GMD do lote = média de quem tem GMD (mínimo 5 animais), sem a regra dos 70%. */
@@ -3382,7 +3389,7 @@ function lfAnimaisDe(d){
   return LF.cache[d]||null;
 }
 async function lfAbrir(){
-  if(LF.faz!==lfFaz()){ LF={sel:{}, cache:{}, datas:[], aberto:null, iniciou:false, buscando:0, erro:"", faz:lfFaz()}; }
+  if(LF.faz!==lfFaz()){ LF={sel:{}, cache:{}, datas:[], aberto:null, iniciou:false, buscando:0, erro:"", faz:lfFaz(), ant:{}, antPend:{}, movAberto:null}; }
   lfRender();
   try{
     var r=await jsonp(BACKEND_URL+"?acao=pesagem_datas&token="+encodeURIComponent(gplToken())+"&fazenda="+encodeURIComponent(lfFaz()));
@@ -3406,7 +3413,7 @@ async function lfBuscar(d){
 }
 function lfToggle(d){
   if(LF.sel[d]) delete LF.sel[d]; else { LF.sel[d]=true; lfBuscar(d); }
-  LF.aberto=null; lfRender();
+  LF.aberto=null; LF.movAberto=null; lfRender();
 }
 function lfCalc(){
   var datas=Object.keys(LF.sel).sort(), mapa={}, vendidos=0;
@@ -3429,11 +3436,133 @@ function lfCalc(){
   var lista=Object.keys(lotes).map(function(k){ return lotes[k]; }).sort(function(x,y){ return (parseInt(x.lote,10)||99)-(parseInt(y.lote,10)||99); });
   return {datas:datas, lotes:lista, tot:tot, vendidos:vendidos};
 }
+
+/* ---- Quem mudou de lote: lote ANTES da 1ª data marcada × lote que está formando ---- */
+async function lfBuscarAnt(d0){
+  if(LF.ant[d0] || LF.antPend[d0]) return;
+  LF.antPend[d0]=true;
+  try{
+    var r=await jsonp(BACKEND_URL+"?acao=pesagem_ultimas&antes="+encodeURIComponent(d0)+"&token="+encodeURIComponent(gplToken())+"&fazenda="+encodeURIComponent(lfFaz()));
+    var m={};
+    ((r&&r.animais)||[]).forEach(function(a){ var b=String(a.brinco||"").trim(); if(!b) return;
+      var x={brinco:b, lote:String(a.lote==null?"":a.lote).trim(), peso:parseNum(a.peso), data:String(a.data||"").slice(0,10)};
+      if(x.data && x.data>=d0) return;
+      m[b]=x; var bb=baseBrinco(b); if(!m["__"+bb]) m["__"+bb]=x; });
+    LF.ant[d0]=m;
+  }catch(e){ LF.ant[d0]={__erro:true}; }
+  delete LF.antPend[d0]; lfRender();
+}
+function lfMov(c){
+  var d0=c.datas[0], A=LF.ant[d0];
+  if(!A) return null;
+  if(A.__erro) return {erro:true};
+  var mv={}, ficou=0, sem=0, mud=0;
+  c.lotes.forEach(function(L){ L.animais.forEach(function(a){
+    var pv=A[a.brinco]||A["__"+baseBrinco(a.brinco)];
+    if(!pv || !pv.lote){ sem++; return; }
+    if(String(pv.lote)===String(a.lote)){ ficou++; return; }
+    mud++;
+    var k=pv.lote+"→"+a.lote, M=mv[k]=mv[k]||{de:pv.lote,para:a.lote,an:[],gS:0,gN:0};
+    var dias=(pv.data&&a.data)?daysBetween(pv.data,a.data):null, ganho=(pv.peso!=null)?a.peso-pv.peso:null;
+    var g=(ganho!=null&&dias>0)?ganho/dias:null;
+    M.an.push({brinco:a.brinco,antes:pv.peso,agora:a.peso,ganho:ganho,gmd:g,dataAnt:pv.data});
+    if(g!=null){ M.gS+=g; M.gN++; }
+  }); });
+  var lista=Object.keys(mv).map(function(k){ return mv[k]; }).sort(function(x,y){ return y.an.length-x.an.length || (parseInt(x.de,10)||99)-(parseInt(y.de,10)||99); });
+  return {d0:d0, mud:mud, ficou:ficou, sem:sem, lista:lista};
+}
+function lfMovHTML(c){
+  var d0=c.datas[0], h='<div class="lf-sec"><div class="lf-h">Quem mudou de lote <span>antes de '+lfDataCurta(d0)+' → agora</span></div>';
+  var M=lfMov(c);
+  if(!M){ lfBuscarAnt(d0); return h+'<div class="lf-hint">Buscando o lote de cada animal antes de '+lfDataCurta(d0)+'…</div></div>'; }
+  if(M.erro) return h+'<div class="lf-hint">Sem internet: não deu pra buscar o lote anterior dos animais.</div></div>';
+  h+='<div class="lf-res"><div><b>'+M.mud+'</b><span>mudaram</span></div><div><b>'+M.ficou+'</b><span>ficaram</span></div><div><b>'+M.sem+'</b><span>sem lote antes</span></div></div>';
+  if(!M.lista.length) return h+'<div class="lf-hint">Nenhum animal mudou de lote.</div></div>';
+  var mx=M.lista[0].an.length||1;
+  M.lista.forEach(function(x,i){
+    var ab=(LF.movAberto===i);
+    h+='<div class="lf-mv" onclick="LF.movAberto=(LF.movAberto==='+i+'?null:'+i+');lfRender()"><div class="de">'+esc(loteLabel(x.de))+'</div><div class="ar">→</div><div class="pa">'+esc(loteLabel(x.para))+'</div>'+
+       '<div class="qt"><b>'+x.an.length+'</b> '+(x.an.length===1?'animal':'animais')+'<span>GMD médio '+(x.gN?fmtBR(x.gS/x.gN,3):'—')+'</span><div class="lf-mb"><i style="width:'+Math.max(4,Math.round(x.an.length/mx*100))+'%"></i></div></div><div class="lf-ch">'+(ab?'⌄':'›')+'</div></div>';
+    if(ab){
+      var an=x.an.slice().sort(function(p,q){ return (q.gmd==null?-9:q.gmd)-(p.gmd==null?-9:p.gmd); });
+      h+='<div class="lf-an"><table><tr><th>Nº</th><th class="r">Antes</th><th class="r">Agora</th><th class="r">Ganhou</th><th class="r">GMD</th></tr>'+
+        an.map(function(a){ return '<tr><td><b>'+esc(a.brinco)+'</b></td><td class="r">'+(a.antes!=null?fmtBR(a.antes,0):'—')+'</td><td class="r">'+fmtBR(a.agora,0)+'</td><td class="r">'+(a.ganho!=null?(a.ganho>=0?'+':'')+fmtBR(a.ganho,0):'—')+'</td><td class="r">'+(a.gmd!=null?fmtBR(a.gmd,3):'—')+'</td></tr>'; }).join('')+'</table></div>';
+    }
+  });
+  return h+'<div class="lf-hint" style="margin-top:8px">Do movimento maior pro menor. "Antes" é a última pesagem do animal antes de '+lfDataCurta(d0)+'. Toque na linha pra ver os animais.</div></div>';
+}
+
+/* ---- PDF dos lotes formados (mesmo padrão dos relatórios GPL) ---- */
+function lfPDF(){
+  var c=lfCalc(); if(!c.tot.qtd){ alert("Marque as datas e espere os lotes formarem."); return; }
+  var ov=document.getElementById("lfOv");
+  if(!ov){
+    ov=document.createElement("div"); ov.id="lfOv";
+    ov.style.cssText="position:fixed;inset:0;z-index:9998;background:#2b322c;display:flex;flex-direction:column";
+    ov.innerHTML='<div style="display:flex;gap:8px;align-items:center;padding:8px 10px;background:#123d1d;color:#fff;flex-wrap:wrap">'+
+      '<b style="flex:1;font-size:14px;min-width:160px">Lotes formados</b>'+
+      '<button type="button" onclick="var f=document.getElementById(\'lfFr\');f.contentWindow.focus();f.contentWindow.print()" style="background:#8BC34A;color:#123d1d;border:0;border-radius:8px;padding:9px 14px;font-weight:800;font-size:14px">Salvar PDF</button>'+
+      '<button type="button" onclick="document.getElementById(\'lfOv\').style.display=\'none\';document.body.style.overflow=\'\'" style="background:transparent;color:#fff;border:1.5px solid #fff;border-radius:8px;padding:8px 14px;font-weight:800;font-size:14px">Fechar</button></div>'+
+      '<iframe id="lfFr" style="flex:1;border:0;width:100%;background:#7d857e"></iframe>';
+    document.body.appendChild(ov);
+  }
+  ov.style.display="flex"; document.body.style.overflow="hidden";
+  var f=document.getElementById("lfFr"), d=f.contentDocument||f.contentWindow.document;
+  d.open(); d.write(lfPDFHTML(c)); d.close();
+}
+function lfPDFHTML(c){
+  var fz=lfFaz(), logo=_rpLogo(), ASS='Rogério · Consultor GPL', CONT='(63) 99108-2453 · @gestaopecuarialucrativa';
+  var datasTxt=c.datas.map(function(d){ return isoToBR(d).slice(0,5); }).join(' + '), ult=isoToBR(c.datas[c.datas.length-1]);
+  var med=c.tot.peso/c.tot.qtd, P=[];
+  P.push('<div class="pg cap"><img src="'+logo+'"><div class="k">LOTES FORMADOS · '+esc(datasTxt)+'</div><h1>'+esc(fz)+'</h1><div class="s">'+c.tot.qtd+' animais em '+c.lotes.length+' lotes</div><div class="ln"></div>'+
+    '<div class="s" style="font-size:12.5pt;max-width:165mm;line-height:1.5">Como ficou cada lote juntando as pesagens de '+esc(datasTxt)+': quantidade, peso, ganho de peso e quem mudou de lote.</div>'+
+    '<div class="ft"><span>'+ASS+'</span><span>'+CONT+'</span></div></div>');
+  var pg='<div class="pg"><div class="hd"><img src="'+logo+'"><span>Lotes formados · '+esc(fz)+' · '+esc(datasTxt)+'</span></div>';
+  var rod='<div class="rod"><span>gestaopecuarialucrativa.com.br</span><span>'+ASS+' · __PG__</span></div></div>';
+  // página 1: resumo + GMD + tabela
+  var comG=c.lotes.filter(function(L){ return lfGmdOk(L) && CATEG_FORA_GMD.indexOf(parseInt(L.lote,10))<0; }).map(function(L){ return {L:L,g:L.gmdSum/L.gmdN}; }).sort(function(x,y){ return y.g-x.g; });
+  var mx=comG.length?Math.max.apply(null,comG.map(function(x){return x.g;})):1; if(!(mx>0)) mx=1;
+  var gb=comG.map(function(x){ return '<div class="hb"><b>'+esc(loteLabel(x.L.lote))+'</b><div><i style="width:'+Math.max(2,Math.round(Math.max(0,x.g)/mx*100))+'%;background:'+(x.g<LF_GMD_BAIXO?'#E6A23C':'#1f6b33')+'"></i></div><span>'+fmtBR(x.g,3)+'</span></div>'; }).join('');
+  var linhas=c.lotes.map(function(L){ var m=L.peso/L.qtd, mn=Math.min.apply(null,L.animais.map(function(a){return a.peso;})), mxp=Math.max.apply(null,L.animais.map(function(a){return a.peso;}));
+    var g=lfGmdOk(L)?fmtBR(L.gmdSum/L.gmdN,3)+' <span class="mu">('+L.gmdN+' de '+L.qtd+')</span>':'<span class="mu">—</span>';
+    return '<tr><td><b>'+esc(loteLabel(L.lote))+'</b></td><td class="n">'+L.qtd+'</td><td class="n">'+fmtBR(m,0)+' kg</td><td class="n">'+fmtBR(m/AR_DIV,1)+'</td><td class="n">'+fmtBR(mn,0)+'–'+fmtBR(mxp,0)+'</td><td>'+g+'</td><td class="mu">'+Object.keys(L.porData).sort().map(function(d){ return isoToBR(d).slice(0,5)+': '+L.porData[d]; }).join(' · ')+'</td></tr>'; }).join('');
+  var c1='<div class="ey">Resumo</div><div class="tt">Como ficaram os lotes</div>'+
+    '<div class="kp"><div><b>'+c.tot.qtd+'</b><span>cabeças</span></div><div><b>'+fmtBR(med,0)+' kg</b><span>peso médio · '+fmtBR(med/AR_DIV,1)+' @</span></div><div><b>'+fmtBR(c.tot.peso/AR_DIV,0)+' @</b><span>arrobas no total</span></div><div><b>'+(c.tot.gmdN?fmtBR(c.tot.gmdSum/c.tot.gmdN,3):'—')+'</b><span>GMD geral (kg/dia)</span></div></div>'+
+    (comG.length?'<div class="g">Ganho de peso por lote (kg/dia)</div><div class="hbs">'+gb+'</div>':'')+
+    '<div class="g">Por lote</div><table><tr><th>Lote</th><th class="n">Cab.</th><th class="n">Peso médio</th><th class="n">@</th><th class="n">Menor–maior</th><th>GMD</th><th>Pesados em</th></tr>'+linhas+'</table>'+
+    '<div class="sm">Animal pesado em mais de um dia conta uma vez, com o último peso e o último lote.'+(c.vendidos?' '+c.vendidos+' vendido(s) depois da pesagem ficaram fora.':'')+' GMD do lote = média dos animais que têm GMD (mínimo '+GMD_MIN_N+'). Vaca, reprodutor, bezerro mamando, enfermaria e compra ficam fora do GMD geral.</div>';
+  P.push(pg+c1+rod);
+  // página 2: quem mudou de lote
+  var M=lfMov(c);
+  if(M && !M.erro){
+    var mvRows=M.lista.slice(0,24).map(function(x){ return '<tr><td>'+esc(loteLabel(x.de))+'</td><td><b>'+esc(loteLabel(x.para))+'</b></td><td class="n">'+x.an.length+'</td><td class="n">'+(x.gN?fmtBR(x.gS/x.gN,3):'—')+'</td></tr>'; }).join('');
+    var c2='<div class="ey">Movimento</div><div class="tt">Quem mudou de lote</div>'+
+      '<div class="kp" style="grid-template-columns:repeat(3,1fr)"><div><b>'+M.mud+'</b><span>mudaram de lote</span></div><div><b>'+M.ficou+'</b><span>ficaram no mesmo lote</span></div><div><b>'+M.sem+'</b><span>sem lote antes</span></div></div>'+
+      (M.lista.length?'<div class="g">De onde → para onde</div><table><tr><th>Estava no</th><th>Foi pro</th><th class="n">Animais</th><th class="n">GMD médio</th></tr>'+mvRows+'</table>'+(M.lista.length>24?'<div class="sm">E mais '+(M.lista.length-24)+' movimentos menores.</div>':''):'<div class="sm">Nenhum animal mudou de lote.</div>')+
+      '<div class="sm">"Estava no" é o lote da última pesagem de cada animal antes de '+isoToBR(c.datas[0]).slice(0,5)+'. GMD médio = ganho desde essa pesagem.</div>';
+    P.push(pg+c2+rod);
+  }
+  // anexo: animais por lote, 36 linhas por página
+  var rows=[]; c.lotes.forEach(function(L){
+    rows.push({h:loteLabel(L.lote)+' · '+L.qtd+' cab.'});
+    L.animais.slice().sort(function(x,y){ return String(x.brinco).localeCompare(String(y.brinco),'pt',{numeric:true}); }).forEach(function(a){ rows.push({a:a}); });
+  });
+  var POR=36;
+  for(var i=0;i<rows.length;i+=POR){
+    var ch=rows.slice(i,i+POR), t='<table class="ax"><tr><th>Nº</th><th class="n">Peso</th><th class="n">@</th><th class="n">GMD</th><th class="n">Pesado em</th></tr>'+
+      ch.map(function(r){ return r.h?'<tr><td colspan="5" style="background:#f3f6f2;font-weight:800;color:#123d1d">'+esc(r.h)+'</td></tr>'
+        :'<tr><td><b>'+esc(r.a.brinco)+'</b></td><td class="n">'+fmtBR(r.a.peso,0)+'</td><td class="n">'+fmtBR(r.a.peso/AR_DIV,1)+'</td><td class="n">'+(r.a.gmd!=null&&!isNaN(r.a.gmd)?fmtBR(r.a.gmd,3):'—')+'</td><td class="n">'+isoToBR(r.a.data).slice(0,5)+'</td></tr>'; }).join('')+'</table>';
+    P.push(pg+(i===0?'<div class="ey">Anexo</div><div class="tt">Animais de cada lote</div>':'<div style="height:6mm"></div>')+t+rod);
+  }
+  var n=P.length; P=P.map(function(p,i){ return p.replace('__PG__',(i+1)+'/'+n); });
+  var css=_rpCss()+'.hbs{padding:0 13mm}.hb{display:grid;grid-template-columns:30mm 1fr 18mm;gap:3mm;align-items:center;margin:1.6mm 0;font-size:9.5pt}.hb b{color:#123d1d}.hb div{height:4.2mm;background:#eef2ed;border-radius:2mm;overflow:hidden}.hb i{display:block;height:100%;border-radius:2mm}.hb span{text-align:right;font-weight:800}.ax td{padding:1.15mm 1mm;font-size:8.8pt}';
+  return '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Lotes formados '+esc(fz)+' '+ult.replace(/\//g,'-')+'</title><style>'+css+'</style></head><body>'+P.join('')+'</body></html>';
+}
 function lfDataCurta(d){ return isoToBR(d).slice(0,5); }
 function lfRender(){
   var box=document.getElementById("lfBox"); if(!box) return;
   var ds=lfDatas(), hoje=todayISO(), c=lfCalc(), h="";
-  h+='<div class="lf-top"><small>'+esc(lfFaz()||"Fazenda")+'</small><b>Lotes formados</b></div>';
+  h+='<div class="lf-top" style="display:flex;align-items:center;gap:10px"><div style="flex:1"><small>'+esc(lfFaz()||"Fazenda")+'</small><b>Lotes formados</b></div>'+(c.tot.qtd&&LF.buscando<=0?'<button type="button" class="lf-pdf" onclick="lfPDF()">Gerar PDF</button>':'')+'</div>';
   h+='<div class="lf-sec"><div class="lf-h">Quais pesagens entram?</div><div class="lf-hint">Toque pra marcar ou desmarcar. Pode ser qualquer combinação de datas.</div>';
   if(!ds.length) h+='<div class="lf-hint" style="margin-top:10px">'+(LF.erro?esc(LF.erro):'Buscando as datas na planilha…')+'</div>';
   else{
@@ -3482,7 +3611,7 @@ function lfRender(){
     }
   });
   l+='</div>';
-  box.innerHTML=h+'<div class="lf-cols"><div>'+g+'</div><div>'+l+'</div></div>';
+  box.innerHTML=h+g+l+lfMovHTML(c);
 }
 
 function go(s){

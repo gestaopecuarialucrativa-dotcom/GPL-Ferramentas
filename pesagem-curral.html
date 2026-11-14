@@ -379,6 +379,36 @@ input:focus,select:focus{outline:2px solid var(--v3); border-color:var(--v3)}
 .vds-detail.open{display:block}
 .vds-empty{text-align:center;padding:48px 16px;color:var(--muted)}
 
+
+/* ===== ABA LOTES (lotes formados) — padrão visual novo ===== */
+.lf{font-family:Inter,system-ui,Arial,sans-serif;color:#16261a}
+.lf-top{background:linear-gradient(140deg,#123d1d,#1f6b33 70%,#3f8f3a);border-radius:16px;padding:14px 16px;color:#fff;margin-bottom:12px}
+.lf-top small{display:block;color:#b9dcbf;font-size:11px;letter-spacing:.6px;font-weight:700;text-transform:uppercase}
+.lf-top b{display:block;font-size:20px;font-weight:800;letter-spacing:-.4px;margin-top:2px}
+.lf-sec{background:#fff;border-radius:16px;padding:14px;box-shadow:0 2px 10px rgba(0,0,0,.05);margin-bottom:12px}
+.lf-h{font-size:14px;font-weight:800;margin-bottom:4px}.lf-h span{font-weight:500;color:#7a8a7e;font-size:11px}
+.lf-hint{font-size:11.5px;color:#7a8a7e;line-height:1.4}
+.lf-chips{display:flex;flex-wrap:wrap;gap:7px;margin-top:9px}
+.lf-chip{border:1.5px solid #e0e6df;border-radius:12px;padding:7px 10px;font:700 12.5px Inter,system-ui,Arial,sans-serif;color:#7a8a7e;background:#fff;line-height:1.2;text-align:center;cursor:pointer}
+.lf-chip small{display:block;font-weight:600;font-size:10.5px;margin-top:1px}
+.lf-chip.on{border-color:#1f6b33;background:#E8F5E9;color:#123d1d}
+.lf-kp{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px}
+.lf-k{background:#fff;border-radius:14px;padding:11px 12px;box-shadow:0 2px 10px rgba(0,0,0,.05)}
+.lf-k b{display:block;font-size:21px;font-weight:800;letter-spacing:-.5px;color:#123d1d}
+.lf-k span{font-size:10.5px;color:#7a8a7e;font-weight:700;letter-spacing:.3px;text-transform:uppercase}
+.lf-g{display:grid;grid-template-columns:minmax(58px,auto) 1fr 52px;align-items:center;gap:8px;margin-top:9px;font-size:12.5px}
+.lf-g .n{font-weight:800;color:#123d1d}.lf-g .v{font-weight:800;text-align:right}
+.lf-bar{height:16px;background:#eef2ed;border-radius:8px;overflow:hidden}.lf-bar i{display:block;height:100%;border-radius:8px;background:#3f8f3a}
+.lf-bar.wa i{background:#E6A23C}
+.lf-lt{display:flex;align-items:center;gap:10px;padding:11px 0;border-top:1px solid #edf1ec;cursor:pointer}
+.lf-lt .n{font-size:14.5px;font-weight:800;color:#123d1d;width:74px}
+.lf-lt .m{flex:1;font-size:12.5px;line-height:1.45}.lf-lt .m span{color:#7a8a7e;font-size:11.5px}
+.lf-lt .q{font-size:21px;font-weight:800;text-align:right;letter-spacing:-.5px}.lf-lt .q small{display:block;font-size:10px;color:#7a8a7e;font-weight:700}
+.lf-ch{color:#b3beb6;font-size:18px;width:12px}
+.lf-an{background:#f6f9f5;border-radius:12px;padding:6px 10px;margin:0 0 10px}
+.lf-an table{width:100%;border-collapse:collapse;font-size:12.5px}.lf-an th{text-align:left;font-size:10px;color:#7a8a7e;text-transform:uppercase;padding:5px 3px}
+.lf-an td{padding:5px 3px;border-top:1px solid #e6ebe5}.lf-an .r{text-align:right}
+.lf-nota{background:#FFF3E0;border-radius:12px;padding:9px 12px;font-size:12px;color:#8a4b00;font-weight:600;margin-bottom:12px}
 </style>
 </head>
 <body>
@@ -396,6 +426,7 @@ input:focus,select:focus{outline:2px solid var(--v3); border-color:var(--v3)}
     <div class="nav" id="nav">
       <button class="on" data-s="pesar" onclick="go('pesar')">Pesar</button>
       <button data-s="hoje" onclick="go('hoje')">Hoje</button>
+      <button data-s="lotes" onclick="go('lotes')">Lotes</button>
       <button data-s="relatorio" onclick="go('relatorio')">Relatório</button>
       <button data-s="dashboard" onclick="go('dashboard')">Análise</button>
       <button data-s="estoque" id="navEstoque" onclick="go('estoque')">Estoque</button>
@@ -502,6 +533,8 @@ input:focus,select:focus{outline:2px solid var(--v3); border-color:var(--v3)}
   </div>
 
   <!-- ============ FALTANTES ============ -->
+  <div class="screen" id="scr-lotes"><div id="lfBox" class="lf"></div></div>
+
   <div class="screen" id="scr-falt">
     <div class="card stripe">
       <h2><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4"/><path d="M12 17h.01"/><path d="M10.3 3.9L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg> Faltantes por lote</h2>
@@ -3323,6 +3356,132 @@ async function calcEstoque(){
 (function(){ try{ if(gplFazendaLock()){ var b=document.getElementById("navEstoque"); if(b) b.style.display="none"; } }catch(e){} })();
 
 /* ---------- navegação ---------- */
+
+/* ===================== ABA LOTES — LOTES FORMADOS =====================
+   O usuário ESCOLHE as datas de pesagem. O sistema junta e forma os lotes.
+   Regra única (vale pra qualquer data): cada animal conta UMA vez, com o
+   último peso e o último lote entre as datas escolhidas. Vendido depois da
+   pesagem fica fora. GMD = o que foi gravado na pesagem do animal.
+   Só leitura: não grava nada na planilha nem no aparelho. */
+var LF={sel:{}, cache:{}, datas:[], aberto:null, iniciou:false, buscando:0, erro:"", faz:null};
+var LF_GMD_BAIXO=0.400;   // abaixo disso a barra do lote fica laranja
+function lfFaz(){ return state.fazenda||gplFazendaLock()||""; }
+function lfDiaTrab(){ return state.data||todayISO(); }
+function lfDatas(){
+  var m={}, dt=lfDiaTrab();
+  (LF.datas||[]).forEach(function(d){ if(d && d.data) m[d.data]=Number(d.qtd)||0; });
+  if(state.today && state.today.length) m[dt]=state.today.length;      // o dia em pesagem vale o que está na tela
+  return Object.keys(m).sort().reverse().map(function(d){ return {data:d,qtd:m[d]}; });
+}
+function lfAnimaisDe(d){
+  if(d===lfDiaTrab() && state.today && state.today.length)
+    return state.today.map(function(t){ return {brinco:t.brinco,peso:t.peso,lote:t.lote,gmd:t.gmd,obs:t.obs}; });
+  return LF.cache[d]||null;
+}
+async function lfAbrir(){
+  if(LF.faz!==lfFaz()){ LF={sel:{}, cache:{}, datas:[], aberto:null, iniciou:false, buscando:0, erro:"", faz:lfFaz()}; }
+  lfRender();
+  try{
+    var r=await jsonp(BACKEND_URL+"?acao=pesagem_datas&token="+encodeURIComponent(gplToken())+"&fazenda="+encodeURIComponent(lfFaz()));
+    LF.datas=(r&&r.datas)?r.datas:[]; LF.erro="";
+  }catch(e){ LF.erro="Sem internet: não deu pra buscar as datas da planilha."; }
+  if(!LF.iniciou){
+    var ds=lfDatas();
+    if(ds.length){ LF.iniciou=true; LF.sel[ds[0].data]=true; lfBuscar(ds[0].data); }
+  }
+  lfRender();
+}
+async function lfBuscar(d){
+  if(lfAnimaisDe(d)) return;
+  LF.buscando++; lfRender();
+  try{
+    var r=await jsonp(BACKEND_URL+"?acao=pesagem_ler&token="+encodeURIComponent(gplToken())+"&fazenda="+encodeURIComponent(lfFaz())+"&data="+encodeURIComponent(d));
+    LF.cache[d]=((r&&r.animais)||[]).map(function(a){ return {brinco:String(a.brinco||"").trim(),peso:parseNum(a.peso),lote:String(a.lote==null?"":a.lote).trim(),gmd:parseNum(a.gmd),obs:a.obs||""}; });
+    LF.erro="";
+  }catch(e){ LF.erro="Sem internet: não deu pra buscar a pesagem de "+isoToBR(d)+"."; delete LF.sel[d]; }
+  LF.buscando--; lfRender();
+}
+function lfToggle(d){
+  if(LF.sel[d]) delete LF.sel[d]; else { LF.sel[d]=true; lfBuscar(d); }
+  LF.aberto=null; lfRender();
+}
+function lfCalc(){
+  var datas=Object.keys(LF.sel).sort(), mapa={}, vendidos=0;
+  datas.forEach(function(d){
+    (lfAnimaisDe(d)||[]).forEach(function(a){
+      var b=String(a.brinco||"").trim(); if(!b || a.peso==null || a.lote==="" || a.lote==null) return;
+      mapa[b]={brinco:b,peso:Number(a.peso),lote:String(a.lote),gmd:(a.gmd==null?null:Number(a.gmd)),data:d,obs:a.obs||""};   // datas em ordem: a mais nova fica
+    });
+  });
+  var lotes={}, tot={qtd:0,peso:0,gmdSum:0,gmdN:0};
+  Object.keys(mapa).forEach(function(b){
+    var a=mapa[b], v=(typeof _vendidosMap!=="undefined"&&_vendidosMap)?_vendidosMap[b]:null;
+    if(v && (!v.data || String(v.data).slice(0,10)>=a.data)){ vendidos++; return; }      // vendido depois da pesagem: não está mais no lote
+    var L=lotes[a.lote]=lotes[a.lote]||{lote:a.lote,qtd:0,peso:0,gmdSum:0,gmdN:0,porData:{},animais:[]};
+    L.qtd++; L.peso+=a.peso; L.porData[a.data]=(L.porData[a.data]||0)+1; L.animais.push(a);
+    tot.qtd++; tot.peso+=a.peso;
+    if(a.gmd!=null && !isNaN(a.gmd)){ L.gmdSum+=a.gmd; L.gmdN++;
+      if(CATEG_FORA_GMD.indexOf(parseInt(a.lote,10))<0){ tot.gmdSum+=a.gmd; tot.gmdN++; } }
+  });
+  var lista=Object.keys(lotes).map(function(k){ return lotes[k]; }).sort(function(x,y){ return (parseInt(x.lote,10)||99)-(parseInt(y.lote,10)||99); });
+  return {datas:datas, lotes:lista, tot:tot, vendidos:vendidos};
+}
+function lfDataCurta(d){ return isoToBR(d).slice(0,5); }
+function lfRender(){
+  var box=document.getElementById("lfBox"); if(!box) return;
+  var ds=lfDatas(), hoje=todayISO(), c=lfCalc(), h="";
+  h+='<div class="lf-top"><small>'+esc(lfFaz()||"Fazenda")+'</small><b>Lotes formados</b></div>';
+  h+='<div class="lf-sec"><div class="lf-h">Quais pesagens entram?</div><div class="lf-hint">Toque pra marcar ou desmarcar. Pode ser qualquer combinação de datas.</div>';
+  if(!ds.length) h+='<div class="lf-hint" style="margin-top:10px">'+(LF.erro?esc(LF.erro):'Buscando as datas na planilha…')+'</div>';
+  else{
+    h+='<div class="lf-chips">'+ds.map(function(d){
+      return '<button type="button" class="lf-chip'+(LF.sel[d.data]?' on':'')+'" onclick="lfToggle(\''+d.data+'\')">'+(LF.sel[d.data]?'✓ ':'')+lfDataCurta(d.data)+(d.data===hoje?' · hoje':'')+'<small>'+d.qtd+' animais</small></button>';
+    }).join('')+'</div>';
+    if(LF.erro) h+='<div class="lf-hint" style="margin-top:8px;color:#B71C1C">'+esc(LF.erro)+'</div>';
+  }
+  h+='</div>';
+  if(LF.buscando>0){ box.innerHTML=h+'<div class="lf-sec"><div class="lf-hint">Buscando a pesagem na planilha…</div></div>'; return; }
+  if(!c.datas.length){ box.innerHTML=h+(ds.length?'<div class="lf-sec"><div class="lf-hint">Marque pelo menos uma data pra formar os lotes.</div></div>':''); return; }
+  if(!c.tot.qtd){ box.innerHTML=h+'<div class="lf-sec"><div class="lf-hint">Nenhum animal nas datas marcadas.</div></div>'; return; }
+  var med=c.tot.peso/c.tot.qtd;
+  h+='<div class="lf-kp"><div class="lf-k"><b>'+c.tot.qtd+'</b><span>cabeças</span></div>'+
+     '<div class="lf-k"><b>'+fmtBR(med,0)+' kg</b><span>média · '+fmtBR(med/AR_DIV,1)+'@</span></div>'+
+     '<div class="lf-k"><b>'+(c.tot.gmdN?fmtBR(c.tot.gmdSum/c.tot.gmdN,3):'—')+'</b><span>GMD geral</span></div></div>';
+  var nota=[];
+  if(c.datas.length>1) nota.push('Animal pesado em mais de um dia conta uma vez só, com o último peso e o último lote.');
+  if(c.vendidos) nota.push(c.vendidos+(c.vendidos===1?' animal vendido ficou':' animais vendidos ficaram')+' fora da conta.');
+  if(nota.length) h+='<div class="lf-nota">'+nota.join(' ')+'</div>';
+  // gráfico de GMD por lote
+  var comG=c.lotes.filter(function(L){ return gmdLoteOk(L) && CATEG_FORA_GMD.indexOf(parseInt(L.lote,10))<0; })
+                  .map(function(L){ return {L:L,g:L.gmdSum/L.gmdN}; }).sort(function(x,y){ return y.g-x.g; });
+  var semG=c.lotes.filter(function(L){ return !gmdLoteOk(L) && CATEG_FORA_GMD.indexOf(parseInt(L.lote,10))<0; });
+  var g='<div class="lf-sec"><div class="lf-h">GMD por lote <span>kg por dia</span></div>';
+  if(comG.length){
+    var mx=Math.max.apply(null,comG.map(function(x){ return x.g; })); if(!(mx>0)) mx=1;
+    comG.forEach(function(x){
+      g+='<div class="lf-g"><div class="n">'+esc(loteLabel(x.L.lote))+'</div><div class="lf-bar'+(x.g<LF_GMD_BAIXO?' wa':'')+'"><i style="width:'+Math.max(2,Math.round(Math.max(0,x.g)/mx*100))+'%"></i></div><div class="v">'+fmtBR(x.g,3)+'</div></div>';
+    });
+    g+='<div class="lf-hint" style="margin-top:10px">Do que mais ganha pro que menos ganha. Laranja = abaixo de '+fmtBR(LF_GMD_BAIXO,3)+'.</div>';
+  } else g+='<div class="lf-hint">Nenhum lote com GMD nessas datas (pesagem de referência: o GMD aparece na próxima pesagem).</div>';
+  if(semG.length) g+='<div class="lf-hint" style="margin-top:6px">Sem GMD: '+semG.map(function(L){ return esc(loteLabel(L.lote))+' ('+L.gmdN+' de '+L.qtd+' com peso anterior)'; }).join(' · ')+'. Precisa de 70% do lote.</div>';
+  g+='</div>';
+  // lista dos lotes
+  var l='<div class="lf-sec"><div class="lf-h">Lotes <span>toque pra ver os animais</span></div>';
+  c.lotes.forEach(function(L){
+    var m=L.peso/L.qtd, pd=Object.keys(L.porData).sort().map(function(d){ return lfDataCurta(d)+': '+L.porData[d]; }).join(' · '), ab=(LF.aberto===L.lote);
+    l+='<div class="lf-lt" onclick="LF.aberto=(LF.aberto===\''+esc(L.lote)+'\'?null:\''+esc(L.lote)+'\');lfRender()"><div class="n">'+esc(loteLabel(L.lote))+'</div>'+
+       '<div class="m">média '+fmtBR(m,0)+' kg ('+fmtBR(m/AR_DIV,1)+'@)<br><span>'+pd+'</span></div>'+
+       '<div class="q">'+L.qtd+'<small>CAB.</small></div><div class="lf-ch">'+(ab?'⌄':'›')+'</div></div>';
+    if(ab){
+      var an=L.animais.slice().sort(function(x,y){ return String(x.brinco).localeCompare(String(y.brinco),'pt',{numeric:true}); });
+      l+='<div class="lf-an"><table><tr><th>Nº</th><th class="r">Peso</th><th class="r">@</th><th class="r">GMD</th><th class="r">Pesado em</th></tr>'+
+         an.map(function(a){ return '<tr><td><b>'+esc(a.brinco)+'</b></td><td class="r">'+fmtBR(a.peso,0)+'</td><td class="r">'+fmtBR(a.peso/AR_DIV,1)+'</td><td class="r">'+(a.gmd!=null&&!isNaN(a.gmd)?fmtBR(a.gmd,3):'—')+'</td><td class="r">'+lfDataCurta(a.data)+'</td></tr>'; }).join('')+'</table></div>';
+    }
+  });
+  l+='</div>';
+  box.innerHTML=h+'<div class="lf-cols"><div>'+g+'</div><div>'+l+'</div></div>';
+}
+
 function go(s){
   document.querySelectorAll(".screen").forEach(x=>x.classList.remove("on"));
   document.getElementById("scr-"+s).classList.add("on");
@@ -3339,6 +3498,7 @@ function go(s){
   if(s==="relatorio"){ renderRelatorio(); renderLidaRel(); }
   if(s==="dashboard") renderDashboard();
   if(s==="estoque") renderEstoque();
+  if(s==="lotes") lfAbrir();
   if(s==="venda") renderVenda();
   if(s==="vendidos") renderVendidos();
 }

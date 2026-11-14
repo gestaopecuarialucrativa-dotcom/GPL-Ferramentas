@@ -3365,6 +3365,9 @@ async function calcEstoque(){
    Só leitura: não grava nada na planilha nem no aparelho. */
 var LF={sel:{}, cache:{}, datas:[], aberto:null, iniciou:false, buscando:0, erro:"", faz:null};
 var LF_GMD_BAIXO=0.400;   // abaixo disso a barra do lote fica laranja
+/* Na aba Lotes vale o lote que está formando, não de onde o animal veio:
+   GMD do lote = média de quem tem GMD (mínimo 5 animais), sem a regra dos 70%. */
+function lfGmdOk(L){ return !!(L && L.gmdN>=GMD_MIN_N); }
 function lfFaz(){ return state.fazenda||gplFazendaLock()||""; }
 function lfDiaTrab(){ return state.data||todayISO(); }
 function lfDatas(){
@@ -3452,18 +3455,18 @@ function lfRender(){
   if(c.vendidos) nota.push(c.vendidos+(c.vendidos===1?' animal vendido ficou':' animais vendidos ficaram')+' fora da conta.');
   if(nota.length) h+='<div class="lf-nota">'+nota.join(' ')+'</div>';
   // gráfico de GMD por lote
-  var comG=c.lotes.filter(function(L){ return gmdLoteOk(L) && CATEG_FORA_GMD.indexOf(parseInt(L.lote,10))<0; })
+  var comG=c.lotes.filter(function(L){ return lfGmdOk(L) && CATEG_FORA_GMD.indexOf(parseInt(L.lote,10))<0; })
                   .map(function(L){ return {L:L,g:L.gmdSum/L.gmdN}; }).sort(function(x,y){ return y.g-x.g; });
-  var semG=c.lotes.filter(function(L){ return !gmdLoteOk(L) && CATEG_FORA_GMD.indexOf(parseInt(L.lote,10))<0; });
+  var semG=c.lotes.filter(function(L){ return !lfGmdOk(L) && CATEG_FORA_GMD.indexOf(parseInt(L.lote,10))<0; });
   var g='<div class="lf-sec"><div class="lf-h">GMD por lote <span>kg por dia</span></div>';
   if(comG.length){
     var mx=Math.max.apply(null,comG.map(function(x){ return x.g; })); if(!(mx>0)) mx=1;
     comG.forEach(function(x){
-      g+='<div class="lf-g"><div class="n">'+esc(loteLabel(x.L.lote))+'</div><div class="lf-bar'+(x.g<LF_GMD_BAIXO?' wa':'')+'"><i style="width:'+Math.max(2,Math.round(Math.max(0,x.g)/mx*100))+'%"></i></div><div class="v">'+fmtBR(x.g,3)+'</div></div>';
+      g+='<div class="lf-g"><div class="n">'+esc(loteLabel(x.L.lote))+'<div style="font-size:10px;color:#7a8a7e;font-weight:600">'+x.L.gmdN+' de '+x.L.qtd+'</div></div><div class="lf-bar'+(x.g<LF_GMD_BAIXO?' wa':'')+'"><i style="width:'+Math.max(2,Math.round(Math.max(0,x.g)/mx*100))+'%"></i></div><div class="v">'+fmtBR(x.g,3)+'</div></div>';
     });
-    g+='<div class="lf-hint" style="margin-top:10px">Do que mais ganha pro que menos ganha. Laranja = abaixo de '+fmtBR(LF_GMD_BAIXO,3)+'.</div>';
+    g+='<div class="lf-hint" style="margin-top:10px">Do que mais ganha pro que menos ganha. Laranja = abaixo de '+fmtBR(LF_GMD_BAIXO,3)+'. Embaixo do lote: quantos animais têm GMD.</div>';
   } else g+='<div class="lf-hint">Nenhum lote com GMD nessas datas (pesagem de referência: o GMD aparece na próxima pesagem).</div>';
-  if(semG.length) g+='<div class="lf-hint" style="margin-top:6px">Sem GMD: '+semG.map(function(L){ return esc(loteLabel(L.lote))+' ('+L.gmdN+' de '+L.qtd+' com peso anterior)'; }).join(' · ')+'. Precisa de 70% do lote.</div>';
+  if(semG.length) g+='<div class="lf-hint" style="margin-top:6px">Sem GMD: '+semG.map(function(L){ return esc(loteLabel(L.lote))+' ('+L.gmdN+' de '+L.qtd+' com GMD)'; }).join(' · ')+'. Precisa de pelo menos '+GMD_MIN_N+' animais com GMD.</div>';
   g+='</div>';
   // lista dos lotes
   var l='<div class="lf-sec"><div class="lf-h">Lotes <span>toque pra ver os animais</span></div>';

@@ -503,6 +503,8 @@ input:focus,select:focus{outline:2px solid var(--v3); border-color:var(--v3)}
       <div id="loteBox"><div class="hint">Digite o número do animal primeiro.</div></div>
     </div>
 
+    <div id="cpPesarBox" style="margin:12px 16px 0"></div>
+
     <div style="margin:12px 16px">
       <button class="btn btn-primary" onclick="registrar()">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
@@ -1635,7 +1637,8 @@ async function _registrar(){
     brinco:s.incerto?(baseBrinco(s.brinco)+"x"):s.brinco,
     base:s.base, incerto:!!s.incerto, novo:!!s.novo,
     peso, lote:String(lote||""), pesoAnterior:s.pesoAnterior, dataAnterior:s.dataAnterior,
-    dias:dias, gmd:gmd, obsAnterior:s.obsAnterior||"", obs:obs
+    dias:dias, gmd:gmd, obsAnterior:s.obsAnterior||"", obs:obs,
+    fornecedor:cpFornAtual()
   });
   state.syncDirty=true; /* pendente de envio: nunca deixa a nuvem sobrescrever o que ainda nao subiu */
   save();
@@ -1645,7 +1648,7 @@ async function _registrar(){
   document.getElementById("novoBtn").classList.remove("btn-primary");
   document.getElementById("matches").innerHTML="";
   document.getElementById("numWarn").style.display="none";
-  renderDetail(); renderHoje(); renderFooter(); renderFaltantes(); renderPesarResumo();
+  renderDetail(); renderHoje(); renderFooter(); renderFaltantes(); renderPesarResumo(); renderCompraPesar();
   scheduleAutoSync();
   const _ult=state.today[state.today.length-1];
   okFlash(_ult); renderLida(); renderOffBanner();
@@ -2280,7 +2283,7 @@ async function carregarDiaNuvem(silent){
       incerto:!!a.is_revisar, novo:!!a.is_novo,
       peso:parseNum(a.peso), lote:String(a.lote||""),
       pesoAnterior:parseNum(a.peso_anterior), dataAnterior:null,
-      dias:parseNum(a.dias), gmd:parseNum(a.gmd), obsAnterior:"", obs:a.obs||""
+      dias:parseNum(a.dias), gmd:parseNum(a.gmd), obsAnterior:"", obs:a.obs||"", fornecedor:String(a.fornecedor||"")
     }; }).filter(function(x){ return x.peso!=null && x.lote; });
     diaCompleto=true; state.syncDirty=false; save();
     renderConfig(); renderHoje(); renderFooter(); renderFaltantes(); renderPesarResumo();
@@ -2468,7 +2471,7 @@ async function carregarNuvemPesagem(){
       incerto:!!a.is_revisar, novo:!!a.is_novo,
       peso:parseNum(a.peso), lote:String(a.lote||""),
       pesoAnterior:parseNum(a.peso_anterior), dataAnterior:null,
-      dias:parseNum(a.dias), gmd:parseNum(a.gmd), obsAnterior:"", obs:a.obs||""
+      dias:parseNum(a.dias), gmd:parseNum(a.gmd), obsAnterior:"", obs:a.obs||"", fornecedor:String(a.fornecedor||"")
     })).filter(x=>x.peso!=null && x.lote);
     diaCompleto=true;
     save();
@@ -3267,7 +3270,8 @@ async function syncSheets(auto){
         gmd: t.gmd,
         obs: t.obs,
         is_novo: !!t.novo,
-        is_revisar: !!t.incerto
+        is_revisar: !!t.incerto,
+        fornecedor: t.fornecedor||""
       }))
     }
   };
@@ -3373,6 +3377,26 @@ async function calcEstoque(){
 
 /* ---------- navegação ---------- */
 
+
+/* ===== GADO DE COMPRA na hora de pesar =====
+   Compra NÃO depende do lote: o animal pode ser de compra e já ir pro lote 5.
+   Ligado, cada animal registrado leva o fornecedor (coluna Fornecedor da planilha). */
+function cpFornAtual(){ var c=state.compra; if(!c || !c.on) return ""; return String(c.forn||"").trim() || "Compra"; }
+function cpToggle(){ state.compra=state.compra||{on:false,forn:""}; state.compra.on=!state.compra.on; save(); renderCompraPesar(); if(state.compra.on){ var i=document.getElementById("cpFornIn"); if(i && !i.value) i.focus(); } }
+function cpFornSet(v){ state.compra=state.compra||{on:true,forn:""}; state.compra.forn=v; save(); }
+function renderCompraPesar(){
+  var b=document.getElementById("cpPesarBox"); if(!b) return;
+  var c=state.compra||{on:false,forn:""};
+  if(!c.on){ b.innerHTML='<button type="button" class="btn btn-ghost btn-sm" style="width:100%" onclick="cpToggle()">Gado de compra? Toque pra marcar</button>'; return; }
+  var n=(state.today||[]).filter(function(t){ return t.fornecedor; }).length;
+  b.innerHTML='<div style="background:#FFF8E1;border:1.5px solid #E6A23C;border-radius:12px;padding:10px 12px">'+
+    '<div style="display:flex;align-items:center;gap:8px"><b style="flex:1;color:#8a4b00;font-size:14px">Pesando GADO DE COMPRA</b>'+
+    '<button type="button" class="btn btn-ghost btn-sm" style="width:auto;flex:none" onclick="cpToggle()">Desligar</button></div>'+
+    '<input id="cpFornIn" type="text" placeholder="Fornecedor (de quem comprou)" value="'+esc(c.forn||"")+'" oninput="cpFornSet(this.value)" style="width:100%;margin-top:8px;font-size:16px;padding:10px;border:1.5px solid #cfd8d3;border-radius:10px">'+
+    '<div class="hint" style="margin-top:6px">Vale pra cada animal que você registrar até desligar. O lote você escolhe normal. '+(n?n+' de compra hoje.':'')+'</div></div>';
+}
+document.addEventListener("DOMContentLoaded", function(){ renderCompraPesar(); });
+
 /* ===================== ABA LOTES — LOTES FORMADOS =====================
    O usuário ESCOLHE as datas de pesagem. O sistema junta e forma os lotes.
    Regra única (vale pra qualquer data): cada animal conta UMA vez, com o
@@ -3394,7 +3418,7 @@ function lfDatas(){
 }
 function lfAnimaisDe(d){
   if(d===lfDiaTrab() && state.today && state.today.length)
-    return state.today.map(function(t){ return {brinco:t.brinco,peso:t.peso,lote:t.lote,gmd:t.gmd,obs:t.obs}; });
+    return state.today.map(function(t){ return {brinco:t.brinco,peso:t.peso,lote:t.lote,gmd:t.gmd,obs:t.obs,forn:String(t.fornecedor||'').trim()}; });
   return LF.cache[d]||null;
 }
 async function lfAbrir(){
@@ -3415,7 +3439,7 @@ async function lfBuscar(d){
   LF.buscando++; lfRender();
   try{
     var r=await jsonp(BACKEND_URL+"?acao=pesagem_ler&token="+encodeURIComponent(gplToken())+"&fazenda="+encodeURIComponent(lfFaz())+"&data="+encodeURIComponent(d));
-    LF.cache[d]=((r&&r.animais)||[]).map(function(a){ return {brinco:String(a.brinco||"").trim(),peso:parseNum(a.peso),lote:String(a.lote==null?"":a.lote).trim(),gmd:parseNum(a.gmd),obs:a.obs||""}; });
+    LF.cache[d]=((r&&r.animais)||[]).map(function(a){ return {brinco:String(a.brinco||"").trim(),peso:parseNum(a.peso),lote:String(a.lote==null?"":a.lote).trim(),gmd:parseNum(a.gmd),obs:a.obs||"",forn:String(a.fornecedor||"").trim()}; });
     LF.erro="";
   }catch(e){ LF.erro="Sem internet: não deu pra buscar a pesagem de "+isoToBR(d)+"."; delete LF.sel[d]; }
   LF.buscando--; lfRender();
@@ -3429,7 +3453,7 @@ function lfCalc(){
   datas.forEach(function(d){
     (lfAnimaisDe(d)||[]).forEach(function(a){
       var b=String(a.brinco||"").trim(); if(!b || a.peso==null || a.lote==="" || a.lote==null) return;
-      mapa[b]={brinco:b,peso:Number(a.peso),lote:String(a.lote),gmd:(a.gmd==null?null:Number(a.gmd)),data:d,obs:a.obs||""};   // datas em ordem: a mais nova fica
+      mapa[b]={brinco:b,peso:Number(a.peso),lote:String(a.lote),gmd:(a.gmd==null?null:Number(a.gmd)),data:d,obs:a.obs||"",forn:a.forn||""};   // datas em ordem: a mais nova fica
     });
   });
   var lotes={}, tot={qtd:0,peso:0,gmdSum:0,gmdN:0};
@@ -3505,18 +3529,29 @@ function lfMovHTML(c){
 /* ---- Pesagem de compra: na perna (R$/cabeça) ou no peso (R$/@). Só conta, não grava nada. ---- */
 function lfNum(v){ v=String(v==null?"":v).replace(/[^\d.,-]/g,""); if(!v) return 0; if(v.indexOf(",")>=0) v=v.replace(/\./g,"").replace(",","."); var n=parseFloat(v); return isNaN(n)?0:n; }
 function lfRS(v,d){ return 'R$ '+fmtBR(v,d==null?2:d); }
+function lfCpForn(c){ var m={}; c.lotes.forEach(function(L){ L.animais.forEach(function(a){ if(a.forn) m[a.forn]=(m[a.forn]||0)+1; }); }); return m; }
 function lfCpBase(c){
-  var b=LF.cp.base;
-  if(b==null){ b=c.lotes.some(function(L){ return String(L.lote)==="15"; })?"15":"todos"; }
-  if(b!=="todos" && !c.lotes.some(function(L){ return String(L.lote)===String(b); })) b="todos";
+  var b=LF.cp.base, F=lfCpForn(c), temF=Object.keys(F).length>0;
+  if(b==null) b=temF?"compra":(c.lotes.some(function(L){ return String(L.lote)==="15"; })?"15":"todos");
+  if(b==="compra"){ if(!temF) b="todos"; }
+  else if(String(b).indexOf("forn:")===0){ if(!F[String(b).slice(5)]) b=temF?"compra":"todos"; }
+  else if(b!=="todos" && !c.lotes.some(function(L){ return String(L.lote)===String(b); })) b="todos";
   return b;
 }
+function lfCpDentro(b,a){
+  if(b==="todos") return true;
+  if(b==="compra") return !!a.forn;
+  if(String(b).indexOf("forn:")===0) return a.forn===String(b).slice(5);
+  return String(a.lote)===String(b);
+}
+function lfCpBaseNome(b){ return b==="todos"?"":(b==="compra"?"gado de compra":(String(b).indexOf("forn:")===0?String(b).slice(5):loteLabel(b))); }
 function lfCpCalc(c){
   var b=lfCpBase(c), n=0, peso=0;
-  c.lotes.forEach(function(L){ if(b==="todos" || String(L.lote)===String(b)){ n+=L.qtd; peso+=L.peso; } });
+  var porLote={}, fset={};
+  c.lotes.forEach(function(L){ L.animais.forEach(function(a){ if(lfCpDentro(b,a)){ n++; peso+=a.peso; porLote[L.lote]=(porLote[L.lote]||0)+1; if(a.forn) fset[a.forn]=1; } }); });
   if(!n) return null;
   var med=peso/n, arMed=med/AR_DIV, arTot=peso/AR_DIV, v=lfNum(LF.cp.valor), extra=lfNum(LF.cp.frete)+lfNum(LF.cp.comis), qtd=Math.round(lfNum(LF.cp.qtd));
-  var o={base:b, n:n, peso:peso, med:med, arMed:arMed, modo:LF.cp.modo, valor:v, extra:extra, frete:lfNum(LF.cp.frete), comis:lfNum(LF.cp.comis), qtd:qtd, de:String(LF.cp.de||"").trim()};
+  var o={base:b, n:n, peso:peso, med:med, arMed:arMed, modo:LF.cp.modo, valor:v, extra:extra, frete:lfNum(LF.cp.frete), comis:lfNum(LF.cp.comis), qtd:qtd, de:(String(LF.cp.de||"").trim() || Object.keys(fset).filter(function(x){ return x!=="Compra"; }).join(", ")), porLote:porLote};
   if(!(v>0)) return o;
   if(o.modo==="perna"){ o.cab=v; o.arroba=v/arMed; o.total=v*n; }
   else { o.arroba=v; o.cab=v*arMed; o.total=v*arTot; }
@@ -3535,6 +3570,23 @@ function lfCpResHTML(o){
   if(o.qtd>0 && o.qtd!==o.n) h+='<div class="lf-hint" style="margin-top:8px;color:#8a4b00;font-weight:600">Comprou '+o.qtd+' e pesou '+o.n+': diferença de '+Math.abs(o.qtd-o.n)+'. A conta usa os '+o.n+' pesados.</div>';
   return h;
 }
+/* marcar DEPOIS: grava o fornecedor nos animais do dia que ainda está em pesagem (os que a caixinha escolheu) */
+function lfCpPodeMarcar(c,b){
+  if(b==="compra" || String(b).indexOf("forn:")===0) return 0;
+  if(!(state.today&&state.today.length) || c.datas.length!==1 || c.datas[0]!==lfDiaTrab()) return 0;
+  var n=0; c.lotes.forEach(function(L){ L.animais.forEach(function(a){ if(lfCpDentro(b,a) && !a.forn) n++; }); }); return n;
+}
+function lfCpMarcar(){
+  var c=lfCalc(), b=lfCpBase(c), nome=String(LF.cp.de||"").trim();
+  if(!nome){ alert("Digite primeiro de quem comprou (o fornecedor)."); return; }
+  var alvo={}; c.lotes.forEach(function(L){ L.animais.forEach(function(a){ if(lfCpDentro(b,a) && !a.forn) alvo[a.brinco]=1; }); });
+  var n=Object.keys(alvo).length; if(!n) return;
+  if(!confirm("Marcar "+n+" animais como compra de "+nome+"?\n\nGrava o fornecedor na planilha, na pesagem de "+isoToBR(lfDiaTrab())+".")) return;
+  state.today.forEach(function(t){ if(alvo[t.brinco]) t.fornecedor=nome; });
+  state.syncDirty=true; save(); LF.cp.base="compra";
+  try{ scheduleAutoSync(); }catch(e){}
+  lfRender(); try{ renderCompraPesar(); }catch(e){}
+}
 function lfCpSet(k,v){ LF.cp[k]=v; var el=document.getElementById("lfCpRes"); if(el) el.innerHTML=lfCpResHTML(lfCpCalc(lfCalc())); }
 function lfCpHTML(c){
   if(!LF.cp.aberto) return '<div class="lf-sec"><button type="button" class="lf-btn" onclick="LF.cp.aberto=true;lfRender()">Pesagem de compra</button><div class="lf-hint" style="margin-top:7px">Pesou gado comprado? Veja quanto saiu a arroba ou a cabeça.</div></div>';
@@ -3543,12 +3595,21 @@ function lfCpHTML(c){
   var h='<div class="lf-sec"><div class="lf-h">Pesagem de compra <span>'+o.n+' animais · média '+fmtBR(o.med,0)+' kg ('+fmtBR(o.arMed,1)+'@)</span></div>'+
     '<div class="lf-seg"><button type="button" class="'+(o.modo==="perna"?'on':'')+'" onclick="LF.cp.modo=\'perna\';LF.cp.valor=\'\';lfRender()">Na perna</button><button type="button" class="'+(o.modo==="peso"?'on':'')+'" onclick="LF.cp.modo=\'peso\';LF.cp.valor=\'\';lfRender()">No peso</button></div>'+
     '<div class="lf-f"><label>'+(o.modo==="perna"?'Valor pago por cabeça (R$)':'Valor pago na arroba (R$)')+'</label><input inputmode="decimal" value="'+at(LF.cp.valor)+'" placeholder="'+(o.modo==="perna"?'ex.: 2300':'ex.: 315')+'" oninput="lfCpSet(\'valor\',this.value)"></div>';
-  if(c.lotes.length>1) h+='<div class="lf-f"><label>Qual gado é da compra</label><select onchange="LF.cp.base=this.value;lfRender()"><option value="todos"'+(o.base==="todos"?' selected':'')+'>Todos os animais das datas marcadas</option>'+
-    c.lotes.map(function(L){ return '<option value="'+esc(L.lote)+'"'+(String(o.base)===String(L.lote)?' selected':'')+'>Só '+esc(loteLabel(L.lote))+' ('+L.qtd+' cab.)</option>'; }).join('')+'</select></div>';
+  var F=lfCpForn(c), fk=Object.keys(F).sort(), nF=0; fk.forEach(function(k){ nF+=F[k]; });
+  var op=function(v,t){ return '<option value="'+esc(v)+'"'+(String(o.base)===String(v)?' selected':'')+'>'+esc(t)+'</option>'; };
+  h+='<div class="lf-f"><label>Qual gado é da compra</label><select onchange="LF.cp.base=this.value;lfRender()">'+
+    (fk.length?op("compra","Marcados como compra ("+nF+" cab.)"):"")+
+    (fk.length>1?fk.map(function(k){ return op("forn:"+k,"Só de "+k+" ("+F[k]+" cab.)"); }).join(""):"")+
+    op("todos","Todos os animais das datas marcadas ("+c.tot.qtd+" cab.)")+
+    c.lotes.map(function(L){ return op(L.lote,"Só "+loteLabel(L.lote)+" ("+L.qtd+" cab.)"); }).join("")+'</select></div>';
+  var pl=Object.keys(o.porLote||{}).sort(function(x,y){ return (parseInt(x,10)||99)-(parseInt(y,10)||99); });
+  if(pl.length>1) h+='<div class="lf-hint" style="margin-top:6px">Onde esse gado ficou: '+pl.map(function(k){ return esc(loteLabel(k))+' '+o.porLote[k]; }).join(' · ')+'</div>';
+  if(!fk.length) h+='<div class="lf-hint" style="margin-top:6px;color:#8a4b00">Nenhum animal dessas datas está marcado como compra. Na próxima, ligue "Gado de compra" na hora de pesar.</div>';
   h+='<div class="lf-two"><div class="lf-f"><label>Frete total (opcional)</label><input inputmode="decimal" value="'+at(LF.cp.frete)+'" oninput="lfCpSet(\'frete\',this.value)"></div><div class="lf-f"><label>Comissão (opcional)</label><input inputmode="decimal" value="'+at(LF.cp.comis)+'" oninput="lfCpSet(\'comis\',this.value)"></div></div>'+
-    '<div class="lf-two"><div class="lf-f"><label>De quem comprou (opcional)</label><input style="font-size:14px;font-weight:600" value="'+at(LF.cp.de)+'" oninput="lfCpSet(\'de\',this.value)"></div><div class="lf-f" style="flex:0 0 38%"><label>Qtd. comprada</label><input inputmode="numeric" value="'+at(LF.cp.qtd)+'" placeholder="'+o.n+'" oninput="lfCpSet(\'qtd\',this.value)"></div></div>'+
+    '<div class="lf-two"><div class="lf-f"><label>De quem comprou (opcional)</label><input style="font-size:14px;font-weight:600" value="'+at(LF.cp.de)+'" placeholder="'+at(o.de)+'" oninput="lfCpSet(\'de\',this.value)"></div><div class="lf-f" style="flex:0 0 38%"><label>Qtd. comprada</label><input inputmode="numeric" value="'+at(LF.cp.qtd)+'" placeholder="'+o.n+'" oninput="lfCpSet(\'qtd\',this.value)"></div></div>'+
+    (lfCpPodeMarcar(c,o.base)?'<button type="button" class="lf-btn" style="margin-top:10px;background:#FFF8E1;border-color:#E6A23C;color:#8a4b00" onclick="lfCpMarcar()">Marcar esses '+lfCpPodeMarcar(c,o.base)+' como compra e gravar o fornecedor</button>':'')+
     '<div id="lfCpRes">'+lfCpResHTML(o)+'</div>'+
-    '<div class="lf-hint" style="margin-top:9px">Arroba = peso vivo ÷ '+AR_DIV+'. Esses valores entram no PDF e não ficam gravados na planilha.</div>'+
+    '<div class="lf-hint" style="margin-top:9px">Arroba = peso vivo ÷ '+AR_DIV+'. O fornecedor fica gravado na planilha; os valores em R$ entram só no PDF.</div>'+
     '<div style="display:flex;gap:8px;margin-top:10px"><button type="button" class="lf-btn" onclick="lfPDF()">Gerar PDF da compra</button><button type="button" class="lf-btn" style="flex:0 0 34%;background:#fff;border-color:#cfd8d3;color:#7a8a7e" onclick="LF.cp.aberto=false;lfRender()">Fechar</button></div></div>';
   return h;
 }
@@ -3562,13 +3623,20 @@ function lfPDF(){
     ov.innerHTML='<div style="display:flex;gap:8px;align-items:center;padding:8px 10px;background:#123d1d;color:#fff;flex-wrap:wrap">'+
       '<b style="flex:1;font-size:14px;min-width:160px">Lotes formados</b>'+
       '<button type="button" onclick="var f=document.getElementById(\'lfFr\');f.contentWindow.focus();f.contentWindow.print()" style="background:#8BC34A;color:#123d1d;border:0;border-radius:8px;padding:9px 14px;font-weight:800;font-size:14px">Salvar PDF</button>'+
-      '<button type="button" onclick="document.getElementById(\'lfOv\').style.display=\'none\';document.body.style.overflow=\'\'" style="background:transparent;color:#fff;border:1.5px solid #fff;border-radius:8px;padding:8px 14px;font-weight:800;font-size:14px">Fechar</button></div>'+
+      '<button type="button" onclick="document.getElementById(\'lfOv\').style.display=\'none\';document.body.style.overflow=\'\';if(window._lfTit){document.title=window._lfTit;window._lfTit=null;}" style="background:transparent;color:#fff;border:1.5px solid #fff;border-radius:8px;padding:8px 14px;font-weight:800;font-size:14px">Fechar</button></div>'+
       '<iframe id="lfFr" style="flex:1;border:0;width:100%;background:#7d857e"></iframe>';
     document.body.appendChild(ov);
   }
   ov.style.display="flex"; document.body.style.overflow="hidden";
   var f=document.getElementById("lfFr"), d=f.contentDocument||f.contentWindow.document;
   d.open(); d.write(lfPDFHTML(c)); d.close();
+  // nome do arquivo ao salvar: "Compra Fazenda dd-mm-aaaa" ou "Lotes formados ..."
+  if(!window._lfTit) window._lfTit=document.title;
+  document.title=lfPDFNome(c);
+}
+function lfPDFNome(c){
+  var cp=LF.cp.aberto?lfCpCalc(c):null, ult=isoToBR(c.datas[c.datas.length-1]).replace(/\//g,'-');
+  return ((cp && cp.valor>0)?'Compra ':'Lotes formados ')+lfFaz()+' '+ult+((cp && cp.valor>0 && cp.de)?' - '+cp.de:'');
 }
 function lfPDFHTML(c){
   var fz=lfFaz(), logo=_rpLogo(), ASS='Rogério · Consultor GPL', CONT='(63) 99108-2453 · @gestaopecuarialucrativa';
@@ -3597,10 +3665,11 @@ function lfPDFHTML(c){
   if(cp && cp.valor>0){
     var lin=function(a,b){ return '<tr><td>'+a+'</td><td class="n"><b>'+b+'</b></td></tr>'; };
     var t='<div class="ey">Compra</div><div class="tt">Quanto custou o gado</div>'+
-      '<div class="kp"><div><b>'+cp.n+'</b><span>cabeças pesadas'+(cp.base!=="todos"?' · '+esc(loteLabel(cp.base)):'')+'</span></div><div><b>'+fmtBR(cp.med,0)+' kg</b><span>peso médio · '+fmtBR(cp.arMed,1)+' @</span></div><div><b>'+lfRS(cp.arroba)+'</b><span>'+(cp.modo==="perna"?'saiu a arroba':'pago na arroba')+'</span></div><div><b>'+lfRS(cp.cab)+'</b><span>'+(cp.modo==="perna"?'pago por cabeça':'saiu a cabeça')+'</span></div></div>'+
+      '<div class="kp"><div><b>'+cp.n+'</b><span>cabeças pesadas'+(cp.base!=="todos"?' · '+esc(lfCpBaseNome(cp.base)):'')+'</span></div><div><b>'+fmtBR(cp.med,0)+' kg</b><span>peso médio · '+fmtBR(cp.arMed,1)+' @</span></div><div><b>'+lfRS(cp.arroba)+'</b><span>'+(cp.modo==="perna"?'saiu a arroba':'pago na arroba')+'</span></div><div><b>'+lfRS(cp.cab)+'</b><span>'+(cp.modo==="perna"?'pago por cabeça':'saiu a cabeça')+'</span></div></div>'+
       '<div class="g">A conta</div><table>'+
       lin('Forma da compra',cp.modo==="perna"?'Na perna (por cabeça)':'No peso (por arroba)')+
       (cp.de?lin('Comprado de',esc(cp.de)):'')+
+      (Object.keys(cp.porLote||{}).length>1?lin('Onde o gado ficou',Object.keys(cp.porLote).sort(function(x,y){ return (parseInt(x,10)||99)-(parseInt(y,10)||99); }).map(function(k){ return esc(loteLabel(k))+': '+cp.porLote[k]; }).join(' · ')):'')+
       lin('Peso total pesado',fmtBR(cp.peso,0)+' kg · '+fmtBR(cp.peso/AR_DIV,1)+' @')+
       lin('Total da compra',lfRS(cp.total))+
       lin('Por kg vivo',lfRS(cp.kg))+
@@ -3635,7 +3704,7 @@ function lfPDFHTML(c){
   }
   var n=P.length; P=P.map(function(p,i){ return p.replace('__PG__',(i+1)+'/'+n); });
   var css=_rpCss()+'.hbs{padding:0 13mm}.hb{display:grid;grid-template-columns:30mm 1fr 18mm;gap:3mm;align-items:center;margin:1.6mm 0;font-size:9.5pt}.hb b{color:#123d1d}.hb div{height:4.2mm;background:#eef2ed;border-radius:2mm;overflow:hidden}.hb i{display:block;height:100%;border-radius:2mm}.hb span{text-align:right;font-weight:800}.ax td{padding:1.15mm 1mm;font-size:8.8pt}';
-  return '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Lotes formados '+esc(fz)+' '+ult.replace(/\//g,'-')+'</title><style>'+css+'</style></head><body>'+P.join('')+'</body></html>';
+  return '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>'+esc(lfPDFNome(c))+'</title><style>'+css+'</style></head><body>'+P.join('')+'</body></html>';
 }
 function lfDataCurta(d){ return isoToBR(d).slice(0,5); }
 function lfRender(){

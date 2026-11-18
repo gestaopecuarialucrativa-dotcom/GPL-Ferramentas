@@ -3439,7 +3439,7 @@ async function lfBuscar(d){
   LF.buscando++; lfRender();
   try{
     var r=await jsonp(BACKEND_URL+"?acao=pesagem_ler&token="+encodeURIComponent(gplToken())+"&fazenda="+encodeURIComponent(lfFaz())+"&data="+encodeURIComponent(d));
-    LF.cache[d]=((r&&r.animais)||[]).map(function(a){ return {brinco:String(a.brinco||"").trim(),peso:parseNum(a.peso),lote:String(a.lote==null?"":a.lote).trim(),gmd:parseNum(a.gmd),obs:a.obs||"",forn:String(a.fornecedor||"").trim()}; });
+    LF.cache[d]=((r&&r.animais)||[]).map(function(a){ return {brinco:String(a.brinco||"").trim(),peso:parseNum(a.peso),lote:String(a.lote==null?"":a.lote).trim(),gmd:parseNum(a.gmd),obs:a.obs||"",forn:String(a.fornecedor||"").trim(),raw:a}; });
     LF.erro="";
   }catch(e){ LF.erro="Sem internet: não deu pra buscar a pesagem de "+isoToBR(d)+"."; delete LF.sel[d]; }
   LF.buscando--; lfRender();
@@ -3573,19 +3573,39 @@ function lfCpResHTML(o){
 /* marcar DEPOIS: grava o fornecedor nos animais do dia que ainda está em pesagem (os que a caixinha escolheu) */
 function lfCpPodeMarcar(c,b){
   if(b==="compra" || String(b).indexOf("forn:")===0) return 0;
-  if(!(state.today&&state.today.length) || c.datas.length!==1 || c.datas[0]!==lfDiaTrab()) return 0;
+  if(c.datas.length!==1) return 0;
+  var d0=c.datas[0], local=(d0===lfDiaTrab() && state.today && state.today.length);
+  if(!local && !LF.cache[d0]) return 0;
   var n=0; c.lotes.forEach(function(L){ L.animais.forEach(function(a){ if(lfCpDentro(b,a) && !a.forn) n++; }); }); return n;
 }
-function lfCpMarcar(){
+async function lfCpMarcar(){
   var c=lfCalc(), b=lfCpBase(c), nome=String(LF.cp.de||"").trim();
   if(!nome){ alert("Digite primeiro de quem comprou (o fornecedor)."); return; }
   var alvo={}; c.lotes.forEach(function(L){ L.animais.forEach(function(a){ if(lfCpDentro(b,a) && !a.forn) alvo[a.brinco]=1; }); });
   var n=Object.keys(alvo).length; if(!n) return;
-  if(!confirm("Marcar "+n+" animais como compra de "+nome+"?\n\nGrava o fornecedor na planilha, na pesagem de "+isoToBR(lfDiaTrab())+".")) return;
-  state.today.forEach(function(t){ if(alvo[t.brinco]) t.fornecedor=nome; });
-  state.syncDirty=true; save(); LF.cp.base="compra";
-  try{ scheduleAutoSync(); }catch(e){}
-  lfRender(); try{ renderCompraPesar(); }catch(e){}
+  var d0=c.datas[0];
+  if(!confirm("Marcar "+n+" animais como compra de "+nome+"?\n\nGrava o fornecedor na planilha, na pesagem de "+isoToBR(d0)+". Peso e lote não mudam.")) return;
+  // 1) dia que ainda está em pesagem neste aparelho: marca aqui e o envio normal sobe
+  if(d0===lfDiaTrab() && state.today && state.today.length){
+    state.today.forEach(function(t){ if(alvo[t.brinco]) t.fornecedor=nome; });
+    state.syncDirty=true; save(); LF.cp.base="compra";
+    try{ scheduleAutoSync(); }catch(e){}
+    lfRender(); try{ renderCompraPesar(); }catch(e){} return;
+  }
+  // 2) pesagem já salva na planilha: regrava SÓ esses animais, com todos os dados que já estavam lá + fornecedor
+  var linhas=(LF.cache[d0]||[]).filter(function(a){ return alvo[a.brinco] && a.raw; });
+  if(linhas.length!==n){ alert("Não achei todos os animais na planilha. Abra de novo a aba Lotes e tente outra vez."); return; }
+  var dias=null; linhas.forEach(function(a){ if(dias==null && a.raw.dias!=null) dias=a.raw.dias; });
+  var payload={action:"pesagem_salvar",data:{data:d0,fazenda:lfFaz(),token:gplToken(),completo:false,dias_intervalo:(dias==null?"":dias),
+    animais:linhas.map(function(a){ var r=a.raw; return {brinco:r.brinco,peso:r.peso,lote:r.lote,peso_anterior:r.peso_anterior,gmd:r.gmd,obs:r.obs||"",is_novo:!!r.is_novo,is_revisar:!!r.is_revisar,fornecedor:nome}; })}};
+  try{
+    var res=await fetch(BACKEND_URL,{method:"POST",body:JSON.stringify(payload)}), j=null;
+    try{ j=await res.json(); }catch(e){}
+    if(j && j.ok===false) throw new Error(j.msg||"a planilha recusou");
+    (LF.cache[d0]||[]).forEach(function(a){ if(alvo[a.brinco]){ a.forn=nome; if(a.raw) a.raw.fornecedor=nome; } });
+    LF.cp.base="compra"; lfRender();
+    alert(n+" animais marcados como compra de "+nome+". Já está na planilha.");
+  }catch(e){ alert("Não gravou: "+(e&&e.message?e.message:"sem internet?")+"\nNada foi mudado. Tente de novo com sinal."); }
 }
 function lfCpSet(k,v){ LF.cp[k]=v; var el=document.getElementById("lfCpRes"); if(el) el.innerHTML=lfCpResHTML(lfCpCalc(lfCalc())); }
 function lfCpHTML(c){

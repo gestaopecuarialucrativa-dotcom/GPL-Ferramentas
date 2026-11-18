@@ -9,44 +9,37 @@
 <meta name="apple-mobile-web-app-title" content="Central GPL">
 <meta name="theme-color" content="#1B5E20">
 <meta name="robots" content="noindex">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
-:root{--v1:#1B5E20;--v2:#2E7D32;--v3:#4CAF50;--v7:#E8F5E9;--vd:#123d1d;--vm:#1f6b33;--vc:#3f8f3a;--v5:#8BC34A;--bg:#f3f6f2;--card:#fff;--line:#e6ebe5;--ink:#1c241c;--muted:#5f6b60;--warn:#c9820a;--danger:#c0392b}
+:root{--v1:#1B5E20;--v2:#2E7D32;--v3:#4CAF50;--v7:#E8F5E9;--bg:#eef2ec;--card:#fff;--line:#dfe6de;--ink:#1c241c;--muted:#5f6b60;--warn:#c9820a;--danger:#c0392b}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-body{margin:0;font-family:Inter,system-ui,Arial,sans-serif;background:var(--bg);color:var(--ink)}
-.top{background:linear-gradient(140deg,var(--vd),var(--vm) 70%,var(--vc));color:#fff;padding:12px 16px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:5}
-.top img{width:32px;height:32px;border-radius:8px}.top .t1{font-weight:800;font-size:17px;letter-spacing:-.3px}.top .t2{font-size:12px;opacity:.85}
+body{margin:0;font-family:Arial,Helvetica,sans-serif;background:var(--bg);color:var(--ink)}
+.top{background:var(--v1);color:#fff;padding:10px 14px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:5}
+.top img{width:32px;height:32px;border-radius:8px}.top .t1{font-weight:700;font-size:16px}.top .t2{font-size:12px;opacity:.85}
 .top .sp{flex:1}.top button{background:rgba(255,255,255,.15);color:#fff;border:0;border-radius:10px;padding:8px 10px;font:inherit;font-size:13px;font-weight:700;cursor:pointer}
 .wrap{max-width:640px;margin:0 auto;padding:12px 14px 40px}
 .abas{display:flex;gap:6px;margin-bottom:12px;overflow-x:auto}
 .aba{flex:1;min-width:0;text-align:center;padding:10px 2px;border-radius:10px;border:1px solid var(--line);background:#fff;font-weight:700;font-size:13px;color:var(--muted);cursor:pointer;white-space:nowrap}
 .aba.on{background:var(--v7);border-color:var(--v3);color:var(--v1)}
-.sec{font-size:12px;letter-spacing:.5px;text-transform:uppercase;color:var(--muted);margin:14px 2px 6px;font-weight:800}
-.card{background:var(--card);border:0;border-left:4px solid var(--v2);border-radius:16px;box-shadow:0 2px 10px rgba(0,0,0,.05);padding:4px 14px;margin-bottom:12px}
-.card.aviso{border-left-color:#E65100}
-.ch{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:14px;font-weight:800;padding:12px 0 2px}.ch span{font-weight:500;color:var(--muted);font-size:11px}
+.sec{font-size:13px;color:var(--muted);margin:14px 2px 6px;font-weight:700}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:4px 14px;margin-bottom:10px}
 .item{display:flex;gap:10px;align-items:center;padding:11px 0;border-bottom:1px solid #eef2ed}
 .item:last-child{border-bottom:0}
 .ico{width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:#f1f4ef;color:var(--muted)}
 .ico.warn{background:#fff4e0;color:var(--warn)}.ico.err{background:#fdecea;color:var(--danger)}.ico.ok{background:var(--v7);color:var(--v1)}
 .ico svg{width:19px;height:19px}
 .it1{font-size:15px;font-weight:700}.it2{font-size:13px;color:var(--muted);margin-top:2px}
-.acts{display:flex;gap:6px;flex-shrink:0;align-items:center}
-.pill{display:inline-block;font-size:10.5px;font-weight:800;letter-spacing:.2px;padding:4px 10px;border-radius:20px;white-space:nowrap}
-.pill.ok{background:#E8F5E9;color:#2E7D32}.pill.wa{background:#FFF3E0;color:#E65100}.pill.er{background:#FDECEA;color:#B71C1C}
-@media(max-width:700px){.acts .pill{display:none}}
+.acts{display:flex;gap:6px;flex-shrink:0}
 button{font:inherit;cursor:pointer}
-.b{border:1.5px solid #c9d6c7;background:#fff;color:var(--v1);border-radius:10px;padding:7px 10px;font-size:13px;font-weight:700}
-.b.p{background:var(--vc);border-color:var(--vc);color:#fff;font-weight:800}
+.b{border:1px solid #c9d6c7;background:#fff;color:var(--v1);border-radius:10px;padding:7px 10px;font-size:13px;font-weight:700}
+.b.p{background:var(--v2);border-color:var(--v2);color:#fff}
 .b.g{border-color:transparent;background:#f1f4ef;color:var(--muted)}
-input,select{font:inherit;font-size:16px;width:100%;padding:10px 12px;border:1.5px solid var(--line);border-radius:10px;background:#fff;color:var(--ink)}
-input:focus,select:focus{outline:none;border-color:var(--vm)}
+input,select{font:inherit;font-size:16px;width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--ink)}
 .lbl{font-size:13px;color:var(--muted);margin:10px 0 5px}
 .linha{display:flex;gap:8px}.linha>*{flex:1}
 .vazio{padding:14px 0;color:var(--muted);font-size:14px}
 .mini{font-size:12px;color:var(--muted)}
 .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
-.sis{background:#fff;border:1.5px solid var(--line);border-radius:14px;padding:12px;text-decoration:none;color:var(--ink);display:block}
+.sis{background:#fff;border:1px solid var(--line);border-radius:14px;padding:12px;text-decoration:none;color:var(--ink);display:block}
 .sis b{display:block;font-size:15px}.sis span{font-size:12px;color:var(--muted)}
 .kpis{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:10px 0 12px}
 .kpi{background:#f4f7f3;border-radius:10px;padding:9px 10px}.kpi .k1{font-size:12px;color:var(--muted)}.kpi .k2{font-size:18px;font-weight:900;margin-top:2px}
@@ -54,13 +47,13 @@ input:focus,select:focus{outline:none;border-color:var(--vm)}
 .erro{background:#fdecea;color:var(--danger);border-radius:10px;padding:10px 12px;font-size:13px;font-weight:700;margin-bottom:10px}
 .dia{font-size:13px;font-weight:800;color:var(--v1);margin:12px 2px 4px}
 /* notebook: abas no topo, Rotina larga com coluna ao lado, cartões que recolhem */
-.abasTop{display:none;gap:4px;margin-left:14px}.abasTop span{padding:8px 14px;border-radius:9px;font-size:13px;color:rgba(255,255,255,.7);cursor:pointer;font-weight:700}.abasTop span:hover{background:rgba(255,255,255,.08)}.abasTop span.on{background:rgba(255,255,255,.16);color:#fff;font-weight:700}
+.abasTop{display:none;gap:4px;margin-left:14px}.abasTop span{padding:8px 14px;border-radius:9px;font-size:14px;color:#d6e8d6;cursor:pointer}.abasTop span:hover{background:rgba(255,255,255,.08)}.abasTop span.on{background:rgba(255,255,255,.16);color:#fff;font-weight:700}
 .rot-g{display:block}.rot-lat{margin-top:14px}
 @media(max-width:700px){.reu-nv{grid-template-columns:1fr 1fr!important}.reu-nv input:first-child{grid-column:1/-1}}
-.rcab{display:flex;align-items:center;gap:12px;padding:12px 0 8px;cursor:pointer;user-select:none}.rcab b{font-size:16px;font-weight:800}.rcab .pr{flex:1;height:7px;background:#eef2ed;border-radius:4px;min-width:60px}.rcab .pr i{display:block;height:7px;background:var(--vc);border-radius:4px}
+.rcab{display:flex;align-items:center;gap:12px;padding:12px 0 8px;cursor:pointer;user-select:none}.rcab b{font-size:16px}.rcab .pr{flex:1;height:7px;background:#eef2ed;border-radius:4px;min-width:60px}.rcab .pr i{display:block;height:7px;background:var(--v3);border-radius:4px}
 .seta{width:26px;height:26px;border-radius:8px;display:grid;place-items:center;color:var(--muted);background:#f1f4ef;font-size:12px;flex:none;transition:transform .2s}.fech .seta{transform:rotate(-90deg)}
 .rres{font-size:13px;color:var(--muted);padding:0 0 12px}.rres b{color:var(--warn)}
-.lcard{background:#fff;border:0;border-left:4px solid var(--vc);border-radius:16px;box-shadow:0 2px 10px rgba(0,0,0,.05);padding:4px 16px;margin-bottom:12px}
+.lcard{background:#fff;border:1px solid var(--line);border-radius:14px;padding:4px 16px;margin-bottom:12px}
 .lcard h4{margin:0;padding:12px 0;font-size:12px;letter-spacing:1px;text-transform:uppercase;color:var(--v1);display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none}
 .lcard .lc{padding-bottom:8px}.lcard.fech .lc{display:none}
 .pz{display:flex;gap:12px;align-items:center;padding:8px 0;border-bottom:1px solid #f0f3ef}.pz:last-child{border:0}.pz .d{width:46px;flex:none;text-align:center;border-radius:9px;background:#f3f6f2;padding:5px 0;font-size:11px;color:var(--muted)}.pz .d b{display:block;font-size:17px;color:var(--ink)}
@@ -68,9 +61,6 @@ input:focus,select:focus{outline:none;border-color:var(--vm)}
 .ev{display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-bottom:1px solid #f0f3ef;font-size:13px}.ev:last-child{border:0}.ev small{color:var(--muted);white-space:nowrap}
 @media(min-width:1000px){
   .abasTop{display:flex}.wrap .abas{display:none}
-  .top{padding:8px 18px 0}.top button{margin-bottom:8px}
-  .abasTop span{border-radius:0;padding:15px 14px 12px;border-bottom:3px solid transparent;font-size:12px;letter-spacing:.5px;text-transform:uppercase}
-  .abasTop span.on{border-bottom-color:var(--v5);background:rgba(255,255,255,.1)}
   .wrap.larga{max-width:1240px;padding:22px 24px 40px}
   .rot-g{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:22px;align-items:start}.rot-lat{margin-top:52px;position:sticky;top:80px}
   .larga .card{padding:4px 20px}.larga .it1{font-size:15px}
@@ -178,7 +168,7 @@ async function centralPost(action,data){
 /* =====================================================================
    DADOS: agenda (Central) + cada fazenda (pesagem e app)
    ===================================================================== */
-var D={ agenda:[], rotina:[], plano:[], envios:[], boletins:{}, faz:{}, erros:[], quando:"" };
+var D={ agenda:[], rotina:[], plano:[], envios:[], boletins:{}, faz:{}, erros:[], quando:"", vaq:[], vaqueiros:[], vaqLido:false };
 async function carregarTudo(forcar){
   var c=cfg(); D.erros=[];
   $("topSub").textContent="atualizando…";
@@ -190,13 +180,15 @@ async function carregarTudo(forcar){
   tarefas.push(central("tabela_ler","&tabela=Plano").then(function(r){ if(!r||!r.ok) throw new Error(r&&r.msg||"plano"); D.plano=r.itens||[]; }).catch(function(e){ D.erros.push("Plano de ação: "+e.message); }));
   // boletim semanal: o app da fazenda grava cada boletim gerado (aba 📰 Boletins); a Central só lê (acao boletins_ler, Code.gs do app v4.45+)
   c.fazendas.forEach(function(f){ if(!f.app) return; tarefas.push(jsonp(f.app+"?acao=boletins_ler",20000).then(function(r){ D.boletins[f.nome]=(r&&r.ok&&r.itens)?r.itens:null; }).catch(function(){ D.boletins[f.nome]=null; })); });
-  tarefas.push(central("tabela_ler","&tabela=Envios").then(function(r){ D.envios=(r&&r.ok&&r.itens)||[]; }).catch(function(){}));   // sem v1.3 só fica vazio
+  tarefas.push(central("tabela_ler","&tabela=Envios").then(function(r){ D.envios=(r&&r.ok&&r.itens)||[]; }).catch(function(){}));
+  // vaqueiro (backend v1.6): mensagens do campo e cadastro dos vaqueiros; sem v1.6 só fica vazio
+  tarefas.push(central("tabela_ler","&tabela=Vaqueiro").then(function(r){ D.vaq=(r&&r.ok&&r.itens)||[]; }).catch(function(){}));
+  tarefas.push(central("vaqueiros_ler").then(function(r){ if(r&&r.ok&&r.itens){ D.vaqueiros=r.itens; D.vaqLido=true; } }).catch(function(){}));   // sem v1.3 só fica vazio
   await Promise.all(tarefas);
   D.quando=new Date().toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"});
   L.cache={agenda:D.agenda,rotina:D.rotina,plano:D.plano,quando:D.quando,dia:hoje()}; salvarL();
   $("topSub").textContent="atualizado "+D.quando;
   render();
-  carregarAvisos();
   if(!D.erros.some(function(e){ return /^Agenda/.test(e); })) garantirLembretesCP();
 }
 async function carregarFazenda(f){
@@ -291,16 +283,16 @@ function render(){
   var app=$("app");
   if(!L.url||!L.senha){ app.innerHTML=telaEntrar(); $("btAtualizar").style.display="none"; $("topAbas").innerHTML=""; return; }
   $("btAtualizar").style.display="";
-  var h='<div class="abas">'+[["rotina","Rotina"],["plano","Plano"],["agenda","Agenda"],["anotar","Anotar"],["ajustes","Ajustes"]].map(function(a){
+  var h='<div class="abas">'+[["rotina","Rotina"],["plano","Plano"],["agenda","Agenda"],["anotar","Anotar"],["vaqueiro",rotuloVaq()],["ajustes","Ajustes"]].map(function(a){
     return '<div class="aba'+(ABA===a[0]?' on':'')+'" onclick="irAba(\''+a[0]+'\')">'+a[1]+'</div>'; }).join("")+'</div>';
-  var abasT=[["rotina","Rotina"],["plano","Plano"],["agenda","Agenda"],["anotar","Anotar"],["sistemas","Sistemas"],["ajustes","Ajustes"]];
+  var abasT=[["rotina","Rotina"],["plano","Plano"],["agenda","Agenda"],["anotar","Anotar"],["vaqueiro",rotuloVaq()],["sistemas","Sistemas"],["ajustes","Ajustes"]];
   $("topAbas").innerHTML=abasT.map(function(a){ return '<span class="'+(ABA===a[0]||(a[0]==="rotina"&&(ABA==="reuniao"||ABA==="campo"))?'on':'')+'" onclick="irAba(\''+a[0]+'\')">'+a[1]+'</span>'; }).join("");
   app.className="wrap"+(ABA==="rotina"||ABA==="reuniao"||ABA==="plano"?" larga":"");
   if(D.erros.length) h+='<div class="erro">'+D.erros.map(esc).join("<br>")+'</div>';
   if(ABA==="campo"){ app.innerHTML=telaCampo(); return; }
   if(ABA==="reuniao"){ app.innerHTML=telaReuniao(); return; }
   if(ABA==="rotina") h+=telaRotina(); else if(ABA==="plano") h+=telaPlano(); else if(ABA==="agenda") h+=telaAgenda();
-  else if(ABA==="sistemas") h+=telaSistemas(); else h+=telaAjustes();
+  else if(ABA==="sistemas") h+=telaSistemas(); else if(ABA==="vaqueiro") h+=telaVaqueiro(); else h+=telaAjustes()+telaVaqAjustes();
   app.innerHTML=h;
 }
 function item(a){
@@ -457,44 +449,6 @@ function etapaTitulo(nome,mes){ var mref=MESES[+mesMais(mes,-1).split("-")[1]-1]
   if(/fechamento/i.test(nome)) return "Fechamento de "+mref;
   if(/cliente lan/i.test(nome)) return nome.replace(/\bo m[eê]s\b/i,mref).replace(/^(cliente lançou)(?! )/i,"$1");
   return nome; }
-/* =====================================================================
-   AVISOS DO CAMPO — o que o vaqueiro registrou como "ainda tem no cocho" (hoje e ontem)
-   Só leitura do app da fazenda. "Visto" esconde só neste aparelho (não grava na planilha).
-   ===================================================================== */
-var AV={ lista:[], erro:"", carregando:false };
-async function carregarAvisos(){
-  if(AV.carregando) return; AV.carregando=true; AV.erro="";
-  var c=cfg(), lim=somaDias(hoje(),-1), out=[], falhas=0;
-  await Promise.all(c.fazendas.map(function(f){
-    if(!f.app) return Promise.resolve();
-    return jsonp(f.app+"?acao=carregar",45000).then(function(data){
-      var S=null; if(data&&data.CONFIG&&data.CONFIG.length&&data.CONFIG[0]&&data.CONFIG[0][1]){ try{ S=JSON.parse(data.CONFIG[0][1]); }catch(e){} } else if(data&&(data.rT!==undefined||data.EST!==undefined)) S=data;
-      if(!S) throw new Error("sem dados");
-      (S.rT||[]).forEach(function(r){
-        if(!r||r._apagado||r.tipo!=="sem_trato") return;
-        var dt=String(r.dt||"").slice(0,10); if(dt<lim) return;
-        out.push({ id:"avc|"+f.nome+"|"+dt+"|"+(r.lote||"")+"|"+(r.ts||""), faz:f.nome, lote:String(r.lote||""), motivo:String(r.motivo||""), quem:String(r.n||""), dt:dt });
-      });
-    }).catch(function(){ falhas++; });
-  }));
-  out.sort(function(a,b){ return b.dt.localeCompare(a.dt); });
-  AV.lista=out; AV.erro=falhas?"Não consegui ler o app da fazenda agora.":""; AV.carregando=false;
-  if(ABA==="rotina") render();
-}
-function avVisto(i){ var a=AV.lista[i]; if(!a) return; L.avVistos=L.avVistos||{}; L.avVistos[a.id]=hoje(); salvarL(); render(); }
-function avisosHTML(){
-  var vistos=L.avVistos||{}, h=hoje();
-  var ls=AV.lista.filter(function(a){ return !vistos[a.id]; });
-  if(!ls.length) return AV.erro?'<div class="mini" style="margin:0 2px 10px">Avisos do campo: '+esc(AV.erro)+'</div>':'';
-  var multi=cfg().fazendas.length>1;
-  return '<div class="card aviso"><div class="ch">Avisos do campo<span>'+ls.length+(ls.length>1?' novos':' novo')+'</span></div>'+ls.map(function(a){
-    var quando=a.dt===h?"hoje":"ontem";
-    return '<div class="item"><div class="ico warn"><b>!</b></div><div style="flex:1;min-width:0"><div class="it1">'+esc(a.lote||"Lote")+': '+esc((a.motivo||"sem trato").toLowerCase())+'</div>'
-      +'<div class="it2">'+(multi?esc(a.faz)+' · ':'')+(a.quem?esc(a.quem)+' · ':'')+quando+'</div></div>'
-      +'<div class="acts"><button class="b" onclick="avVisto('+AV.lista.indexOf(a)+')">Visto</button></div></div>';
-  }).join("")+'</div>';
-}
-
 function telaRotina(){
   var c=cfg();
   var x='<div style="display:flex;align-items:center;justify-content:space-between;margin:2px 2px 10px"><button class="b g" onclick="MES=mesMais(MES,-1);render()">‹</button>'
@@ -516,16 +470,15 @@ function telaRotina(){
       var mAtual=MES===hoje().slice(0,7), nD=E.dia&&mAtual?diasAte(MES+"-"+String(Math.min(E.dia,28)).padStart(2,"0")):null;
       var sub=ok&&r.data?(r.obs&&/^PDF gerado/.test(r.obs)?esc(r.obs):'feito '+r.data.split("-").reverse().slice(0,2).join("/")):(nD!==null?'<b style="color:'+(nD<0?'var(--danger)':'var(--warn)')+'">'+faltaTxt(nD)+'</b>'+(E.dica?' · '+E.dica:''):((E.dia?'até dia '+String(E.dia).padStart(2,"0"):'')+(E.dia&&E.dica?' · ':'')+E.dica+(atr?' · <b style="color:var(--danger)">atrasado</b>':'')));
       if(!ok && /fechamento/i.test(et)){ var fp=fechPendente(f,MES), mref=MESES[+mesMais(MES,-1).split("-")[1]-1]; if(fp.length) sub='<b style="color:var(--warn)">aguardando: '+fp.join(" · ")+'</b> · fecha '+mref; else sub='Inttegra validada · fecha '+mref; }
-      var pil=ok?'<span class="pill ok">FEITO</span>':((atr||(nD!==null&&nD<0))?'<span class="pill er">ATRASADO</span>':((nD!==null&&nD<=5)?'<span class="pill wa">ATÉ '+String(Math.min(E.dia,28)).padStart(2,"0")+'/'+MES.slice(5)+'</span>':''));
       x+='<div class="item"><div class="ico '+(ok?'ok':(atr?'err':''))+'" style="cursor:pointer" onclick="toggleRotina('+fi+','+ei+')">'+icoTxt+'</div>'
         +'<div style="flex:1;min-width:0">'+(acaoEtapa(et)?'<div class="it1'+(ok?' feito':'')+'" style="font-size:14px;cursor:pointer;color:var(--v1);text-decoration:underline;text-underline-offset:3px" onclick="abrirEtapa('+fi+','+ei+')">'+esc(etapaTitulo(et,MES))+'</div>':'<div class="it1'+(ok?' feito':'')+'" style="font-size:14px">'+esc(etapaTitulo(et,MES))+'</div>')
         +(sub?'<div class="it2">'+sub+'</div>':'')+'</div>'
-        +'<div class="acts">'+pil+(/fechamento/i.test(et)?'<button class="b p" onclick="abrirEtapa('+fi+','+ei+')">'+(ok?'Abrir':'Importar')+'</button>':'')+(ok?'<button class="b g" onclick="toggleRotina('+fi+','+ei+')">Desfazer</button>':'<button class="b" onclick="toggleRotina('+fi+','+ei+')">Feito</button>'+(/fechamento/i.test(et)?'':'<button class="b g" onclick="agendarEtapa('+fi+','+ei+')">Agendar</button>'))+'</div></div>';
+        +'<div class="acts">'+(/fechamento/i.test(et)?'<button class="b p" onclick="abrirEtapa('+fi+','+ei+')">'+(ok?'Abrir':'Importar')+'</button>':'')+(ok?'<button class="b g" onclick="toggleRotina('+fi+','+ei+')">Desfazer</button>':'<button class="b" onclick="toggleRotina('+fi+','+ei+')">Feito</button>'+(/fechamento/i.test(et)?'':'<button class="b g" onclick="agendarEtapa('+fi+','+ei+')">Agendar</button>'))+'</div></div>';
     });
     if(!(f.mesesTri||[]).length) x+='<div class="mini" style="padding:8px 0 0">Trimestre: escolha os meses desta fazenda em Ajustes.</div>';
     x+='<div class="mini" style="padding:8px 0 4px">Plano de ação: '+abertosPl.length+' em aberto'+(atrasPl.length?' · <b style="color:var(--danger)">'+atrasPl.length+' atrasada(s)</b>':'')+'</div></div>';
   });
-  x='<div class="rot-g"><div>'+avisosHTML()+x+'</div><div class="rot-lat">'+rotinaLateral()+'</div></div>';
+  x='<div class="rot-g"><div>'+x+'</div><div class="rot-lat">'+rotinaLateral()+'</div></div>';
   return x+'<p class="mini" style="text-align:center">As etapas você muda em Ajustes, do jeito do seu método.</p>';
 }
 async function toggleRotina(fi,ei){
@@ -1598,6 +1551,126 @@ async function salvarAjustes(){
   var c=lerAjustes(cfg()), m=$("cMsg"); m.textContent="Salvando…"; m.style.color="";
   try{ await centralPost("config_salvar",{config:c}); L.config=c; salvarL(); m.textContent="Salvo."; m.style.color="var(--v1)"; carregarTudo(); }
   catch(e){ m.textContent="Não salvou: "+e.message; m.style.color="var(--danger)"; }
+}
+
+/* =====================================================================
+   VAQUEIRO — o que ele mandou do campo, tarefas pra conferir e cadastro (backend v1.6)
+   ===================================================================== */
+var VQ={ t:{}, p:{}, m:{}, naoAberto:"", msg:"", msgA:"" };
+var VQ_URL="https://gestaopecuarialucrativa.com.br/vaqueiro.html?v=";
+function vqNovos(){ return D.vaq.filter(function(v){ return !v.situacao||v.situacao==="novo"; }); }
+function vqConferir(){ return D.plano.filter(function(p){ return p.situacao==="conferir"; }); }
+function rotuloVaq(){ var n=vqNovos().length+vqConferir().length; return "Vaqueiro"+(n?" · "+n:""); }
+function vqLinks(s){ return String(s||"").split(/\s+/).filter(function(u){ return /^https?:/.test(u); }); }
+function vqQuando(c){ var m=String(c||"").match(/^(\d{4})-(\d{2})-(\d{2})(?: (\d{2}:\d{2}))?/); return m?(m[3]+"/"+m[2]+(m[4]?" "+m[4]:"")):""; }
+function vqObs(t){ return esc(t).replace(/(https?:\/\/[^\s<]+)/g,'<a href="$1" target="_blank" rel="noopener" style="color:var(--v2);font-weight:700">abrir foto</a>').replace(/\n/g,"<br>"); }
+function vqPadrao(v){ return v.texto&&v.texto.trim()?v.texto.trim():"Ver o que o vaqueiro mandou ("+vqQuando(v.criado).split(" ")[0]+")"; }
+function vqCard(v){
+  var fs=vqLinks(v.fotos), as=vqLinks(v.audios), nov=!v.situacao||v.situacao==="novo", id=v.id;
+  var x='<div class="card" style="padding:12px 14px;border-left:4px solid var(--v2)"><div style="display:flex;justify-content:space-between;gap:8px"><b>'+esc(v.vaqueiro)+' · '+esc(v.fazenda)+'</b><span class="mini">'+vqQuando(v.criado)+'</span></div>';
+  if(v.texto) x+='<div style="margin:6px 0;font-size:15px">'+esc(v.texto)+'</div>';
+  if(fs.length||as.length) x+='<div style="display:flex;gap:6px;flex-wrap:wrap;margin:6px 0">'
+    +fs.map(function(u,i){ return '<a class="b" href="'+esc(u)+'" target="_blank" rel="noopener" style="text-decoration:none">Ver foto'+(fs.length>1?' '+(i+1):'')+'</a>'; }).join("")
+    +as.map(function(u,i){ return '<a class="b" href="'+esc(u)+'" target="_blank" rel="noopener" style="text-decoration:none">Ouvir áudio'+(as.length>1?' '+(i+1):'')+'</a>'; }).join("")+'</div>';
+  if(!nov){
+    x+='<div class="mini" style="margin-top:6px"><b style="color:var(--v1)">'+(v.situacao==="vai fazer"?'Vai fazer'+(v.prazo?' até '+brd(v.prazo):'')+' · tarefa no Plano':'Não fazer')+'</b>'+(v.resposta?' · '+esc(v.resposta):'')+'</div>';
+    if(v.situacao==="não fazer") x+='<div style="margin-top:6px"><button class="b g" onclick="vqReabrir(\''+id+'\')">Reabrir</button></div>';
+    return x+'</div>';
+  }
+  var tar=VQ.t[id]!=null?VQ.t[id]:vqPadrao(v), pr=VQ.p[id]||somaDias(hoje(),7);
+  x+='<div class="lbl">Tarefa pra ele</div><input value="'+esc(tar)+'" oninput="VQ.t[\''+id+'\']=this.value">'
+   +'<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:8px"><span class="mini">Prazo</span><input type="date" style="width:170px" value="'+esc(pr)+'" onchange="VQ.p[\''+id+'\']=this.value">'
+   +'<button class="b p" onclick="vqVai(\''+id+'\')">Vai fazer</button>'
+   +(VQ.naoAberto===id?'':'<button class="b" style="color:var(--danger)" onclick="VQ.naoAberto=\''+id+'\';render()">Não fazer</button>')+'</div>';
+  if(VQ.naoAberto===id) x+='<div class="lbl">Motivo <span class="mini">(opcional — ele vê no celular)</span></div><input value="'+esc(VQ.m[id]||"")+'" oninput="VQ.m[\''+id+'\']=this.value" placeholder="ex.: já foi resolvido">'
+   +'<div style="display:flex;gap:8px;margin-top:8px"><button class="b" style="color:var(--danger)" onclick="vqNao(\''+id+'\')">Confirmar: não fazer</button><button class="b g" onclick="VQ.naoAberto=\'\';render()">Cancelar</button></div>';
+  return x+'</div>';
+}
+function telaVaqueiro(){
+  var nv=vqNovos().sort(function(a,b){ return String(b.criado).localeCompare(String(a.criado)); });
+  var cf=vqConferir(), ja=D.vaq.filter(function(v){ return v.situacao&&v.situacao!=="novo"; }).sort(function(a,b){ return String(b.criado).localeCompare(String(a.criado)); }).slice(0,8);
+  var x=VQ.msg?'<div class="erro">'+esc(VQ.msg)+'</div>':'';
+  x+='<div class="dia">Chegou do campo</div>'+(nv.length?nv.map(vqCard).join(""):'<div class="vazio">Nada novo do campo.</div>');
+  x+='<div class="dia">Feito, falta conferir</div>'+(cf.length?cf.map(function(p){
+    return '<div class="card" style="padding:12px 14px;border-left:4px solid var(--warn)"><b>'+esc(p.acao)+'</b><div class="mini">'+esc(p.resp||"")+' · '+esc(p.fazenda)+(p.prazo?' · prazo '+brd(p.prazo):'')+'</div>'
+      +(p.obs?'<div style="margin:6px 0;font-size:14px">'+vqObs(p.obs)+'</div>':'')
+      +'<div style="display:flex;gap:8px;margin-top:8px"><button class="b p" onclick="sitPlano(\''+p.id+'\',\'feito\')">Conferido</button><button class="b" onclick="sitPlano(\''+p.id+'\',\'aberto\')">Refazer</button></div></div>'; }).join(""):'<div class="vazio">Nada pra conferir.</div>');
+  if(ja.length) x+='<div class="dia">Já respondidas</div>'+ja.map(vqCard).join("");
+  return x;
+}
+async function vqSalvar(v,campos){
+  var novo=Object.assign({},v,campos);
+  await centralPost("tabela_salvar",{tabela:"Vaqueiro",itens:[novo]});
+  Object.assign(v,campos);
+}
+async function vqVai(id){
+  var v=D.vaq.filter(function(x){ return x.id===id; })[0]; if(!v) return;
+  var tar=String(VQ.t[id]!=null?VQ.t[id]:vqPadrao(v)).trim(), pr=VQ.p[id]||somaDias(hoje(),7), fs=vqLinks(v.fotos);
+  if(!tar){ VQ.msg="Escreva a tarefa."; render(); return; }
+  var pl={ id:"pv"+id, fazenda:v.fazenda, acao:tar, resp:v.vaqueiro, prazo:pr, situacao:"aberto", origem:"Do vaqueiro "+vqQuando(v.criado), obs:fs.length?"Foto: "+fs[0]:"", criado:hoje() };
+  VQ.msg="Salvando…"; render();
+  try{
+    await centralPost("tabela_salvar",{tabela:"Plano",itens:[pl]});
+    D.plano=D.plano.filter(function(x){ return x.id!==pl.id; }).concat([pl]);
+    await vqSalvar(v,{ situacao:"vai fazer", prazo:pr });
+    VQ.msg="";
+  }catch(e){ VQ.msg="Não salvou: "+e.message+" (pode tentar de novo)"; }
+  render();
+}
+async function vqNao(id){
+  var v=D.vaq.filter(function(x){ return x.id===id; })[0]; if(!v) return;
+  VQ.msg="Salvando…"; render();
+  try{ await vqSalvar(v,{ situacao:"não fazer", prazo:"", resposta:String(VQ.m[id]||"").trim() }); VQ.msg=""; VQ.naoAberto=""; }
+  catch(e){ VQ.msg="Não salvou: "+e.message; }
+  render();
+}
+async function vqReabrir(id){
+  var v=D.vaq.filter(function(x){ return x.id===id; })[0]; if(!v) return;
+  try{ await vqSalvar(v,{ situacao:"novo", prazo:"", resposta:"" }); }catch(e){ VQ.msg="Não salvou: "+e.message; }
+  render();
+}
+/* ---- cadastro (Ajustes) ---- */
+function vqUrl(v){ return VQ_URL+v.token; }
+async function vqSalvarLista(L){
+  if(!D.vaqLido) throw new Error("a lista de vaqueiros não carregou (o backend v1.6 está publicado?)");
+  await centralPost("vaqueiros_salvar",{itens:L}); D.vaqueiros=L;
+}
+function telaVaqAjustes(){
+  var c=cfg();
+  var x='<div class="card" style="padding:12px 14px"><b>Vaqueiros</b> <span class="mini">(cada um tem o seu link, sem senha)</span>';
+  if(!D.vaqLido) x+='<div class="mini" style="margin-top:8px;color:var(--danger)">Não consegui ler a lista de vaqueiros. Cadastro bloqueado até o backend v1.6 estar publicado.</div>';
+  x+=D.vaqueiros.map(function(v,i){ var on=v.ativo!==false;
+    return '<div style="border:1px solid var(--line);border-radius:10px;padding:8px 10px;margin-top:8px"><b>'+esc(v.nome)+'</b> <span class="mini">'+esc(v.fazenda)+(v.tel?' · '+esc(v.tel):'')+' · '+(on?'ativo':'desligado')+'</span>'
+      +'<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px"><button class="b p" onclick="vqZap('+i+')">Mandar link no WhatsApp</button><button class="b" onclick="vqCopiar('+i+')">Copiar link</button><button class="b g" onclick="vqLigar('+i+')">'+(on?'Desligar':'Ligar')+'</button></div></div>'; }).join("");
+  x+='<div class="lbl" style="margin-top:12px">Cadastrar vaqueiro</div><div class="linha"><input id="vqN" placeholder="Nome"><select id="vqF">'+c.fazendas.map(function(f){ return '<option>'+esc(f.nome)+'</option>'; }).join("")+'</select></div>'
+    +'<input id="vqT" placeholder="WhatsApp (63) 9…" style="margin-top:8px"><button class="b p" style="width:100%;margin-top:10px;padding:11px" onclick="vqAdd()">Cadastrar</button>'
+    +'<div class="mini" id="vqMsgA" style="margin-top:6px">'+esc(VQ.msgA)+'</div></div>';
+  return x;
+}
+async function vqAdd(){
+  var n=$("vqN").value.trim(), f=$("vqF").value, t=$("vqT").value.trim(), m=$("vqMsgA");
+  if(!n){ m.textContent="Escreva o nome."; return; }
+  var tk=Array.prototype.map.call(crypto.getRandomValues(new Uint8Array(16)),function(b){ return ("0"+b.toString(16)).slice(-2); }).join("");
+  m.textContent="Salvando…";
+  try{ await vqSalvarLista(D.vaqueiros.concat([{ id:"v"+Date.now().toString(36), token:tk, nome:n, fazenda:f, tel:t, ativo:true }])); VQ.msgA="Cadastrado. Agora toque em Mandar link no WhatsApp."; render(); }
+  catch(e){ m.textContent="Não salvou: "+e.message; }
+}
+async function vqLigar(i){
+  var L=D.vaqueiros.map(function(v){ return Object.assign({},v); }); L[i].ativo=!(L[i].ativo!==false);
+  try{ await vqSalvarLista(L); VQ.msgA=""; }catch(e){ VQ.msgA="Não salvou: "+e.message; }
+  render();
+}
+function vqZap(i){
+  var v=D.vaqueiros[i]; if(!v) return;
+  var msg="Fala, "+v.nome.split(" ")[0]+"! Esse é o seu link pra me mandar foto, áudio e ver as tarefas da fazenda. Abre no celular e salva na tela inicial: "+vqUrl(v);
+  var d=String(v.tel||"").replace(/\D/g,""); if(d&&d.length<=11) d="55"+d;
+  window.open("https://wa.me/"+d+"?text="+encodeURIComponent(msg),"_blank","noopener");
+}
+function vqCopiar(i){
+  var v=D.vaqueiros[i]; if(!v) return;
+  var ok=function(){ VQ.msgA="Link de "+v.nome+" copiado."; render(); };
+  if(navigator.clipboard&&navigator.clipboard.writeText) navigator.clipboard.writeText(vqUrl(v)).then(ok).catch(function(){ prompt("Copie o link:",vqUrl(v)); });
+  else prompt("Copie o link:",vqUrl(v));
 }
 
 /* ---------- abrir ---------- */

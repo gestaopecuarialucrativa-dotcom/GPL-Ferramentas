@@ -3476,7 +3476,7 @@ document.addEventListener("DOMContentLoaded", function(){ renderCompraPesar(); }
    último peso e o último lote entre as datas escolhidas. Vendido depois da
    pesagem fica fora. GMD = o que foi gravado na pesagem do animal.
    Só leitura: não grava nada na planilha nem no aparelho. */
-var LF={sel:{}, cache:{}, datas:[], aberto:null, iniciou:false, buscando:0, erro:"", faz:null, ant:{}, antPend:{}, movAberto:null, cp:{aberto:false,modo:'perna',valor:'',frete:'',comis:'',de:'',qtd:'',base:null}};
+var LF={sel:{}, cache:{}, datas:[], aberto:null, iniciou:false, buscando:0, erro:"", faz:null, ant:{}, antPend:{}, movAberto:null, cp:{aberto:false,modo:'perna',valor:'',frete:'',comis:'',de:'',qtd:'',base:null}, forms:null, formData:{}, formMsg:'', formView:null, salvando:false};
 var LF_GMD_BAIXO=0.400;   // abaixo disso a barra do lote fica laranja
 /* Na aba Lotes vale o lote que está formando, não de onde o animal veio:
    GMD do lote = média de quem tem GMD (mínimo 5 animais), sem a regra dos 70%. */
@@ -3495,12 +3495,13 @@ function lfAnimaisDe(d){
   return LF.cache[d]||null;
 }
 async function lfAbrir(){
-  if(LF.faz!==lfFaz()){ LF={sel:{}, cache:{}, datas:[], aberto:null, iniciou:false, buscando:0, erro:"", faz:lfFaz(), ant:{}, antPend:{}, movAberto:null, cp:{aberto:false,modo:'perna',valor:'',frete:'',comis:'',de:'',qtd:'',base:null}}; }
+  if(LF.faz!==lfFaz()){ LF={sel:{}, cache:{}, datas:[], aberto:null, iniciou:false, buscando:0, erro:"", faz:lfFaz(), ant:{}, antPend:{}, movAberto:null, cp:{aberto:false,modo:'perna',valor:'',frete:'',comis:'',de:'',qtd:'',base:null}, forms:null, formData:{}, formMsg:'', formView:null, salvando:false}; }
   lfRender();
   try{
     var r=await jsonp(BACKEND_URL+"?acao=pesagem_datas&token="+encodeURIComponent(gplToken())+"&fazenda="+encodeURIComponent(lfFaz()));
     LF.datas=(r&&r.datas)?r.datas:[]; LF.erro="";
   }catch(e){ LF.erro="Sem internet: não deu pra buscar as datas da planilha."; }
+  lfFormCarregar();
   if(!LF.iniciou){
     var ds=lfDatas();
     if(ds.length){ LF.iniciou=true; LF.sel[ds[0].data]=true; lfBuscar(ds[0].data); }
@@ -3519,7 +3520,7 @@ async function lfBuscar(d){
 }
 function lfToggle(d){
   if(LF.sel[d]) delete LF.sel[d]; else { LF.sel[d]=true; lfBuscar(d); }
-  LF.aberto=null; LF.movAberto=null; lfRender();
+  LF.aberto=null; LF.movAberto=null; LF.formMsg=''; lfRender();
 }
 function lfVend(b){
   if(typeof _vendidosMap==="undefined" || !_vendidosMap) return null;
@@ -3730,9 +3731,130 @@ function lfCpHTML(c){
     '<div style="display:flex;gap:8px;margin-top:10px"><button type="button" class="lf-btn" onclick="lfPDF()">Gerar PDF da compra</button><button type="button" class="lf-btn" style="flex:0 0 34%;background:#fff;border-color:#cfd8d3;color:#7a8a7e" onclick="LF.cp.aberto=false;lfRender()">Fechar</button></div></div>';
   return h;
 }
+
+/* ===================== FORMAÇÃO DE LOTES SALVA (aba "Formacoes" da planilha) =====================
+   Salvar = foto de como os lotes ficaram hoje (cada animal: lote, peso, dia, histórico).
+   Na próxima repesagem a aba Lotes compara com a última formação salva. */
+function lfTxt(h){ return String(h||"").replace(/<[^>]+>/g,""); }
+async function lfFormCarregar(){
+  try{
+    var r=await jsonp(BACKEND_URL+"?acao=formacao_lista&token="+encodeURIComponent(gplToken())+"&fazenda="+encodeURIComponent(lfFaz()));
+    LF.forms=(r&&r.ok&&r.formacoes)?r.formacoes:(r&&r.ok===false?[]:null);
+    if(r && r.ok===undefined) LF.forms=null;
+  }catch(e){ LF.forms=null; }
+  lfRender();
+}
+async function lfFormDados(id){
+  if(LF.formData[id]) return LF.formData[id];
+  var r=await jsonp(BACKEND_URL+"?acao=formacao_ler&token="+encodeURIComponent(gplToken())+"&fazenda="+encodeURIComponent(lfFaz())+"&id="+encodeURIComponent(id));
+  if(!r || !r.ok) throw new Error((r&&r.msg)||"não leu");
+  LF.formData[id]={id:id, datas:String(r.datas||""), animais:(r.animais||[])};
+  return LF.formData[id];
+}
+async function lfFormSalvar(){
+  var c=lfCalc(); if(!c.tot.qtd || LF.salvando) return;
+  var id=todayISO(), ja=(LF.forms||[]).some(function(f){ return f.id===id; });
+  if(!confirm((ja?"Já tem formação salva hoje. Substituir pela de agora?\n\n":"Salvar a formação de "+isoToBR(id)+"?\n\n")+c.tot.qtd+" animais em "+c.lotes.length+" lotes, com as pesagens de "+c.datas.map(lfDataCurta).join(" + ")+".")) return;
+  var hist={}; (c.repet||[]).forEach(function(r){ hist[brKey(r.brinco)]=lfTxt(lfRepTxt(r)); });
+  var animais=[]; c.lotes.forEach(function(L){ L.animais.forEach(function(a){ animais.push({brinco:a.brinco,lote:a.lote,peso:a.peso,data:a.data,gmd:(a.gmd!=null&&!isNaN(a.gmd))?a.gmd:null,fornecedor:a.forn||"",hist:hist[brKey(a.brinco)]||""}); }); });
+  LF.salvando=true; LF.formMsg=""; lfRender();
+  try{
+    var res=await fetch(BACKEND_URL,{method:"POST",body:JSON.stringify({action:"formacao_salvar",data:{token:gplToken(),fazenda:lfFaz(),id:id,datas:c.datas,animais:animais}})});
+    var j=null; try{ j=await res.json(); }catch(e){}
+    if(!j || !j.ok) throw new Error((j&&j.msg)||"a planilha não respondeu. Confira se o código novo da planilha (v4.9) foi implantado");
+    delete LF.formData[id];
+    LF.formMsg="✓ Formação salva em "+isoToBR(id)+" · "+j.gravados+" animais";
+    await lfFormCarregar();
+  }catch(e){ LF.formMsg="✗ Não salvou: "+(e&&e.message?e.message:"sem internet?"); }
+  LF.salvando=false; lfRender();
+}
+function lfFormSalvarHTML(c){
+  var h='<div class="lf-sec"><div class="lf-h">'+c.datas.map(lfDataCurta).join(' + ')+'</div><div class="lf-hint">'+c.tot.qtd+' cabeças · '+c.lotes.length+' lotes</div>'+
+    '<button type="button" class="lf-btn" style="margin-top:10px;background:#1f6b33;color:#fff;border-color:#1f6b33;font-size:14.5px;padding:12px"'+(LF.salvando?' disabled':'')+' onclick="lfFormSalvar()">'+(LF.salvando?'Salvando…':'Salvar formação de '+lfDataCurta(todayISO()))+'</button>'+
+    '<div class="lf-hint" style="margin-top:7px">Fica gravado na planilha. Se corrigir algo, pode salvar de novo no mesmo dia: substitui a de hoje.</div>';
+  if(LF.formMsg) h+='<div style="margin-top:10px;border-radius:12px;padding:10px 12px;font-size:13px;font-weight:700;'+(LF.formMsg.charAt(0)==='✓'?'background:#E8F5E9;color:#1B5E20':'background:#FFEBEE;color:#B71C1C')+'">'+esc(LF.formMsg)+'</div>';
+  return h+'</div>';
+}
+function lfFormResumo(pl){
+  return Object.keys(pl||{}).sort(function(x,y){ return (parseInt(x,10)||99)-(parseInt(y,10)||99); }).map(function(k){ var n=parseInt(k,10); return (n>=11?loteLabel(k):'L'+k)+' '+pl[k]; }).join(' · ');
+}
+function lfFormListaHTML(){
+  if(LF.forms==null) return '';
+  var h='<div class="lf-sec"><div class="lf-h">Formações salvas <span>'+esc(lfFaz())+'</span></div>';
+  if(!LF.forms.length) return h+'<div class="lf-hint">Nenhuma formação salva ainda.</div></div>';
+  LF.forms.forEach(function(f){
+    var ds=String(f.datas||"").split(' + ').filter(Boolean), rod=ds.length?('Rodada '+lfDataCurta(ds[0])+(ds.length>1?' a '+lfDataCurta(ds[ds.length-1]):'')):'';
+    h+='<div class="lf-lt" onclick="lfFormAbrir(\''+f.id+'\')"><div class="n">'+lfDataCurta(f.id)+'</div><div class="m">'+esc(rod)+'<br><span>'+esc(lfFormResumo(f.porLote))+'</span></div><div class="q">'+f.total+'<small>CAB.</small></div><div class="lf-ch">›</div></div>';
+  });
+  return h+'</div>';
+}
+function lfSnap(F){
+  var lotes={}, tot={qtd:0,peso:0,gmdSum:0,gmdN:0}, hist=[];
+  F.animais.forEach(function(a){ var L=lotes[a.lote]=lotes[a.lote]||{lote:a.lote,qtd:0,peso:0,gmdSum:0,gmdN:0,porData:{},animais:[]};
+    var x={brinco:a.brinco,peso:Number(a.peso),lote:a.lote,gmd:a.gmd,data:a.data,obs:'',forn:a.fornecedor||''};
+    L.qtd++; L.peso+=x.peso; L.porData[a.data]=(L.porData[a.data]||0)+1; L.animais.push(x); tot.qtd++; tot.peso+=x.peso;
+    if(a.gmd!=null && !isNaN(a.gmd)){ L.gmdSum+=a.gmd; L.gmdN++; if(CATEG_FORA_GMD.indexOf(parseInt(a.lote,10))<0){ tot.gmdSum+=a.gmd; tot.gmdN++; } }
+    if(a.hist) hist.push(a.hist); });
+  var ds=String(F.datas||"").split(' + ').filter(Boolean); if(!ds.length) ds=[F.id];
+  return {datas:ds, lotes:Object.keys(lotes).map(function(k){ return lotes[k]; }).sort(function(x,y){ return (parseInt(x.lote,10)||99)-(parseInt(y.lote,10)||99); }), tot:tot, vendidos:0, repet:[], snap:true, formId:F.id, hist:hist};
+}
+async function lfFormAbrir(id){
+  LF.formView={id:id, carregando:true}; lfRender();
+  try{ var F=await lfFormDados(id); LF.formView={id:id, c:lfSnap(F)}; }
+  catch(e){ LF.formView={id:id, erro:"Não deu pra abrir: "+(e&&e.message?e.message:"sem internet?")}; }
+  lfRender(); try{ document.getElementById("lfBox").scrollIntoView({behavior:"smooth"}); }catch(e){}
+}
+function lfFormViewHTML(){
+  var V=LF.formView; if(!V) return '';
+  var h='<div class="lf-top" style="display:flex;align-items:center;gap:10px;background:linear-gradient(140deg,#3b2a0e,#8a5a12)"><div style="flex:1"><small>FORMAÇÃO SALVA</small><b>Formação de '+isoToBR(V.id)+'</b></div>'+
+    (V.c?'<button type="button" class="lf-pdf" onclick="lfPDF(LF.formView.c)">Gerar PDF</button>':'')+
+    '<button type="button" class="lf-pdf" onclick="LF.formView=null;lfRender()">Fechar</button></div>';
+  if(V.carregando) return h+'<div class="lf-sec"><div class="lf-hint">Buscando na planilha…</div></div>';
+  if(V.erro) return h+'<div class="lf-sec"><div class="lf-hint" style="color:#B71C1C">'+esc(V.erro)+'</div></div>';
+  var c=V.c, med=c.tot.peso/c.tot.qtd;
+  h+='<div class="lf-kp"><div class="lf-k"><b>'+c.tot.qtd+'</b><span>cabeças</span></div><div class="lf-k"><b>'+fmtBR(med,0)+' kg</b><span>média · '+fmtBR(med/AR_DIV,1)+'@</span></div><div class="lf-k"><b>'+(c.tot.gmdN?fmtBR(c.tot.gmdSum/c.tot.gmdN,3):'—')+'</b><span>GMD geral</span></div></div>';
+  h+='<div class="lf-sec"><div class="lf-h">Como ficou cada lote <span>pesagens de '+c.datas.map(lfDataCurta).join(' + ')+'</span></div>';
+  c.lotes.forEach(function(L){ var m=L.peso/L.qtd; h+='<div class="lf-lt" style="cursor:default"><div class="n">'+esc(loteLabel(L.lote))+'</div><div class="m">média '+fmtBR(m,0)+' kg ('+fmtBR(m/AR_DIV,1)+'@)</div><div class="q">'+L.qtd+'<small>CAB.</small></div></div>'; });
+  h+='<div class="lf-hint" style="margin-top:6px">Como estava no dia em que foi salva. Pra ver animal por animal, gere o PDF.</div></div>';
+  return h;
+}
+/* comparação com a última formação salva ANTES das datas marcadas */
+function lfCmpForm(c){
+  if(!LF.forms || !LF.forms.length || !c.datas.length) return null;
+  var d0=c.datas[0], fs=LF.forms.filter(function(f){ return f.id<d0; });
+  return fs.length?fs[0]:null;   // lista vem da mais nova pra mais velha
+}
+function lfCmpHTML(c){
+  var f=lfCmpForm(c); if(!f) return '';
+  var F=LF.formData[f.id];
+  var h='<div class="lf-sec"><div class="lf-h">Comparando com a formação de '+lfDataCurta(f.id)+' <span>'+f.total+' animais</span></div>';
+  if(!F){ lfFormDados(f.id).then(lfRender).catch(function(){}); return h+'<div class="lf-hint">Buscando a formação na planilha…</div></div>'; }
+  var hoje={}; c.lotes.forEach(function(L){ L.animais.forEach(function(a){ hoje[brKey(a.brinco)]=a; }); });
+  var passou=0, mud=[], falta={}, nFalta=0, vistos={};
+  F.animais.forEach(function(r){ var k=brKey(r.brinco); vistos[k]=1; var a=hoje[k];
+    if(!a){ (falta[r.lote]=falta[r.lote]||[]).push(r.brinco); nFalta++; return; }
+    passou++;
+    if(String(a.lote)!==String(r.lote)){ var dias=daysBetween(r.data,a.data); mud.push({b:a.brinco,de:r.lote,pd:Number(r.peso),para:a.lote,pp:a.peso,dias:dias}); } });
+  var novos=Object.keys(hoje).filter(function(k){ return !vistos[k]; }).length;
+  h+='<div class="lf-res"><div><b>'+passou+'</b><span>já passaram</span></div><div><b>'+nFalta+'</b><span>faltam</span></div><div><b>'+novos+'</b><span>fora da formação</span></div></div>';
+  if(mud.length){
+    var ver=LF.cmpTodos?mud:mud.slice(0,10);
+    h+='<div class="lf-hint" style="margin:8px 0 2px;font-weight:700;color:#16261a">Mudaram de lote desde a formação ('+mud.length+')</div>';
+    ver.forEach(function(m){ var g=m.pp-m.pd; h+='<div style="padding:6px 0;border-top:1px solid #edf1ec;font-size:13px;line-height:1.4">'+esc(m.b)+' · formação: '+esc(loteLabel(m.de))+' ('+fmtBR(m.pd,0)+' kg) → hoje <b style="color:#8a4b00">'+esc(loteLabel(m.para))+'</b> ('+fmtBR(m.pp,0)+' kg) · '+(g>=0?'+':'')+fmtBR(g,0)+' kg'+(m.dias>0?' em '+m.dias+' dias':'')+'</div>'; });
+    if(mud.length>10) h+='<button type="button" class="lf-btn" style="margin-top:6px;background:#fff;border-color:#cfd8d3;color:#7a8a7e" onclick="LF.cmpTodos=!LF.cmpTodos;lfRender()">'+(LF.cmpTodos?'Mostrar menos':'Ver todos os '+mud.length)+'</button>';
+  }
+  if(nFalta){
+    h+='<div class="lf-hint" style="margin:10px 0 2px;font-weight:700;color:#16261a">Ainda não passaram, pelo lote da formação</div>';
+    Object.keys(falta).sort(function(x,y){ return (parseInt(x,10)||99)-(parseInt(y,10)||99); }).forEach(function(L){
+      var ns=falta[L].slice().sort(function(x,y){ return String(x).localeCompare(String(y),'pt',{numeric:true}); });
+      h+='<div style="padding:6px 0;border-top:1px solid #edf1ec;font-size:12.5px;line-height:1.45"><b>'+esc(loteLabel(L))+'</b> ('+ns.length+'): '+ns.map(esc).join(', ')+'</div>'; });
+  }
+  return h+'</div>';
+}
+
 /* ---- PDF dos lotes formados (mesmo padrão dos relatórios GPL) ---- */
-function lfPDF(){
-  var c=lfCalc(); if(!c.tot.qtd){ alert("Marque as datas e espere os lotes formarem."); return; }
+function lfPDF(cx){
+  var c=(cx&&cx.snap)?cx:lfCalc(); if(!c.tot.qtd){ alert("Marque as datas e espere os lotes formarem."); return; }
   var ov=document.getElementById("lfOv");
   if(!ov){
     ov=document.createElement("div"); ov.id="lfOv";
@@ -3752,6 +3874,7 @@ function lfPDF(){
   document.title=lfPDFNome(c);
 }
 function lfPDFNome(c){
+  if(c.snap) return 'Formação de lotes '+lfFaz()+' '+isoToBR(c.formId).replace(/\//g,'-');
   var cp=LF.cp.aberto?lfCpCalc(c):null, ult=isoToBR(c.datas[c.datas.length-1]).replace(/\//g,'-');
   return ((cp && cp.valor>0)?'Compra ':'Lotes formados ')+lfFaz()+' '+ult+((cp && cp.valor>0 && cp.de)?' - '+cp.de:'');
 }
@@ -3759,7 +3882,7 @@ function lfPDFHTML(c){
   var fz=lfFaz(), logo=_rpLogo(), ASS='Rogério · Consultor GPL', CONT='(63) 99108-2453 · @gestaopecuarialucrativa';
   var datasTxt=c.datas.map(function(d){ return isoToBR(d).slice(0,5); }).join(' + '), ult=isoToBR(c.datas[c.datas.length-1]);
   var med=c.tot.peso/c.tot.qtd, P=[];
-  P.push('<div class="pg cap"><img src="'+logo+'"><div class="k">LOTES FORMADOS · '+esc(datasTxt)+'</div><h1>'+esc(fz)+'</h1><div class="s">'+c.tot.qtd+' animais em '+c.lotes.length+' lotes</div><div class="ln"></div>'+
+  P.push('<div class="pg cap"><img src="'+logo+'"><div class="k">'+(c.snap?'FORMAÇÃO DE LOTES · SALVA EM '+isoToBR(c.formId):'LOTES FORMADOS · '+esc(datasTxt))+'</div><h1>'+esc(fz)+'</h1><div class="s">'+c.tot.qtd+' animais em '+c.lotes.length+' lotes</div><div class="ln"></div>'+
     '<div class="s" style="font-size:12.5pt;max-width:165mm;line-height:1.5">Como ficou cada lote juntando as pesagens de '+esc(datasTxt)+': quantidade, peso, ganho de peso e quem mudou de lote.</div>'+
     '<div class="ft"><span>'+ASS+'</span><span>'+CONT+'</span></div></div>');
   var pg='<div class="pg"><div class="hd"><img src="'+logo+'"><span>Lotes formados · '+esc(fz)+' · '+esc(datasTxt)+'</span></div>';
@@ -3778,7 +3901,7 @@ function lfPDFHTML(c){
     '<div class="sm">Animal pesado em mais de um dia conta uma vez, com o último peso e o último lote.'+(c.vendidos?' '+c.vendidos+' vendido(s) depois da pesagem ficaram fora.':'')+' GMD do lote = média dos animais que têm GMD (mínimo '+GMD_MIN_N+'). Vaca, reprodutor, bezerro mamando, enfermaria e compra ficam fora do GMD geral.</div>';
   P.push(pg+c1+rod);
   // página da compra (só quando o bloco está aberto e com valor)
-  var cp=LF.cp.aberto?lfCpCalc(c):null;
+  var cp=(LF.cp.aberto&&!c.snap)?lfCpCalc(c):null;
   if(cp && cp.valor>0){
     var lin=function(a,b){ return '<tr><td>'+a+'</td><td class="n"><b>'+b+'</b></td></tr>'; };
     var t='<div class="ey">Compra</div><div class="tt">Quanto custou o gado</div>'+
@@ -3797,6 +3920,11 @@ function lfPDFHTML(c){
       '<div class="sm">Arroba = peso vivo ÷ '+AR_DIV+', com o peso da pesagem de '+esc(datasTxt)+'.</div>';
     P.push(pg+t+rod);
   }
+  // formação salva: página com o histórico gravado
+  if(c.snap && c.hist && c.hist.length){
+    P.push(pg+'<div class="ey">Observação</div><div class="tt">Pesados em mais de uma data</div><div class="sm" style="margin-bottom:3mm">Como ficou registrado na formação de '+isoToBR(c.formId)+'.</div>'+
+      '<table>'+c.hist.slice(0,36).map(function(t){ return '<tr><td>'+esc(t)+'</td></tr>'; }).join('')+'</table>'+(c.hist.length>36?'<div class="sm">E mais '+(c.hist.length-36)+'.</div>':'')+rod);
+  }
   // página: pesados em mais de uma data
   if(c.repet && c.repet.length){
     var RR=c.repet.slice(0,34);
@@ -3807,7 +3935,7 @@ function lfPDFHTML(c){
       (c.repet.length>34?'<div class="sm">E mais '+(c.repet.length-34)+'.</div>':'')+rod);
   }
   // página 2: quem mudou de lote
-  var M=lfMov(c);
+  var M=c.snap?null:lfMov(c);
   if(M && !M.erro){
     var mvRows=M.lista.slice(0,24).map(function(x){ return '<tr><td>'+esc(loteLabel(x.de))+'</td><td><b>'+esc(loteLabel(x.para))+'</b></td><td class="n">'+x.an.length+'</td><td class="n">'+(x.gN?fmtBR(x.gS/x.gN,3):'—')+'</td></tr>'; }).join('');
     var c2='<div class="ey">Movimento</div><div class="tt">Quem mudou de lote</div>'+
@@ -3846,9 +3974,10 @@ function lfRender(){
     if(LF.erro) h+='<div class="lf-hint" style="margin-top:8px;color:#B71C1C">'+esc(LF.erro)+'</div>';
   }
   h+='</div>';
-  if(LF.buscando>0){ box.innerHTML=h+'<div class="lf-sec"><div class="lf-hint">Buscando a pesagem na planilha…</div></div>'; return; }
-  if(!c.datas.length){ box.innerHTML=h+(ds.length?'<div class="lf-sec"><div class="lf-hint">Marque pelo menos uma data pra formar os lotes.</div></div>':''); return; }
-  if(!c.tot.qtd){ box.innerHTML=h+'<div class="lf-sec"><div class="lf-hint">Nenhum animal nas datas marcadas.</div></div>'; return; }
+  if(LF.formView){ box.innerHTML=lfFormViewHTML()+lfFormListaHTML(); return; }
+  if(LF.buscando>0){ box.innerHTML=h+'<div class="lf-sec"><div class="lf-hint">Buscando a pesagem na planilha…</div></div>'+lfFormListaHTML(); return; }
+  if(!c.datas.length){ box.innerHTML=h+(ds.length?'<div class="lf-sec"><div class="lf-hint">Marque pelo menos uma data pra formar os lotes.</div></div>':'')+lfFormListaHTML(); return; }
+  if(!c.tot.qtd){ box.innerHTML=h+'<div class="lf-sec"><div class="lf-hint">Nenhum animal nas datas marcadas.</div></div>'+lfFormListaHTML(); return; }
   var med=c.tot.peso/c.tot.qtd;
   h+='<div class="lf-kp"><div class="lf-k"><b>'+c.tot.qtd+'</b><span>cabeças</span></div>'+
      '<div class="lf-k"><b>'+fmtBR(med,0)+' kg</b><span>média · '+fmtBR(med/AR_DIV,1)+'@</span></div>'+
@@ -3885,7 +4014,7 @@ function lfRender(){
     }
   });
   l+='</div>';
-  box.innerHTML=h+g+l+lfRepHTML(c)+lfCpHTML(c)+lfMovHTML(c);
+  box.innerHTML=h+lfFormSalvarHTML(c)+lfCmpHTML(c)+g+l+lfRepHTML(c)+lfCpHTML(c)+lfMovHTML(c)+lfFormListaHTML();
 }
 
 function go(s){

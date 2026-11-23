@@ -131,7 +131,7 @@ table.venda tr.total td{border-top:2px solid var(--v2); font-weight:800; color:v
     </button>
     <span class="field">Meta abate (kg) <input id="metaIn" inputmode="decimal" placeholder="480"></span>
     <span class="field">R$/arroba <input id="arrobaIn" inputmode="decimal" placeholder="320"></span>
-    <span class="field">GMD esperado (só p/ quem não tem GMD) <input id="gmdEspIn" inputmode="decimal" placeholder="ex: 0,500"></span>
+    <span class="field">GMD que espero (todos os lotes) <input id="gmdEspIn" inputmode="decimal" placeholder="ex: 0,600"></span>
     <button class="btn btn-ghost" onclick="window.print()">
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><path d="M6 14h12v8H6z"/></svg>
       PDF
@@ -170,7 +170,10 @@ function gplToken(){ var a=gplAuth(); return (a&&a.token)?a.token:""; }
 function gplFazendaLock(){ var a=gplAuth(); return (a&&a.fazenda)?a.fazenda:null; }
 
 
-let dados={ fazenda:"", data:"", animais:[], metaPeso:480, precoArroba:0, gmdEsperado:0 };
+let dados={ fazenda:"", data:"", animais:[], metaPeso:480, precoArroba:0, gmdEsperado:0, gmdLote:{} };
+/* GMD que o consultor ESPERA pra frente (ex.: ajustou a dieta). Do lote > geral. Vazio = usa o GMD medido. */
+function gmdEspDoLote(L){ var v=parseNum((dados.gmdLote||{})[L]); if(v>0) return {v:v,origem:"lote"}; var g=parseNum(dados.gmdEsperado); if(g>0) return {v:g,origem:"geral"}; return null; }
+function setGmdLote(L,val){ dados.gmdLote=dados.gmdLote||{}; var v=parseNum(val); if(v>0) dados.gmdLote[L]=v; else delete dados.gmdLote[L]; render(); }
 let ordemLista="lote", _atTodos=false, _listaAberta=false;
 
 /* ---------- utils ---------- */
@@ -561,14 +564,15 @@ function render(){
     let proj="";
     if(s.media>=meta){ proj='<span class="tag t-ok">✓ Lote no ponto de abate</span>'; }
     else {
-      const gmdUsar=(s.gmd&&s.gmd>0)?s.gmd:gmdEsp;
-      const ehEst=!(s.gmd&&s.gmd>0)&&gmdEsp>0;
+      const esp=gmdEspDoLote(s.L);
+      const gmdUsar=esp?esp.v:((s.gmd&&s.gmd>0)?s.gmd:gmdEsp);
+      const ehEst=!esp&&!(s.gmd&&s.gmd>0)&&gmdEsp>0;
       if(gmdUsar>0){
         // data de saída por animal
         const itens=s.arr.map(function(a){
           const baseA=a.data||dados.data; if(!baseA) return null;
           const falta=meta-a.peso; if(falta<=0) return {data:baseA,brinco:a.brinco};
-          const gA=(a.gmd&&a.gmd>0)?a.gmd:gmdUsar;
+          const gA=esp?esp.v:((a.gmd&&a.gmd>0)?a.gmd:gmdUsar);   // GMD que espero vale pra TODOS os animais do lote
           return {data:addDays(baseA,Math.round(falta/gA)),brinco:a.brinco};
         }).filter(Boolean).sort(function(a,b){return a.data<b.data?-1:1;});
 
@@ -579,7 +583,7 @@ function render(){
         let acum=0;
         let carr='<div style="margin-top:12px;background:#f6faf5;border:1px solid var(--line);border-radius:14px;padding:12px 14px">';
         carr+='<div style="font-size:14px;font-weight:800;color:var(--v1)">Previsão de saída por mês</div>';
-        carr+='<div style="font-size:11px;color:var(--muted);margin:2px 0 8px">'+(ehEst?'Estimativa · GMD esperado '+fmt(gmdEsp,3)+' kg/dia':'GMD de cada animal (ou do lote) · meta '+fmt(meta,0)+' kg')+'</div>';
+        carr+='<div style="font-size:11px;color:var(--muted);margin:2px 0 8px">'+(esp?'Com o GMD que você espera: '+fmt(esp.v,3)+' kg/dia'+(esp.origem==='geral'?' (campo de cima)':'')+' · meta '+fmt(meta,0)+' kg':(ehEst?'Estimativa · GMD esperado '+fmt(gmdEsp,3)+' kg/dia':'GMD de cada animal (ou do lote) · meta '+fmt(meta,0)+' kg'))+'</div>';
         carr+='<table class="venda" style="margin:0"><tr><th>Mês</th><th>Saem</th><th>% do lote</th><th>Acumulado</th></tr>';
         meses.forEach(function(k){
           acum+=porMes[k];
@@ -604,7 +608,7 @@ function render(){
         cellHtml("Peso médio", fmt(s.media,0), fmt(s.media/AR_DIV,1)+" @")+
         cellHtml("Menor / Maior", fmt(s.min,0)+" / "+fmt(s.max,0), "kg")+
         cellHtml("Amplitude", fmt(s.amplitude,0), "kg (maior−menor)")+
-        cellHtml("GMD", s.gmd!=null?fmt(s.gmd,3):"—", "de "+cf.nG+" de "+cf.n+" animais")+
+        cellHtml("GMD medido", s.gmd!=null?fmt(s.gmd,3):"—", "de "+cf.nG+" de "+cf.n+" animais")+
       '</div>'+
       '<div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:8px">'+
         '<span class="tag '+cu.cls+'">Uniformidade '+fmt(s.unif,0)+'% · '+cu.t+'</span>'+
@@ -614,6 +618,9 @@ function render(){
       '</div>'+
       '<div class="hist-cap">Distribuição por faixa de peso (kg, de–até) — barras escuras já na meta · linha vermelha = meta</div>'+
       svgHist(s.pesos, meta)+
+      (s.media<meta?'<div style="display:flex;gap:8px;align-items:center;background:#FFF8E1;border:1.5px solid #E6A23C;border-radius:12px;padding:9px 10px;margin-top:12px">'+
+        '<label for="gmdL'+s.L+'" style="flex:1;font-size:12.5px;font-weight:700;color:#8a4b00;line-height:1.3">GMD que espero pra frente<small style="display:block;font-weight:500;font-size:11px">ex.: ajustei a dieta · vazio = '+(parseNum(dados.gmdEsperado)>0?'usa o campo de cima':'usa o medido')+'</small></label>'+
+        '<input id="gmdL'+s.L+'" inputmode="decimal" placeholder="'+(parseNum(dados.gmdEsperado)>0?fmt(parseNum(dados.gmdEsperado),3):'0,600')+'" value="'+((dados.gmdLote||{})[s.L]?fmt(dados.gmdLote[s.L],3):'')+'" onchange="setGmdLote(\''+s.L+'\',this.value)" style="width:90px;border:1.5px solid #E6A23C;border-radius:9px;padding:7px;text-align:right;font-weight:800;font-size:16px;background:#fff"></div>':'')+
       proj+comp+
     '</div>';
   });
@@ -920,6 +927,7 @@ function shareWhats(){
     t+="Uniformidade: "+fmt(s.unif,0)+"% ("+cu.t+")\n";
     if(s.gmd!=null) t+="GMD: "+fmt(s.gmd,3)+" kg/dia\n";
     if(!isEngorda(s.L)){ t+="(categoria — fora do abate/venda)\n"; }
+    else if(s.media<meta && gmdEspDoLote(s.L)){ const ge=gmdEspDoLote(s.L).v; const dias=Math.round((meta-s.media)/ge); const dp=dados.data?addDays(dados.data,dias):""; t+="Previsão de venda (com GMD esperado "+fmt(ge,3)+"): "+(dp?isoToBR(dp):"—")+" (~"+dias+" dias)\n"; }
     else if(s.media<meta && s.gmd>0){ const dias=Math.round((meta-s.media)/s.gmd); const dp=dados.data?addDays(dados.data,dias):""; t+="Previsão de venda: "+(dp?isoToBR(dp):"—")+" (~"+dias+" dias)\n"; }
     else if(s.media<meta && gmdEsp>0){ const dias=Math.round((meta-s.media)/gmdEsp); const dp=dados.data?addDays(dados.data,dias):""; t+="Previsão de venda (estimada, GMD esperado "+fmt(gmdEsp,3)+"): "+(dp?isoToBR(dp):"—")+" (~"+dias+" dias)\n"; }
     else if(s.media>=meta) t+="✓ No ponto de abate\n";

@@ -228,6 +228,8 @@ function jsonp(url){
 var _anDatas=[];        // datas disponíveis na planilha
 var _anAnimaisCache={}; // cache: data -> animais
 var _anDatasEsc={};     // datas selecionadas pelo usuário
+var _anForms=null, _anModo="pesagem", _anFormEsc="";   // formações salvas (aba Formacoes) e o modo de abrir
+function _anKey(b){ return String(b==null?"":b).trim().toLowerCase().replace(/[\s\-_.]+/g,""); }   // "SN 288" = "sn-288"
 
 async function carregarNuvem(){
   const box=document.getElementById("content");
@@ -241,6 +243,12 @@ async function carregarNuvem(){
     _anDatas=r.datas;
     // seleciona todas por padrão
     if(!Object.keys(_anDatasEsc).length){ _anDatas.forEach(d=>{ _anDatasEsc[d.data]=true; }); }
+    try{
+      const fz=faz||"";
+      const rf=await jsonp(BACKEND_URL+"?acao=formacao_lista&token="+encodeURIComponent(gplToken())+(fz?"&fazenda="+encodeURIComponent(fz):"&fazenda="+encodeURIComponent(_anFazPadrao())));
+      _anForms=(rf&&rf.ok&&rf.formacoes)?rf.formacoes:[];
+    }catch(e){ _anForms=[]; }
+    if(_anForms.length){ _anModo="formacao"; if(!_anFormEsc) _anFormEsc=_anForms[0].id; }
     mostrarModalDatas();
   }catch(e){
     if(carregarLocal()){ render(); }
@@ -266,7 +274,8 @@ function _abrirModalDatasInline(){
       <div style="font-size:15px;font-weight:800;color:#fff">Escolher pesagens para análise</div>
     </div>
     <div style="padding:16px">
-      <p style="font-size:13px;color:#65766a;margin:0 0 12px">Selecione as pesagens. Cada animal entra com seu <b>último peso</b>.</p>
+      <div id="modalModo" style="display:flex;gap:8px;margin-bottom:12px"></div>
+      <p id="modalDatasTxt" style="font-size:13px;color:#65766a;margin:0 0 12px">Selecione as pesagens. Cada animal entra com seu <b>último peso</b>.</p>
       <div id="modalDatasChecks" style="border:1px solid #e0e7e0;border-radius:12px;overflow:hidden;margin-bottom:12px"></div>
       <div id="modalDatasStatus" style="font-size:12px;color:#65766a;min-height:16px;margin-bottom:12px"></div>
       <button class="btn btn-primary" onclick="confirmarDatas()">Carregar e analisar</button>
@@ -277,8 +286,26 @@ function _abrirModalDatasInline(){
   _renderChecksDatas();
 }
 
+function _anModoSet(m){ _anModo=m; _renderChecksDatas(); }
+function _anFazPadrao(){ try{ const st=JSON.parse(localStorage.getItem(STORE_KEY)||"null"); return (st&&st.fazenda)||""; }catch(e){ return ""; } }
 function _renderChecksDatas(){
   const el=document.getElementById("modalDatasChecks"); if(!el) return;
+  const mm=document.getElementById("modalModo"), tx=document.getElementById("modalDatasTxt");
+  const bt=(m,t)=>'<button type="button" onclick="_anModoSet(\''+m+'\')" style="flex:1;border:1.5px solid '+(_anModo===m?'#1B5E20':'#d6dfd5')+';background:'+(_anModo===m?'#E8F5E9':'#fff')+';color:'+(_anModo===m?'#1B5E20':'#65766a')+';border-radius:12px;padding:10px;font-weight:800;font-size:13.5px;cursor:pointer">'+t+'</button>';
+  if(mm) mm.innerHTML=bt("formacao","Lote formado")+bt("pesagem","Por pesagem");
+  if(_anModo==="formacao"){
+    if(tx) tx.innerHTML='Escolha uma <b>formação salva</b> (aba Lotes da pesagem → Salvar formação). Abre do jeito que ficou no dia.';
+    if(!_anForms || !_anForms.length){ el.innerHTML='<div style="padding:14px;font-size:13px;color:#65766a">Nenhuma formação salva ainda. Salve na aba <b>Lotes</b> da pesagem, ou use <b>Por pesagem</b>.</div>'; return; }
+    let h='<div style="font-size:11px;font-weight:700;color:#65766a;padding:10px 14px 4px;text-transform:uppercase;letter-spacing:.04em">Formações salvas</div>';
+    _anForms.forEach(f=>{
+      const ds=String(f.datas||"").split(" + ").filter(Boolean);
+      h+=`<label style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-top:1px solid #f0f4f0;cursor:pointer;font-size:13px">
+        <input type="radio" name="anForm" ${_anFormEsc===f.id?"checked":""} onchange="_anFormEsc='${f.id}'" style="accent-color:#1B5E20;width:16px;height:16px">
+        <span><b>Formação de ${isoToBR(f.id)}</b> <span style="color:#65766a">· ${f.total} animais${ds.length?" · pesagens "+isoToBR(ds[0]).slice(0,5)+(ds.length>1?" a "+isoToBR(ds[ds.length-1]).slice(0,5):""):""}</span></span></label>`;
+    });
+    el.innerHTML=h; return;
+  }
+  if(tx) tx.innerHTML='Selecione as pesagens. Cada animal entra com seu <b>último peso</b>.';
   let h='<div style="font-size:11px;font-weight:700;color:#65766a;padding:10px 14px 4px;text-transform:uppercase;letter-spacing:.04em">Pesagens disponíveis</div>';
   _anDatas.forEach(d=>{
     const chk=_anDatasEsc[d.data]!==false;
@@ -290,7 +317,26 @@ function _renderChecksDatas(){
 }
 function _anToggle(data,chk){ _anDatasEsc[data]=chk; }
 
+async function confirmarFormacao(){
+  const st=document.getElementById("modalDatasStatus");
+  if(!_anFormEsc){ if(st) st.textContent="Escolha uma formação."; return; }
+  if(st) st.textContent="Carregando a formação...";
+  const faz=gplFazendaLock()||_anFazPadrao()||"";
+  try{
+    const r=await jsonp(BACKEND_URL+"?acao=formacao_ler&token="+encodeURIComponent(gplToken())+"&fazenda="+encodeURIComponent(faz)+"&id="+encodeURIComponent(_anFormEsc));
+    const animais=((r&&r.animais)||[]).map(a=>({brinco:String(a.brinco||"").trim(), base:String(a.brinco||"").trim().replace(/x+$/i,""),
+      peso:parseNum(a.peso), lote:parseInt(a.lote,10)||null, pesoAnterior:null, gmd:parseNum(a.gmd), dias:null,
+      obs:a.hist||"", novo:false, incerto:false, data:a.data||_anFormEsc})).filter(a=>a.peso!=null&&a.lote);
+    if(!animais.length){ if(st) st.textContent="Essa formação está vazia."; return; }
+    dados.fazenda=faz; dados.data=_anFormEsc; dados.animais=animais; dados.fonte="Formação de "+isoToBR(_anFormEsc);
+    _evolPronto=false; _evolTentou=false;
+    document.getElementById("modalDatas").style.display="none";
+    render();
+  }catch(e){ if(st) st.textContent="Não deu pra abrir a formação. Confira a internet."; }
+}
 async function confirmarDatas(){
+  if(_anModo==="formacao") return confirmarFormacao();
+  dados.fonte="";
   const st=document.getElementById("modalDatasStatus");
   const datasEsc=Object.keys(_anDatasEsc).filter(d=>_anDatasEsc[d]).sort();
   if(!datasEsc.length){ if(st) st.textContent="Selecione ao menos uma pesagem."; return; }
@@ -310,7 +356,7 @@ async function confirmarDatas(){
     (_anAnimaisCache[d]||[]).forEach(a=>{
       const b=String(a.brinco||"").trim();
       if(!b||a.peso==null||a.lote==null) return;
-      mapaUlt[b]={brinco:b,base:b.replace(/x+$/i,""),peso:parseNum(a.peso),lote:parseInt(a.lote,10)||null,
+      mapaUlt[_anKey(b)]={brinco:b,base:b.replace(/x+$/i,""),peso:parseNum(a.peso),lote:parseInt(a.lote,10)||null,
         pesoAnterior:parseNum(a.peso_anterior),gmd:parseNum(a.gmd),dias:parseNum(a.dias),
         obs:a.obs||"",novo:!!a.is_novo,incerto:!!a.is_revisar,data:d};
     });
@@ -513,7 +559,7 @@ function render(){
   document.getElementById("metaIn").value=dados.metaPeso||"";
   document.getElementById("arrobaIn").value=dados.precoArroba||"";
   var _ge=document.getElementById("gmdEspIn"); if(_ge && document.activeElement!==_ge) _ge.value=dados.gmdEsperado||"";
-  const partes=[]; if(dados.fazenda) partes.push(dados.fazenda); if(dados.data) partes.push(isoToBR(dados.data));
+  const partes=[]; if(dados.fazenda) partes.push(dados.fazenda); if(dados.fonte) partes.push(dados.fonte); else if(dados.data) partes.push(isoToBR(dados.data));
   document.getElementById("topSub").textContent="GPL · "+(partes.join(" · ")||"Gestão Pecuária Lucrativa");
   document.getElementById("hdrInfo").textContent = dados.animais.length? (partes.join(" · ")) : "";
 

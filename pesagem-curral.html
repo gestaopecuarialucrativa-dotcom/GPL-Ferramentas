@@ -3415,21 +3415,34 @@ async function _estPelaFormacao(faz,fimMes,c12,c24,rP,rV,st,tb){
   var nV=0; Object.keys(M).forEach(function(k){ var dv=vend[k]; if(dv && dv<=fimMes && dv>=M[k].data){ delete M[k]; nV++; } });
   // mortes/doações do app da fazenda
   state.appFaz=state.appFaz||{};
-  var nMorte=0, semNum=0, appOk=false, u=state.appFaz[faz]!=null?state.appFaz[faz]:(APP_FAZ_PADRAO[faz]||ocUrl());   // link do app pela fazenda do estoque
+  var nMorte=0, semNum=0, appOk=false, appErro='', appS=null, u=state.appFaz[faz]||APP_FAZ_PADRAO[faz]||ocUrl();   // link do app pela fazenda do estoque (vazio = usa o padrão)
   if(u){ st.textContent="Lendo mortes e doações no app da fazenda…";
     try{ var d=await jsonp(u+(u.indexOf("?")<0?"?":"&")+"acao=carregar",60000), S=null;
       if(d&&d.CONFIG&&d.CONFIG.length&&d.CONFIG[0]&&d.CONFIG[0][1]){ try{ S=JSON.parse(d.CONFIG[0][1]); }catch(e){} } else if(d&&d.LOTES) S=d;
-      if(S){ appOk=true; LF.oc=LF.oc||{S:S};
+      if(!S) appErro="o app não mandou os dados";
+      if(S){ appOk=true; appS=S; LF.oc=LF.oc||{S:S};
         (S.LOTES||[]).concat(S.LOTES_VENDIDOS||[]).forEach(function(l){ (l&&l.baixas||[]).forEach(function(bx){ var dt=String(bx.dt||"").slice(0,10); if(!dt||dt>fimMes) return;
           var br=(bx.brincos||[]).filter(function(x){ return String(x||"").trim(); });
           br.forEach(function(x){ var k=brKey(x); if(M[k] && dt>=M[k].data){ delete M[k]; nMorte++; } });
-          var resto=(parseInt(bx.qtd,10)||0)-br.length; if(resto>0) semNum+=resto; }); }); } }catch(e){}
+          var resto=(parseInt(bx.qtd,10)||0)-br.length; if(resto>0) semNum+=resto; }); }); } }catch(e){ appErro=(e&&e.message)||"rede"; }
+  } else appErro="sem link do app";
+  // Lote do app (quantidade que você controla lá) × animais da pesagem desse lote: o que o app tem a mais entra como "no app, sem pesar"
+  var autoSem=[];
+  if(appS){
+    var chave=function(cod){ var n=parseInt(cod,10); if(n===11||n===12||n===13) return "6"; if(n===15||n===16) return "compra"; if(n===14) return ""; return isNaN(n)?"":String(n); };
+    var cont={}, pesoL={}; Object.keys(M).forEach(function(k){ var a=M[k], ck=chave(a.lote); if(!ck) return; cont[ck]=(cont[ck]||0)+1; var l=String(a.lote); pesoL[l]=pesoL[l]||{q:0,p:0}; pesoL[l].q++; pesoL[l].p+=a.peso; });
+    (appS.LOTES||[]).forEach(function(l){ if(!l||!(parseInt(l.qtd,10)>0)) return; if(l.faz&&String(l.faz)!==faz) return;
+      var nm=String(l.nome||""), ck=/compra/i.test(nm)?"compra":String(parseInt((nm.match(/\d+/)||[""])[0],10)); if(!ck||ck==="NaN") return;
+      var dif=parseInt(l.qtd,10)-(cont[ck]||0); if(dif<=0) return;
+      var cod=ck==="compra"?"15":ck, pm=pesoL[cod]&&pesoL[cod].q?pesoL[cod].p/pesoL[cod].q:(parseNum(l.peso)||0);
+      autoSem.push({lote:nm, app:parseInt(l.qtd,10), pes:cont[ck]||0, q:dif, cat:_estCategoria(cod,pm,c12,c24), peso:Math.round(pm)}); });
   }
   var acc={}; EST_LINHAS.forEach(function(x){ acc[x[0]]={q:0,p:0}; });
   Object.keys(M).forEach(function(k){ var a=M[k], cat=_estCategoria(a.lote,a.peso,c12,c24); acc[cat].q++; acc[cat].p+=a.peso; });
   // média de cada lote da formação (sugestão de peso pro animal sem pesar)
   var medLote={}; F.animais.forEach(function(a){ var l=String(a.lote), p=parseNum(a.peso); if(!(p>0)) return; medLote[l]=medLote[l]||{q:0,p:0}; medLote[l].q++; medLote[l].p+=p; });
-  var SP=_estSemPesar(faz,fimMes), nSem=0;
+  var SP=_estSemPesar(faz,fimMes), nSem=0, nAuto=0;
+  autoSem.forEach(function(x){ acc[x.cat].q+=x.q; acc[x.cat].p+=x.q*x.peso; nAuto+=x.q; });
   SP.forEach(function(x){ var q=parseInt(x.q,10)||0, p=parseNum(x.peso)||0; if(q>0&&acc[x.cat]){ acc[x.cat].q+=q; acc[x.cat].p+=q*p; nSem+=q; } });
   var tq=0, tp=0, linhas="";
   EST_LINHAS.forEach(function(x){ var a=acc[x[0]]; tq+=a.q; tp+=a.p;
@@ -3439,7 +3452,8 @@ async function _estPelaFormacao(faz,fimMes,c12,c24,rP,rV,st,tb){
   tb.innerHTML='<table style="width:100%;border-collapse:collapse;font-size:13px;margin-bottom:10px;background:#F1F8E9;border-radius:10px">'+
       conta('Formação de '+isoToBR(F.id),nForm)+
       conta('+ pesados fora da formação (compra, realocados)',nFora?'+'+nFora:'0')+
-      (nSem?conta('+ na fazenda sem pesar (informado)','+'+nSem):'')+
+      (nAuto?conta('+ no app da fazenda e sem pesar ('+autoSem.map(function(x){ return x.lote+': app '+x.app+', pesagem '+x.pes; }).join(' · ')+')','+'+nAuto):'')+
+      (nSem?conta('+ ajuste que você informou','+'+nSem):'')+
       conta('− vendidos até '+isoToBR(fimMes),nV?'−'+nV:'0')+
       conta('− mortes e doações com número',appOk?(nMorte?'−'+nMorte:'0'):'não li o app')+
       '<tr style="border-top:1.5px solid var(--v2)"><td style="padding:5px 4px;font-weight:800">Estoque</td><td style="padding:5px 4px;text-align:right;font-weight:800">'+tq+'</td></tr></table>'+
@@ -3447,14 +3461,14 @@ async function _estPelaFormacao(faz,fimMes,c12,c24,rP,rV,st,tb){
     '<tr style="font-size:11px;color:var(--muted)"><td style="padding:4px">Categoria · '+isoToBR(fimMes)+'</td><td style="padding:4px;text-align:right">Qtd</td><td style="padding:4px;text-align:right">Peso (kg)</td></tr>'+linhas+
     '<tr style="border-top:2px solid var(--v2);font-weight:800;color:var(--v1)"><td style="padding:8px 4px">Total</td><td style="padding:8px 4px;text-align:right">'+tq+'</td><td style="padding:8px 4px;text-align:right">'+_estFmt(tp,2)+'</td></tr>'+
     '<tr style="font-weight:700;color:var(--muted)"><td style="padding:4px">Média ponderada</td><td></td><td style="padding:4px;text-align:right">'+(tq?_estFmt(tp/tq,2):"—")+'</td></tr></table>';
-  window.EST_ULT={faz:faz, fimMes:fimMes, form:F.id, nForm:nForm, nFora:nFora, nSem:nSem, SP:SP, nV:nV, nMorte:appOk?nMorte:null, semNum:semNum, acc:acc, tq:tq, tp:tp, c12:c12, c24:c24};
+  window.EST_ULT={faz:faz, fimMes:fimMes, form:F.id, nForm:nForm, nFora:nFora, nSem:nSem, SP:SP, nAuto:nAuto, autoSem:autoSem, nV:nV, nMorte:appOk?nMorte:null, semNum:semNum, acc:acc, tq:tq, tp:tp, c12:c12, c24:c24};
   var bzQ=acc.bzm.q;
   tb.innerHTML+=_estSemPesarHTML(faz,fimMes,medLote)+'<div style="margin-top:12px;border-top:1px solid var(--line);padding-top:10px">'+
     (bzQ?'<label style="font-size:12px;display:flex;align-items:center;gap:8px;margin-bottom:8px">Dos '+bzQ+' bezerros mamando, quantos são machos? <input id="estBzM" inputmode="numeric" value="'+esc(String(_estBzM(faz,bzQ)))+'" oninput="_estBzMSet(this.value)" style="width:60px;padding:6px;border:1px solid var(--line);border-radius:8px;font-size:14px"></label>':'')+
     '<button type="button" class="lf-btn" onclick="estSaldoPDF()">PDF do saldo do rebanho</button></div>';
   var info="Contado pela formação de "+isoToBR(F.id)+(nAtu?" ("+nAtu+" pesado(s) de novo depois: vale o peso novo)":"")+". Só entra animal com número.";
   if(semNum) info+=" Atenção: "+semNum+" morte(s)/doação(ões) sem número no app: tire na mão da categoria certa.";
-  if(!u||!appOk) info+=" Não consegui ler mortes/doações do app da fazenda.";
+  if(!appOk) info+=" Não consegui ler o app da fazenda ("+(appErro||"sem resposta")+"): mortes e quantidade dos lotes do app ficaram de fora. Toque em Calcular de novo.";
   st.textContent=info;
   return true;
 }
@@ -3466,8 +3480,8 @@ function _estSemPesarHTML(faz,fim,medLote){
   window._estSemMed=medLote||{};
   var L=_estSemPesar(faz,fim), opt=function(cur){ return EST_LINHAS.map(function(x){ return '<option value="'+x[0]+'"'+(x[0]===cur?' selected':'')+'>'+esc(x[1].charAt(0)+x[1].slice(1).toLowerCase())+'</option>'; }).join(''); };
   var inp='padding:6px;border:1px solid var(--line);border-radius:8px;font-size:13px';
-  var h='<div style="margin-top:12px;border-top:1px solid var(--line);padding-top:10px"><div style="font-size:13px;font-weight:800;color:var(--v1)">Animais na fazenda sem pesar</div>'
-    +'<div style="font-size:11.5px;color:var(--muted);margin:2px 0 8px">Os que estão na fazenda mas não passaram na balança da formação. Vale só para '+isoToBR(fim).slice(3)+'.</div>';
+  var h='<div style="margin-top:12px;border-top:1px solid var(--line);padding-top:10px"><div style="font-size:13px;font-weight:800;color:var(--v1)">Ajuste manual do saldo</div>'
+    +'<div style="font-size:11.5px;color:var(--muted);margin:2px 0 8px">Animais que entram no saldo e não estão nem na pesagem nem no app (ex.: sem baixa de GTA). O que o app da fazenda tem a mais já entra sozinho. Vale só para '+isoToBR(fim).slice(3)+'.</div>';
   L.forEach(function(x,i){
     h+='<div style="display:flex;gap:6px;align-items:center;margin-bottom:6px;flex-wrap:wrap"><input inputmode="numeric" value="'+esc(String(x.q||''))+'" onchange="_estSemSet('+i+',\'q\',this.value)" style="width:52px;'+inp+'"> cab'
       +'<select onchange="_estSemSet('+i+',\'cat\',this.value)" style="flex:1;min-width:150px;'+inp+'">'+opt(x.cat)+'</select>'
@@ -3481,7 +3495,7 @@ function _estSemPesarHTML(faz,fim,medLote){
   return h;
 }
 function _estSemNovo(){ var E=window.EST_ULT; if(!E) return; var L=_estSemPesar(E.faz,E.fimMes).slice(), m5=(window._estSemMed||{})['5'];
-  L.push({q:'',cat:'m12',peso:m5&&m5.q?Math.round(m5.p/m5.q):'',obs:'Lote 5'}); _estSemSalvar(E.faz,E.fimMes,L); calcEstoque(); }
+  L.push({q:'',cat:'m12',peso:m5&&m5.q?Math.round(m5.p/m5.q):'',obs:''}); _estSemSalvar(E.faz,E.fimMes,L); calcEstoque(); }
 function _estSemSet(i,k,v){ var E=window.EST_ULT; if(!E) return; var L=_estSemPesar(E.faz,E.fimMes).slice(); if(!L[i]) return; L[i]=Object.assign({},L[i]); L[i][k]=String(v||'').trim(); _estSemSalvar(E.faz,E.fimMes,L); }
 function _estSemTirar(i){ var E=window.EST_ULT; if(!E) return; var L=_estSemPesar(E.faz,E.fimMes).slice(); L.splice(i,1); _estSemSalvar(E.faz,E.fimMes,L); calcEstoque(); }
 /* ===== PDF do saldo do rebanho (idade × macho/fêmea), padrão GPL ===== */
@@ -3511,7 +3525,7 @@ function estSaldoPDF(){
     +'.nota{font-size:11px;color:#666;margin-top:12px;line-height:1.5}.rod{position:absolute;left:13mm;right:13mm;bottom:8mm;display:flex;justify-content:space-between;font-size:10.5px;color:#888}'
     +'@media print{body{background:#fff}.pg{margin:0;box-shadow:none}@page{size:A4;margin:0}}';
   var h='<div class="pg"><div class="hd">'+(logo?'<img src="'+logo+'">':'')+'<div><div class="t1">Saldo do rebanho</div><div class="t2">'+esc(E.faz)+' · '+fim+'</div></div></div>'
-    +'<div class="conta"><span>Formação de '+isoToBR(E.form)+': <b>'+E.nForm+'</b></span><span>+ pesados depois / compra: <b>'+E.nFora+'</b></span>'+(E.nSem?'<span>+ na fazenda sem pesar: <b>'+E.nSem+'</b></span>':'')+'<span>− vendidos: <b>'+E.nV+'</b></span>'+(E.nMorte!=null?'<span>− mortes e doações: <b>'+E.nMorte+'</b></span>':'')+'</div>'
+    +'<div class="conta"><span>Formação de '+isoToBR(E.form)+': <b>'+E.nForm+'</b></span><span>+ pesados depois / compra: <b>'+E.nFora+'</b></span>'+(E.nAuto?'<span>+ no pasto sem pesar: <b>'+E.nAuto+'</b></span>':'')+(E.nSem?'<span>+ ajuste: <b>'+E.nSem+'</b></span>':'')+'<span>− vendidos: <b>'+E.nV+'</b></span>'+(E.nMorte!=null?'<span>− mortes e doações: <b>'+E.nMorte+'</b></span>':'')+'</div>'
     +'<table class="g"><tr class="h"><td></td>'+G.map(function(g){ return '<td colspan="2">'+g[0]+'</td>'; }).join('')+'</tr>'
     +'<tr class="h"><td></td>'+G.map(function(){ return '<td class="m">Machos</td><td class="f">Fêmeas</td>'; }).join('')+'</tr>'
     +'<tr><td class="h" style="text-align:left">Cabeças</td>'+G.map(function(g){ return '<td class="m"><div class="n">'+g[1].q+'</div><div class="p">'+med(g[1])+'</div></td><td class="f"><div class="n">'+g[2].q+'</div><div class="p">'+med(g[2])+'</div></td>'; }).join('')+'</tr></table>'
@@ -3520,7 +3534,8 @@ function estSaldoPDF(){
     +'<table class="cat"><tr><th>Categoria</th><th class="r">Cabeças</th><th class="r">Peso médio (kg)</th></tr>'
     +EST_LINHAS.filter(function(x){ return A[x[0]].q; }).map(function(x){ var a=A[x[0]], nm=x[1].charAt(0)+x[1].slice(1).toLowerCase(); return '<tr><td>'+esc(nm)+(x[0]==="bzm"&&bzQ?' ('+bzM+' machos, '+bzF+' fêmeas)':'')+'</td><td class="r"><b>'+a.q+'</b></td><td class="r">'+fmtBR(a.p/a.q,2)+'</td></tr>'; }).join('')
     +'<tr><td><b>Total</b></td><td class="r"><b>'+E.tq+'</b></td><td class="r"><b>'+fmtBR(E.tp/E.tq,2)+'</b></td></tr></table>'
-    +(E.nSem?'<div class="nota" style="background:#FFF8E1;border-radius:8px;padding:8px 10px">Sem pesar (informado): '+E.SP.filter(function(x){ return parseInt(x.q,10)>0; }).map(function(x){ var nm=(EST_LINHAS.find(function(y){ return y[0]===x.cat; })||['',x.cat])[1]; return esc(x.q+' '+nm.toLowerCase()+(x.obs?' ('+x.obs+')':'')+(x.peso?' · '+x.peso+' kg estimado':'')); }).join(' · ')+'.</div>':'')
+    +(E.nAuto?'<div class="nota" style="background:#FFF8E1;border-radius:8px;padding:8px 10px">No pasto sem pesar: '+E.autoSem.map(function(x){ var nm=(EST_LINHAS.find(function(y){ return y[0]===x.cat; })||['',x.cat])[1]; return esc(x.q+' '+nm.toLowerCase()+' ('+x.lote+') · '+x.peso+' kg estimado'); }).join(' · ')+'.</div>':'')
+    +(E.nSem?'<div class="nota" style="background:#FFF8E1;border-radius:8px;padding:8px 10px">Ajuste: '+E.SP.filter(function(x){ return parseInt(x.q,10)>0; }).map(function(x){ var nm=(EST_LINHAS.find(function(y){ return y[0]===x.cat; })||['',x.cat])[1]; return esc(x.q+' '+nm.toLowerCase()+(x.obs?' ('+x.obs+')':'')+(x.peso?' · '+x.peso+' kg estimado':'')); }).join(' · ')+'.</div>':'')
     +'<div class="nota">Idade pelo peso: até '+fmtBR(E.c12,0)+' kg = 0 a 12 meses · até '+fmtBR(E.c24,0)+' kg = 13 a 24 · acima = 25 a 36 · vacas e touro = mais de 36. Só entram animais com número.'+(E.semNum?' Há '+E.semNum+' morte(s)/doação(ões) sem número para tirar na mão.':'')+'</div>'
     +'<div class="rod"><span>gestaopecuarialucrativa.com.br</span><span>'+ASS+'</span></div></div>';
   var nome='Saldo do rebanho '+E.faz+' '+fim.replace(/\//g,'-');

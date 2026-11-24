@@ -817,28 +817,37 @@ function renderEvol(){
     fontes.push([dados.data, dados.animais.map(a=>({brinco:a.brinco, peso:a.peso, lote:a.lote, is_revisar:a.incerto}))]);
   // MESMOS animais: os que estão HOJE no lote, com o peso deles em cada pesagem anterior
   // (o lote muda de composição entre pesagens — a média do "Lote 2" de cada dia enganaria)
-  const base=b=>String(b||"").trim().replace(/x+$/i,"");
+  const base=b=>_anKey(String(b||"").trim().replace(/x+$/i,""));
+  // RODADAS: pesagens com menos de 20 dias entre uma e outra são a mesma passagem (ex.: 31/10 a 21/11).
+  // Cada ponto = rodada; o ganho entre duas rodadas é a média de (peso na rodada − peso na rodada anterior)
+  // só dos animais pesados nas duas (o mesmo animal comparado com ele mesmo), e a data do ponto é a média
+  // das datas desses animais. Assim o gráfico bate com o GMD do lote.
+  const dsOrd=fontes.map(f=>f[0]).sort(); const rodadas=[]; let rAt=null, dAnt=null;
+  dsOrd.forEach(d=>{ if(!rAt || (new Date(d+"T12:00:00")-new Date(dAnt+"T12:00:00"))/86400000>20){ rAt=[]; rodadas.push(rAt); } rAt.push(d); dAnt=d; });
+  const porData={}; fontes.forEach(([d,lista])=>{ porData[d]=lista; });
+  const tms=d=>new Date(d+"T12:00:00").getTime(), isoDe=t=>new Date(t).toISOString().slice(0,10);
   const series=lotesAgora.map(L=>{
     const membros=new Set(dados.animais.filter(a=>a.lote===L && !a.incerto).map(a=>base(a.brinco)));
-    // cada ponto = ponto anterior + ganho médio de quem foi pesado nas DUAS datas (o mesmo animal comparado com ele mesmo)
-    const ult={}; let kg=null, pts=[];
-    fontes.forEach(([d,lista])=>{
-      const vistos={};
-      lista.forEach(a=>{ const b=base(a.brinco), p=parseNum(a.peso); if(membros.has(b) && p!=null && !a.is_revisar) vistos[b]=p; });
-      const ks=Object.keys(vistos);
-      const pares=ks.filter(k=>ult[k]!=null);
+    let ant=null, kg=null, pts=[];
+    rodadas.forEach(R=>{
+      const vis={};   // último peso de cada membro nesta rodada
+      R.forEach(d=>{ (porData[d]||[]).forEach(a=>{ const b=base(a.brinco), p=parseNum(a.peso); if(membros.has(b) && p!=null && !a.is_revisar) vis[b]={p:p,t:tms(d)}; }); });
+      const ks=Object.keys(vis);
+      const pares=ant?ks.filter(k=>ant[k]):[];
       if(kg!=null && pares.length>=5){
-        const g=media(pares.map(k=>vistos[k]-ult[k])); kg+=g; pts.push({d, kg, n:pares.length});
+        const g=media(pares.map(k=>vis[k].p-ant[k].p));
+        const t=media(pares.map(k=>vis[k].t));
+        kg+=g; pts.push({d:isoDe(t), kg, n:pares.length});
+        ant=vis;
       } else if(ks.length>=5 && ks.length>=membros.size*0.3){
-        kg=media(ks.map(k=>vistos[k])); pts=[{d, kg, n:ks.length}];   // começa (ou recomeça, se não deu pra ligar) a linha
-      }
-      ks.forEach(k=>{ ult[k]=vistos[k]; });
+        kg=media(ks.map(k=>vis[k].p)); pts=[{d:isoDe(media(ks.map(k=>vis[k].t))), kg, n:ks.length}]; ant=vis;
+      } else if(kg!=null){ /* rodada com pouca gente do lote: pula, mantém a anterior */ }
     });
     return {L, pts, nMembros:membros.size};
   }).filter(s=>s.pts.length>=2);
   if(!series.length){ box.innerHTML='<div class="cap">Ainda não dá pra mostrar a evolução: precisa de pelo menos 2 pesagens dos mesmos animais desta fazenda na planilha, até a data escolhida.</div>'; return; }
   box.innerHTML=svgEvol(series)+
-    '<div class="cap" style="margin-top:6px">Os animais que estão hoje em cada lote. Cada ponto soma o ganho médio de quem foi pesado nas duas datas — o mesmo animal comparado com ele mesmo.</div>'+
+    '<div class="cap" style="margin-top:6px">Os animais que estão hoje em cada lote. Cada ponto é uma passagem (pesagens com menos de 20 dias entre si contam como a mesma). O ganho entre dois pontos é a média só de quem foi pesado nas duas passagens — o mesmo animal comparado com ele mesmo.</div>'+
     series.map((s,i)=>{ const a=s.pts[0], b=s.pts[s.pts.length-1], g=b.kg-a.kg, dd=Math.round((new Date(b.d+"T12:00:00")-new Date(a.d+"T12:00:00"))/86400000);
       return '<div class="rank"><span class="b"><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:'+EVOL_CORES[i%EVOL_CORES.length]+';margin-right:6px"></span>'+loteLabel(s.L)+' <span style="font-weight:400;color:var(--muted)">('+s.nMembros+' cab)</span></span>'+
         '<span>'+fmt(a.kg,0)+' → <b>'+fmt(b.kg,0)+' kg</b> ('+(g>=0?'+':'')+fmt(g,0)+' kg em '+dd+' dias)</span></div>'; }).join('');

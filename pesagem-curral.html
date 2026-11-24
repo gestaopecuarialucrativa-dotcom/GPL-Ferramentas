@@ -3602,6 +3602,38 @@ function lfMov(c){
   var lista=Object.keys(mv).map(function(k){ return mv[k]; }).sort(function(x,y){ return y.an.length-x.an.length || (parseInt(x.de,10)||99)-(parseInt(y.de,10)||99); });
   return {d0:d0, mud:mud, ficou:ficou, sem:sem, lista:lista};
 }
+/* ---- GMD pelo lote ANTERIOR: cada animal entra no lote em que estava na pesagem passada (antes da 1ª data marcada).
+   Mostra o que o pasto/manejo daquele lote deu no período. GMD = (peso agora − peso antes) ÷ dias entre as duas pesagens. ---- */
+function lfAntGmd(c){
+  var d0=c.datas[0], A=LF.ant[d0];
+  if(!A) return null;
+  if(A.__erro) return {erro:true};
+  var G={};
+  c.lotes.forEach(function(L){ L.animais.forEach(function(a){
+    var pv=A[brKey(a.brinco)];
+    if(!pv || !pv.lote || pv.peso==null || !pv.data) return;
+    if(CATEG_FORA_GMD.indexOf(parseInt(pv.lote,10))>=0) return;
+    var dias=daysBetween(pv.data,a.data); if(!(dias>0)) return;
+    var x=G[pv.lote]=G[pv.lote]||{lote:pv.lote,n:0,pAnt:0,pAgo:0,gS:0,dS:0,dIni:pv.data,dFim:a.data};
+    x.n++; x.pAnt+=pv.peso; x.pAgo+=a.peso; x.gS+=(a.peso-pv.peso)/dias; x.dS+=dias;
+    if(pv.data<x.dIni) x.dIni=pv.data; if(a.data>x.dFim) x.dFim=a.data;
+  }); });
+  return Object.keys(G).map(function(k){ return G[k]; }).filter(function(x){ return x.n>=GMD_MIN_N; })
+    .sort(function(x,y){ return (y.gS/y.n)-(x.gS/x.n); });
+}
+function lfAntHTML(c){
+  var d0=c.datas[0], h='<div class="lf-sec"><div class="lf-h">GMD pelo lote anterior <span>onde o boi estava antes de '+lfDataCurta(d0)+'</span></div>';
+  var R=lfAntGmd(c);
+  if(!R){ lfBuscarAnt(d0); return h+'<div class="lf-hint">Buscando o lote de cada animal antes de '+lfDataCurta(d0)+'…</div></div>'; }
+  if(R.erro) return h+'<div class="lf-hint">Sem internet: não deu pra buscar o lote anterior dos animais.</div></div>';
+  if(!R.length) return h+'<div class="lf-hint">Nenhum lote com pelo menos '+GMD_MIN_N+' animais pesados antes de '+lfDataCurta(d0)+'.</div></div>';
+  var mx=Math.max.apply(null,R.map(function(x){ return x.gS/x.n; })); if(!(mx>0)) mx=1;
+  R.forEach(function(x){ var g=x.gS/x.n;
+    h+='<div class="lf-g"><div class="n">'+esc(loteLabel(x.lote))+'<div style="font-size:10px;color:#7a8a7e;font-weight:600">'+x.n+' pesados nas 2</div></div><div class="lf-bar'+(g<LF_GMD_BAIXO?' wa':'')+'"><i style="width:'+Math.max(2,Math.round(Math.max(0,g)/mx*100))+'%"></i></div><div class="v">'+fmtBR(g,3)+'</div></div>'+
+       '<div class="lf-hint" style="margin:-2px 0 6px">'+fmtBR(x.pAnt/x.n,0)+' → '+fmtBR(x.pAgo/x.n,0)+' kg em '+Math.round(x.dS/x.n)+' dias, em média</div>';
+  });
+  return h+'<div class="lf-hint" style="margin-top:8px">Cada animal entra no lote em que estava na última pesagem antes de '+lfDataCurta(d0)+', mesmo que agora esteja em outro. O lote tinha mais animais: aqui só entram os pesados nas duas pesagens. Vaca, reprodutor, bezerro mamando, enfermaria e compra ficam fora.</div></div>';
+}
 function lfMovHTML(c){
   var d0=c.datas[0], h='<div class="lf-sec"><div class="lf-h">Quem mudou de lote <span>antes de '+lfDataCurta(d0)+' → agora</span></div>';
   var M=lfMov(c);
@@ -3924,6 +3956,18 @@ function lfPDFHTML(c){
     '<div class="g">Por lote</div><table><tr><th>Lote</th><th class="n">Cab.</th><th class="n">Peso médio</th><th class="n">@</th><th class="n">Menor–maior</th><th>GMD</th><th>Pesados em</th></tr>'+linhas+'</table>'+
     '<div class="sm">Animal pesado em mais de um dia conta uma vez, com o último peso e o último lote.'+(c.vendidos?' '+c.vendidos+' vendido(s) depois da pesagem ficaram fora.':'')+' GMD do lote = média dos animais que têm GMD (mínimo '+GMD_MIN_N+'). Vaca, reprodutor, bezerro mamando, enfermaria e compra ficam fora do GMD geral.</div>';
   P.push(pg+c1+rod);
+  // página: GMD pelo lote anterior
+  var RA=c.snap?null:lfAntGmd(c);
+  if(RA && !RA.erro && RA.length){
+    var mxa=Math.max.apply(null,RA.map(function(x){ return x.gS/x.n; })); if(!(mxa>0)) mxa=1;
+    var ga=RA.map(function(x){ var g=x.gS/x.n; return '<div class="hb"><b>'+esc(loteLabel(x.lote))+'</b><div><i style="width:'+Math.max(2,Math.round(Math.max(0,g)/mxa*100))+'%;background:'+(g<LF_GMD_BAIXO?'#E6A23C':'#1f6b33')+'"></i></div><span>'+fmtBR(g,3)+'</span></div>'; }).join('');
+    var ta=RA.map(function(x){ return '<tr><td><b>'+esc(loteLabel(x.lote))+'</b></td><td class="n">'+x.n+'</td><td class="n">'+fmtBR(x.pAnt/x.n,0)+' kg</td><td class="n">'+fmtBR(x.pAgo/x.n,0)+' kg</td><td class="n">'+Math.round(x.dS/x.n)+'</td><td class="n"><b>'+fmtBR(x.gS/x.n,3)+'</b></td></tr>'; }).join('');
+    P.push(pg+'<div class="ey">Período</div><div class="tt">GMD pelo lote anterior</div>'+
+      '<div class="sm" style="margin-bottom:3mm">Cada animal no lote em que estava na última pesagem antes de '+isoToBR(c.datas[0]).slice(0,5)+'. Mostra o que cada lote ganhou no pasto onde ficou, mesmo que o animal tenha mudado de lote agora.</div>'+
+      '<div class="g">Ganho de peso (kg/dia)</div><div class="hbs">'+ga+'</div>'+
+      '<div class="g">Por lote anterior</div><table><tr><th>Lote</th><th class="n">Pesados nas 2</th><th class="n">Peso antes</th><th class="n">Peso agora</th><th class="n">Dias</th><th class="n">GMD</th></tr>'+ta+'</table>'+
+      '<div class="sm">O lote tinha mais animais: aqui só entram os pesados nas duas pesagens. GMD = (peso agora − peso antes) ÷ dias entre as duas, média dos animais. Vaca, reprodutor, bezerro mamando, enfermaria e compra ficam fora.</div>'+rod);
+  }
   // página da compra (só quando o bloco está aberto e com valor)
   var cp=(LF.cp.aberto&&!c.snap)?lfCpCalc(c):null;
   if(cp && cp.valor>0){
@@ -4038,7 +4082,7 @@ function lfRender(){
     }
   });
   l+='</div>';
-  box.innerHTML=h+lfFormSalvarHTML(c)+lfCmpHTML(c)+g+l+lfBuscaHTML(c)+lfRepHTML(c)+lfCpHTML(c)+lfMovHTML(c)+lfFormListaHTML();
+  box.innerHTML=h+lfFormSalvarHTML(c)+lfCmpHTML(c)+g+lfAntHTML(c)+l+lfBuscaHTML(c)+lfRepHTML(c)+lfCpHTML(c)+lfMovHTML(c)+lfFormListaHTML();
 }
 
 function go(s){

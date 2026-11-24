@@ -3651,10 +3651,15 @@ function ocHaMapa(S){ var m={}; Object.keys(OC_HA).forEach(function(k){ m[k]=OC_
 function ocId(id){ var p=String(id||"").toUpperCase().replace(/[\s\/]/g,""), m=p.match(/^M0*(\d+)P0*(\d+)/); if(m) return "M"+("0"+m[1]).slice(-2)+"P"+("0"+m[2]).slice(-2);
   m=p.match(/^PA0*(\d+)/); if(m) return "PA"+("0"+m[1]).slice(-2); return p; }
 // ha da área de pastejo: módulo = soma dos piquetes (o lote roda no módulo todo); pasto = o próprio pasto
-function ocHaArea(HA,id){ var k=ocId(id), m=k.match(/^M(\d+)P/); if(m){ var t=0; Object.keys(HA).forEach(function(z){ if(z.indexOf("M"+m[1]+"P")===0) t+=HA[z]; }); return t||null; } return HA[k]||null; }
+function ocHaArea(HA,id){ var k=ocId(id), m=k.match(/^M(\d+)P/);
+  if(OC_PA_MOD[k]){ var md=OC_PA_MOD[k], t5=0; Object.keys(OC_PA_MOD).forEach(function(z){ if(OC_PA_MOD[z]===md) t5+=HA[z]||0; }); return t5||null; }
+  if(m){ var t=0; Object.keys(HA).forEach(function(z){ if(z.indexOf("M"+m[1]+"P")===0) t+=HA[z]; }); return t||null; } return HA[k]||null; }
 function ocNum(nome){ var m=String(nome||"").replace(/\(\s*\d+\s*animais?\s*\)/i,"").match(/\d+/); return m?String(parseInt(m[0],10)):""; }
 function ocExato(nome){ return /^\s*lote\s*0*\d+\s*$/i.test(String(nome||"").replace(/\(\s*\d+\s*animais?\s*\)/i,"")); }
+// Pastos que viraram módulo no app da fazenda (os ids antigos continuam): PA05, PA06 e PA07 = Módulo 5
+var OC_PA_MOD={PA05:5,PA06:5,PA07:5};
 function ocArea(id){ var p=String(id||"").toUpperCase().replace(/[\s\/]/g,""), m=p.match(/^M0*(\d+)/); if(m) return {g:"Módulo "+parseInt(m[1],10),d:""};
+  var k=ocId(p); if(OC_PA_MOD[k]) return {g:"Módulo "+OC_PA_MOD[k],d:""};
   m=p.match(/^PA0*(\d+)/); if(m) return {g:"Pastos",d:"PA"+("0"+parseInt(m[1],10)).slice(-2)}; return {g:p||"?",d:""}; }
 function ocModa(arr){ var c={},b=null; arr.forEach(function(x){ c[x]=(c[x]||0)+1; if(b==null||c[x]>c[b]) b=x; }); return b; }
 async function ocCarregar(){
@@ -3696,7 +3701,12 @@ function ocCalc(c){
     // cabeças = média do que foi lançado no trato (de cada produto); sem isso, os pesados nas 2
     var cab=cabs.length?med(cabs):x.n, pm=(x.pAnt+x.pAgo)/(2*x.n);
     // lotação: UA = cabeças × peso médio ÷ 450; cabeças = as lançadas no trato do produto principal (o que mais saiu)
-    var pPri=Object.keys(prod).sort(function(p,q){ return prod[q]-prod[p]; })[0], cabUA=(pPri&&cabP[pPri]&&cabP[pPri].length)?med(cabP[pPri]):cab, ua=cabUA*pm/450;
+    var pPri=Object.keys(prod).sort(function(p,q){ return prod[q]-prod[p]; })[0], cabUA=(pPri&&cabP[pPri]&&cabP[pPri].length)?med(cabP[pPri]):cab, pmUA=pm;
+    // no app da fazenda o Lote 6 leva junto vaca (11), reprodutor (12) e bezerro mamando (13): entram no peso da UA
+    if(n==="6"){ var vS=0, vN=0;   // só os que estão no rebanho hoje (vendidos não entram); peso da pesagem anterior, ou o de agora
+      c.lotes.forEach(function(L){ L.animais.forEach(function(a){ if([11,12,13].indexOf(parseInt(a.lote,10))<0) return; var pv=A[brKey(a.brinco)], w=(pv&&pv.peso>0)?pv.peso:a.peso; if(w>0){ vS+=w; vN++; } }); });
+      if(vN>0 && cabUA>vN) pmUA=(pm*(cabUA-vN)+vS)/cabUA; }
+    var ua=cabUA*pmUA/450;
     var uaD=0, uaN=0; segs.forEach(function(z){ if(z.ha>0){ z.tx=ua/z.ha; uaD+=z.tx*z.d; uaN+=z.d; } });
     lugL.forEach(function(l){ var sd=0, sn=0; segs.forEach(function(z){ if(z.g===l.g && z.tx!=null){ sd+=z.tx*z.d; sn+=z.d; } }); l.tx=sn?sd/sn:null; });
     var sup=Object.keys(prod).map(function(p){ var cp=cabP[p]&&cabP[p].length?med(cabP[p]):cab, g=prod[p]/cp/dias*1000, pct=parseFloat((EST[p]||{}).pct)||0, ref=pct>0?pct/100*pm*1000:null;
@@ -3749,7 +3759,7 @@ function ocPDFHTML(c){
   P.push(pg+'<div class="ey">Por lote</div><div class="tt">GMD e o que cada lote teve</div><table><tr><th>Lote</th><th class="n">GMD</th><th>Onde ficou</th><th class="n">Lotação</th><th>Feno</th><th>Suplemento no cocho</th></tr>'+
     L.map(function(o){ return '<tr><td><b>'+esc(loteLabel(o.lote))+'</b><div class="mu" style="font-size:8pt">'+isoToBR(o.ini).slice(0,5)+' a '+isoToBR(o.fim).slice(0,5)+'<br>'+o.n+' pesados nas 2</div></td><td class="n"><b>'+fmtBR(o.gmd,3)+'</b><div class="mu" style="font-size:8pt">'+fmtBR(o.pAnt,0)+' → '+fmtBR(o.pAgo,0)+' kg</div></td><td>'+ocOndeTxt(o)+'</td><td class="n"><b>'+(o.txMed!=null?fmtBR(o.txMed,1)+' UA/ha':'—')+'</b><div class="mu" style="font-size:8pt">'+fmtBR(o.cabUA,0)+' cab · '+fmtBR(o.ua,0)+' UA</div></td><td>'+ocFenoTxt(o)+'</td><td>'+ocSupTxt(o)+'</td></tr>'; }).join('')+'</table>'+
     (obs?'<div class="g">Água e observações</div><table>'+obs.split(/\n+/).filter(function(t){return t.trim();}).map(function(t){ return '<tr><td>'+esc(t)+'</td></tr>'; }).join('')+'</table>':'')+
-    '<div class="sm">Lotação: UA = cabeças lançadas no trato × peso médio do lote ÷ 450, sobre a área do módulo inteiro (o lote roda nos piquetes) ou da soma dos pastos que o lote usou no período (roda entre eles), média pelos dias em cada lugar. Áreas do mapa do app da fazenda.</div>'+
+    '<div class="sm">Lotação: UA = cabeças lançadas no trato × peso médio do lote ÷ 450 (no Lote 6 o peso inclui vaca, reprodutor e bezerro mamando, que ficam junto), sobre a área do módulo inteiro (o lote roda nos piquetes) ou da soma dos pastos que o lote usou no período (roda entre eles), média pelos dias em cada lugar. Áreas do mapa do app da fazenda.</div>'+
     '<div class="sm">Suplemento: quilos lançados no trato (menos desperdício), divididos pelas cabeças lançadas no trato e pelos dias do período. Fabricante: % do peso vivo cadastrado no estoque do app, sobre o peso médio do lote. É o que foi colocado no cocho, não o que cada animal comeu.</div>'+rod);
   var M={}; L.forEach(function(o){ o.lug.forEach(function(l){ (M[l.g]=M[l.g]||[]).push({lote:o.lote,d:l.d,tx:l.tx}); }); });
   var ks=Object.keys(M).sort(function(a,b){ var na=a==="Pastos"?999:(parseInt(a.replace(/\D/g,""),10)||998), nb=b==="Pastos"?999:(parseInt(b.replace(/\D/g,""),10)||998); return na-nb; });

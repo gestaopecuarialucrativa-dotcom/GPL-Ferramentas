@@ -3778,6 +3778,43 @@ function ocPDF(){
   d.open(); d.write(ocPDFHTML(c)); d.close();   // …com o relatório
   document.title=ocPDFNome(c);
 }
+/* ===== Exportar para a Inttegra (Manejo Individual · modelo "Modelo_Lancamento_Manejo_Individual") =====
+   Uma linha por animal da formação (último peso). Área e lote de destino vêm do app da fazenda:
+   área = último pasto/piquete lançado para o lote, no nome da Inttegra ("MOD. 01 / P 02", "Pasto 04");
+   lote = nome do lote no app ("Lote 2", "Lote 04"…). Vaca/reprodutor/bezerro (11-13) → lote 6; compra/novilha (15-16) → Lote Compra; enfermaria (14) fica sem área/lote.
+   Escore, sanitário e vacinas saem em branco (decisão do Rogério, 24/11/2026). */
+function itNomeArea(id){ var k=ocId(id), m=k.match(/^M(\d{2})P(\d{2})$/); if(m) return "MOD. "+m[1]+" / P "+m[2];
+  m=k.match(/^PA(\d{2})$/); if(m) return "Pasto "+m[1]; return k||""; }
+function itDestinos(S){
+  var lotesApp=(S.LOTES||[]).map(function(l){ return l.nome; }), rT=(S.rT||[]).filter(function(r){ return r&&!r._apagado&&r.tipo==="mudanca_pasto"&&r.destino; });
+  function loteDoNum(n){ var ex=lotesApp.filter(function(nm){ return ocNum(nm)===n && ocExato(nm); }); if(ex.length) return ex[0];
+    var q=lotesApp.filter(function(nm){ return ocNum(nm)===n && !/compra/i.test(nm); }); return q[0]||""; }
+  function areaDoLote(nome){ var u=null; rT.forEach(function(r){ if(r.lote===nome && (!u || String(r.dt||"")>=String(u.dt||""))) u=r; }); return u?itNomeArea(u.destino):""; }
+  var compra=lotesApp.filter(function(nm){ return /compra/i.test(nm); })[0]||"";
+  return function(lotePes){ var n=parseInt(lotePes,10);
+    if(n===14) return {area:"",lote:""};
+    var nome=(n===15||n===16)?compra:loteDoNum(String((n>=11&&n<=13)?6:n));
+    return {area:nome?areaDoLote(nome):"",lote:nome}; };
+}
+function itHTML(c){
+  var h='<div class="lf-sec"><div class="lf-h">Exportar para a Inttegra <span>manejo individual</span></div>'+
+    '<div class="lf-hint" style="margin-bottom:8px">Planilha no modelo da Inttegra: brinco, peso, área e lote de destino de cada animal da formação. Escore, sanitário e vacinas saem em branco.</div>';
+  if(!LF.oc||!LF.oc.S) return h+'<div class="lf-hint">Precisa dos dados do app da fazenda (área e lote): toque em "Buscar dados do app da fazenda" acima.</div></div>';
+  return h+'<button type="button" class="lf-btn" onclick="itExportar()">Exportar planilha da Inttegra</button></div>';
+}
+function itExportar(){
+  var c=lfCalc(); if(!LF.oc||!LF.oc.S){ alert("Busque os dados do app da fazenda primeiro."); return; }
+  var dest=itDestinos(LF.oc.S), A=[["ID USUAL","ID ELETRÔNICA","Nº SISBOV","PESO","ESCORE","RECEBE SANITÁRIO","VACINAS/MEDICAMENTOS","ÁREA DE DESTINO","LOTE DE DESTINO"]], semArea=0;
+  c.lotes.forEach(function(L){ L.animais.slice().sort(function(a,b){ return String(a.brinco).localeCompare(String(b.brinco),"pt",{numeric:true}); }).forEach(function(a){
+    var d=dest(a.lote); if(!d.area && parseInt(a.lote,10)!==14) semArea++;
+    A.push([String(a.brinco),"","",Number(a.peso),"","","",d.area,d.lote]); }); });
+  var ws=XLSX.utils.aoa_to_sheet(A); ws["!cols"]=[{wch:14},{wch:16},{wch:14},{wch:8},{wch:8},{wch:18},{wch:24},{wch:18},{wch:16}];
+  var op=XLSX.utils.aoa_to_sheet([["Escore","Recebe sanitário"],[1,"Sim"],[2,"Não"],[3],[4],[5]]);
+  var wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,"AnimalManagement"); XLSX.utils.book_append_sheet(wb,op,"Lista de opções");
+  var nome="Inttegra manejo individual "+lfFaz()+" "+isoToBR(c.datas[c.datas.length-1]).replace(/\//g,"-")+".xlsx";
+  XLSX.writeFile(wb,nome);
+  if(semArea) alert((A.length-1)+" animais exportados. "+semArea+" ficaram sem área (o lote não tem mudança de pasto lançada no app). Confira antes de importar.");
+}
 function lfMovHTML(c){
   var d0=c.datas[0], h='<div class="lf-sec"><div class="lf-h">Quem mudou de lote <span>antes de '+lfDataCurta(d0)+' → agora</span></div>';
   var M=lfMov(c);
@@ -4226,7 +4263,7 @@ function lfRender(){
     }
   });
   l+='</div>';
-  box.innerHTML=h+lfFormSalvarHTML(c)+lfCmpHTML(c)+g+lfAntHTML(c)+ocHTML(c)+l+lfBuscaHTML(c)+lfRepHTML(c)+lfCpHTML(c)+lfMovHTML(c)+lfFormListaHTML();
+  box.innerHTML=h+lfFormSalvarHTML(c)+lfCmpHTML(c)+g+lfAntHTML(c)+ocHTML(c)+itHTML(c)+l+lfBuscaHTML(c)+lfRepHTML(c)+lfCpHTML(c)+lfMovHTML(c)+lfFormListaHTML();
 }
 
 function go(s){

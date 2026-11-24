@@ -3427,6 +3427,10 @@ async function _estPelaFormacao(faz,fimMes,c12,c24,rP,rV,st,tb){
   }
   var acc={}; EST_LINHAS.forEach(function(x){ acc[x[0]]={q:0,p:0}; });
   Object.keys(M).forEach(function(k){ var a=M[k], cat=_estCategoria(a.lote,a.peso,c12,c24); acc[cat].q++; acc[cat].p+=a.peso; });
+  // média de cada lote da formação (sugestão de peso pro animal sem pesar)
+  var medLote={}; F.animais.forEach(function(a){ var l=String(a.lote), p=parseNum(a.peso); if(!(p>0)) return; medLote[l]=medLote[l]||{q:0,p:0}; medLote[l].q++; medLote[l].p+=p; });
+  var SP=_estSemPesar(faz,fimMes), nSem=0;
+  SP.forEach(function(x){ var q=parseInt(x.q,10)||0, p=parseNum(x.peso)||0; if(q>0&&acc[x.cat]){ acc[x.cat].q+=q; acc[x.cat].p+=q*p; nSem+=q; } });
   var tq=0, tp=0, linhas="";
   EST_LINHAS.forEach(function(x){ var a=acc[x[0]]; tq+=a.q; tp+=a.p;
     var nome=x[1]+(x[0]==="bzm"&&a.q?' <span style="font-weight:400;color:var(--muted)">(bezerros + bezerras)</span>':"");
@@ -3435,6 +3439,7 @@ async function _estPelaFormacao(faz,fimMes,c12,c24,rP,rV,st,tb){
   tb.innerHTML='<table style="width:100%;border-collapse:collapse;font-size:13px;margin-bottom:10px;background:#F1F8E9;border-radius:10px">'+
       conta('Formação de '+isoToBR(F.id),nForm)+
       conta('+ pesados fora da formação (compra, realocados)',nFora?'+'+nFora:'0')+
+      (nSem?conta('+ na fazenda sem pesar (informado)','+'+nSem):'')+
       conta('− vendidos até '+isoToBR(fimMes),nV?'−'+nV:'0')+
       conta('− mortes e doações com número',appOk?(nMorte?'−'+nMorte:'0'):'não li o app')+
       '<tr style="border-top:1.5px solid var(--v2)"><td style="padding:5px 4px;font-weight:800">Estoque</td><td style="padding:5px 4px;text-align:right;font-weight:800">'+tq+'</td></tr></table>'+
@@ -3442,11 +3447,94 @@ async function _estPelaFormacao(faz,fimMes,c12,c24,rP,rV,st,tb){
     '<tr style="font-size:11px;color:var(--muted)"><td style="padding:4px">Categoria · '+isoToBR(fimMes)+'</td><td style="padding:4px;text-align:right">Qtd</td><td style="padding:4px;text-align:right">Peso (kg)</td></tr>'+linhas+
     '<tr style="border-top:2px solid var(--v2);font-weight:800;color:var(--v1)"><td style="padding:8px 4px">Total</td><td style="padding:8px 4px;text-align:right">'+tq+'</td><td style="padding:8px 4px;text-align:right">'+_estFmt(tp,2)+'</td></tr>'+
     '<tr style="font-weight:700;color:var(--muted)"><td style="padding:4px">Média ponderada</td><td></td><td style="padding:4px;text-align:right">'+(tq?_estFmt(tp/tq,2):"—")+'</td></tr></table>';
+  window.EST_ULT={faz:faz, fimMes:fimMes, form:F.id, nForm:nForm, nFora:nFora, nSem:nSem, SP:SP, nV:nV, nMorte:appOk?nMorte:null, semNum:semNum, acc:acc, tq:tq, tp:tp, c12:c12, c24:c24};
+  var bzQ=acc.bzm.q;
+  tb.innerHTML+=_estSemPesarHTML(faz,fimMes,medLote)+'<div style="margin-top:12px;border-top:1px solid var(--line);padding-top:10px">'+
+    (bzQ?'<label style="font-size:12px;display:flex;align-items:center;gap:8px;margin-bottom:8px">Dos '+bzQ+' bezerros mamando, quantos são machos? <input id="estBzM" inputmode="numeric" value="'+esc(String(_estBzM(faz,bzQ)))+'" oninput="_estBzMSet(this.value)" style="width:60px;padding:6px;border:1px solid var(--line);border-radius:8px;font-size:14px"></label>':'')+
+    '<button type="button" class="lf-btn" onclick="estSaldoPDF()">PDF do saldo do rebanho</button></div>';
   var info="Contado pela formação de "+isoToBR(F.id)+(nAtu?" ("+nAtu+" pesado(s) de novo depois: vale o peso novo)":"")+". Só entra animal com número.";
   if(semNum) info+=" Atenção: "+semNum+" morte(s)/doação(ões) sem número no app: tire na mão da categoria certa.";
   if(!u||!appOk) info+=" Não consegui ler mortes/doações do app da fazenda.";
   st.textContent=info;
   return true;
+}
+/* ===== Animais na fazenda que não passaram na balança (ex.: 4 do Lote 5) — o consultor informa por mês ===== */
+function _estSemKey(faz,fim){ return faz+"|"+fim; }
+function _estSemPesar(faz,fim){ var L=(state.estSem||{})[_estSemKey(faz,fim)]; return Array.isArray(L)?L:[]; }
+function _estSemSalvar(faz,fim,L){ state.estSem=state.estSem||{}; state.estSem[_estSemKey(faz,fim)]=L; save(); }
+function _estSemPesarHTML(faz,fim,medLote){
+  window._estSemMed=medLote||{};
+  var L=_estSemPesar(faz,fim), opt=function(cur){ return EST_LINHAS.map(function(x){ return '<option value="'+x[0]+'"'+(x[0]===cur?' selected':'')+'>'+esc(x[1].charAt(0)+x[1].slice(1).toLowerCase())+'</option>'; }).join(''); };
+  var inp='padding:6px;border:1px solid var(--line);border-radius:8px;font-size:13px';
+  var h='<div style="margin-top:12px;border-top:1px solid var(--line);padding-top:10px"><div style="font-size:13px;font-weight:800;color:var(--v1)">Animais na fazenda sem pesar</div>'
+    +'<div style="font-size:11.5px;color:var(--muted);margin:2px 0 8px">Os que estão na fazenda mas não passaram na balança da formação. Vale só para '+isoToBR(fim).slice(3)+'.</div>';
+  L.forEach(function(x,i){
+    h+='<div style="display:flex;gap:6px;align-items:center;margin-bottom:6px;flex-wrap:wrap"><input inputmode="numeric" value="'+esc(String(x.q||''))+'" onchange="_estSemSet('+i+',\'q\',this.value)" style="width:52px;'+inp+'"> cab'
+      +'<select onchange="_estSemSet('+i+',\'cat\',this.value)" style="flex:1;min-width:150px;'+inp+'">'+opt(x.cat)+'</select>'
+      +'<input inputmode="decimal" value="'+esc(String(x.peso||''))+'" onchange="_estSemSet('+i+',\'peso\',this.value)" style="width:70px;'+inp+'"> kg'
+      +'<input value="'+esc(x.obs||'')+'" placeholder="ex.: Lote 5" onchange="_estSemSet('+i+',\'obs\',this.value)" style="width:100px;'+inp+'">'
+      +'<button type="button" onclick="_estSemTirar('+i+')" style="border:0;background:none;color:#C62828;font-weight:800;cursor:pointer">tirar</button></div>';
+  });
+  var m5=(window._estSemMed||{})['5'];
+  h+='<div style="display:flex;gap:6px;flex-wrap:wrap"><button type="button" onclick="_estSemNovo()" style="padding:7px 10px;border:1.5px solid var(--v1);border-radius:8px;background:#fff;color:var(--v1);font-weight:800;cursor:pointer">+ adicionar</button>'
+    +(L.length?'<button type="button" onclick="calcEstoque()" style="padding:7px 10px;border:0;border-radius:8px;background:var(--v1);color:#fff;font-weight:800;cursor:pointer">Refazer a conta</button>':'')+'</div></div>';
+  return h;
+}
+function _estSemNovo(){ var E=window.EST_ULT; if(!E) return; var L=_estSemPesar(E.faz,E.fimMes).slice(), m5=(window._estSemMed||{})['5'];
+  L.push({q:'',cat:'m12',peso:m5&&m5.q?Math.round(m5.p/m5.q):'',obs:'Lote 5'}); _estSemSalvar(E.faz,E.fimMes,L); calcEstoque(); }
+function _estSemSet(i,k,v){ var E=window.EST_ULT; if(!E) return; var L=_estSemPesar(E.faz,E.fimMes).slice(); if(!L[i]) return; L[i]=Object.assign({},L[i]); L[i][k]=String(v||'').trim(); _estSemSalvar(E.faz,E.fimMes,L); }
+function _estSemTirar(i){ var E=window.EST_ULT; if(!E) return; var L=_estSemPesar(E.faz,E.fimMes).slice(); L.splice(i,1); _estSemSalvar(E.faz,E.fimMes,L); calcEstoque(); }
+/* ===== PDF do saldo do rebanho (idade × macho/fêmea), padrão GPL ===== */
+function _estBzM(faz,q){ var v=(state.estBzM||{})[faz]; v=parseInt(v,10); return (isNaN(v)?q:Math.max(0,Math.min(q,v))); }
+function _estBzMSet(v){ var E=window.EST_ULT; if(!E) return; state.estBzM=state.estBzM||{}; state.estBzM[E.faz]=String(v||"").trim(); save(); }
+function estSaldoPDF(){
+  var E=window.EST_ULT; if(!E){ alert("Calcule o estoque do mês primeiro."); return; }
+  var A=E.acc, bzQ=A.bzm.q, bzM=_estBzM(E.faz,bzQ), bzF=bzQ-bzM, bzP=bzQ?A.bzm.p/bzQ:0;
+  var cel=function(lst,extra){ var q=0,p=0; lst.forEach(function(k){ q+=A[k].q; p+=A[k].p; }); if(extra){ q+=extra.q; p+=extra.p; } return {q:q,p:p}; };
+  var G=[["0 a 12 meses",cel(["m12"],{q:bzM,p:bzM*bzP}),cel(["f12","bzf"],{q:bzF,p:bzF*bzP})],
+         ["13 a 24 meses",cel(["m24"]),cel(["f24"])],
+         ["25 a 36 meses",cel(["m36"]),cel(["f36"])],
+         ["Mais de 36 meses",cel(["m37","touro"]),cel(["matriz","descarte","f37"])]];
+  var tM=0,tF=0; G.forEach(function(g){ tM+=g[1].q; tF+=g[2].q; });
+  var med=function(c){ return c.q?fmtBR(c.p/c.q,0)+" kg":""; };
+  var logo=_rpLogo(), fim=isoToBR(E.fimMes), ASS='Rogério · Consultor GPL';
+  var css='*{box-sizing:border-box}body{margin:0;background:#7d857e;font-family:Arial,"Segoe UI",sans-serif;color:#1a1a1a}'
+    +'.pg{width:210mm;min-height:290mm;margin:10px auto;background:#fff;padding:14mm 13mm;position:relative}'
+    +'.hd{display:flex;align-items:center;gap:14px;border-bottom:3px solid #1B5E20;padding-bottom:10px}.hd img{height:48px}'
+    +'.t1{font-size:22px;font-weight:800;color:#1B5E20}.t2{font-size:13px;color:#555;margin-top:2px}'
+    +'.conta{display:flex;gap:8px;margin:14px 0 6px;font-size:12px;color:#444;flex-wrap:wrap}.conta span{background:#F1F8E9;border-radius:8px;padding:6px 10px}'
+    +'.g{width:100%;border-collapse:separate;border-spacing:6px;margin-top:8px}.g td{text-align:center;border-radius:8px;padding:10px 4px}'
+    +'.h{font-size:12px;color:#555;font-weight:700}.m{background:#E6F1FB;color:#0C447C}.f{background:#FBEAF0;color:#72243E}'
+    +'.n{font-size:24px;font-weight:800;line-height:1}.p{font-size:11px;margin-top:4px;opacity:.85}'
+    +'.tot{display:flex;gap:8px;margin-top:10px}.tot div{flex:1;border-radius:10px;padding:10px;text-align:center}.tot .n{font-size:26px}'
+    +'.cat{width:100%;border-collapse:collapse;margin-top:18px;font-size:12.5px}.cat th{text-align:left;font-size:11px;color:#555;border-bottom:2px solid #1B5E20;padding:6px}.cat td{padding:6px;border-bottom:1px solid #e5e5e5}.r{text-align:right}'
+    +'.nota{font-size:11px;color:#666;margin-top:12px;line-height:1.5}.rod{position:absolute;left:13mm;right:13mm;bottom:8mm;display:flex;justify-content:space-between;font-size:10.5px;color:#888}'
+    +'@media print{body{background:#fff}.pg{margin:0;box-shadow:none}@page{size:A4;margin:0}}';
+  var h='<div class="pg"><div class="hd">'+(logo?'<img src="'+logo+'">':'')+'<div><div class="t1">Saldo do rebanho</div><div class="t2">'+esc(E.faz)+' · '+fim+'</div></div></div>'
+    +'<div class="conta"><span>Formação de '+isoToBR(E.form)+': <b>'+E.nForm+'</b></span><span>+ pesados depois / compra: <b>'+E.nFora+'</b></span>'+(E.nSem?'<span>+ na fazenda sem pesar: <b>'+E.nSem+'</b></span>':'')+'<span>− vendidos: <b>'+E.nV+'</b></span>'+(E.nMorte!=null?'<span>− mortes e doações: <b>'+E.nMorte+'</b></span>':'')+'</div>'
+    +'<table class="g"><tr class="h"><td></td>'+G.map(function(g){ return '<td colspan="2">'+g[0]+'</td>'; }).join('')+'</tr>'
+    +'<tr class="h"><td></td>'+G.map(function(){ return '<td class="m">Machos</td><td class="f">Fêmeas</td>'; }).join('')+'</tr>'
+    +'<tr><td class="h" style="text-align:left">Cabeças</td>'+G.map(function(g){ return '<td class="m"><div class="n">'+g[1].q+'</div><div class="p">'+med(g[1])+'</div></td><td class="f"><div class="n">'+g[2].q+'</div><div class="p">'+med(g[2])+'</div></td>'; }).join('')+'</tr></table>'
+    +'<div class="tot"><div class="m"><div style="font-size:12px">Machos</div><div class="n">'+tM+'</div></div><div class="f"><div style="font-size:12px">Fêmeas</div><div class="n">'+tF+'</div></div>'
+    +'<div style="background:#1B5E20;color:#fff"><div style="font-size:12px">Total</div><div class="n">'+E.tq+'</div><div style="font-size:11px;opacity:.9">'+fmtBR(E.tp/E.tq,0)+' kg de média</div></div></div>'
+    +'<table class="cat"><tr><th>Categoria</th><th class="r">Cabeças</th><th class="r">Peso médio (kg)</th></tr>'
+    +EST_LINHAS.filter(function(x){ return A[x[0]].q; }).map(function(x){ var a=A[x[0]], nm=x[1].charAt(0)+x[1].slice(1).toLowerCase(); return '<tr><td>'+esc(nm)+(x[0]==="bzm"&&bzQ?' ('+bzM+' machos, '+bzF+' fêmeas)':'')+'</td><td class="r"><b>'+a.q+'</b></td><td class="r">'+fmtBR(a.p/a.q,2)+'</td></tr>'; }).join('')
+    +'<tr><td><b>Total</b></td><td class="r"><b>'+E.tq+'</b></td><td class="r"><b>'+fmtBR(E.tp/E.tq,2)+'</b></td></tr></table>'
+    +(E.nSem?'<div class="nota" style="background:#FFF8E1;border-radius:8px;padding:8px 10px">Sem pesar (informado): '+E.SP.filter(function(x){ return parseInt(x.q,10)>0; }).map(function(x){ var nm=(EST_LINHAS.find(function(y){ return y[0]===x.cat; })||['',x.cat])[1]; return esc(x.q+' '+nm.toLowerCase()+(x.obs?' ('+x.obs+')':'')+(x.peso?' · '+x.peso+' kg estimado':'')); }).join(' · ')+'.</div>':'')
+    +'<div class="nota">Idade pelo peso: até '+fmtBR(E.c12,0)+' kg = 0 a 12 meses · até '+fmtBR(E.c24,0)+' kg = 13 a 24 · acima = 25 a 36 · vacas e touro = mais de 36. Só entram animais com número.'+(E.semNum?' Há '+E.semNum+' morte(s)/doação(ões) sem número para tirar na mão.':'')+'</div>'
+    +'<div class="rod"><span>gestaopecuarialucrativa.com.br</span><span>'+ASS+'</span></div></div>';
+  var nome='Saldo do rebanho '+E.faz+' '+fim.replace(/\//g,'-');
+  var ov=document.getElementById("estOv");
+  if(!ov){ ov=document.createElement("div"); ov.id="estOv"; ov.style.cssText="position:fixed;inset:0;z-index:9998;background:#2b322c;display:flex;flex-direction:column";
+    ov.innerHTML='<div style="display:flex;gap:8px;align-items:center;padding:8px 10px;background:#123d1d;color:#fff"><b style="flex:1;font-size:14px">Saldo do rebanho</b>'
+      +'<button type="button" onclick="var f=document.getElementById(\'estFr\');f.contentWindow.focus();f.contentWindow.print()" style="background:#8BC34A;color:#123d1d;border:0;border-radius:8px;padding:9px 14px;font-weight:800;font-size:14px">Salvar PDF</button>'
+      +'<button type="button" onclick="document.getElementById(\'estOv\').style.display=\'none\';document.body.style.overflow=\'\';if(window._estTit){document.title=window._estTit;window._estTit=null;}" style="background:transparent;color:#fff;border:1.5px solid #fff;border-radius:8px;padding:8px 12px;font-weight:700">Fechar</button></div>'
+      +'<iframe id="estFr" style="flex:1;border:0;width:100%;background:#7d857e"></iframe>';
+    document.body.appendChild(ov); }
+  ov.style.display="flex"; document.body.style.overflow="hidden";
+  var f=document.getElementById("estFr"), d=f.contentDocument||f.contentWindow.document;
+  d.open(); d.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>'+esc(nome)+'</title><style>'+css+'</style></head><body>'+h+'</body></html>'); d.close();
+  if(!window._estTit) window._estTit=document.title; document.title=nome;
 }
 async function calcEstoque(){
   var st=document.getElementById("estStatus"), tb=document.getElementById("estTabela");

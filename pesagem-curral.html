@@ -3414,7 +3414,8 @@ async function _estPelaFormacao(faz,fimMes,c12,c24,rP,rV,st,tb){
   var vend={}; ((rV&&rV.vendidos)||[]).forEach(function(v){ var b=String(v.brinco||"").trim(); if(b) vend[brKey(b)]=String(v.data||"").slice(0,10); });
   var nV=0; Object.keys(M).forEach(function(k){ var dv=vend[k]; if(dv && dv<=fimMes && dv>=M[k].data){ delete M[k]; nV++; } });
   // mortes/doações do app da fazenda
-  var nMorte=0, semNum=0, appOk=false, u=ocUrl();
+  state.appFaz=state.appFaz||{};
+  var nMorte=0, semNum=0, appOk=false, u=state.appFaz[faz]!=null?state.appFaz[faz]:(APP_FAZ_PADRAO[faz]||ocUrl());   // link do app pela fazenda do estoque
   if(u){ st.textContent="Lendo mortes e doações no app da fazenda…";
     try{ var d=await jsonp(u+(u.indexOf("?")<0?"?":"&")+"acao=carregar",60000), S=null;
       if(d&&d.CONFIG&&d.CONFIG.length&&d.CONFIG[0]&&d.CONFIG[0][1]){ try{ S=JSON.parse(d.CONFIG[0][1]); }catch(e){} } else if(d&&d.LOTES) S=d;

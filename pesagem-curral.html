@@ -3799,7 +3799,7 @@ function lfSnap(F){
   return {datas:ds, lotes:Object.keys(lotes).map(function(k){ return lotes[k]; }).sort(function(x,y){ return (parseInt(x.lote,10)||99)-(parseInt(y.lote,10)||99); }), tot:tot, vendidos:0, repet:[], snap:true, formId:F.id, hist:hist};
 }
 async function lfFormAbrir(id){
-  LF.formView={id:id, carregando:true}; lfRender();
+  LF.formView={id:id, carregando:true}; LF.busca={}; lfRender();
   try{ var F=await lfFormDados(id); LF.formView={id:id, c:lfSnap(F)}; }
   catch(e){ LF.formView={id:id, erro:"Não deu pra abrir: "+(e&&e.message?e.message:"sem internet?")}; }
   lfRender(); try{ document.getElementById("lfBox").scrollIntoView({behavior:"smooth"}); }catch(e){}
@@ -3815,8 +3815,32 @@ function lfFormViewHTML(){
   h+='<div class="lf-kp"><div class="lf-k"><b>'+c.tot.qtd+'</b><span>cabeças</span></div><div class="lf-k"><b>'+fmtBR(med,0)+' kg</b><span>média · '+fmtBR(med/AR_DIV,1)+'@</span></div><div class="lf-k"><b>'+(c.tot.gmdN?fmtBR(c.tot.gmdSum/c.tot.gmdN,3):'—')+'</b><span>GMD geral</span></div></div>';
   h+='<div class="lf-sec"><div class="lf-h">Como ficou cada lote <span>pesagens de '+c.datas.map(lfDataCurta).join(' + ')+'</span></div>';
   c.lotes.forEach(function(L){ var m=L.peso/L.qtd; h+='<div class="lf-lt" style="cursor:default"><div class="n">'+esc(loteLabel(L.lote))+'</div><div class="m">média '+fmtBR(m,0)+' kg ('+fmtBR(m/AR_DIV,1)+'@)</div><div class="q">'+L.qtd+'<small>CAB.</small></div></div>'; });
-  h+='<div class="lf-hint" style="margin-top:6px">Como estava no dia em que foi salva. Pra ver animal por animal, gere o PDF.</div></div>';
-  return h;
+  h+='<div class="lf-hint" style="margin-top:6px">Como estava no dia em que foi salva. Pra ver animal por animal, gere o PDF ou use a busca abaixo.</div></div>';
+  return h+lfBuscaHTML(c);
+}
+
+/* ---- Buscar animais (por peso, lote ou número) — na formação salva e nos lotes de agora ---- */
+function lfBuscaSet(k,v){ LF.busca=LF.busca||{}; LF.busca[k]=v; lfRender(); }
+function lfBuscaHTML(c){
+  var B=LF.busca||{}, de=parseNum(B.de), ate=parseNum(B.ate), L=B.lote||"", num=String(B.num||"").trim();
+  var at=function(v){ return esc(String(v==null?"":v)); };
+  var h='<div class="lf-sec"><div class="lf-h">Buscar animais <span>por peso, lote ou número</span></div>'+
+    '<div class="lf-two"><div class="lf-f"><label>Peso de (kg)</label><input inputmode="numeric" placeholder="ex.: 400" value="'+at(B.de)+'" onchange="lfBuscaSet(\'de\',this.value)"></div>'+
+    '<div class="lf-f"><label>até (kg)</label><input inputmode="numeric" placeholder="sem limite" value="'+at(B.ate)+'" onchange="lfBuscaSet(\'ate\',this.value)"></div></div>'+
+    '<div class="lf-two"><div class="lf-f"><label>Lote</label><select onchange="lfBuscaSet(\'lote\',this.value)"><option value="">Todos</option>'+
+      c.lotes.map(function(x){ return '<option value="'+esc(x.lote)+'"'+(String(L)===String(x.lote)?' selected':'')+'>'+esc(loteLabel(x.lote))+'</option>'; }).join('')+'</select></div>'+
+    '<div class="lf-f"><label>Número</label><input placeholder="ex.: 348" value="'+at(B.num)+'" onchange="lfBuscaSet(\'num\',this.value)"></div></div>';
+  if(de==null && ate==null && !L && !num) return h+'<div class="lf-hint" style="margin-top:8px">Preencha um campo e toque fora dele pra buscar.</div></div>';
+  var res=[]; c.lotes.forEach(function(x){ x.animais.forEach(function(a){
+    if(de!=null && !(a.peso>=de)) return; if(ate!=null && !(a.peso<=ate)) return; if(L && String(a.lote)!==String(L)) return;
+    if(num && brKey(a.brinco).indexOf(brKey(num))<0) return; res.push(a); }); });
+  res.sort(function(x,y){ return y.peso-x.peso; });
+  var med=res.length?res.reduce(function(s,a){ return s+a.peso; },0)/res.length:0;
+  h+='<div class="lf-res"><div><b>'+res.length+'</b><span>animais</span></div><div><b>'+(res.length?fmtBR(med,0)+' kg':'—')+'</b><span>peso médio</span></div><div><b>'+(res.length?fmtBR(res.reduce(function(s,a){ return s+a.peso; },0)/AR_DIV,0):'—')+'</b><span>arrobas</span></div></div>';
+  if(res.length) h+='<div class="lf-an" style="margin-top:8px"><table><tr><th>Nº</th><th>Lote</th><th class="r">Peso</th><th class="r">@</th><th class="r">Pesado em</th></tr>'+
+    res.map(function(a){ return '<tr><td><b>'+esc(a.brinco)+'</b></td><td>'+esc(loteLabel(a.lote))+'</td><td class="r">'+fmtBR(a.peso,0)+'</td><td class="r">'+fmtBR(a.peso/AR_DIV,1)+'</td><td class="r">'+(a.data?lfDataCurta(a.data):'')+'</td></tr>'; }).join('')+'</table></div>';
+  h+='<button type="button" class="lf-btn" style="margin-top:8px;background:#fff;border-color:#cfd8d3;color:#7a8a7e" onclick="LF.busca={};lfRender()">Limpar busca</button>';
+  return h+'</div>';
 }
 /* comparação com a última formação salva ANTES das datas marcadas */
 function lfCmpForm(c){
@@ -4014,7 +4038,7 @@ function lfRender(){
     }
   });
   l+='</div>';
-  box.innerHTML=h+lfFormSalvarHTML(c)+lfCmpHTML(c)+g+l+lfRepHTML(c)+lfCpHTML(c)+lfMovHTML(c)+lfFormListaHTML();
+  box.innerHTML=h+lfFormSalvarHTML(c)+lfCmpHTML(c)+g+l+lfBuscaHTML(c)+lfRepHTML(c)+lfCpHTML(c)+lfMovHTML(c)+lfFormListaHTML();
 }
 
 function go(s){

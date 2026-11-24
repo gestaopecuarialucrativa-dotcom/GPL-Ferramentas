@@ -3641,6 +3641,17 @@ function ocUrl(){ state.appFaz=state.appFaz||{}; var k=lfFaz()||"_"; return stat
 function ocUrlSet(v){ state.appFaz=state.appFaz||{}; state.appFaz[lfFaz()||"_"]=String(v||"").trim(); save(); LF.oc=null; lfRender(); }
 function ocObsSet(v){ state.ocObs=state.ocObs||{}; state.ocObs[lfFaz()||"_"]=String(v||""); save(); }
 function ocObs(){ return ((state.ocObs||{})[lfFaz()||"_"])||""; }
+// Área (ha) de cada pasto/piquete — mesma tabela do mapa do app da fazenda (MAPA_AREAS). Se o app mandar AREAS com ha, vale a do app.
+var OC_HA={PA01:6.65,PA02:24.15,PA03:13.56,PA04:6.23,PA05:6.46,PA06:7.96,PA07:10.93,PA08:6.69,PA09:8.33,PA10:7.17,
+  M01P01:4.69,M01P02:7.38,M01P03:4.24,M01P04:5.13,M01P05:5.79,M01P06:4.53, M02P01:6.04,M02P02:5.15,M02P03:5.85,M02P04:7.24,
+  M03P01:6.77,M03P02:8.88,M03P03:7.03,M03P04:6.60,M03P05:10.99, M04P01:8.99,M04P02:7.38,M04P03:11.90,M04P04:10.61};
+function ocHaMapa(S){ var m={}; Object.keys(OC_HA).forEach(function(k){ m[k]=OC_HA[k]; });
+  var A=S&&S.AREAS; if(A){ (Array.isArray(A)?A:Object.keys(A).map(function(k){ var v=A[k]; return (v&&typeof v==="object")?Object.assign({id:k},v):null; })).forEach(function(a){ var h=a&&parseFloat(a.ha); if(a&&a.id&&h>0) m[ocId(a.id)]=h; }); }
+  return m; }
+function ocId(id){ var p=String(id||"").toUpperCase().replace(/[\s\/]/g,""), m=p.match(/^M0*(\d+)P0*(\d+)/); if(m) return "M"+("0"+m[1]).slice(-2)+"P"+("0"+m[2]).slice(-2);
+  m=p.match(/^PA0*(\d+)/); if(m) return "PA"+("0"+m[1]).slice(-2); return p; }
+// ha da área de pastejo: módulo = soma dos piquetes (o lote roda no módulo todo); pasto = o próprio pasto
+function ocHaArea(HA,id){ var k=ocId(id), m=k.match(/^M(\d+)P/); if(m){ var t=0; Object.keys(HA).forEach(function(z){ if(z.indexOf("M"+m[1]+"P")===0) t+=HA[z]; }); return t||null; } return HA[k]||null; }
 function ocNum(nome){ var m=String(nome||"").replace(/\(\s*\d+\s*animais?\s*\)/i,"").match(/\d+/); return m?String(parseInt(m[0],10)):""; }
 function ocExato(nome){ return /^\s*lote\s*0*\d+\s*$/i.test(String(nome||"").replace(/\(\s*\d+\s*animais?\s*\)/i,"")); }
 function ocArea(id){ var p=String(id||"").toUpperCase().replace(/[\s\/]/g,""), m=p.match(/^M0*(\d+)/); if(m) return {g:"Módulo "+parseInt(m[1],10),d:""};
@@ -3659,7 +3670,7 @@ async function ocCarregar(){
 }
 function ocCalc(c){
   var R=lfAntGmd(c); if(!R||R.erro||!LF.oc||!LF.oc.S) return null;
-  var S=LF.oc.S, rT=(S.rT||[]).filter(function(r){ return r&&!r._apagado; }), EST=S.EST||{};
+  var S=LF.oc.S, rT=(S.rT||[]).filter(function(r){ return r&&!r._apagado; }), EST=S.EST||{}, HA=ocHaMapa(S);
   var A=LF.ant[c.datas[0]]||{};
   return R.map(function(x){
     var dIs=[], dFs=[];
@@ -3669,9 +3680,13 @@ function ocCalc(c){
     var mv=rT.filter(function(r){ return r.tipo==="mudanca_pasto" && ocNum(r.lote)===n; });
     var ex=mv.filter(function(r){ return ocExato(r.lote); }); if(ex.length) mv=ex;
     mv=mv.map(function(r,i){ return {dt:String(r.dt||"").slice(0,10),de:r.destino||"",i:i}; }).filter(function(r){ return r.dt; }).sort(function(a,b){ return a.dt<b.dt?-1:a.dt>b.dt?1:a.i-b.i; });
-    var lug={}, det={};
+    var lug={}, det={}, segs=[];
     mv.forEach(function(r,i){ var a=r.dt, b=i+1<mv.length?mv[i+1].dt:fim; var a2=a>ini?a:ini, b2=b<fim?b:fim; var dd=daysBetween(a2,b2);
-      if(dd>0){ var ar=ocArea(r.de); lug[ar.g]=(lug[ar.g]||0)+dd; if(ar.d){ det[ar.d]=(det[ar.d]||0)+dd; } } });
+      if(dd>0){ var ar=ocArea(r.de); lug[ar.g]=(lug[ar.g]||0)+dd; if(ar.d){ det[ar.d]=(det[ar.d]||0)+dd; } segs.push({g:ar.g,d:dd,id:ocId(r.de),ha:ocHaArea(HA,r.de)}); } });
+    // pastos: o lote roda entre eles como num módulo → área = soma dos pastos que ele usou no período
+    var paUs={}; segs.forEach(function(z){ if(z.g==="Pastos" && HA[z.id]) paUs[z.id]=HA[z.id]; });
+    var paHa=Object.keys(paUs).reduce(function(t,k){ return t+paUs[k]; },0);
+    segs.forEach(function(z){ if(z.g==="Pastos" && paHa>0) z.ha=paHa; });
     var lugL=Object.keys(lug).map(function(k){ return {g:k,d:lug[k]}; }).sort(function(p,q){ return q.d-p.d; });
     // suplemento: tratos do lote no período
     var tr=rT.filter(function(r){ var dt=String(r.dt||"").slice(0,10); return r.tipo==="trato" && ocNum(r.co||r.lote)===n && dt>=ini && dt<fim; });
@@ -3680,18 +3695,22 @@ function ocCalc(c){
       kg-=parseFloat(r.desp_kg)||0; prod[p]=(prod[p]||0)+kg; var m=String(r.co||r.lote||"").match(/\((\d+)\s*animais?\)/i); if(m){ var k=parseInt(m[1],10); cabs.push(k); (cabP[p]=cabP[p]||[]).push(k); } });
     // cabeças = média do que foi lançado no trato (de cada produto); sem isso, os pesados nas 2
     var cab=cabs.length?med(cabs):x.n, pm=(x.pAnt+x.pAgo)/(2*x.n);
+    // lotação: UA = cabeças × peso médio ÷ 450; cabeças = as lançadas no trato do produto principal (o que mais saiu)
+    var pPri=Object.keys(prod).sort(function(p,q){ return prod[q]-prod[p]; })[0], cabUA=(pPri&&cabP[pPri]&&cabP[pPri].length)?med(cabP[pPri]):cab, ua=cabUA*pm/450;
+    var uaD=0, uaN=0; segs.forEach(function(z){ if(z.ha>0){ z.tx=ua/z.ha; uaD+=z.tx*z.d; uaN+=z.d; } });
+    lugL.forEach(function(l){ var sd=0, sn=0; segs.forEach(function(z){ if(z.g===l.g && z.tx!=null){ sd+=z.tx*z.d; sn+=z.d; } }); l.tx=sn?sd/sn:null; });
     var sup=Object.keys(prod).map(function(p){ var cp=cabP[p]&&cabP[p].length?med(cabP[p]):cab, g=prod[p]/cp/dias*1000, pct=parseFloat((EST[p]||{}).pct)||0, ref=pct>0?pct/100*pm*1000:null;
       return {p:p,g:g,ref:ref,at:ref?g/ref:null,kg:prod[p]}; }).filter(function(s){ return s.g>=1; }).sort(function(p,q){ return q.kg-p.kg; });
     // feno: saídas de feno do lote no período
     var fn=(S.mFeno||[]).filter(function(m){ var dt=String(m.dt||"").slice(0,10); return m&&m.mov==="saida" && ocNum(m.lote)===n && dt>=ini && dt<fim; });
     var fq=0, fkg=0, fd=[]; fn.forEach(function(m){ fq+=parseFloat(m.q)||0; fkg+=parseFloat(m.kg)||0; fd.push(String(m.dt).slice(0,10)); }); fd.sort();
-    return {lote:x.lote,n:x.n,gmd:x.gS/x.n,pAnt:x.pAnt/x.n,pAgo:x.pAgo/x.n,ini:ini,fim:fim,dias:dias,lug:lugL,det:det,semMov:!mv.length,sup:sup,cab:cab,
+    return {ua:ua,cabUA:cabUA,txMed:uaN?uaD/uaN:null,lote:x.lote,n:x.n,gmd:x.gS/x.n,pAnt:x.pAnt/x.n,pAgo:x.pAgo/x.n,ini:ini,fim:fim,dias:dias,lug:lugL,det:det,semMov:!mv.length,sup:sup,cab:cab,
       feno:fq>0?{q:fq,kg:fkg,de:fd[0],ate:fd[fd.length-1],kgDia:fkg/cab/dias}:null};
   });
 }
 function ocOndeTxt(o){
   if(o.semMov) return 'sem mudança de pasto lançada';
-  return o.lug.map(function(l){ var t=esc(l.g)+' · '+l.d+' dias';
+  return o.lug.map(function(l){ var t=esc(l.g)+' · '+l.d+' dias'+(l.tx!=null?' · '+fmtBR(l.tx,1)+' UA/ha':'');
     if(l.g==="Pastos"){ var ds=Object.keys(o.det).map(function(k){ return {k:k,d:o.det[k]}; }).sort(function(p,q){ return q.d-p.d; }); if(ds.length) t+=' ('+ds.map(function(z){ return z.k+' '+z.d; }).join(', ')+')'; }
     return t; }).join(' · ');
 }
@@ -3709,8 +3728,8 @@ function ocHTML(c){
   else if(O.erro) h+='<div class="lf-hint" style="color:#B71C1C">'+esc(O.erro)+'</div><button type="button" class="lf-btn" style="margin-top:8px" onclick="ocCarregar()">Tentar de novo</button>';
   else {
     var L=ocCalc(c);
-    h+='<div class="lf-an"><table><tr><th>Lote</th><th class="r">GMD</th><th>Onde mais ficou</th></tr>'+L.map(function(o){
-      return '<tr><td><b>'+esc(loteLabel(o.lote))+'</b></td><td class="r">'+fmtBR(o.gmd,3)+'</td><td>'+(o.lug.length?esc(o.lug[0].g)+' · '+o.lug[0].d+' d':'—')+'</td></tr>'; }).join('')+'</table></div>'+
+    h+='<div class="lf-an"><table><tr><th>Lote</th><th class="r">GMD</th><th>Onde mais ficou</th><th class="r">UA/ha</th></tr>'+L.map(function(o){
+      return '<tr><td><b>'+esc(loteLabel(o.lote))+'</b></td><td class="r">'+fmtBR(o.gmd,3)+'</td><td>'+(o.lug.length?esc(o.lug[0].g)+' · '+o.lug[0].d+' d':'—')+'</td><td class="r">'+(o.txMed!=null?fmtBR(o.txMed,1):'—')+'</td></tr>'; }).join('')+'</table></div>'+
       '<div class="lf-f" style="margin-top:10px"><label>Água e outras observações (vai no PDF)</label><textarea rows="3" style="width:100%;box-sizing:border-box;font:14px Inter,system-ui,Arial,sans-serif;padding:8px;border:1px solid #cfd8d3;border-radius:8px" placeholder="ex.: Lote 6: represa até 10/10, bebedouro depois" onchange="ocObsSet(this.value)">'+esc(ocObs())+'</textarea></div>'+
       '<button type="button" class="lf-btn" style="margin-top:8px" onclick="ocPDF()">Gerar PDF: onde cada lote ficou</button>'+
       '<button type="button" class="lf-btn" style="margin-top:6px;background:#fff;border-color:#cfd8d3;color:#7a8a7e" onclick="ocCarregar()">Buscar de novo</button>';
@@ -3727,14 +3746,15 @@ function ocPDFHTML(c){
   var pg='<div class="pg"><div class="hd"><img src="'+logo+'"><span>Onde cada lote ficou · '+esc(fz)+' · '+esc(per)+'</span></div>';
   var rod='<div class="rod"><span>gestaopecuarialucrativa.com.br</span><span>'+ASS+' · __PG__</span></div></div>';
   var obs=ocObs().trim();
-  P.push(pg+'<div class="ey">Por lote</div><div class="tt">GMD e o que cada lote teve</div><table><tr><th>Lote</th><th class="n">GMD</th><th>Onde ficou</th><th>Feno</th><th>Suplemento no cocho</th></tr>'+
-    L.map(function(o){ return '<tr><td><b>'+esc(loteLabel(o.lote))+'</b><div class="mu" style="font-size:8pt">'+isoToBR(o.ini).slice(0,5)+' a '+isoToBR(o.fim).slice(0,5)+'<br>'+o.n+' pesados nas 2</div></td><td class="n"><b>'+fmtBR(o.gmd,3)+'</b><div class="mu" style="font-size:8pt">'+fmtBR(o.pAnt,0)+' → '+fmtBR(o.pAgo,0)+' kg</div></td><td>'+ocOndeTxt(o)+'</td><td>'+ocFenoTxt(o)+'</td><td>'+ocSupTxt(o)+'</td></tr>'; }).join('')+'</table>'+
+  P.push(pg+'<div class="ey">Por lote</div><div class="tt">GMD e o que cada lote teve</div><table><tr><th>Lote</th><th class="n">GMD</th><th>Onde ficou</th><th class="n">Lotação</th><th>Feno</th><th>Suplemento no cocho</th></tr>'+
+    L.map(function(o){ return '<tr><td><b>'+esc(loteLabel(o.lote))+'</b><div class="mu" style="font-size:8pt">'+isoToBR(o.ini).slice(0,5)+' a '+isoToBR(o.fim).slice(0,5)+'<br>'+o.n+' pesados nas 2</div></td><td class="n"><b>'+fmtBR(o.gmd,3)+'</b><div class="mu" style="font-size:8pt">'+fmtBR(o.pAnt,0)+' → '+fmtBR(o.pAgo,0)+' kg</div></td><td>'+ocOndeTxt(o)+'</td><td class="n"><b>'+(o.txMed!=null?fmtBR(o.txMed,1)+' UA/ha':'—')+'</b><div class="mu" style="font-size:8pt">'+fmtBR(o.cabUA,0)+' cab · '+fmtBR(o.ua,0)+' UA</div></td><td>'+ocFenoTxt(o)+'</td><td>'+ocSupTxt(o)+'</td></tr>'; }).join('')+'</table>'+
     (obs?'<div class="g">Água e observações</div><table>'+obs.split(/\n+/).filter(function(t){return t.trim();}).map(function(t){ return '<tr><td>'+esc(t)+'</td></tr>'; }).join('')+'</table>':'')+
+    '<div class="sm">Lotação: UA = cabeças lançadas no trato × peso médio do lote ÷ 450, sobre a área do módulo inteiro (o lote roda nos piquetes) ou da soma dos pastos que o lote usou no período (roda entre eles), média pelos dias em cada lugar. Áreas do mapa do app da fazenda.</div>'+
     '<div class="sm">Suplemento: quilos lançados no trato (menos desperdício), divididos pelas cabeças lançadas no trato e pelos dias do período. Fabricante: % do peso vivo cadastrado no estoque do app, sobre o peso médio do lote. É o que foi colocado no cocho, não o que cada animal comeu.</div>'+rod);
-  var M={}; L.forEach(function(o){ o.lug.forEach(function(l){ (M[l.g]=M[l.g]||[]).push({lote:o.lote,d:l.d}); }); });
+  var M={}; L.forEach(function(o){ o.lug.forEach(function(l){ (M[l.g]=M[l.g]||[]).push({lote:o.lote,d:l.d,tx:l.tx}); }); });
   var ks=Object.keys(M).sort(function(a,b){ var na=a==="Pastos"?999:(parseInt(a.replace(/\D/g,""),10)||998), nb=b==="Pastos"?999:(parseInt(b.replace(/\D/g,""),10)||998); return na-nb; });
   P.push(pg+'<div class="ey">Por módulo</div><div class="tt">Quem ficou em cada módulo</div><table><tr><th>Área</th><th>Lote e dias</th></tr>'+
-    ks.map(function(k){ return '<tr><td><b>'+esc(k)+'</b></td><td>'+M[k].sort(function(p,q){ return q.d-p.d; }).map(function(z){ return esc(loteLabel(z.lote))+' · '+z.d+' dias'; }).join(' · ')+'</td></tr>'; }).join('')+'</table>'+
+    ks.map(function(k){ return '<tr><td><b>'+esc(k)+'</b></td><td>'+M[k].sort(function(p,q){ return q.d-p.d; }).map(function(z){ return esc(loteLabel(z.lote))+' · '+z.d+' dias'+(z.tx!=null?' ('+fmtBR(z.tx,1)+' UA/ha)':''); }).join(' · ')+'</td></tr>'; }).join('')+'</table>'+
     '<div class="sm">Dias em cada lugar: mudanças de pasto lançadas no app da fazenda, dentro do período de cada lote. Na mesma época podem ter mudado água, pasto e feno; com uma pesagem só no período não dá para separar quanto pesou cada um.</div>'+rod);
   var n=P.length; P=P.map(function(p,i){ return p.replace('__PG__',(i+1)+'/'+n); });
   return '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>'+esc(ocPDFNome(c))+'</title><style>'+_rpCss()+'</style></head><body>'+P.join('')+'</body></html>';

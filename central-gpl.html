@@ -178,7 +178,7 @@ async function centralPost(action,data){
 /* =====================================================================
    DADOS: agenda (Central) + cada fazenda (pesagem e app)
    ===================================================================== */
-var D={ agenda:[], rotina:[], plano:[], envios:[], boletins:{}, faz:{}, erros:[], quando:"", vaq:[], vaqueiros:[], vaqLido:false };
+var D={ agenda:[], rotina:[], plano:[], envios:[], boletins:{}, faz:{}, erros:[], quando:"", vaq:[], vaqueiros:[], vaqLido:false, app:{}, pes:{} };
 async function carregarTudo(forcar){
   var c=cfg(); D.erros=[];
   $("topSub").textContent="atualizando…";
@@ -190,6 +190,8 @@ async function carregarTudo(forcar){
   tarefas.push(central("tabela_ler","&tabela=Plano").then(function(r){ if(!r||!r.ok) throw new Error(r&&r.msg||"plano"); D.plano=r.itens||[]; }).catch(function(e){ D.erros.push("Plano de ação: "+e.message); }));
   // boletim semanal: o app da fazenda grava cada boletim gerado (aba 📰 Boletins); a Central só lê (acao boletins_ler, Code.gs do app v4.45+)
   c.fazendas.forEach(function(f){ if(!f.app) return; tarefas.push(jsonp(f.app+"?acao=boletins_ler",20000).then(function(r){ D.boletins[f.nome]=(r&&r.ok&&r.itens)?r.itens:null; }).catch(function(){ D.boletins[f.nome]=null; })); });
+  // última pesagem de cada fazenda (tela Hoje)
+  c.fazendas.forEach(function(f){ if(!f.pesagem) return; tarefas.push(jsonp(f.pesagem+"?acao=pesagem_datas&token=&fazenda="+encodeURIComponent(f.nome),20000).then(function(r){ var ds=(r&&r.datas)||[]; D.pes[f.nome]=ds.length?ds[0].data:""; }).catch(function(){ D.pes[f.nome]=null; })); });
   tarefas.push(central("tabela_ler","&tabela=Envios").then(function(r){ D.envios=(r&&r.ok&&r.itens)||[]; }).catch(function(){}));
   // vaqueiro (backend v1.6): mensagens do campo e cadastro dos vaqueiros; sem v1.6 só fica vazio
   tarefas.push(central("tabela_ler","&tabela=Vaqueiro").then(function(r){ D.vaq=(r&&r.ok&&r.itens)||[]; }).catch(function(){}));
@@ -287,22 +289,23 @@ function alertas(){
 /* =====================================================================
    TELAS
    ===================================================================== */
-var ABA="rotina";
+var ABA="hoje";
 /* aba Anotar = a página "Anotar no campo" (funciona sem internet); Sistemas fica no menu do notebook */
 function irAba(a){ if(a==="anotar"){ location.href="campo-gpl.html"; return; } ABA=a; render(); window.scrollTo(0,0); }
 function render(){
   var app=$("app");
   if(!L.url||!L.senha){ app.innerHTML=telaEntrar(); $("btAtualizar").style.display="none"; $("topAbas").innerHTML=""; return; }
   $("btAtualizar").style.display="";
-  var h='<div class="abas">'+[["rotina","Rotina"],["plano","Plano"],["agenda","Agenda"],["anotar","Anotar"],["vaqueiro",rotuloVaq()],["ajustes","Ajustes"]].map(function(a){
-    return '<div class="aba'+(ABA===a[0]?' on':'')+'" onclick="irAba(\''+a[0]+'\')">'+a[1]+'</div>'; }).join("")+'</div>';
-  var abasT=[["rotina","Rotina"],["plano","Plano"],["agenda","Agenda"],["anotar","Anotar"],["vaqueiro",rotuloVaq()],["sistemas","Sistemas"],["ajustes","Ajustes"]];
-  $("topAbas").innerHTML=abasT.map(function(a){ return '<span class="'+(ABA===a[0]||(a[0]==="rotina"&&(ABA==="reuniao"||ABA==="campo"))?'on':'')+'" onclick="irAba(\''+a[0]+'\')">'+a[1]+'</span>'; }).join("");
-  app.className="wrap"+(ABA==="rotina"||ABA==="reuniao"||ABA==="plano"?" larga":"");
+  var abasT=[["hoje","Hoje"],["rotina","Rotina"],["plano","Plano"],["sistemas","Sistemas"],["ajustes","Ajustes"]];
+  var marcada=function(k){ return ABA===k||(k==="rotina"&&(ABA==="reuniao"||ABA==="campo"))||(k==="hoje"&&(ABA==="agenda"||ABA==="vaqueiro")); };
+  var h='<div class="abas">'+abasT.map(function(a){ return '<div class="aba'+(marcada(a[0])?' on':'')+'" onclick="irAba(\''+a[0]+'\')">'+a[1]+'</div>'; }).join("")+'</div>';
+  $("topAbas").innerHTML=abasT.map(function(a){ return '<span class="'+(marcada(a[0])?'on':'')+'" onclick="irAba(\''+a[0]+'\')">'+a[1]+'</span>'; }).join("");
+  app.className="wrap"+(ABA==="rotina"||ABA==="reuniao"||ABA==="plano"||ABA==="hoje"?" larga":"");
+  if(ABA==="agenda"||ABA==="vaqueiro") h+='<div style="margin:0 2px 10px"><button class="b g" onclick="irAba(\'hoje\')">‹ Voltar pro Hoje</button></div>';
   if(D.erros.length) h+='<div class="erro">'+D.erros.map(esc).join("<br>")+'</div>';
   if(ABA==="campo"){ app.innerHTML=telaCampo(); return; }
   if(ABA==="reuniao"){ app.innerHTML=telaReuniao(); return; }
-  if(ABA==="rotina") h+=telaRotina(); else if(ABA==="plano") h+=telaPlano(); else if(ABA==="agenda") h+=telaAgenda();
+  if(ABA==="hoje") h+=telaHojeGPL(); else if(ABA==="rotina") h+=telaRotina(); else if(ABA==="plano") h+=telaPlano(); else if(ABA==="agenda") h+=telaAgenda();
   else if(ABA==="sistemas") h+=telaSistemas(); else if(ABA==="vaqueiro") h+=telaVaqueiro(); else h+=telaAjustes()+telaVaqAjustes();
   app.innerHTML=h;
 }
@@ -322,6 +325,96 @@ function telaHoje(){
   atras.forEach(function(a){ x+=linhaAgenda(a,true); });
   hj.forEach(function(a){ x+=linhaAgenda(a,false); });
   x+='</div><button class="b" style="width:100%;padding:11px" onclick="ABA=\'agenda\';render();setTimeout(function(){var e=$(\'aTit\');if(e)e.focus();},50)">+ Adicionar compromisso</button>';
+  return x;
+}
+/* =====================================================================
+   TELA HOJE (25/11/2026): "Rogério, hoje faça isso" + fazenda + entregas do mês + semana
+   Lê o que já vem do app da fazenda (lotes, tratos, orientações), da pesagem, da rotina, do plano e da agenda.
+   ===================================================================== */
+var APP_WEB="https://gestaopecuarialucrativa-dotcom.github.io/fazenda-gpl/";
+function hjLote(n){ return String(n||"").replace(/\s*\(\d+\s*animais\)\s*$/i,"").trim(); }
+function hjFazApp(f){ return f.appWeb||APP_WEB; }
+/* o que o app da fazenda mostra: rebanho, trato de hoje, lote sem trato, orientação vencendo, insumo */
+function hjFazenda(f){
+  var S=D.app[f.nome]; if(!S) return null;
+  var h=hoje(), lotes=(S.LOTES||[]).filter(function(l){ return (parseFloat(l.qtd)||0)>0 && (!l.faz||l.faz===f.nome); });
+  var cab=0, kg=0; lotes.forEach(function(l){ var q=parseFloat(l.qtd)||0; cab+=q; kg+=q*(parseFloat(l.peso)||0); });
+  var ult={}, hojeT={};
+  (S.rT||[]).forEach(function(r){ if(!r||r._apagado||r.tipo!=="trato") return; var lo=hjLote(r.lote||r.co), d=String(r.dt||"").slice(0,10); if(!lo||!d) return;
+    if(!ult[lo]||d>ult[lo]) ult[lo]=d; if(d===h) hojeT[lo]=1; });
+  var semTrato=[], vencendo=[];
+  lotes.forEach(function(l){ var ini=String(l.dt_abertura||"").slice(0,10), u=ult[l.nome]||"", base=u&&u>=ini?u:(ini||u); if(!base) return;
+    var dd=difDias(base,h); if(dd>=7) semTrato.push({lote:l.nome, dias:dd, desde:u&&u>=ini?"último trato "+brd(u):"desde a formação"}); });
+  Object.keys(S.ORIENT||{}).forEach(function(k){ var o=S.ORIENT[k]; if(!o||!o.dt) return; var vence=somaDias(String(o.dt).slice(0,10),30), n=difDias(h,vence);
+    if(n>=0&&n<=5) vencendo.push({lote:k.split("||")[0], vence:vence, n:n}); });
+  var ins=estoqueDoApp(S).filter(function(e){ return e.dias!=null && e.dias>=0 && e.saldo>=0 && e.dias<=cfg().insumoDias; });   // saldo negativo = estoque do app sem conferir: não vira aviso
+  return { cab:cab, peso:cab?kg/cab:0, nLotes:lotes.length, hojeFeito:Object.keys(hojeT).length, semTrato:semTrato, vencendo:vencendo, insumo:ins };
+}
+function hjTarefas(){
+  var c=cfg(), h=hoje(), out=[], mesH=h.slice(0,7);
+  c.fazendas.forEach(function(f,fi){
+    var Z=hjFazenda(f), multi=c.fazendas.length>1, pre=multi?f.nome+" · ":"";
+    if(Z){
+      Z.semTrato.forEach(function(x){ out.push({o:1, cls:"err", ico:"pacote", t1:x.lote+": "+x.dias+" dias sem trato", t2:pre+x.desde+". Confira com o vaqueiro e mande a orientação.", b:[["Abrir app","abrir('"+hjFazApp(f)+"')"]]}); });
+      Z.insumo.forEach(function(e){ out.push({o:e.dias<=7?1:3, cls:e.dias<=7?"err":"warn", ico:"pacote", t1:e.produto+" acaba em "+e.dias+" dia(s)", t2:pre+"saldo "+fmt(e.saldo,1)+" · programar a compra", b:[["Abrir app","abrir('"+hjFazApp(f)+"')"]]}); });
+      Z.vencendo.forEach(function(x){ out.push({o:4, cls:"warn", ico:"agenda", t1:"Orientação do "+x.lote+" vence "+(x.n===0?"hoje":"em "+x.n+" dia(s)"), t2:pre+"vale até "+brd(x.vence)+". Depois volta ao % do fabricante.", b:[["Abrir app","abrir('"+hjFazApp(f)+"')"]]}); });
+    }
+    // rotina do mês: só o que vence em até 3 dias ou já passou
+    etapasDe(f,mesH).forEach(function(E,ei){ if(!E.dia) return; var r=rotItem(f.nome,mesH,E.nome); if(r&&r.feito) return;
+      var n=diasAte(mesH+"-"+String(Math.min(E.dia,28)).padStart(2,"0")); if(n>3) return;
+      out.push({o:n<0?2:3, cls:n<0?"err":"warn", ico:"agenda", t1:etapaTitulo(E.nome,mesH), t2:pre+faltaTxt(n)+(E.dica?" · "+E.dica:""), b:[["Feito","MES='"+mesH+"';toggleRotina("+fi+","+ei+")"],["Rotina","irAba('rotina')"]]}); });
+  });
+  var atrP=D.plano.filter(function(p){ return p.situacao!=="feito" && p.prazo && p.prazo<h; });
+  if(atrP.length) out.push({o:3, cls:"warn", ico:"agenda", t1:atrP.length+" ação(ões) do plano com prazo vencido", t2:atrP.slice(0,2).map(function(p){ return p.acao||""; }).join(" · "), b:[["Abrir plano","irAba('plano')"]]});
+  var nv=vqNovos().length+vqConferir().length;
+  if(nv) out.push({o:2, cls:"warn", ico:"vivo", t1:nv+" coisa(s) do vaqueiro pra ver", t2:"mensagens do campo e tarefas pra conferir", b:[["Ver","irAba('vaqueiro')"]]});
+  return out.sort(function(a,b){ return a.o-b.o; });
+}
+function hjItem(a){
+  return '<div class="item"><div class="ico '+(a.cls||"")+'">'+ICO[a.ico]+'</div><div style="flex:1;min-width:0"><div class="it1">'+esc(a.t1)+'</div><div class="it2">'+esc(a.t2)+'</div></div>'
+    +'<div class="acts">'+(a.b||[]).map(function(b,i){ return '<button class="b'+(i?' g':'')+'" onclick="'+b[1]+'">'+b[0]+'</button>'; }).join("")+'</div></div>';
+}
+function hjEntregas(f,fi){
+  var h=hoje(), mesH=h.slice(0,7), MES0=MES; MES=mesH;
+  var x=cpLinha(f,fi)+bolLinha(f);
+  MES=MES0;
+  var fe=etapasDe(f,mesH).filter(function(E){ return /fechamento/i.test(E.nome); })[0];
+  if(fe){ var ei=etapasDe(f,mesH).indexOf(fe), r=rotItem(f.nome,mesH,fe.nome), ok=r&&r.feito;
+    x+='<div class="item"><div class="ico '+(ok?'ok':'')+'">'+(ok?ICO.check:ICO.circulo)+'</div><div style="flex:1;min-width:0"><div class="it1" style="font-size:14px">'+esc(etapaTitulo(fe.nome,mesH))+'</div><div class="it2">'+(ok?'feito':(fechPendente(f,mesH).length?'aguardando: '+esc(fechPendente(f,mesH).join(" · ")):'pronto pra fazer'))+'</div></div>'
+      +'<div class="acts"><button class="b p" onclick="MES=\''+mesH+'\';abrirEtapa('+fi+','+ei+')">'+(ok?'Abrir':'Fazer')+'</button></div></div>'; }
+  x+='<div class="item"><div class="ico">'+ICO.balanca+'</div><div style="flex:1;min-width:0"><div class="it1" style="font-size:14px">Estoque Inttegra e saldo do rebanho</div><div class="it2">na pesagem, aba Estoque · fim do mês</div></div>'
+    +'<div class="acts"><button class="b" onclick="abrir(\'pesagem-curral.html\')">Abrir</button></div></div>';
+  var ab=D.plano.filter(function(p){ return p.fazenda===f.nome && p.situacao!=="feito"; });
+  x+='<div class="item"><div class="ico">'+ICO.agenda+'</div><div style="flex:1;min-width:0"><div class="it1" style="font-size:14px">Plano de ação</div><div class="it2">'+ab.length+' em aberto</div></div><div class="acts"><button class="b" onclick="irAba(\'plano\')">Abrir</button></div></div>';
+  return x;
+}
+function telaHojeGPL(){
+  var c=cfg(), h=hoje(), p=h.split("-");
+  var tf=hjTarefas(), hj=D.agenda.filter(function(a){ return a.data===h && !(/^cp\|/.test(a.id)); }).sort(function(a,b){ return (a.hora||"99").localeCompare(b.hora||"99"); });
+  var x='<div style="display:flex;justify-content:space-between;align-items:baseline;margin:2px 2px 10px"><b style="font-size:19px">'+saudacao()+', Rogério</b><span class="mini">'+SEM[new Date().getDay()]+' '+p[2]+'/'+p[1]+(D.quando?' · atualizado '+D.quando:'')+'</span></div>';
+  x+='<div class="rot-g"><div>';
+  // 1) hoje faça isso
+  x+='<div class="card" style="border-left-color:var(--v1)"><div class="ch" style="font-size:15px">Rogério, hoje faça isso<span>'+(tf.length+hj.length?(tf.length+hj.length)+' item(ns)':'')+'</span></div>';
+  if(!tf.length && !hj.length) x+='<div class="vazio">'+(Object.keys(D.app).length?'Nada urgente hoje. Bom dia pra visitar ou prospectar.':'Lendo o app da fazenda…')+'</div>';
+  x+=tf.map(hjItem).join("")+hj.map(function(a){ return linhaAgenda(a,false); }).join("");
+  x+='</div>'+avisosHTML();
+  // 2) fazenda
+  c.fazendas.forEach(function(f){
+    var Z=hjFazenda(f), up=D.pes[f.nome];
+    x+='<div class="card"><div class="ch" style="font-size:15px">'+esc(f.nome)+'<span><a href="'+esc(hjFazApp(f))+'" target="_blank" rel="noopener" style="color:var(--v1);font-weight:800;text-decoration:none">abrir app ›</a></span></div>';
+    if(!Z){ x+='<div class="vazio">'+(AV.carregando?'Lendo o app da fazenda…':(AV.erro||'Sem dados do app da fazenda.'))+'</div></div>'; return; }
+    x+='<div class="kpis"><div class="kpi"><div class="k1">Rebanho</div><div class="k2">'+fmt(Z.cab)+' cab</div></div><div class="kpi"><div class="k1">Peso médio</div><div class="k2">'+fmt(Z.peso)+' kg</div></div>'
+      +'<div class="kpi"><div class="k1">Trato hoje</div><div class="k2">'+Z.hojeFeito+' de '+Z.nLotes+' lotes</div></div><div class="kpi"><div class="k1">Última pesagem</div><div class="k2">'+(up?brd(up):(up===null?'—':'…'))+'</div></div></div>';
+    x+='<div class="mini" style="padding:0 0 10px">'+(Z.semTrato.length?'<b style="color:var(--danger)">'+Z.semTrato.length+' lote(s) sem trato há 7+ dias</b>':'Trato em dia nos lotes')+(Z.insumo.length?' · <b style="color:var(--warn)">'+Z.insumo.length+' insumo(s) acabando</b>':'')+'</div></div>';
+  });
+  x+='</div><div class="rot-lat" style="margin-top:0">';
+  // 3) entregas do mês
+  c.fazendas.forEach(function(f,fi){ x+='<div class="lcard"><h4>Entregas pro cliente · '+MESES[+h.slice(5,7)-1]+(c.fazendas.length>1?' · '+esc(f.nome):'')+'</h4><div class="lc">'+hjEntregas(f,fi)+'</div></div>'; });
+  // 4) esta semana
+  var sem=D.agenda.filter(function(a){ return !a.feito && a.data && a.data>h && a.data<=somaDias(h,7) && a.tipo!=="auto"; }).sort(function(a,b){ return (a.data+(a.hora||"")).localeCompare(b.data+(b.hora||"")); });
+  x+='<div class="lcard"><h4>Esta semana</h4><div class="lc">'+(sem.length?sem.map(function(a){ return '<div class="ev"><span>'+esc(a.titulo)+(a.fazenda?' · '+esc(a.fazenda):'')+'</span><small>'+SEM[new Date(a.data+"T12:00:00").getDay()].slice(0,3)+' '+brd(a.data)+(a.hora?' '+esc(a.hora):'')+'</small></div>'; }).join(""):'<div class="vazio">Nada marcado nos próximos 7 dias.</div>')
+    +'<div style="display:flex;gap:6px;flex-wrap:wrap;padding:6px 0 4px"><button class="b" onclick="irAba(\'agenda\')">Agenda</button><button class="b" onclick="irAba(\'vaqueiro\')">'+esc(rotuloVaq())+'</button><button class="b" onclick="irAba(\'anotar\')">Anotar no campo</button></div></div></div>';
+  x+='</div></div>';
   return x;
 }
 function linhaAgenda(a,atrasado,comApagar){
@@ -452,7 +545,7 @@ function rotinaLateral(){
       return '<div class="ev"><span>'+esc(e.relatorio)+(e.mes?' de '+MESES[+e.mes.split("-")[1]-1]:"")+(varias?' · '+esc(e.fazenda):'')+'</span><small>'+(m?m[1]+(m[2]?' '+m[2]:''):'')+'</small></div>'; }).join("")||'<div class="vazio">Nenhum relatório enviado ainda.</div>';
   var ab=D.plano.filter(function(p){ return p.situacao!=="feito"; }), at=ab.filter(function(p){ return p.prazo && p.prazo<h; });
   var bloco=function(k,tit,corpo){ return '<div class="lcard'+(RECOLHE[k]?' fech':'')+'"><h4 onclick="recolher(\''+k+'\')">'+tit+'<span class="seta">▾</span></h4><div class="lc">'+corpo+'</div></div>'; };
-  return bloco("lat_pz","Próximos prazos",hp)+bloco("lat_ev","Enviado ao dono",he)
+  return bloco("lat_ev","Enviado ao dono",he)
     +bloco("lat_pl","Plano de ação",'<div style="font-size:13.5px;color:var(--muted);padding:2px 0 8px;cursor:pointer" onclick="ABA=\'plano\';render()">'+ab.length+' em aberto'+(at.length?' · <b style="color:var(--danger)">'+at.length+' atrasada(s)</b>':' · nenhuma atrasada')+' ›</div>');
 }
 /* nome da etapa com o mês a que ela se refere (rotina de novembro trata dos dados de outubro) */
@@ -473,6 +566,7 @@ async function carregarAvisos(){
     return jsonp(f.app+"?acao=carregar",45000).then(function(data){
       var S=null; if(data&&data.CONFIG&&data.CONFIG.length&&data.CONFIG[0]&&data.CONFIG[0][1]){ try{ S=JSON.parse(data.CONFIG[0][1]); }catch(e){} } else if(data&&(data.rT!==undefined||data.EST!==undefined)) S=data;
       if(!S) throw new Error("sem dados");
+      D.app[f.nome]=S;   // tela Hoje usa lotes, tratos e orientações
       (S.rT||[]).forEach(function(r){
         if(!r||r._apagado||r.tipo!=="sem_trato") return;
         var dt=String(r.dt||"").slice(0,10); if(dt<lim) return;
@@ -482,7 +576,7 @@ async function carregarAvisos(){
   }));
   out.sort(function(a,b){ return b.dt.localeCompare(a.dt); });
   AV.lista=out; AV.erro=falhas?"Não consegui ler o app da fazenda agora.":""; AV.carregando=false;
-  if(ABA==="rotina") render();
+  if(ABA==="rotina"||ABA==="hoje") render();
 }
 function avVisto(i){ var a=AV.lista[i]; if(!a) return; L.avVistos=L.avVistos||{}; L.avVistos[a.id]=hoje(); salvarL(); render(); }
 function avisosHTML(){
@@ -528,7 +622,7 @@ function telaRotina(){
     if(!(f.mesesTri||[]).length) x+='<div class="mini" style="padding:8px 0 0">Trimestre: escolha os meses desta fazenda em Ajustes.</div>';
     x+='<div class="mini" style="padding:8px 0 4px">Plano de ação: '+abertosPl.length+' em aberto'+(atrasPl.length?' · <b style="color:var(--danger)">'+atrasPl.length+' atrasada(s)</b>':'')+'</div></div>';
   });
-  x='<div class="rot-g"><div>'+avisosHTML()+x+'</div><div class="rot-lat">'+rotinaLateral()+'</div></div>';
+  x='<div class="rot-g"><div>'+x+'</div><div class="rot-lat">'+rotinaLateral()+'</div></div>';
   return x+'<p class="mini" style="text-align:center">As etapas você muda em Ajustes, do jeito do seu método.</p>';
 }
 async function toggleRotina(fi,ei){

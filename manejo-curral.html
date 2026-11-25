@@ -592,6 +592,8 @@ function gerarLink(acao){
 /* ---- 2) vaqueiro abre o link ---- */
 function telaInicio(){
   if(!_cfg) return '<div class="card"><h2>Abra pelo link que o consultor mandou</h2><p class="lbl">Este endereço precisa vir com a fazenda. Peça o link no WhatsApp.</p></div>';
+  var feito=_ignorarFeito?null:(_jaFeito||feitoLocal());
+  if(feito) return telaJaFeito(feito);
   var lista=_cfg.travado?_cfg.tarefas:TAREFAS_PADRAO;
   var h='<div class="card"><h2>'+esc(_cfg.fazenda)+' · '+dataBR(hojeISO())+'</h2><p class="lbl">O que vai fazer</p>';
   h+=lista.map(function(t){ var on=_escolha.indexOf(t)>=0;
@@ -700,6 +702,47 @@ function telaFim(){
     +'<div class="mini" id="syncTxt"></div>'
     +'<p class="mini" style="margin-top:14px">Pode fechar. O próximo manejo vem num link novo.</p></div>';
 }
+/* ---------- link já usado: manejo concluído hoje ---------- */
+var _jaFeito=null, _ignorarFeito=false;
+function assinatura(faz,tarefas,data){ return String(faz).trim()+"|"+tarefas.join(", ")+"|"+data; }
+function guardarFeito(a){
+  try{ var v=a.itens.filter(function(i){ return !i.desfeito; }), cp=v.filter(function(i){ return i.peso!==""; });
+    var ini=new Date(a.inicio), fi=new Date(a.fim);
+    S.ultimoFeito={ sig:assinatura(a.fazenda,a.tarefas,a.data), n:v.length, media:cp.length?cp.reduce(function(s,i){return s+Number(i.peso);},0)/cp.length:null,
+      ini:isNaN(ini)?"":horaTxt(a.inicio), fim:isNaN(fi)?"":horaTxt(a.fim), pesar:a.tarefas.indexOf("Pesar")>=0 };
+  }catch(e){}
+}
+function feitoLocal(){
+  if(!_cfg||!_cfg.travado||!S.ultimoFeito) return null;
+  return S.ultimoFeito.sig===assinatura(_cfg.fazenda,_cfg.tarefas,hojeISO())?S.ultimoFeito:null;
+}
+async function checarJaFeito(){
+  if(!_cfg||!_cfg.travado) return;
+  try{
+    var faz=_cfg.fazenda, rr=await Promise.all([
+      jsonp(BACKEND_URL+"?acao=manejo_ler&token=&fazenda="+encodeURIComponent(faz)+"&data="+hojeISO()),
+      jsonp(BACKEND_URL+"?acao=lida_ler&token=&fazenda="+encodeURIComponent(faz)).catch(function(){ return {lidas:[]}; })]);
+    if(!rr[0]||rr[0].ok===false) return;
+    var alvo=_cfg.tarefas.join(", ");
+    var g=agruparManejos(rr[0].itens||[],(rr[1]&&rr[1].lidas)||[]).filter(function(x){ return x.data===hojeISO() && String(x.tarefas).trim()===alvo && !x.aberta && x.ok.length; })[0];
+    if(g){ _jaFeito={ n:g.ok.length, media:g.media, ini:g.hIni, fim:g.hFim, pesar:_cfg.tarefas.indexOf("Pesar")>=0 }; if(TELA==="inicio" && !S.atual) render(); }
+  }catch(e){ /* sem sinal: fica o que está guardado no celular */ }
+}
+function duracao(ini,fim){
+  var a=String(ini||"").split(":"), b=String(fim||"").split(":"); if(a.length<2||b.length<2) return "";
+  var m=((+b[0])*60+(+b[1]))-((+a[0])*60+(+a[1])); if(isNaN(m)||m<0) return "";
+  return m<60?m+" min":Math.floor(m/60)+"h"+String(m%60).padStart(2,"0");
+}
+function telaJaFeito(f){
+  var d=duracao(f.ini,f.fim);
+  return '<div class="card"><h2>'+(f.pesar?'Pesagem concluída':'Manejo concluído')+'</h2>'
+    +'<p class="lbl">'+esc(_cfg.tarefas.join(" · "))+'</p>'
+    +'<div style="font-size:40px;font-weight:900;color:var(--v1);margin-top:6px">'+f.n+' <span style="font-size:18px">animais</span></div>'
+    +(f.media!=null?'<p class="lbl">Média '+fmtBR(f.media,0)+' kg</p>':'')
+    +(d?'<p class="lbl">Tempo de manejo: <b>'+d+'</b> ('+esc(f.ini)+' às '+esc(f.fim)+')</p>':'')
+    +'<p class="ok-msg" style="margin-top:10px">Salvo na planilha. Pode fechar.</p>'
+    +'<p class="mini" style="margin-top:18px;text-align:center"><a href="#" onclick="if(confirm(\'Este manejo já foi feito hoje. Começar outro mesmo assim?\')){_ignorarFeito=true;render();}return false;" style="color:var(--muted)">começar outro mesmo assim</a></p></div>';
+}
 function novoManejo(){
   if(pendentes()>0){ alert("Ainda tem animal guardado no celular que não subiu pra planilha. Espere ter sinal e o aviso ficar \"Salvo na planilha\"."); sincronizar(); return; }
   S.atual=null; salvar(); TELA="inicio"; _escolha=_cfg&&_cfg.travado?_cfg.tarefas.slice():[]; render();
@@ -711,9 +754,10 @@ function novoManejo(){
   if(l && l.montar){ TELA="montar"; render(); return; }
   _cfg=l;
   if(_cfg && _cfg.travado) _escolha=_cfg.tarefas.slice();
-  if(S.atual && S.atual.fim){ TELA= pendentes()>0 ? "fim" : "inicio"; if(TELA==="inicio") { S.atual=null; salvar(); } }
+  if(S.atual && S.atual.fim){ TELA= pendentes()>0 ? "fim" : "inicio"; if(TELA==="inicio") { guardarFeito(S.atual); S.atual=null; salvar(); } }
   render();
   if(S.atual){ sincronizar(); telaAcesa(); }
+  if(!S.atual && TELA==="inicio") checarJaFeito();
   balAutoReconectar();
 })();
 

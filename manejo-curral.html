@@ -419,7 +419,7 @@ function kpisManejo(x, vivo){
   return '<div class="kpis">'
    +'<div class="kpi"><div class="k1">Passaram</div><div class="k2">'+x.ok.length+'</div></div>'
    +'<div class="kpi"><div class="k1">Peso médio</div><div class="k2">'+(x.media!=null?fmtBR(x.media,0)+' kg':'sem peso')+'</div></div>'
-   +'<div class="kpi"><div class="k1">Ritmo</div><div class="k2">'+(l.por_hora!==''&&l.por_hora!=null?fmtBR(l.por_hora,0)+'/hora':'—')+'</div></div>'
+   +'<div class="kpi"><div class="k1">Entre um e outro</div><div class="k2">'+(x.intervalo!=null?fmtBR(x.intervalo,1)+' min':'—')+'</div></div>'
    +'<div class="kpi"><div class="k1">Paradas</div><div class="k2">'+(x.paradas.length?x.paradas.length+' · '+fmtBR(pm,0)+' min':'nenhuma')+'</div></div></div>';
 }
 function listaPassagens(x, limite){
@@ -458,9 +458,8 @@ function desenharConsulta(){
     box.innerHTML=gs.map(function(x){
       var m=minDesde(x.ultHora), l=x.lida||{};
       return '<div class="card"><div style="display:flex;justify-content:space-between;gap:8px"><b>'+esc(x.tarefas||"Manejo")+'</b>'
-        +(x.aberta?'<span class="ok-msg" style="flex:none">● em andamento</span>':'<span class="mini" style="flex:none">encerrado '+esc(l.fim||"")+'</span>')+'</div>'
-        +'<p class="mini" style="margin:3px 0 0">'+(x.ultHora?'Último animal '+(m!=null&&m>=0&&m<600?(m<1?'agora':'há '+m+' min'):'às '+esc(x.ultHora)):'Nenhum animal ainda')
-        +(x.intervalo!=null?' · em média '+fmtBR(x.intervalo,1)+' min entre um e outro':'')+'</p>'
+        +(x.aberta?'<span class="ok-msg" style="flex:none">● em andamento</span>':'<span class="mini" style="flex:none">encerrado</span>')+'</div>'
+        +'<p class="mini" style="margin:3px 0 0">'+(x.ultHora?'Último animal '+(x.aberta&&m!=null&&m>=0&&m<600?(m<1?'agora':'há '+m+' min'):'às '+esc(x.ultHora)):'Nenhum animal ainda')+'</p>'
         +kpisManejo(x,true)+histograma(x)+listaPassagens(x,30)+'</div>';
     }).join("");
     return;
@@ -470,8 +469,7 @@ function desenharConsulta(){
     var l=x.lida||{}, pm=x.paradas.reduce(function(s,p){ return s+(Number(p.min)||0); },0), aberto=!!_abertos[x.id];
     var linha=x.ok.length+' animais'+(x.media!=null?' · média '+fmtBR(x.media,0)+' kg ('+fmtBR(x.min,0)+' a '+fmtBR(x.max,0)+')':' (sem peso)')
       +' · '+esc(x.hIni||"?")+'–'+esc(x.hFim||"?")
-      +(x.intervalo!=null?' · '+fmtBR(x.intervalo,1)+' min entre animais':'')
-      +(l.por_hora!==''&&l.por_hora!=null?' · '+fmtBR(l.por_hora,0)+'/hora':'')
+      +(x.intervalo!=null?' · '+fmtBR(x.intervalo,1)+' min entre um e outro':'')
       +(x.paradas.length?' · '+x.paradas.length+' parada(s), '+fmtBR(pm,0)+' min':'');
     return '<div class="card"><div style="display:flex;justify-content:space-between;gap:8px"><b>'+dataBR(x.data)+' · '+esc(x.tarefas||"Manejo")+'</b>'
       +(x.aberta?'<span class="ok-msg" style="flex:none">aberto</span>':'')+'</div>'
@@ -639,7 +637,7 @@ function telaFim(){
     +(media!=null?'<p class="lbl">Média '+fmtBR(media,1)+' kg</p>':'')
     +'<p class="lbl">'+esc(a.tarefas.join(" · "))+'</p>'
     +'<div class="mini" id="syncTxt"></div>'
-    +'<button class="bt2" style="width:100%;margin-top:14px" onclick="novoManejo()">Novo manejo</button></div>';
+    +'<p class="mini" style="margin-top:14px">Pode fechar. O próximo manejo vem num link novo.</p></div>';
 }
 function novoManejo(){
   if(pendentes()>0){ alert("Ainda tem animal guardado no celular que não subiu pra planilha. Espere ter sinal e o aviso ficar \"Salvo na planilha\"."); sincronizar(); return; }

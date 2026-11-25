@@ -54,7 +54,8 @@ button{font:inherit;font-weight:700;border:0;border-radius:12px;cursor:pointer}
 .kpi{background:#f4f7f3;border-radius:10px;padding:9px 10px}.kpi .k1{font-size:12px;color:var(--muted)}.kpi .k2{font-size:21px;font-weight:900;margin-top:2px}
 .pas{display:flex;justify-content:space-between;font-size:14px;padding:5px 0;border-bottom:1px solid #f0f3ef}
 .pas.dsf{text-decoration:line-through;color:#aab3aa}
-.hist{display:flex;gap:4px;align-items:flex-end;height:54px;margin-top:10px}.hist div{flex:1;background:#b9dfbb;border-radius:3px 3px 0 0;min-height:2px}
+.hist{display:flex;gap:4px;align-items:flex-end;height:78px;margin-top:10px}.hist button{flex:1;height:100%;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;background:none;border:0;padding:0;margin:0;cursor:pointer;font:inherit;color:inherit;min-width:0}.hist button b{font-size:12px;font-weight:700;margin-bottom:2px}.hist button i{display:block;width:100%;background:#b9dfbb;border-radius:3px 3px 0 0;min-height:2px}.hist button.on i{background:#1f6b33}.hist button.on b{color:#1f6b33}
+.histd{margin-top:8px;background:#E8F5E9;border-radius:10px;padding:9px 11px;font-size:13px;color:#1f6b33}.histd b{font-weight:800}.histd span{display:block;font-size:12px;margin-top:3px;line-height:1.5}
 .histx{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-top:2px}
 </style>
 </head>
@@ -403,10 +404,15 @@ function agruparManejos(itens, lidas){
     x.min=x.pesos.length?Math.min.apply(null,x.pesos):null; x.max=x.pesos.length?Math.max.apply(null,x.pesos):null;
     var hs=x.ok.map(function(i){ return String(i.hora||""); }).filter(Boolean).sort();
     x.ultHora=hs[hs.length-1]||""; x.priHora=hs[0]||"";
+    var _l=x.lida||{}; x.hIni=soHora(_l.inicio)||x.priHora; x.hFim=soHora(_l.fim)||x.ultHora;
+    var _mm=hs.map(function(h){ var q=h.split(":"); return (+q[0])*60+(+q[1]); }), _dif=[];
+    for(var _i=1;_i<_mm.length;_i++){ var _d=_mm[_i]-_mm[_i-1]; if(_d>=0 && _d<15) _dif.push(_d); }   // 15 min ou mais = parada, fica fora
+    x.intervalo=_dif.length?_dif.reduce(function(a,b){return a+b;},0)/_dif.length:null;
     x.paradas=[]; try{ x.paradas=JSON.parse((x.lida&&x.lida.paradas)||"[]")||[]; }catch(e){}
     x.aberta= x.lida ? !!x.lida.aberta : true;
-    return x; }).sort(function(a,b){ return (b.data+(b.lida&&b.lida.inicio||b.priHora)).localeCompare(a.data+(a.lida&&a.lida.inicio||a.priHora)); });
+    return x; }).sort(function(a,b){ return (b.data+b.hIni).localeCompare(a.data+a.hIni); });
 }
+function soHora(v){ var m=String(v||"").match(/^\s*(\d{1,2}):(\d{2})/); return m?(m[1].length<2?"0":"")+m[1]+":"+m[2]:""; }
 function minDesde(hhmm){ var p=String(hhmm).split(":"); if(p.length<2) return null; var d=new Date(); d.setHours(+p[0],+p[1],0,0); return Math.round((Date.now()-d.getTime())/60000); }
 function kpisManejo(x, vivo){
   var l=x.lida||{}, pm=x.paradas.reduce(function(s,p){ return s+(Number(p.min)||0); },0);
@@ -422,16 +428,24 @@ function listaPassagens(x, limite){
     return '<div class="pas'+(d?' dsf':'')+'"><span>nº '+esc(i.n)+'</span><span>'+(Number(i.peso)>0?fmtBR(i.peso,1)+' kg':'sem peso')+'</span><span>'+(d?'desfeito':esc(i.hora))+'</span></div>'; }).join("")
     +(limite&&x.itens.length>limite?'<p class="mini" style="text-align:center">… mais '+(x.itens.length-limite)+'</p>':'')+'</div>';
 }
+var _histSel={};
+function histSel(id,k){ _histSel[id]=(_histSel[id]===k?null:k); desenharConsulta(); }
 function histograma(x){
   if(x.pesos.length<3) return '';
   var passo=20, ini=Math.floor(x.min/passo)*passo, fim=Math.ceil((x.max+0.01)/passo)*passo;
   while((fim-ini)/passo>8){ passo*=2; ini=Math.floor(x.min/passo)*passo; fim=Math.ceil((x.max+0.01)/passo)*passo; }
-  var nb=Math.max(1,(fim-ini)/passo), c=[]; for(var i=0;i<nb;i++) c.push(0);
-  x.pesos.forEach(function(v){ var k=Math.min(nb-1,Math.floor((v-ini)/passo)); c[k]++; });
-  var mx=Math.max.apply(null,c);
+  var nb=Math.max(1,(fim-ini)/passo), c=[], q=[]; for(var i=0;i<nb;i++){ c.push(0); q.push([]); }
+  x.ok.forEach(function(it){ var v=Number(it.peso); if(!(v>0)) return; var k=Math.min(nb-1,Math.floor((v-ini)/passo)); c[k]++; q[k].push(Number(it.n)); });
+  var mx=Math.max.apply(null,c), sel=_histSel[x.id];
+  if(sel!=null && (sel>=nb || !c[sel])) sel=null;
   var lab=[]; for(var j=0;j<=nb;j+=Math.max(1,Math.round(nb/4))) lab.push(ini+j*passo);
-  return '<div class="hist">'+c.map(function(v){ return '<div title="'+v+'" style="height:'+Math.round(v/mx*100)+'%"></div>'; }).join("")+'</div>'
+  var h='<div class="hist">'+c.map(function(v,k){ return '<button type="button" class="'+(sel===k?'on':'')+'" onclick="histSel(\''+x.id+'\','+k+')" aria-label="'+(ini+k*passo)+' a '+(ini+(k+1)*passo)+' kg: '+v+' animais"><b>'+(v||'')+'</b><i style="height:'+Math.round(v/mx*80)+'%"></i></button>'; }).join("")+'</div>'
     +'<div class="histx">'+lab.map(function(v){ return '<span>'+v+'</span>'; }).join("")+'<span>kg</span></div>';
+  if(sel!=null){
+    var ns=q[sel].sort(function(a,b){ return a-b; });
+    h+='<div class="histd"><b>'+(ini+sel*passo)+' a '+(ini+(sel+1)*passo)+' kg: '+c[sel]+' anima'+(c[sel]>1?'is':'l')+'</b> · '+fmtBR(c[sel]/x.pesos.length*100,0)+'% do lote<span>nº '+ns.join(', ')+'</span></div>';
+  }
+  return h;
 }
 function desenharConsulta(){
   var box=$("cBox"), info=$("cInfo"); if(!box) return;
@@ -445,8 +459,9 @@ function desenharConsulta(){
       var m=minDesde(x.ultHora), l=x.lida||{};
       return '<div class="card"><div style="display:flex;justify-content:space-between;gap:8px"><b>'+esc(x.tarefas||"Manejo")+'</b>'
         +(x.aberta?'<span class="ok-msg" style="flex:none">● em andamento</span>':'<span class="mini" style="flex:none">encerrado '+esc(l.fim||"")+'</span>')+'</div>'
-        +'<p class="mini" style="margin:3px 0 0">Começou '+esc(l.inicio||x.priHora||"—")+(x.ultHora?' · último animal '+(m!=null&&m>=0&&m<600?(m<1?'agora':'há '+m+' min'):'às '+esc(x.ultHora)):'')+'</p>'
-        +kpisManejo(x,true)+listaPassagens(x,30)+'</div>';
+        +'<p class="mini" style="margin:3px 0 0">'+(x.ultHora?'Último animal '+(m!=null&&m>=0&&m<600?(m<1?'agora':'há '+m+' min'):'às '+esc(x.ultHora)):'Nenhum animal ainda')
+        +(x.intervalo!=null?' · em média '+fmtBR(x.intervalo,1)+' min entre um e outro':'')+'</p>'
+        +kpisManejo(x,true)+histograma(x)+listaPassagens(x,30)+'</div>';
     }).join("");
     return;
   }
@@ -454,7 +469,8 @@ function desenharConsulta(){
   box.innerHTML=gs.map(function(x){
     var l=x.lida||{}, pm=x.paradas.reduce(function(s,p){ return s+(Number(p.min)||0); },0), aberto=!!_abertos[x.id];
     var linha=x.ok.length+' animais'+(x.media!=null?' · média '+fmtBR(x.media,0)+' kg ('+fmtBR(x.min,0)+' a '+fmtBR(x.max,0)+')':' (sem peso)')
-      +' · '+esc(l.inicio||x.priHora||"?")+'–'+esc(l.fim||x.ultHora||"?")
+      +' · '+esc(x.hIni||"?")+'–'+esc(x.hFim||"?")
+      +(x.intervalo!=null?' · '+fmtBR(x.intervalo,1)+' min entre animais':'')
       +(l.por_hora!==''&&l.por_hora!=null?' · '+fmtBR(l.por_hora,0)+'/hora':'')
       +(x.paradas.length?' · '+x.paradas.length+' parada(s), '+fmtBR(pm,0)+' min':'');
     return '<div class="card"><div style="display:flex;justify-content:space-between;gap:8px"><b>'+dataBR(x.data)+' · '+esc(x.tarefas||"Manejo")+'</b>'
@@ -470,7 +486,7 @@ function whatsManejo(id){
   var l=x.lida||{}, p=x.data.split("-");
   var t="*Manejo "+p[2]+"/"+p[1]+"/"+p[0]+" — "+fazConsulta()+"*\n"+(x.tarefas||"")+"\n\nAnimais: "+x.ok.length
     +(x.media!=null?"\nPeso médio: "+fmtBR(x.media,1)+" kg\nMais leve: "+fmtBR(x.min,1)+" kg · Mais pesado: "+fmtBR(x.max,1)+" kg":"")
-    +"\nHorário: "+(l.inicio||x.priHora||"?")+" às "+(l.fim||x.ultHora||"?")+"\n\nRogério · Consultor GPL";
+    +"\nHorário: "+(x.hIni||"?")+" às "+(x.hFim||"?")+"\n\nRogério · Consultor GPL";
   location.href="https://wa.me/?text="+encodeURIComponent(t);
 }
 setInterval(function(){ if(TELA==="montar" && ABA==="vivo" && document.visibilityState==="visible") carregarConsulta(); }, 20000);

@@ -102,15 +102,34 @@ var PADRAO={
     app:"https://script.google.com/macros/s/AKfycbxhLo4cpRZsBMSEzcfM8sBFCH25dCe1X_VFvElz3dfhMLdZhQF9CTrXfq2DE4QJ4d0rbg/exec" }]
 };
 var SISTEMAS=[
-  ["Pesagem de curral","pesagem-curral.html","Pesar, relatório, venda"],
+  ["Dia a dia da fazenda"],
+  ["Pesagem de curral","pesagem-curral.html","Pesar, relatório, venda, estoque"],
   ["Manejo do vaqueiro","manejo-curral.html?montar=1","Link, ao vivo, relatório"],
   ["App da fazenda","https://gestaopecuarialucrativa-dotcom.github.io/fazenda-gpl/","Trato, estoque, mapa"],
+  ["Anotar no campo","campo-gpl.html","Foto, áudio e texto sem internet"],
+  ["Análise e compra"],
+  ["Viabilidade de lote","viabilidade_lote.html","Compra, venda, margem, equilíbrio"],
+  ["Arroba do bezerro (ágio)","arroba_bezerro.html","Quanto vale o bezerro"],
+  ["Orçamento de compra","orcamento-compra.html","Compra de gado"],
   ["Análise de rebanho","analise-rebanho-gpl.html","GMD, evolução, abate"],
+  ["Comparativo de pesagens","comparativo.html","Uma pesagem contra a outra"],
+  ["Efetivo do mês","efetivo-gpl.html","Rebanho do mês"],
+  ["Potencial da fazenda","potencial.html","Quanto a fazenda pode dar"],
   ["Raio-X","raiox.html","Safra e indicadores"],
-  ["Funil da consultoria","funil-gpl.html","Leads e contatos"],
+  ["Plano ágil","plano_agil_v3.html","Plano da fazenda"],
+  ["Visita técnica","visita_tecnica.html","Relatório de visita"],
+  ["Financeiro"],
   ["Caixa semanal","caixa-semanal-gpl-v2.html","Acerto com o dono"],
   ["Máquinas","https://gestaopecuarialucrativa-dotcom.github.io/App_Maquinas/","Frota e serviços"],
+  ["Consultoria e vendas"],
+  ["Funil da consultoria","funil-gpl.html","Leads e contatos"],
+  ["Diagnóstico gratuito","levantamento_instagram.html","Levantamento do lead"],
+  ["Teste de gestão","checklist-auditoria.html","Checklist do produtor"],
+  ["Mapa de oportunidades","mapa-oportunidades.html","Onde a fazenda pode ganhar"],
+  ["Gerador de contrato","contrato-gerador.html","Contrato da consultoria"],
+  ["Portfólio","portfolio.html","Apresentação da GPL"],
   ["Representação","https://gestaopecuarialucrativa-dotcom.github.io/App_Representacao/","Intergrãos"],
+  ["Clientes"],
   ["Gestor de clientes","gestor-clientes.html","Acessos e links"],
   ["Pesagem ao vivo (cliente)","painel-cliente.html","O que o dono vê"],
   ["Portal do cliente","cliente.html","Ferramentas do cliente"]
@@ -456,7 +475,11 @@ function telaFazendas(){
   return x||'<div class="vazio">Nenhuma fazenda configurada (veja Ajustes).</div>';
 }
 function telaSistemas(){
-  return '<div class="grid">'+SISTEMAS.map(function(s){ return '<a class="sis" href="'+esc(s[1])+'" target="_blank" rel="noopener"><b>'+esc(s[0])+'</b><span>'+esc(s[2])+'</span></a>'; }).join("")+'</div>';
+  var x='', g=[];
+  var fecha=function(){ if(g.length) x+='<div class="grid" style="margin-bottom:6px">'+g.join("")+'</div>'; g=[]; };
+  SISTEMAS.forEach(function(s){ if(s.length===1){ fecha(); x+='<div class="sec">'+esc(s[0])+'</div>'; return; }
+    g.push('<a class="sis" href="'+esc(s[1])+'" target="_blank" rel="noopener"><b>'+esc(s[0])+'</b><span>'+esc(s[2])+'</span></a>'); });
+  fecha(); return x;
 }
 function telaAjustes(){
   var c=cfg();

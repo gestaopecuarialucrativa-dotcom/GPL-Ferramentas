@@ -540,7 +540,7 @@ body{font-family:Inter,system-ui,Arial,sans-serif;max-width:600px}
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.5 8.5 0 0 1-12.6 7.4L3 21l2.1-5.4A8.5 8.5 0 1 1 21 11.5z"/></svg> Falar com o Rogério sobre esse lote
     </button>
     <button class="btn-novo" onclick="novoCalculo()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 0 1 15-6.7L21 8M21 3v5h-5M21 12a9 9 0 0 1-15 6.7L3 16M3 21v-5h5"/></svg> Novo cálculo</button>
-    <button class="btn-print" onclick="window.print()" style="width:100%;padding:13px;border-radius:12px;border:1.5px solid var(--bge);background:#fff;color:var(--v);font-weight:800;cursor:pointer;margin-top:8px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V3h12v6M6 18H4v-7h16v7h-2M8 14h8v7H8z"/></svg> Imprimir / PDF</button>
+    <button class="btn-print" onclick="viaPDF()" style="width:100%;padding:13px;border-radius:12px;border:1.5px solid var(--bge);background:#fff;color:var(--v);font-weight:800;cursor:pointer;margin-top:8px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V3h12v6M6 18H4v-7h16v7h-2M8 14h8v7H8z"/></svg> Gerar PDF</button>
   </div>
 
 </div><!-- /main -->
@@ -947,5 +947,101 @@ function toggleExplica(){
 window.onbeforeprint=function(){var e=document.getElementById("print-emit");if(e){var d=new Date();e.textContent="Emitido em "+d.toLocaleDateString("pt-BR")+" às "+d.toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"});}};
 </script>
 <script>if(window.top!==window.self){var _hb=document.querySelector(".gpl-home-btn");if(_hb)_hb.style.display="none";}</script>
+<script>
+/* GPL — PDF limpo (overlay + iframe, A4) */
+function _gpPDF(titulo,nome,corpo){
+  var ov=document.getElementById("gpOv");
+  if(!ov){
+    ov=document.createElement("div"); ov.id="gpOv";
+    ov.style.cssText="position:fixed;inset:0;z-index:100000;background:#2b322c;display:flex;flex-direction:column";
+    ov.innerHTML='<div style="display:flex;gap:8px;align-items:center;padding:8px 10px;background:#123d1d;color:#fff;flex-wrap:wrap;font-family:Arial,sans-serif">'+
+      '<b id="gpOvT" style="flex:1;font-size:14px;min-width:140px"></b>'+
+      '<button type="button" onclick="var f=document.getElementById(\'gpFr\');f.contentWindow.focus();f.contentWindow.print()" style="background:#8BC34A;color:#123d1d;border:0;border-radius:8px;padding:9px 14px;font-weight:800;font-size:14px">Salvar PDF</button>'+
+      '<button type="button" onclick="_gpFechar()" style="background:transparent;color:#fff;border:1.5px solid #fff;border-radius:8px;padding:8px 14px;font-weight:800;font-size:14px">Fechar</button></div>'+
+      '<iframe id="gpFr" style="flex:1;border:0;width:100%;background:#7d857e"></iframe>';
+    document.body.appendChild(ov);
+  }
+  document.getElementById("gpOvT").textContent=titulo;
+  ov.style.display="flex"; document.body.style.overflow="hidden";
+  var f=document.getElementById("gpFr"), d=f.contentDocument||f.contentWindow.document;
+  d.open(); d.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>'+_gpEsc(nome)+'</title><style>'+_gpCss()+'</style></head><body>'+corpo+'</body></html>'); d.close();
+  if(!window._gpTit) window._gpTit=document.title;
+  document.title=nome;
+}
+function _gpFechar(){ var ov=document.getElementById("gpOv"); if(ov) ov.style.display="none"; document.body.style.overflow=""; if(window._gpTit){ document.title=window._gpTit; window._gpTit=null; } }
+function _gpEsc(s){ return String(s==null?"":s).replace(/[&<>"]/g,function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); }
+function _gpHoje(){ var d=new Date(); return ("0"+d.getDate()).slice(-2)+"/"+("0"+(d.getMonth()+1)).slice(-2)+"/"+d.getFullYear(); }
+function _gpLogo(){ var i=document.querySelector('img[src^="data:image"]'); return i?i.src:''; }
+function _gpCss(){
+  return '@page{size:A4 portrait;margin:0}*{box-sizing:border-box;margin:0;padding:0}html,body{background:#7d857e}body{font-family:Arial,Helvetica,sans-serif;color:#16261a;-webkit-print-color-adjust:exact;print-color-adjust:exact}'+
+  '.pg{width:210mm;height:297mm;background:#fff;margin:12px auto;position:relative;overflow:hidden}@media print{html,body{background:#fff}.pg{margin:0}}'+
+  '@media screen and (max-width:820px){.pg{zoom:.46}}'+
+  '.hd{display:flex;justify-content:space-between;align-items:center;padding:9mm 13mm 3.5mm;border-bottom:2px solid #1f6b33}.hd img{height:9mm}.hd span{font-size:8.5pt;color:#6b7b6f;letter-spacing:1px;text-transform:uppercase;text-align:right}'+
+  '.ey{font-size:8.5pt;font-weight:800;color:#1f6b33;letter-spacing:2px;margin:6mm 13mm 1mm;text-transform:uppercase}.tt{font-size:19pt;font-weight:800;margin:0 13mm 1.5mm}.st{font-size:9.5pt;color:#55665a;margin:0 13mm 4mm}'+
+  '.vb{margin:4mm 13mm 0;border-radius:3mm;padding:4.5mm 6mm;color:#fff;display:flex;justify-content:space-between;align-items:center;gap:5mm}.vb b{font-size:17pt;display:block}.vb small{font-size:9pt;opacity:.92;line-height:1.4;display:block;margin-top:1mm}.vb em{font-style:normal;font-size:8pt;font-weight:800;letter-spacing:1px;background:rgba(255,255,255,.2);padding:1.5mm 3mm;border-radius:3mm;white-space:nowrap}'+
+  '.verde{background:#1f6b33}.amar{background:#E65100}.verm{background:#B71C1C}'+
+  '.kp{display:grid;grid-template-columns:repeat(4,1fr);gap:3.5mm;padding:0 13mm}.kp div{background:#f3f6f2;border-radius:3mm;padding:3.5mm 4mm}.kp b{display:block;font-size:15pt;color:#123d1d}.kp span{font-size:8pt;color:#6b7b6f;display:block}.kp i{font-style:normal;font-size:7.5pt;font-weight:800;display:block;margin-top:1mm}'+
+  '.g{font-size:8.5pt;font-weight:800;color:#1f6b33;letter-spacing:1.5px;margin:6mm 13mm 2mm;text-transform:uppercase}'+
+  'table{width:calc(100% - 26mm);margin:0 13mm;border-collapse:collapse;font-size:9.5pt}th{text-align:left;font-size:7.5pt;color:#6b7b6f;font-weight:700;padding:1.5mm 1mm;border-bottom:2px solid #1f6b33;text-transform:uppercase}td{padding:1.9mm 1mm;border-bottom:1px solid #eef1ed;vertical-align:top}.n{text-align:right;white-space:nowrap}.mu{color:#7a8a7e}.tot td{font-weight:800;border-top:2px solid #1f6b33;border-bottom:0;font-size:10.5pt}'+
+  '.two{display:grid;grid-template-columns:1fr 1fr;gap:0}.two table{width:calc(100% - 19.5mm)}.two>div:first-child table{margin-right:6.5mm}.two>div:last-child table{margin-left:6.5mm}'+
+  '.br{padding:0 13mm}.br div{display:flex;align-items:center;gap:3mm;margin:1.6mm 0;font-size:9pt}.br span{width:34mm;flex:none}.br u{flex:1;height:4mm;background:#eef1ed;border-radius:2mm;overflow:hidden;text-decoration:none}.br u i{display:block;height:100%;border-radius:2mm}.br b{width:22mm;text-align:right;flex:none}'+
+  '.tx{padding:0 13mm;font-size:10pt;line-height:1.55}.tx strong{color:#123d1d}.ms{padding:1.5mm 13mm 0;font-size:9pt;color:#55665a}'+
+  '.cn{display:grid;grid-template-columns:1fr 1fr;gap:5mm;padding:0 13mm}.cn>div{border-radius:3mm;padding:5mm 6mm;color:#fff}.cn .t{font-size:10pt;font-weight:800;opacity:.95}.cn .p{font-size:28pt;font-weight:800;margin-top:1.5mm;line-height:1}.cn .r{font-size:10.5pt;font-weight:700;margin-top:1mm}.cn .s{display:inline-block;margin-top:2.5mm;font-size:8pt;font-weight:800;letter-spacing:.5px;background:rgba(255,255,255,.22);padding:1mm 2.8mm;border-radius:3mm}.cn .d{font-size:9pt;line-height:1.55;margin-top:3mm;border-top:1px solid rgba(255,255,255,.3);padding-top:2.5mm}.cn.um{grid-template-columns:1fr}'+
+  '.rf{margin:5mm 13mm 0;padding:3.5mm 5mm;background:#f3f6f2;border-left:1.2mm solid #8BC34A;border-radius:0 2mm 2mm 0;font-size:9pt;color:#33443a;line-height:1.5}'+
+  '.mel{padding:0 13mm}.mel div{display:flex;gap:3mm;padding:2.4mm 0;border-top:1px solid #e3e8e2;font-size:9.5pt;line-height:1.45}.mel .nn{flex:none;width:5.5mm;height:5.5mm;border-radius:50%;background:#123d1d;color:#fff;font-weight:800;font-size:8.5pt;display:flex;align-items:center;justify-content:center}'+
+  '.rod{position:absolute;bottom:7mm;left:13mm;right:13mm;display:flex;justify-content:space-between;font-size:7.5pt;color:#8a978d;border-top:1px solid #e3e8e2;padding-top:2.5mm}';
+}
+function viaPDF(){
+  var r=resultado||{};
+  if(r.lucro==null){ alert('Calcule primeiro.'); return; }
+  var E=_gpEsc, R=function(v){ return (v<0?'- ':'')+'R$ '+Math.abs(Math.round(v)).toLocaleString('pt-BR'); };
+  var N=function(v,d){ return Number(v||0).toLocaleString('pt-BR',{minimumFractionDigits:d||0,maximumFractionDigits:d||0}); };
+  var nome=(document.getElementById('contatoNome').value||'').trim(), faz=(document.getElementById('contatoFazenda').value||'').trim();
+  var quem=[nome,faz].filter(Boolean).join(' · ');
+  var det=!!window._det, pe=r.tipoVenda==='pe';
+  var cls=r.lucro>0&&r.margem>=20?'verde':(r.lucro>0?'amar':'verm');
+  var sub=document.getElementById('resSub').textContent, badge=document.getElementById('resBadge').textContent;
+  var vend=r.vlrArr-r.equilibrio;
+  var cpTxt=r.custoProdArr>0&&r.custoProdArr<=0.6?['dentro da meta','#2E7D32']:(r.custoProdArr<=0.8?['atenção','#E65100']:['custo alto','#B71C1C']);
+  var h='<div class="pg"><div class="hd"><img src="'+_gpLogo()+'"><span>Viabilidade do lote'+(faz?'<br>'+E(faz):'')+'</span></div>'+
+    '<div class="ey">Emitido em '+_gpHoje()+(nome?' · para '+E(nome):'')+'</div>'+
+    '<div class="tt">Viabilidade do lote</div>'+
+    '<div class="st">'+N(r.nCab)+' cabeças · de '+N(r.pesoEnt)+' para '+N(r.pesoSai)+' kg · '+r.dias+' dias ('+r.meses+' meses)</div>'+
+    '<div class="vb '+cls+'"><div><b>'+E(r.veredito)+'</b><small>'+E(sub)+'</small></div><em>'+E(badge)+'</em></div>'+
+    '<div class="g">Principais números</div><div class="kp">'+
+      '<div><span>Lucro por cabeça</span><b>'+R(r.lucro)+'</b><i style="color:'+(r.lucro>=0?'#2E7D32':'#B71C1C')+'">'+R(r.lucroTotal)+' no lote</i></div>'+
+      '<div><span>Ponto de equilíbrio</span><b>'+R(r.equilibrio)+'/@</b><i style="color:'+(vend>=0?'#2E7D32':'#B71C1C')+'">vende a '+R(r.vlrArr)+' ('+(vend>=0?'+':'')+R(vend)+')</i></div>'+
+      '<div><span>Custo da @ produzida</span><b>'+N(r.custoProdArr,2)+' @</b><i style="color:'+cpTxt[1]+'">'+cpTxt[0]+' (meta 0,6@)</i></div>'+
+      '<div><span>ROI do lote</span><b>'+N(r.roi,1)+'%</b><i style="color:#55665a">margem '+N(r.margem,1)+'%</i></div>'+
+    '</div>';
+  var dados=[
+    ['Animais',N(r.nCab)+' cab'],['Peso de entrada',N(r.pesoEnt)+' kg'],['Peso de saída',N(r.pesoSai)+' kg'],
+    ['Valor de compra',R(r.vlrComp)+'/cab'],['Relação de troca',N(r.relTroca,1)+' @ de boi gordo'],
+    ['GMD esperado',N(r.gmd,3)+' kg/dia'],['Mortalidade',N(r.mort*100,1)+'%'],
+    ['Custo por cab/mês',det?'detalhado':R(gv('custoMes'))+'/mês'],
+    ['Venda',pe?'em pé (@ = 30 kg vivo)':'abate (@ = 15 kg carcaça)'],['Arroba de venda',R(r.vlrArr)+'/@']
+  ];
+  if(!pe) dados.push(['Rendimento de carcaça',N(gv('rend')||52,1)+'%']);
+  var cus=[['Compra do animal',-r.vlrComp]];
+  if(det){ cus.push(['Suplemento',-(r.suplem*r.dias)],['Pasto / arrendamento',-(r.pasto*r.dias)],['Sanidade',-r.sanid],['Outros custos',-(r.outros*r.dias/30)]); }
+  else cus.push(['Custo operacional',-r.custoOp]);
+  cus.push(['Receita da venda',r.receita]);
+  if(window._adv){ cus.push(['Custo do capital ('+N(r.taxaOp)+'% a.a.)',-r.custoOport]); }
+  h+='<div class="two"><div><div class="g">Dados do lote</div><table>'+dados.map(function(x){ return '<tr><td class="mu">'+x[0]+'</td><td class="n"><b>'+x[1]+'</b></td></tr>'; }).join('')+'</table></div>'+
+    '<div><div class="g">Por cabeça</div><table>'+cus.map(function(x){ return '<tr><td class="mu">'+x[0]+'</td><td class="n" style="color:'+(x[1]<0?'#B71C1C':'#2E7D32')+'">'+(x[1]>0?'+ ':'')+R(x[1])+'</td></tr>'; }).join('')+
+      '<tr class="tot"><td>'+(window._adv?'Resultado após o capital':(r.lucro>=0?'Lucro':'Prejuízo'))+'</td><td class="n" style="color:'+((window._adv?r.resCapital:r.lucro)>=0?'#2E7D32':'#B71C1C')+'">'+R(window._adv?r.resCapital:r.lucro)+'</td></tr>'+
+      '<tr><td class="mu">Receita / custo total</td><td class="n">'+R(r.receita)+' / '+R(r.custoTotal)+'</td></tr></table></div></div>';
+  var mx=Math.max(0.8,r.gmd*1.05), w=function(v){ return Math.min(v/mx*100,100).toFixed(0)+'%'; };
+  var cg=r.gmd>=0.668?'#7CB342':(r.gmd>=0.403?'#C0A000':'#C62828');
+  h+='<div class="g">GMD comparado com a Inttegra</div><div class="br">'+
+    '<div><span>Seu GMD</span><u><i style="width:'+w(r.gmd)+';background:'+cg+'"></i></u><b>'+N(r.gmd,3)+'</b></div>'+
+    '<div><span>Média Inttegra</span><u><i style="width:'+w(0.403)+';background:#9aa79c"></i></u><b>0,403</b></div>'+
+    '<div><span>Top 30% Inttegra</span><u><i style="width:'+w(0.668)+';background:#1f6b33"></i></u><b>0,668</b></div></div>'+
+    '<div class="ms">'+E(document.getElementById('gmdAnalise').textContent)+'</div>';
+  h+='<div class="g">Resumo</div><div class="tx">'+document.getElementById('rHistoria').innerHTML+'</div>';
+  h+='<div class="rod"><span>Estimativa com os números informados · gestaopecuarialucrativa.com.br</span><span>Rogério · Consultor GPL · (63) 99108-2453</span></div></div>';
+  _gpPDF('Viabilidade do lote','Viabilidade '+(faz||'lote')+' '+_gpHoje().replace(/\//g,'-'),h);
+}
+</script>
 </body>
 </html>

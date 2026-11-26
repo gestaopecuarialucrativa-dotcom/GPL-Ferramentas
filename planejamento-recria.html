@@ -34,6 +34,7 @@ table.g td.c{font-size:11.5px;font-weight:600;color:var(--tx);white-space:nowrap
 .chips button.on{border-color:var(--vm);background:var(--okb);color:var(--vm)}
 .top .bk{text-decoration:none}
 input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}input[type=number]{-moz-appearance:textfield;appearance:textfield}
+:root{--wa:#9A6B00;--wab:#FFF3D1;--er:#7A4A00;--erb:#FFF1D6}
 </style></head><body>
 <div class="top">
   <img class="lg" id="lgTop" alt="Gestão Pecuária Lucrativa">
@@ -70,7 +71,7 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
   <label>Produto</label><input id="prod" placeholder="Proteinado">
   <label>Consumo (% do peso vivo)</label>
   <div class="chips" id="pvChips"><button type="button" data-v="0.1">0,1%</button><button type="button" data-v="0.3">0,3%</button><button type="button" data-v="1">1,0%</button></div>
-  <div class="two"><div><label>ou digite</label><input id="pv" type="number" inputmode="decimal" step="0.01" value="0.3"></div><div><label>GMD do plano (kg/dia)</label><input id="gmdP" type="number" inputmode="decimal" step="0.01" placeholder="o que precisa"></div></div>
+  <div class="two"><div><label>ou digite</label><input id="pv" type="number" inputmode="decimal" step="0.01" value="0.3"></div><div><label>Seu GMD (kg/dia)</label><input id="gmdP" type="number" inputmode="decimal" step="0.01" placeholder="para comparar"></div></div>
   <div class="two"><div><label>Saco (kg)</label><input id="sacoKg" type="number" inputmode="decimal" value="30"></div><div><label>Preço do saco (R$)</label><input id="sacoR" type="number" inputmode="decimal" step="0.01"></div></div>
 </div>
 
@@ -82,9 +83,13 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
 </div>
 
 <div class="sec">
-  <div class="h">Parceria <span>deixe o preço vazio se não for parceria</span></div>
-  <div class="two"><div><label id="lbPreco">Preço da @ na venda (R$)</label><input id="precoArr" type="number" inputmode="decimal" step="0.01"></div><div><label>Dono do gado (%)</label><input id="pctGado" type="number" inputmode="decimal" value="40"></div></div>
-  <div class="hint" style="margin:8px 0 0" id="hintParc">O que o gado ganhou na fazenda é vendido e dividido. As despesas (suplemento e sanidade) ficam com o dono da fazenda.</div>
+  <div class="h">Venda <span>estimativa, não é preço garantido</span></div>
+  <div class="two"><div><label id="lbPreco">Preço da @ na saída (R$)</label><input id="precoArr" type="number" inputmode="decimal" step="0.01" placeholder="estimativa"></div><div></div></div>
+  <label style="display:flex;gap:8px;align-items:center;margin-top:12px;font-size:13px;color:var(--tx)"><input type="checkbox" id="ehParc" style="width:auto"> É parceria</label>
+  <div id="boxParc" style="display:none">
+    <div class="two"><div><label>Dono do gado (%)</label><input id="pctGado" type="number" inputmode="decimal" value="40"></div><div><label>Dono da fazenda (%)</label><input id="pctFaz" type="number" disabled></div></div>
+    <div class="hint" style="margin:8px 0 0">O que o gado ganhou na fazenda é vendido e dividido. As despesas (suplemento e sanidade) ficam com o dono da fazenda.</div>
+  </div>
 </div>
 <div id="res"></div>
 <button type="button" class="btn" onclick="recriaPDF()">Gerar PDF</button>
@@ -136,7 +141,7 @@ function _gpCss(){
 }
 
 var K="gpl_recria", REF_MED=0.403, REF_TOP=0.668, MODO="pq";
-var CAMPOS=["cli","cat","sexo","prod","pctGado","cab","kgArr","arrE","arrS","dtE","dtS","mod","pq","haPq","diasPq","haTot","capim","alt","pv","gmdP","sacoKg","sacoR"];
+var CAMPOS=["cli","cat","sexo","prod","pctGado","ehParc","cab","kgArr","arrE","arrS","dtE","dtS","mod","pq","haPq","diasPq","haTot","capim","alt","pv","gmdP","sacoKg","sacoR"];
 var SAN=[{n:"Ivomec Gold",t:"kg",d:"1",k:"50",x:"1",f:"500",p:""},{n:"Fosfosal",t:"cab",d:"",k:"",x:"1",f:"",p:""},{n:"Vacina",t:"cab",d:"",k:"",x:"1",f:"",p:""},{n:"Brinco",t:"cab",d:"1",k:"",x:"1",f:"",p:""}];
 var GMD_OUTRO="";
 function $(i){ return document.getElementById(i); }
@@ -149,15 +154,15 @@ var MES=["jan","fev","mar","abr","mai","jun","jul","ago","set","out","nov","dez"
 
 function chavePreco(sx){ return /^m/i.test(sx||"")?"precoM":"precoF"; }
 var PRECOS={}, SEXO_ANT=null;
-function trocaSexo(){ var sx=$("sexo").value; if(SEXO_ANT!==null&&sx!==SEXO_ANT){ $("precoArr").value=PRECOS[chavePreco(sx)]||""; } SEXO_ANT=sx; $("lbPreco").textContent="Preço da @ "+(/^m/i.test(sx)?"do boi":/^f/i.test(sx)?"da novilha":"na venda")+" (R$)"; }
-function guardar(){ if(SEXO_ANT!==null) PRECOS[chavePreco(SEXO_ANT)]=$("precoArr").value; var o={modo:MODO,san:SAN,gmdO:GMD_OUTRO,precos:PRECOS}; CAMPOS.forEach(function(c){ o[c]=$(c).value; }); try{ localStorage.setItem(K,JSON.stringify(o)); }catch(e){} }
-function lerGuardado(){ try{ var o=JSON.parse(localStorage.getItem(K)||"null"); if(!o) return; CAMPOS.forEach(function(c){ if(o[c]!=null&&o[c]!=="") $(c).value=o[c]; }); if(o.san&&o.san.length) SAN=o.san.map(function(x){ return x.t?x:{n:x.n,t:"cab",d:"1",k:"",x:"1",f:"",p:x.v||""}; }); if(o.gmdO) GMD_OUTRO=o.gmdO; if(o.precos) PRECOS=o.precos; if(o.modo) MODO=o.modo; }catch(e){} }
+function trocaSexo(){ var sx=$("sexo").value; if(SEXO_ANT!==null&&sx!==SEXO_ANT){ $("precoArr").value=PRECOS[chavePreco(sx)]||""; } SEXO_ANT=sx; $("lbPreco").textContent="Preço da @ "+(/^m/i.test(sx)?"do boi":/^f/i.test(sx)?"da novilha":"")+" na saída (R$)"; $("boxParc").style.display=$("ehParc").checked?"":"none"; $("pctFaz").value=Math.max(0,100-num("pctGado")); }
+function guardar(){ if(SEXO_ANT!==null) PRECOS[chavePreco(SEXO_ANT)]=$("precoArr").value; var o={modo:MODO,san:SAN,gmdO:GMD_OUTRO,precos:PRECOS}; CAMPOS.forEach(function(c){ o[c]=$(c).type==="checkbox"?($(c).checked?"1":""):$(c).value; }); try{ localStorage.setItem(K,JSON.stringify(o)); }catch(e){} }
+function lerGuardado(){ try{ var o=JSON.parse(localStorage.getItem(K)||"null"); if(!o) return; CAMPOS.forEach(function(c){ if($(c).type==="checkbox"){ $(c).checked=o[c]==="1"; return; } if(o[c]!=null&&o[c]!=="") $(c).value=o[c]; }); if(o.san&&o.san.length) SAN=o.san.map(function(x){ return x.t?x:{n:x.n,t:"cab",d:"1",k:"",x:"1",f:"",p:x.v||""}; }); if(o.gmdO) GMD_OUTRO=o.gmdO; if(o.precos) PRECOS=o.precos; if(o.modo) MODO=o.modo; }catch(e){} }
 
 function sanCampo(i,c,ph,w,tipo){ return '<div style="flex:'+(w||1)+';min-width:0"><label style="margin:4px 0 3px">'+ph+'</label><input '+(tipo==="txt"?'':'type="number" inputmode="decimal" step="0.01" ')+'value="'+E(SAN[i][c]||"")+'" oninput="SAN['+i+'].'+c+'=this.value;calc()"></div>'; }
 function desenharSan(){
   $("sanBody").innerHTML=SAN.map(function(s,i){
     return '<div style="border:1.5px solid var(--ln);border-radius:12px;padding:8px 10px;margin-bottom:8px">'
-      +'<div class="two" style="align-items:flex-end">'+sanCampo(i,"n","Produto",3,"txt")+'<button type="button" onclick="SAN.splice('+i+',1);desenharSan();calc()" style="border:0;background:none;color:var(--er);font:800 18px Inter,Arial;cursor:pointer;padding:6px" aria-label="Tirar">×</button></div>'
+      +'<div class="two" style="align-items:flex-end">'+sanCampo(i,"n","Produto",3,"txt")+'<button type="button" onclick="SAN.splice('+i+',1);desenharSan();calc()" style="border:0;background:none;color:var(--mu);font:800 18px Inter,Arial;cursor:pointer;padding:6px" aria-label="Tirar">×</button></div>'
       +'<div class="two" style="align-items:flex-end">'+sanCampo(i,"d","Dose (ml)")
       +'<div style="flex:1.4;min-width:0"><label style="margin:4px 0 3px">por</label><select onchange="SAN['+i+'].t=this.value;desenharSan();calc()"><option value="cab"'+(s.t!=="kg"?" selected":"")+'>cabeça</option><option value="kg"'+(s.t==="kg"?" selected":"")+'>peso</option></select></div>'
       +(s.t==="kg"?sanCampo(i,"k","a cada (kg)"):'')+sanCampo(i,"x","Vezes")+'</div>'
@@ -176,14 +181,23 @@ function conta(){
   if(!(c.cab>0&&c.pe>0&&c.ps>c.pe&&c.dias>0)) return null;
   c.gNec=(c.ps-c.pe)/c.dias;
   c.g=num("gmdP")||c.gNec;
-  c.pf=c.pe+c.g*c.dias; c.aF=c.pf/c.kgA; c.ganhoArr=(c.pf-c.pe)/c.kgA;
+  // o plano vai até a meta: com o GMD do plano, quantos dias até chegar nela
+  c.dP=Math.ceil((c.ps-c.pe)/c.g-1e-9); c.saiP=new Date(new Date(e+"T12:00:00").getTime()+c.dP*864e5).toISOString().slice(0,10);
+  c.pf=c.ps; c.aF=c.aS; c.ganhoArr=(c.pf-c.pe)/c.kgA;
   // proteinado dia a dia (o peso sobe todo dia)
-  c.kgCab=c.pv*(c.dias*c.pe+c.g*c.dias*(c.dias-1)/2);
+  c.kgCab=c.pv*(c.dP*c.pe+c.g*c.dP*(c.dP-1)/2);
   c.kgTot=c.kgCab*c.cab; c.sacos=Math.ceil(c.kgTot/c.sKg); c.rProt=c.sacos*c.sR;
   c.kgDiaIni=c.pe*c.pv; c.kgDiaFim=c.pf*c.pv;
+  // uma opção completa para um GMD: dias até a meta, consumo por mês, sacos
+  var opcao=function(g){ var d=Math.ceil((c.ps-c.pe)/g-1e-9), o={g:g,dias:d,sai:new Date(new Date(e+"T12:00:00").getTime()+d*864e5).toISOString().slice(0,10),meses:[],kg:0}, at=null, z=new Date(e+"T12:00:00");
+    for(var q=0;q<d;q++){ var dd=new Date(z.getTime()+q*864e5), kk=dd.getFullYear()+"-"+dd.getMonth();
+      if(!at||at.k!==kk){ at={k:kk,nome:MES[dd.getMonth()]+"/"+String(dd.getFullYear()).slice(2),dias:0,kg:0}; o.meses.push(at); }
+      var kgd=(c.pe+g*q)*c.pv*c.cab; at.dias++; at.kg+=kgd; o.kg+=kgd; }
+    o.meses.forEach(function(m){ m.sacos=m.kg/c.sKg; }); o.sacos=Math.ceil(o.kg/c.sKg); o.rProt=o.sacos*c.sR; o.depois=o.sai>s; return o; };
+  c.A=opcao(c.gNec); c.B=(num("gmdP")>0&&Math.abs(num("gmdP")-c.gNec)>=0.0005)?opcao(num("gmdP")):null;
   // por mês (pra comprar)
   c.meses=[]; var d0=new Date(e+"T12:00:00"), t=0, atual=null;
-  for(var i=0;i<c.dias;i++){ var d=new Date(d0.getTime()+i*864e5), k=d.getFullYear()+"-"+d.getMonth();
+  for(var i=0;i<c.dP;i++){ var d=new Date(d0.getTime()+i*864e5), k=d.getFullYear()+"-"+d.getMonth();
     if(!atual||atual.k!==k){ atual={k:k,nome:MES[d.getMonth()]+"/"+String(d.getFullYear()).slice(2),dias:0,kg:0}; c.meses.push(atual); }
     atual.dias++; atual.kg+=(c.pe+c.g*i)*c.pv*c.cab; }
   c.meses.forEach(function(m){ m.sacos=m.kg/c.sKg; });
@@ -196,6 +210,7 @@ function conta(){
     return {n:String(x.n).trim(), dose:x.t==="kg"?N(d,1)+" ml / "+N(porKg)+" kg":N(d,1)+(un?" un.":" ml")+" / cab", porCab:porCab, vezes:vz, tot:tot, un:un, fr:fr, frascos:frascos, r:r, semPreco:!pr};
   });
   c.rSan=c.san.reduce(function(a,x){ return a+x.r; },0); c.sanCab=c.rSan/c.cab;
+  [c.A,c.B].forEach(function(o){ if(!o) return; o.tot=o.rProt+c.rSan; o.cab=o.tot/c.cab; o.arr=c.ganhoArr>0?o.cab/c.ganhoArr:0; });
   c.rTot=c.rProt+c.rSan; c.rCab=c.rTot/c.cab; c.rArr=c.ganhoArr>0?c.rCab/c.ganhoArr:0;
   // área e lotação
   if(MODO==="pq"){ c.mod=num("mod"); c.pq=num("pq"); c.haPq=num("haPq"); c.diasPq=num("diasPq"); c.ha=c.mod*c.pq*c.haPq; c.haMod=c.pq*c.haPq; c.cabMod=c.mod>0?c.cab/c.mod:0;
@@ -204,12 +219,15 @@ function conta(){
   if(c.ha>0){ c.uaIni=c.cab*c.pe/450/c.ha; c.uaFim=c.cab*c.pf/450/c.ha; }
   // consumo conforme o ganho (quanto mais ganha, mais pesa, mais come)
   var cons=function(g){ var d=Math.ceil((c.ps-c.pe)/g-1e-9), kg=c.pv*(d*c.pe+g*d*(d-1)/2)*c.cab, sc=Math.ceil(kg/c.sKg), sai=new Date(new Date(c.dtE+"T12:00:00").getTime()+d*864e5), iso=sai.toISOString().slice(0,10);
-    return {g:g,dias:d,sai:iso,depois:iso>c.dtS,seca:[5,6,7,8,9].indexOf(sai.getMonth())>=0,sacos:sc,r:sc*c.sR,meta:Math.abs(g-c.gNec)<0.005}; };
-  var go=parseFloat(String(GMD_OUTRO).replace(",",".")), lg=[0.5,c.gNec,1.0]; if(go>0) lg.push(go);
+    return {g:g,dias:d,sai:iso,depois:iso>c.dtS,seca:[5,6,7,8,9].indexOf(sai.getMonth())>=0,sacos:sc,r:sc*c.sR,tot:sc*c.sR+c.rSan,meta:Math.abs(g-c.gNec)<0.005}; };
+  var go=parseFloat(String(GMD_OUTRO).replace(",",".")), lg=[0.5,c.gNec,1.0]; if(go>0) lg.push(go); if(c.B) lg.push(c.B.g);
   c.consCen=lg.filter(function(g,i){ return lg.findIndex(function(h){ return Math.abs(h-g)<0.005; })===i; }).sort(function(a,b){ return a-b; }).map(cons);
   // parceria: o ganho na fazenda é vendido e dividido; despesas com o dono da fazenda
-  c.preco=num("precoArr"); c.pctG=Math.min(100,Math.max(0,num("pctGado"))); c.pctF=100-c.pctG;
-  if(c.preco>0){ c.arrGanhoLote=(c.ps-c.pe)/c.kgA*c.cab; c.vGanho=c.arrGanhoLote*c.preco; c.vGado=c.vGanho*c.pctG/100; c.vFaz=c.vGanho*c.pctF/100;
+  c.preco=num("precoArr"); c.pctG=Math.min(100,Math.max(0,num("pctGado"))); c.pctF=100-c.pctG; c.ehParc=$("ehParc").checked;
+  c.bicho=/^m/i.test($("sexo").value)?"boi":/^f/i.test($("sexo").value)?"novilha":"";
+  var _ms=new Date((c.dtS||c.dtE)+"T12:00:00"); c.mesSai=["janeiro","fevereiro","março","abril","maio","junho","julho","agosto","setembro","outubro","novembro","dezembro"][_ms.getMonth()]+"/"+_ms.getFullYear();
+  if(c.preco>0){ c.vSaida=c.aS*c.preco*c.cab; c.vGanhoTot=(c.ps-c.pe)/c.kgA*c.preco*c.cab; }
+  if(c.preco>0&&c.ehParc){ c.arrGanhoLote=(c.ps-c.pe)/c.kgA*c.cab; c.vGanho=c.arrGanhoLote*c.preco; c.vGado=c.vGanho*c.pctG/100; c.vFaz=c.vGanho*c.pctF/100;
     c.parc=c.consCen.map(function(x){ var desp=x.r+c.rSan, sob=c.vFaz-desp; return {g:x.g,meta:x.meta,dias:x.dias,desp:desp,sobra:sob,haMes:c.ha>0?sob/c.ha/(x.dias/30):null}; });
     c.parcMeta=c.parc.filter(function(x){ return x.meta; })[0]||c.parc[0]; }
   // cenários
@@ -225,6 +243,8 @@ function conta(){
 }
 
 var ULT=null;
+function mesesJuntos(c){ var mp={},ord=[]; [["a",c.A],["b",c.B]].forEach(function(p){ if(!p[1]) return; p[1].meses.forEach(function(m){ if(!mp[m.k]){ mp[m.k]={nome:m.nome,k:m.k,a:null,b:null}; ord.push(m.k); } mp[m.k][p[0]]=m; }); });
+  return ord.sort(function(x,y){ var a=x.split("-"),b=y.split("-"); return (+a[0]-b[0])||(+a[1]-b[1]); }).map(function(k){ return mp[k]; }); }
 function calc(){
   guardar(); trocaSexo(); guardar(); var c=conta(); ULT=c;
   if(!c){ $("res").innerHTML='<div class="sec plain"><div class="hint" style="margin:0">Preencha cabeças, arroba de entrada e de saída e as duas datas para ver o planejamento.</div></div>'; return; }
@@ -233,17 +253,37 @@ function calc(){
     +'<div style="font-size:30px;font-weight:800;color:var(--vd);letter-spacing:-.5px">'+N(c.gNec,3)+' <span style="font-size:15px">kg/dia</span></div>'
     +'<div class="hint" style="margin:2px 0 0">'+c.dias+' dias · ganhar '+N(c.ps-c.pe)+' kg ('+N(c.pe)+' → '+N(c.ps)+' kg) · Inttegra: média '+N(REF_MED,3)+' · Top 30% '+N(REF_TOP,3)+'</div>'
     +'<div class="hint" style="margin:6px 0 0">'+c.v.txt+'</div>'
-    +'<div style="display:grid;grid-template-columns:repeat('+Math.min(c.cen.length,4)+',1fr);gap:6px;margin-top:10px">'+c.cen.map(function(x){ return '<div style="background:'+(x.meta?'var(--okb)':'var(--bg)')+';border-radius:10px;padding:8px 4px;text-align:center"><div style="font-size:11px;color:var(--mu)">GMD '+N(x.g,2)+(x.plano&&!x.meta?' · plano':'')+'</div><b style="font-size:16px">'+N(x.arr,1)+' @</b></div>'; }).join("")+'</div></div>';
-  h+='<div class="sec"><div class="h">'+E(c.prod)+' <span>'+N(c.pv*100,2)+'% do peso vivo · GMD '+N(c.g,3)+'</span></div>'
+    +'</div>';
+  var colOp=function(o,tit,dest){ return '<div style="background:'+(dest?'var(--okb)':'var(--bg)')+';border-radius:12px;padding:10px"><div style="font-size:11.5px;color:var(--mu);font-weight:700">'+tit+'</div>'
+      +'<div style="font-size:12.5px;line-height:1.75;margin-top:4px">GMD <b>'+N(o.g,3)+'</b><br><b>'+o.dias+'</b> dias · sai <b'+(o.depois?' style="color:var(--wa)"':'')+'>'+dBR(o.sai)+'</b><br><b>'+N(o.sacos)+'</b> sacos de '+E(c.prod.toLowerCase())
+      +(c.sR?'<br>Custo <b>'+R(o.tot)+'</b><br><b>'+R(o.cab)+'</b> por cabeça<br><b>'+R(o.arr)+'</b> por @ ganha':'<br><span style="color:var(--mu)">digite o preço do saco para ver o custo</span>')+'</div></div>'; };
+  h+='<div class="sec"><div class="h">Até a meta de '+N(c.aS,1)+' @ <span>'+N(c.cab)+' cab. · ganha '+N(c.ganhoArr,1)+' @ cada</span></div>'
+    +(c.B?'<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">'+colOp(c.A,'Para chegar até '+dBR(c.dtS).slice(0,5),false)+colOp(c.B,'Com o seu GMD',true)+'</div>'
+        +(c.sR?'<div class="hint" style="margin:8px 0 0">Com o seu GMD: '+(c.B.dias<=c.A.dias?(c.A.dias-c.B.dias)+' dias a menos e '+R(c.A.tot-c.B.tot)+' a menos de custo.':(c.B.dias-c.A.dias)+' dias a mais e '+R(c.B.tot-c.A.tot)+' a mais de custo.')+'</div>':'')
+      :colOp(c.A,'Para chegar até '+dBR(c.dtS).slice(0,5),true)+'<div class="hint" style="margin:8px 0 0">Digite <b>Seu GMD</b> em Suplemento para comparar com outro ganho.</div>')
+    +'</div>';
+  h+='<div class="sec"><div class="h">'+E(c.prod)+' <span>'+N(c.pv*100,2)+'% do PV · GMD '+N(c.g,3)+' · até '+dBR(c.saiP).slice(0,5)+'</span></div>'
     +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">'
     +'<div style="background:var(--bg);border-radius:12px;padding:10px"><div style="font-size:11px;color:var(--mu)">Sacos de '+N(c.sKg)+' kg</div><b style="font-size:20px">'+N(c.sacos)+'</b><div style="font-size:11px;color:var(--mu)">'+N(c.kgTot)+' kg no total</div></div>'
     +'<div style="background:var(--bg);border-radius:12px;padding:10px"><div style="font-size:11px;color:var(--mu)">Por cabeça por dia</div><b style="font-size:20px">'+N(c.kgDiaIni,2)+' → '+N(c.kgDiaFim,2)+'</b><div style="font-size:11px;color:var(--mu)">kg, da entrada à saída</div></div></div>'
-    +'<table style="width:100%;border-collapse:collapse;font-size:12.5px;margin-top:10px">'+c.meses.map(function(m){ return '<tr><td style="padding:5px 0;border-top:1px solid var(--ln)">'+m.nome+' <span style="color:var(--mu)">· '+m.dias+' dias</span></td><td style="text-align:right;border-top:1px solid var(--ln)"><b>'+N(m.sacos,0)+'</b> sacos</td>'+(c.sR?'<td style="text-align:right;border-top:1px solid var(--ln);color:var(--mu)">'+R(m.sacos*c.sR)+'</td>':'')+'</tr>'; }).join("")+'</table></div>';
+    +(c.B?'<table style="width:100%;border-collapse:collapse;font-size:12.5px;margin-top:10px"><tr style="color:var(--mu);font-size:11px"><td>Mês</td><td style="text-align:right">Até '+dBR(c.dtS).slice(0,5)+' (GMD '+N(c.A.g,3)+')</td><td style="text-align:right">Seu GMD '+N(c.B.g,3)+'</td></tr>'
+      +mesesJuntos(c).map(function(r){ return '<tr><td style="padding:5px 0;border-top:1px solid var(--ln)">'+r.nome+'</td><td style="text-align:right;border-top:1px solid var(--ln)">'+(r.a?'<b>'+N(r.a.sacos,0)+'</b> sacos':'—')+'</td><td style="text-align:right;border-top:1px solid var(--ln)">'+(r.b?'<b>'+N(r.b.sacos,0)+'</b> sacos':'—')+'</td></tr>'; }).join('')
+      +'<tr><td style="padding:6px 0;border-top:2px solid var(--vm);font-weight:800">Total</td><td style="text-align:right;border-top:2px solid var(--vm);font-weight:800">'+N(c.A.sacos)+(c.sR?'<div style="font-size:11px;color:var(--mu);font-weight:500">'+R(c.A.rProt)+'</div>':'')+'</td><td style="text-align:right;border-top:2px solid var(--vm);font-weight:800">'+N(c.B.sacos)+(c.sR?'<div style="font-size:11px;color:var(--mu);font-weight:500">'+R(c.B.rProt)+'</div>':'')+'</td></tr></table></div>'
+    :'<table style="width:100%;border-collapse:collapse;font-size:12.5px;margin-top:10px">'+c.meses.map(function(m){ return '<tr><td style="padding:5px 0;border-top:1px solid var(--ln)">'+m.nome+' <span style="color:var(--mu)">· '+m.dias+' dias</span></td><td style="text-align:right;border-top:1px solid var(--ln)"><b>'+N(m.sacos,0)+'</b> sacos</td>'+(c.sR?'<td style="text-align:right;border-top:1px solid var(--ln);color:var(--mu)">'+R(m.sacos*c.sR)+'</td>':'')+'</tr>'; }).join("")+'</table></div>');
   h+='<div class="sec"><div class="h">Até a meta de '+N(c.aS,1)+' @, conforme o ganho <span>'+N(c.cab)+' cab.</span></div>'
     +'<div class="hint">Quanto mais ganha, mais cedo chega na meta e menos '+E(c.prod.toLowerCase())+' gasta.</div>'
-    +'<table style="width:100%;border-collapse:collapse;font-size:12.5px"><tr style="color:var(--mu);font-size:11px"><td>GMD</td><td>Dias</td><td>Sai em</td><td style="text-align:right">Sacos</td>'+(c.sR?'<td style="text-align:right">R$</td>':'')+'</tr>'
-    +c.consCen.map(function(x){ return '<tr'+(x.meta?' style="background:var(--okb)"':'')+'><td style="padding:6px 2px;border-top:1px solid var(--ln)">'+N(x.g,3)+(x.meta?' <b>meta</b>':'')+'</td><td style="border-top:1px solid var(--ln)">'+x.dias+'</td><td style="border-top:1px solid var(--ln)'+(x.depois?';color:var(--wa);font-weight:700':'')+'">'+dBR(x.sai).slice(0,5)+(x.depois&&x.seca?' · seca':x.depois?' · passa':'')+'</td><td style="text-align:right;border-top:1px solid var(--ln)"><b>'+N(x.sacos)+'</b></td>'+(c.sR?'<td style="text-align:right;border-top:1px solid var(--ln)">'+N(Math.round(x.r))+'</td>':'')+'</tr>'; }).join('')
-    +'</table><div class="two" style="margin-top:6px;align-items:center"><div class="hint" style="margin:0">Ver outro GMD:</div><div><input type="number" inputmode="decimal" step="0.01" placeholder="ex.: 0,85" value="'+E(GMD_OUTRO)+'" onchange="GMD_OUTRO=this.value;calc()"></div></div></div>';
+    +'<table style="width:100%;border-collapse:collapse;font-size:12.5px"><tr style="color:var(--mu);font-size:11px"><td>GMD</td><td>Dias</td><td>Sai em</td><td style="text-align:right">Sacos</td>'+(c.sR?'<td style="text-align:right">Custo total</td>':'')+'</tr>'
+    +c.consCen.map(function(x){ return '<tr'+(x.meta?' style="background:var(--okb)"':'')+'><td style="padding:6px 2px;border-top:1px solid var(--ln)">'+N(x.g,3)+(x.meta?' <b>meta</b>':'')+'</td><td style="border-top:1px solid var(--ln)">'+x.dias+'</td><td style="border-top:1px solid var(--ln)'+(x.depois?';color:var(--wa);font-weight:700':'')+'">'+dBR(x.sai).slice(0,5)+(x.depois&&x.seca?' · seca':x.depois?' · passa':'')+'</td><td style="text-align:right;border-top:1px solid var(--ln)"><b>'+N(x.sacos)+'</b></td>'+(c.sR?'<td style="text-align:right;border-top:1px solid var(--ln)">'+N(Math.round(x.tot))+'</td>':'')+'</tr>'; }).join('')
+    +'</table>'+(c.sR?'<div class="hint" style="margin:4px 0 0">Custo total = '+E(c.prod.toLowerCase())+' + sanidade.</div>':'')+'<div class="two" style="margin-top:6px;align-items:center"><div class="hint" style="margin:0">Ver outro GMD:</div><div><input type="number" inputmode="decimal" step="0.01" placeholder="ex.: 0,85" value="'+E(GMD_OUTRO)+'" onchange="GMD_OUTRO=this.value;calc()"></div></div></div>';
+  if(c.preco>0){
+    var mm=c.consCen.filter(function(x){ return x.meta; })[0];
+    h+='<div class="sec" style="border-left-color:var(--wa)"><div class="h">Estimativa de venda <span class="pill wa">não é preço garantido</span></div>'
+      +'<div style="font-size:13.5px;line-height:1.5">Se a @'+(c.bicho?' da '+c.bicho:'')+' estiver a <b>'+R(c.preco)+'</b> em <b>'+c.mesSai+'</b>:</div>'
+      +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px">'
+      +'<div style="background:var(--bg);border-radius:12px;padding:10px"><div style="font-size:11px;color:var(--mu)">Lote na saída ('+N(c.aS,1)+' @)</div><b style="font-size:18px">'+R(c.vSaida)+'</b><div style="font-size:11px;color:var(--mu)">'+R(c.vSaida/c.cab)+' por cabeça</div></div>'
+      +'<div style="background:var(--bg);border-radius:12px;padding:10px"><div style="font-size:11px;color:var(--mu)">O que ganhou na fazenda</div><b style="font-size:18px">'+R(c.vGanhoTot)+'</b><div style="font-size:11px;color:var(--mu)">'+N((c.ps-c.pe)/c.kgA,1)+' @ por cabeça</div></div></div>'
+      +(mm&&c.sR?'<div class="hint" style="margin:8px 0 0">Ganho menos o custo até a meta ('+R(mm.tot)+'): <b style="color:var(--tx)">'+R(c.vGanhoTot-mm.tot)+'</b>.</div>':'')+'</div>';
+  }
   if(c.parc){
     var pm=c.parcMeta;
     h+='<div class="sec"><div class="h">Parceria <span>'+N(c.pctG)+'% gado · '+N(c.pctF)+'% fazenda</span></div>'
@@ -280,43 +320,59 @@ function recriaPDF(){
   var c=ULT; if(!c){ alert("Preencha o lote primeiro."); return; }
   var hoje=new Date().toLocaleDateString("pt-BR");
   var cor=c.v.cls==="ok"?"verde":"amar";
+  var TABGANHO=''
+    +'<div class="g">Até a meta de '+N(c.aS,1)+' @, conforme o ganho</div><table><tr><th>GMD (kg/dia)</th><th class="n">Dias</th><th class="n">Sai em</th><th class="n">Sacos</th>'+(c.sR?'<th class="n">'+E(c.prod)+'</th><th class="n">Custo total</th><th class="n">Por cabeça</th>':'')+'</tr>'
+    +c.consCen.map(function(x){ return '<tr'+(x.meta?' style="font-weight:800"':'')+'><td>'+N(x.g,3)+(x.meta?' · meta':'')+'</td><td class="n">'+x.dias+'</td><td class="n"'+(x.depois?' style="color:#9A6B00;font-weight:700"':'')+'>'+dBR(x.sai)+(x.depois&&x.seca?' · seca':'')+'</td><td class="n">'+N(x.sacos)+'</td>'+(c.sR?'<td class="n">'+R(x.r)+'</td><td class="n">'+R(x.tot)+'</td><td class="n">'+R(x.tot/c.cab)+'</td>':'')+'</tr>'; }).join('')+'</table>'
+    +(c.sR?'<div class="ms">Custo total = '+E(c.prod.toLowerCase())+' + sanidade ('+R(c.rSan)+').</div>':'');
   var h='<div class="pg"><div class="hd"><img src="'+_gpLogo()+'"><span>Planejamento de recria'+(c.cli?'<br>'+E(c.cli):'')+'</span></div>'
     +'<div class="ey">Emitido em '+hoje+'</div><div class="tt">Recria a pasto · '+N(c.cab)+' '+E(c.cat.toLowerCase())+(c.sexo?' ('+E(c.sexo.toLowerCase())+')':'')+'</div>'
     +'<div class="st">De '+N(c.aE,1)+' @ para '+N(c.aS,1)+' @ · '+dBR(c.dtE)+' a '+dBR(c.dtS)+' ('+c.dias+' dias) · pasto e '+E(c.prod.toLowerCase())+'</div>'
-    +'<div class="vb '+cor+'"><div><b>'+c.v.tit+'</b><small>'+c.v.txt+'</small></div><em>GMD '+N(c.gNec,3)+'</em></div>'
+    +(cor==="verde"?'<div class="vb verde"><div><b>'+c.v.tit+'</b><small>'+c.v.txt+'</small></div><em>GMD '+N(c.gNec,3)+'</em></div>'
+      :'<div class="vb" style="background:#FFF6DC;color:#4A3B00;border-left:2mm solid #E0A800"><div><b>'+c.v.tit+'</b><small style="opacity:1;color:#5C4A00">'+c.v.txt+'</small></div><em style="background:#F5DE8E;color:#4A3B00">GMD '+N(c.gNec,3)+'</em></div>')
     +'<div class="g">Principais números</div><div class="kp">'
     +'<div><span>GMD que precisa</span><b>'+N(c.gNec,3)+'</b><i style="color:#55665a">kg/dia · Top 30%: '+N(REF_TOP,3)+'</i></div>'
     +'<div><span>'+E(c.prod)+'</span><b>'+N(c.sacos)+' sacos</b><i style="color:#55665a">de '+N(c.sKg)+' kg · '+N(c.pv*100,2)+'% PV</i></div>'
     +'<div><span>Custo por cabeça</span><b>'+R(c.rCab)+'</b><i style="color:#55665a">total '+R(c.rTot)+'</i></div>'
     +'<div><span>Custo de cada @ ganha</span><b>'+R(c.rArr)+'</b><i style="color:#55665a">ganha '+N(c.ganhoArr,1)+' @ por cabeça</i></div></div>'
-    +'<div class="g">Até a meta de '+N(c.aS,1)+' @, conforme o ganho</div><table><tr><th>GMD (kg/dia)</th><th class="n">Dias</th><th class="n">Sai em</th><th class="n">Sacos</th>'+(c.sR?'<th class="n">'+E(c.prod)+'</th>':'')+'</tr>'
-    +c.consCen.map(function(x){ return '<tr'+(x.meta?' style="font-weight:800"':'')+'><td>'+N(x.g,3)+(x.meta?' · meta':'')+'</td><td class="n">'+x.dias+'</td><td class="n"'+(x.depois?' style="color:#E65100"':'')+'>'+dBR(x.sai)+(x.depois&&x.seca?' · seca':'')+'</td><td class="n">'+N(x.sacos)+'</td>'+(c.sR?'<td class="n">'+R(x.r)+'</td>':'')+'</tr>'; }).join('')+'</table>'
-    +'<div class="two"><div><div class="g">'+E(c.prod)+' por mês</div><table><tr><th>Mês</th><th class="n">Sacos</th>'+(c.sR?'<th class="n">R$</th>':'')+'</tr>'
+    +(c.B?'<div class="g">Duas opções até a meta de '+N(c.aS,1)+' @</div><table><tr><th></th><th class="n">GMD</th><th class="n">Dias</th><th class="n">Sai em</th><th class="n">Sacos</th>'+(c.sR?'<th class="n">Custo total</th><th class="n">Por cabeça</th><th class="n">Por @ ganha</th>':'')+'</tr>'
+      +[[c.A,'Para chegar até '+dBR(c.dtS).slice(0,5)],[c.B,'Com o seu GMD']].map(function(p){ var o=p[0]; return '<tr'+(o===c.B?' style="font-weight:800"':'')+'><td>'+p[1]+'</td><td class="n">'+N(o.g,3)+'</td><td class="n">'+o.dias+'</td><td class="n">'+dBR(o.sai)+'</td><td class="n">'+N(o.sacos)+'</td>'+(c.sR?'<td class="n">'+R(o.tot)+'</td><td class="n">'+R(o.cab)+'</td><td class="n">'+R(o.arr)+'</td>':'')+'</tr>'; }).join('')+'</table>':'')
+    +(c.B?'':TABGANHO)
+    +(c.B?'<div class="two"><div><div class="g">'+E(c.prod)+' por mês (sacos)</div><table><tr><th>Mês</th><th class="n">Até '+dBR(c.dtS).slice(0,5)+'</th><th class="n">Seu GMD '+N(c.B.g,3)+'</th></tr>'
+      +mesesJuntos(c).map(function(r){ return '<tr><td>'+r.nome+'</td><td class="n">'+(r.a?N(r.a.sacos,0):'—')+'</td><td class="n">'+(r.b?N(r.b.sacos,0):'—')+'</td></tr>'; }).join('')
+      +'<tr class="tot"><td>Total</td><td class="n">'+N(c.A.sacos)+'</td><td class="n">'+N(c.B.sacos)+'</td></tr>'+(c.sR?'<tr><td class="mu">R$</td><td class="n">'+R(c.A.rProt)+'</td><td class="n">'+R(c.B.rProt)+'</td></tr>':'')+'</table></div>'
+    :'<div class="two"><div><div class="g">'+E(c.prod)+' por mês · até '+dBR(c.saiP).slice(0,5)+'</div><table><tr><th>Mês</th><th class="n">Sacos</th>'+(c.sR?'<th class="n">R$</th>':'')+'</tr>'
     +c.meses.map(function(m){ return '<tr><td>'+m.nome+' <span class="mu">('+m.dias+' d)</span></td><td class="n">'+N(m.sacos,0)+'</td>'+(c.sR?'<td class="n">'+R(m.sacos*c.sR)+'</td>':'')+'</tr>'; }).join('')
-    +'<tr class="tot"><td>Total</td><td class="n">'+N(c.sacos)+'</td>'+(c.sR?'<td class="n">'+R(c.rProt)+'</td>':'')+'</tr></table></div>'
+    +'<tr class="tot"><td>Total</td><td class="n">'+N(c.sacos)+'</td>'+(c.sR?'<td class="n">'+R(c.rProt)+'</td>':'')+'</tr></table></div>')
     +'<div><div class="g">Pasto e lotação</div><table>'
     +(c.ha>0?'<tr><td class="mu">Área</td><td class="n">'+N(c.ha,2)+' ha</td></tr>'
       +(MODO==="pq"&&c.mod?'<tr><td class="mu">Módulos</td><td class="n">'+N(c.mod)+' × '+N(c.pq)+' piquetes de '+N(c.haPq,2)+' ha</td></tr><tr><td class="mu">Por módulo</td><td class="n">'+N(c.cabMod)+' cab.</td></tr>':'')
       +(MODO==="pq"&&c.ciclo?'<tr><td class="mu">Rotação</td><td class="n">'+N(c.diasPq)+' dias · '+N(c.descanso)+' de descanso</td></tr>':'')
       +'<tr><td class="mu">Lotação</td><td class="n">'+N(c.uaIni,1)+' → '+N(c.uaFim,1)+' UA/ha</td></tr>':'<tr><td class="mu">Área não informada</td><td></td></tr>')
     +(c.capim||c.alt?'<tr><td class="mu">Capim</td><td class="n">'+E(c.capim||'—')+(c.alt?' · '+N(c.alt,2)+' m':'')+'</td></tr>':'')+'</table></div></div>'
-    +'<div class="g">Sanidade · o que comprar</div><table><tr><th>Produto</th><th>Dose</th><th class="n">Total</th><th class="n">Comprar</th><th class="n">R$</th></tr>'
+    +'__ROD__</div>';
+  h+='<div class="pg"><div class="hd"><img src="'+_gpLogo()+'"><span>Planejamento de recria'+(c.cli?'<br>'+E(c.cli):'')+'</span></div>'
+    +(c.B?TABGANHO:'')
+    +'<div class="g" style="margin-top:7mm">Sanidade · o que comprar</div><table><tr><th>Produto</th><th>Dose</th><th class="n">Total</th><th class="n">Comprar</th><th class="n">R$</th></tr>'
     +(c.san.length?c.san.map(function(x){ return '<tr><td>'+E(x.n)+'</td><td class="mu">'+x.dose+(x.vezes>1?' · '+N(x.vezes)+'x':'')+'</td><td class="n">'+N(x.tot)+(x.un?' un.':' ml')+'</td><td class="n"><b>'+(x.un?N(Math.ceil(x.tot))+' un.':N(x.frascos)+' × '+N(x.fr)+' ml')+'</b></td><td class="n">'+(x.semPreco?'—':R(x.r))+'</td></tr>'; }).join(''):'<tr><td class="mu">Nenhum item</td><td></td><td></td><td></td><td></td></tr>')
     +'<tr class="tot"><td>Total</td><td class="mu">'+R(c.sanCab)+' por cabeça</td><td></td><td></td><td class="n">'+R(c.rSan)+'</td></tr></table>'
-    +'__ROD__</div>';
+    +(c.preco>0?'<div class="g">Estimativa de venda</div>'
+      +'<div style="margin:0 13mm;border:1.5px solid #E0A800;background:#FFFBEF;border-radius:3mm;padding:4mm 5mm"><div style="font-size:11pt;line-height:1.45">Se a @'+(c.bicho?' da '+c.bicho:'')+' estiver a <b>'+R(c.preco)+'</b> em <b>'+c.mesSai+'</b>:</div>'
+      +'<div style="display:flex;gap:8mm;margin-top:2.5mm;font-size:10pt"><div>Lote na saída ('+N(c.aS,1)+' @)<br><b style="font-size:14pt;color:#123d1d">'+R(c.vSaida)+'</b><br><span class="mu">'+R(c.vSaida/c.cab)+' por cabeça</span></div>'
+      +'<div>O que ganhou na fazenda<br><b style="font-size:14pt;color:#123d1d">'+R(c.vGanhoTot)+'</b><br><span class="mu">'+N((c.ps-c.pe)/c.kgA,1)+' @ por cabeça</span></div>'
+      +(c.sR?'<div>Ganho menos o custo até a meta<br><b style="font-size:14pt;color:#123d1d">'+R(c.vGanhoTot-(c.consCen.filter(function(x){return x.meta;})[0]||{tot:0}).tot)+'</b></div>':'')+'</div>'
+      +'<div style="margin-top:2.5mm;font-size:8.5pt;color:#8A6500;font-weight:700">Estimativa: o preço da @ na saída não é garantido.</div></div>':'');
   if(c.parc){
-    h+='<div class="pg"><div class="hd"><img src="'+_gpLogo()+'"><span>Planejamento de recria'+(c.cli?'<br>'+E(c.cli):'')+'</span></div>'
-      +'<div class="ey">Parceria · '+N(c.pctG)+'% dono do gado · '+N(c.pctF)+'% dono da fazenda</div><div class="tt">Como fica a divisão</div>'
-      +'<div class="st">O que o gado ganhou na fazenda é vendido a '+R(c.preco)+'/@ e dividido. As despesas ('+E(c.prod.toLowerCase())+' e sanidade) ficam com o dono da fazenda.</div>'
+    h+='<div class="g">Parceria · '+N(c.pctG)+'% dono do gado · '+N(c.pctF)+'% dono da fazenda</div>'
+      +'<div class="ms" style="padding-top:0;margin-bottom:2mm">O que o gado ganhou na fazenda é vendido e dividido. As despesas ('+E(c.prod.toLowerCase())+' e sanidade) ficam com o dono da fazenda.</div>'
       +'<div class="kp"><div><span>Ganho do lote</span><b>'+N(c.arrGanhoLote)+' @</b><i style="color:#55665a">'+R(c.vGanho)+'</i></div>'
       +'<div><span>Dono do gado · '+N(c.pctG)+'%</span><b>'+R(c.vGado)+'</b><i style="color:#55665a">'+R(c.vGado/c.cab)+' por cabeça</i></div>'
       +'<div><span>Dono da fazenda · '+N(c.pctF)+'%</span><b>'+R(c.vFaz)+'</b><i style="color:#55665a">antes das despesas</i></div>'
-      +'<div><span>Sobra da fazenda</span><b style="color:'+(c.parcMeta.sobra<0?'#B71C1C':'#123d1d')+'">'+R(c.parcMeta.sobra)+'</b><i style="color:#55665a">'+(c.parcMeta.haMes!=null?R(c.parcMeta.haMes)+' por ha por mês':'na meta')+'</i></div></div>'
+      +'<div><span>Sobra da fazenda</span><b style="color:'+(c.parcMeta.sobra<0?'#7A4A00':'#123d1d')+'">'+R(c.parcMeta.sobra)+'</b><i style="color:#55665a">'+(c.parcMeta.haMes!=null?R(c.parcMeta.haMes)+' por ha por mês':'na meta')+'</i></div></div>'
       +'<div class="g">Sobra da fazenda conforme o ganho</div><table><tr><th>GMD (kg/dia)</th><th class="n">Dias até a meta</th><th class="n">Despesas</th><th class="n">Sobra</th><th class="n">Por ha por mês</th></tr>'
-      +c.parc.map(function(x){ return '<tr'+(x.meta?' style="font-weight:800"':'')+'><td>'+N(x.g,3)+(x.meta?' · meta':'')+'</td><td class="n">'+x.dias+'</td><td class="n">'+R(x.desp)+'</td><td class="n"'+(x.sobra<0?' style="color:#B71C1C"':'')+'>'+R(x.sobra)+'</td><td class="n">'+(x.haMes!=null?R(x.haMes):'—')+'</td></tr>'; }).join('')+'</table>'
-      +'<div class="rf">Quanto mais o gado ganha, mais cedo chega na meta: gasta menos '+E(c.prod.toLowerCase())+' e o pasto fica livre antes para o próximo lote.</div>'
-      +'__ROD__</div>';
+      +c.parc.map(function(x){ return '<tr'+(x.meta?' style="font-weight:800"':'')+'><td>'+N(x.g,3)+(x.meta?' · meta':'')+'</td><td class="n">'+x.dias+'</td><td class="n">'+R(x.desp)+'</td><td class="n"'+(x.sobra<0?' style="color:#7A4A00"':'')+'>'+R(x.sobra)+'</td><td class="n">'+(x.haMes!=null?R(x.haMes):'—')+'</td></tr>'; }).join('')+'</table>'
+;
   }
+  h+='__ROD__</div>';
   var _np=(h.match(/__ROD__/g)||[]).length, _k=0;
   h=h.replace(/__ROD__/g,function(){ _k++; return '<div class="rod"><span>Planejamento com os números informados · gestaopecuarialucrativa.com.br</span><span>Rogério · Consultor GPL · (63) 99108-2453'+(_np>1?' · '+_k+'/'+_np:'')+'</span></div>'; });
   _gpPDF("Planejamento de recria","Recria "+(c.cli||c.cat)+" "+hoje.replace(/\//g,"-"),h);
@@ -326,7 +382,7 @@ function recriaPDF(){
   $("lgTop").src=LOGO_GPL;
   lerGuardado(); $("precoArr").value=PRECOS[chavePreco($("sexo").value)]||""; desenharSan(); trocarModo(MODO);
   $("precoArr").addEventListener("input",calc);
-  CAMPOS.forEach(function(c){ $(c).addEventListener("input",calc); });
+  CAMPOS.forEach(function(c){ $(c).addEventListener("input",calc); $(c).addEventListener("change",calc); });
   document.querySelectorAll("#modoArea button").forEach(function(b){ b.addEventListener("click",function(){ trocarModo(b.dataset.m); }); });
   document.querySelectorAll("#pvChips button").forEach(function(b){ b.addEventListener("click",function(){ $("pv").value=b.dataset.v; marcarPv(); calc(); }); });
   $("pv").addEventListener("input",marcarPv); marcarPv();

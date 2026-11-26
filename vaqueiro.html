@@ -253,6 +253,9 @@ window.addEventListener("online",function(){ render(); sincronizar(); }); window
   try{ if(navigator.storage&&navigator.storage.persist) navigator.storage.persist(); }catch(e){}
   render(); await buscarInfo(); render(); sincronizar();
 })();
+
+/* abrir sem internet (só esta página) */
+if("serviceWorker" in navigator){ window.addEventListener("load", function(){ navigator.serviceWorker.register("sw-vaqueiro.js",{scope:"./vaqueiro"}).catch(function(){}); }); }
 </script>
 </body>
 </html>

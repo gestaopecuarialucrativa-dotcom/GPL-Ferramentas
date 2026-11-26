@@ -39,8 +39,8 @@ button{font:inherit;cursor:pointer}
 .b{border:1.5px solid #c9d6c7;background:#fff;color:var(--v1);border-radius:10px;padding:7px 10px;font-size:13px;font-weight:700}
 .b.p{background:var(--vc);border-color:var(--vc);color:#fff;font-weight:800}
 .b.g{border-color:transparent;background:#f1f4ef;color:var(--muted)}
-input,select{font:inherit;font-size:16px;width:100%;padding:10px 12px;border:1.5px solid var(--line);border-radius:10px;background:#fff;color:var(--ink)}
-input:focus,select:focus{outline:none;border-color:var(--vm)}
+input,select,textarea{font:inherit;font-size:16px;width:100%;padding:10px 12px;border:1.5px solid var(--line);border-radius:10px;background:#fff;color:var(--ink)}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--vm)}
 .lbl{font-size:13px;color:var(--muted);margin:10px 0 5px}
 .linha{display:flex;gap:8px}.linha>*{flex:1}
 .vazio{padding:14px 0;color:var(--muted);font-size:14px}
@@ -796,11 +796,12 @@ function telaPlanoLista(){
   var c=cfg(), h=hoje();
   var x=PL_NOVA?'':'<button class="b p" style="width:100%;padding:12px;margin-bottom:10px;font-size:15px" onclick="PL_NOVA=true;render();setTimeout(function(){ var e=$(\'pAc\'); if(e) e.focus(); },30)">+ Nova ação</button>';
   if(PL_NOVA) x+='<div class="card" style="padding:12px 14px"><div style="display:flex;justify-content:space-between;align-items:center"><b>Nova ação</b><button class="b g" onclick="PL_NOVA=false;render()">Fechar</button></div>'
-   +'<div class="lbl">O que fazer</div><input id="pAc" placeholder="Reformar o cocho do pasto 4">'
+   +'<div class="lbl">O que fazer <span style="font-weight:400">· pode colar uma lista, uma ação por linha</span></div><textarea id="pAc" rows="3" oninput="plContar()" placeholder="Reformar o cocho do pasto 4" style="resize:vertical"></textarea><div class="mini" id="pQt" style="margin-top:3px"></div>'
    +'<div class="linha"><div><div class="lbl">Fazenda</div><select id="pFz">'+c.fazendas.map(function(f){ return '<option'+(f.nome===PL_FAZ?' selected':'')+'>'+esc(f.nome)+'</option>'; }).join("")+'</select></div>'
    +'<div><div class="lbl">Responsável</div><input id="pRe" placeholder="Zé"></div></div>'
    +'<div class="linha"><div><div class="lbl">Prazo</div><input id="pPr" type="date"></div><div><div class="lbl">Origem</div><input id="pOr" placeholder="Reunião de fechamento '+h.split("-").reverse().slice(0,2).join("/")+'"></div></div>'
-   +'<button class="b p" style="width:100%;margin-top:12px;padding:12px" onclick="addPlano()">Salvar ação</button><div class="mini" id="pMsg" style="margin-top:6px"></div></div>';
+   +'<label id="pSemL" style="display:none;align-items:center;gap:8px;margin-top:10px;font-size:13px"><input type="checkbox" id="pSem" style="width:auto"> Um por semana: a 1ª no prazo, a 2ª uma semana depois…</label>'
+   +'<button class="b p" id="pBt" style="width:100%;margin-top:12px;padding:12px" onclick="addPlano()">Salvar ação</button><div class="mini" id="pMsg" style="margin-top:6px"></div></div>';
   x+='<div style="display:flex;gap:6px;margin:4px 0 8px;align-items:center"><select style="flex:1" onchange="PL_FAZ=this.value;render()"><option value="">Todas as fazendas</option>'+c.fazendas.map(function(f){ return '<option'+(f.nome===PL_FAZ?' selected':'')+'>'+esc(f.nome)+'</option>'; }).join("")+'</select>'
    +'<button class="b'+(PL_FILTRO==="abertos"?' p':'')+'" onclick="PL_FILTRO=\'abertos\';render()">Abertas</button><button class="b'+(PL_FILTRO==="todos"?' p':'')+'" onclick="PL_FILTRO=\'todos\';render()">Todas</button>'
    +'<button class="b" onclick="imprimirPlano()">Imprimir</button></div>';
@@ -819,14 +820,32 @@ function planoFiltrado(){
   return D.plano.filter(function(p){ return (!PL_FAZ||p.fazenda===PL_FAZ) && (PL_FILTRO==="todos"||p.situacao!=="feito"); })
     .sort(function(a,b){ var fa=a.situacao==="feito"?1:0, fb=b.situacao==="feito"?1:0; if(fa!==fb) return fa-fb; return (a.prazo||"9999").localeCompare(b.prazo||"9999"); });
 }
+function plLinhas(){
+  var t=($("pAc")&&$("pAc").value)||"";
+  return t.split(/\r?\n/).map(function(l){ return l.replace(/^\s*(?:[-•*·–]|\d{1,2}\s*[.)-])\s*/,"").replace(/\s+/g," ").trim(); }).filter(Boolean);
+}
+function plContar(){
+  var n=plLinhas().length, q=$("pQt"), s=$("pSemL"), b=$("pBt");
+  if(q) q.textContent=n>1?n+" ações · cada linha vira uma ação":"";
+  if(s) s.style.display=n>1?"flex":"none";
+  if(b) b.textContent=n>1?"Salvar as "+n+" ações":"Salvar ação";
+}
+function plSomaSemanas(iso,k){ if(!iso) return ""; var d=new Date(iso+"T12:00:00"); d.setDate(d.getDate()+7*k); return d.toISOString().slice(0,10); }
 async function addPlano(){
-  var ac=$("pAc").value.trim(), m=$("pMsg");
-  if(!ac){ m.textContent="Escreva a ação."; m.style.color="var(--danger)"; $("pAc").focus(); return; }
-  var it={ id:"p"+Date.now().toString(36), fazenda:$("pFz").value, acao:ac, resp:$("pRe").value.trim(), prazo:$("pPr").value, situacao:"aberto",
-    origem:$("pOr").value.trim()||$("pOr").placeholder, obs:"", criado:hoje() };
-  m.textContent="Salvando…"; m.style.color="";
-  try{ await centralPost("tabela_salvar",{tabela:"Plano",itens:[it]}); D.plano.push(it); PL_FAZ=it.fazenda; render(); }
-  catch(e){ m.textContent="Não salvou: "+e.message; m.style.color="var(--danger)"; }
+  var L=plLinhas(), m=$("pMsg");
+  if(!L.length){ m.textContent="Escreva a ação."; m.style.color="var(--danger)"; $("pAc").focus(); return; }
+  var faz=$("pFz").value, resp=$("pRe").value.trim(), pr=$("pPr").value, org=$("pOr").value.trim()||$("pOr").placeholder;
+  var sem=L.length>1 && $("pSem") && $("pSem").checked;
+  if(sem && !pr){ m.textContent="Para um por semana, escolha o prazo da primeira."; m.style.color="var(--danger)"; $("pPr").focus(); return; }
+  var base=Date.now(), ok=0, erros=[];
+  for(var k=0;k<L.length;k++){
+    var it={ id:"p"+(base+k).toString(36), fazenda:faz, acao:L[k], resp:resp, prazo:sem?plSomaSemanas(pr,k):pr, situacao:"aberto", origem:org, obs:"", criado:hoje() };
+    m.textContent="Salvando "+(k+1)+" de "+L.length+"…"; m.style.color="";
+    try{ await centralPost("tabela_salvar",{tabela:"Plano",itens:[it]}); D.plano.push(it); ok++; }
+    catch(e){ erros.push(L[k]+": "+e.message); }
+  }
+  if(erros.length){ $("pAc").value=erros.map(function(x){ return x.split(": ")[0]; }).join("\n"); plContar(); m.innerHTML="Salvou "+ok+" de "+L.length+". Não salvou (ficaram na caixa para tentar de novo):<br>"+erros.map(esc).join("<br>"); m.style.color="var(--danger)"; return; }
+  PL_FAZ=faz; PL_NOVA=false; render();
 }
 async function sitPlano(id,sit){
   var p=D.plano.filter(function(x){ return x.id===id; })[0]; if(!p) return; var ant=p.situacao; p.situacao=sit; render();

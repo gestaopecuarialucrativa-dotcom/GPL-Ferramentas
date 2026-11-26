@@ -1760,14 +1760,14 @@ function vqCard(v){
     +as.map(function(u,i){ return '<a class="b" href="'+esc(u)+'" target="_blank" rel="noopener" style="text-decoration:none">Ouvir áudio'+(as.length>1?' '+(i+1):'')+'</a>'; }).join("")+'</div>';
   if(!nov){
     x+='<div class="mini" style="margin-top:6px"><b style="color:var(--v1)">'+(v.situacao==="vai fazer"?'Vai fazer'+(v.prazo?' até '+brd(v.prazo):'')+' · tarefa no Plano':'Não fazer')+'</b>'+(v.resposta?' · '+esc(v.resposta):'')+'</div>';
-    if(v.situacao==="não fazer") x+='<div style="margin-top:6px"><button class="b g" onclick="vqReabrir(\''+id+'\')">Reabrir</button></div>';
+    x+='<div style="display:flex;gap:6px;margin-top:6px">'+(v.situacao==="não fazer"?'<button class="b g" onclick="vqReabrir(\''+id+'\')">Reabrir</button>':'')+'<button class="b g" style="color:var(--danger)" onclick="vqApagar(\''+id+'\')">Apagar</button>'+'</div>';
     return x+'</div>';
   }
   var tar=VQ.t[id]!=null?VQ.t[id]:vqPadrao(v), pr=VQ.p[id]||somaDias(hoje(),7);
   x+='<div class="lbl">Tarefa pra ele</div><input value="'+esc(tar)+'" oninput="VQ.t[\''+id+'\']=this.value">'
    +'<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:8px"><span class="mini">Prazo</span><input type="date" style="width:170px" value="'+esc(pr)+'" onchange="VQ.p[\''+id+'\']=this.value">'
    +'<button class="b p" onclick="vqVai(\''+id+'\')">Vai fazer</button>'
-   +(VQ.naoAberto===id?'':'<button class="b" style="color:var(--danger)" onclick="VQ.naoAberto=\''+id+'\';render()">Não fazer</button>')+'</div>';
+   +(VQ.naoAberto===id?'':'<button class="b" style="color:var(--danger)" onclick="VQ.naoAberto=\''+id+'\';render()">Não fazer</button>')+'<button class="b g" style="color:var(--danger)" onclick="vqApagar(\''+id+'\')">Apagar</button>'+'</div>';
   if(VQ.naoAberto===id) x+='<div class="lbl">Motivo <span class="mini">(opcional — ele vê no celular)</span></div><input value="'+esc(VQ.m[id]||"")+'" oninput="VQ.m[\''+id+'\']=this.value" placeholder="ex.: já foi resolvido">'
    +'<div style="display:flex;gap:8px;margin-top:8px"><button class="b" style="color:var(--danger)" onclick="vqNao(\''+id+'\')">Confirmar: não fazer</button><button class="b g" onclick="VQ.naoAberto=\'\';render()">Cancelar</button></div>';
   return x+'</div>';
@@ -1801,6 +1801,14 @@ async function vqVai(id){
     await vqSalvar(v,{ situacao:"vai fazer", prazo:pr });
     VQ.msg="";
   }catch(e){ VQ.msg="Não salvou: "+e.message+" (pode tentar de novo)"; }
+  render();
+}
+async function vqApagar(id){
+  var v=D.vaq.filter(function(x){ return x.id===id; })[0]; if(!v) return;
+  if(!confirm("Apagar o envio de "+(v.vaqueiro||"vaqueiro")+" de "+vqQuando(v.criado)+"?\nSai da Central e da planilha."+(v.situacao==="vai fazer"?"\nA tarefa que já está no Plano continua lá (apague no Plano se quiser).":""))) return;
+  VQ.msg="Apagando…"; render();
+  try{ await centralPost("tabela_salvar",{tabela:"Vaqueiro",itens:[{id:id,apagar:true}]}); D.vaq=D.vaq.filter(function(x){ return x.id!==id; }); VQ.msg=""; }
+  catch(e){ VQ.msg="Não apagou: "+e.message; }
   render();
 }
 async function vqNao(id){

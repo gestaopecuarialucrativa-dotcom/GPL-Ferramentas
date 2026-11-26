@@ -178,9 +178,29 @@ async function buscarInfo(){
   if(!TOKEN||!navigator.onLine) return;
   try{ var r=await fetch(URL_CENTRAL+"?acao=vaq_info&token="+encodeURIComponent(TOKEN)+"&t="+Date.now(),{credentials:"omit"}); var j=JSON.parse(await r.text());
     if(!j.ok){ ERRO_LINK=j.msg||"link com problema"; return; }
-    INFO={ nome:j.nome, fazenda:j.fazenda, tarefas:j.tarefas||[], envios:j.envios||[], quando:new Date().toISOString() };
+    INFO={ nome:j.nome, fazenda:j.fazenda, tarefas:j.tarefas||[], envios:j.envios||[], canal:j.canal||INFO.canal||"", quando:new Date().toISOString() };
     try{ localStorage.setItem("gpl_vaq_info",JSON.stringify(INFO)); }catch(e){}
   }catch(e){}
+}
+/* ---------- aviso no celular (app ntfy) ---------- */
+function avisoOk(){ try{ return localStorage.getItem("gpl_vaq_aviso")==="1"; }catch(e){ return false; } }
+function avisoMarcar(v){ try{ localStorage.setItem("gpl_vaq_aviso",v?"1":"0"); }catch(e){} render(); }
+function copiarCanal(){ var c=INFO.canal||"";
+  var ok=function(){ var b=$("cpC"); if(b){ b.textContent="Copiado ✓"; } };
+  if(navigator.clipboard&&navigator.clipboard.writeText) navigator.clipboard.writeText(c).then(ok,function(){ prompt("Copie o nome:",c); });
+  else prompt("Copie o nome:",c); }
+function quadroAviso(){
+  if(!INFO.canal||avisoOk()) return "";
+  var bt='display:inline-block;margin:4px 6px 4px 0;padding:8px 12px;border-radius:10px;background:#fff;border:1px solid #E8C873;color:#5c4300;font-weight:700;font-size:13px;text-decoration:none';
+  return '<div class="c" style="background:#FFF3D1;border-left-color:#E8C873;color:#5c4300">'
+    +'<div style="font-weight:800;margin-bottom:6px">🔔 Aviso no celular</div>'
+    +'<div style="font-size:14px;line-height:1.5">Pra saber na hora quando o Rogério responder:<br><b>1.</b> Baixe o app <b>ntfy</b> (grátis):</div>'
+    +'<a style="'+bt+'" href="https://play.google.com/store/apps/details?id=io.heckel.ntfy" target="_blank" rel="noopener">Android</a>'
+    +'<a style="'+bt+'" href="https://apps.apple.com/app/id1625396347" target="_blank" rel="noopener">iPhone</a>'
+    +'<div style="font-size:14px;line-height:1.5;margin-top:4px"><b>2.</b> No app, toque no <b>+</b> e cole este nome:</div>'
+    +'<div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin:6px 0"><span style="padding:8px 10px;border-radius:10px;background:#fff;font-family:monospace;font-size:13px;word-break:break-all">'+esc(INFO.canal)+'</span>'
+    +'<button id="cpC" onclick="copiarCanal()" style="padding:8px 12px;border-radius:10px;border:none;background:#1B5E20;color:#fff;font-weight:700">Copiar</button></div>'
+    +'<button onclick="avisoMarcar(true)" style="margin-top:4px;padding:8px 14px;border-radius:10px;border:1.5px solid #1B5E20;background:#fff;color:#1B5E20;font-weight:700">Já liguei</button></div>';
 }
 function respostaDe(id){ return ((INFO.envios||[]).filter(function(x){ return x.id===id; })[0])||null; }
 
@@ -243,7 +263,9 @@ function render(){ limparURLs();
   st.className="st"+(navigator.onLine?"":" off"); st.textContent=(navigator.onLine?"com sinal":"sem sinal")+(pend?" · "+pend+" esperando sinal":"");
   if(!TOKEN){ $("app").innerHTML='<div class="c"><div class="vazio">Este link está incompleto. Peça pro Rogério mandar o seu link de novo pelo WhatsApp.</div></div>'; return; }
   var h=ERRO_LINK?'<div class="c" style="border-left-color:var(--danger)"><div class="mini" style="color:var(--danger);font-weight:700">'+esc(ERRO_LINK)+'</div></div>':'';
+  if(ABA==="mandar") h+=quadroAviso();
   $("app").innerHTML=h+(ABA==="mandar"?telaMandar():telaTarefas());
+  if(ABA==="mandar"&&INFO.canal&&avisoOk()) $("app").insertAdjacentHTML("beforeend",'<div class="mini" style="text-align:center;margin:14px 0"><a href="#" onclick="avisoMarcar(false);window.scrollTo(0,0);return false" style="color:var(--muted)">🔔 aviso no celular</a></div>');
 }
 function aba(a){ ABA=a; FZ=null; render(); window.scrollTo(0,0); if(a==="tarefas"&&navigator.onLine) buscarInfo().then(render); }
 async function carregar(){ ENVIOS=await todos("envios"); FEITOS=await todos("feitos"); }

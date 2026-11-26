@@ -215,7 +215,7 @@ async function carregarTudo(forcar){
   tarefas.push(central("tabela_ler","&tabela=Envios").then(function(r){ D.envios=(r&&r.ok&&r.itens)||[]; }).catch(function(){}));
   // vaqueiro (backend v1.6): mensagens do campo e cadastro dos vaqueiros; sem v1.6 só fica vazio
   tarefas.push(central("tabela_ler","&tabela=Vaqueiro").then(function(r){ D.vaq=(r&&r.ok&&r.itens)||[]; }).catch(function(){}));
-  tarefas.push(central("vaqueiros_ler").then(function(r){ if(r&&r.ok&&r.itens){ D.vaqueiros=r.itens; D.vaqLido=true; } }).catch(function(){}));   // sem v1.3 só fica vazio
+  tarefas.push(central("vaqueiros_ler").then(function(r){ if(r&&r.ok&&r.itens){ D.vaqueiros=r.itens; D.vaqLido=true; D.meuCanal=r.canal||""; } }).catch(function(){}));   // sem v1.3 só fica vazio
   await Promise.all(tarefas);
   D.quando=new Date().toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"});
   L.cache={agenda:D.agenda,rotina:D.rotina,plano:D.plano,quando:D.quando,dia:hoje()}; salvarL();
@@ -1773,10 +1773,29 @@ function vqCard(v){
    +'<div style="display:flex;gap:8px;margin-top:8px"><button class="b" style="color:var(--danger)" onclick="vqNao(\''+id+'\')">Confirmar: não fazer</button><button class="b g" onclick="VQ.naoAberto=\'\';render()">Cancelar</button></div>';
   return x+'</div>';
 }
+/* v1.7 — aviso no SEU celular (app ntfy) quando o vaqueiro mandar */
+function vqAvisoOk(){ try{ return localStorage.getItem("gpl_central_aviso")==="1"; }catch(e){ return false; } }
+function vqAvisoMarcar(v){ try{ localStorage.setItem("gpl_central_aviso",v?"1":"0"); }catch(e){} render(); }
+function vqCopiarCanal(){ var c=D.meuCanal||"", ok=function(){ var b=document.getElementById("cpC"); if(b) b.textContent="Copiado ✓"; };
+  if(navigator.clipboard&&navigator.clipboard.writeText) navigator.clipboard.writeText(c).then(ok,function(){ prompt("Copie o nome:",c); }); else prompt("Copie o nome:",c); }
+function vqQuadroAviso(){
+  if(!D.meuCanal) return "";
+  if(vqAvisoOk()) return '<div class="mini" style="margin:2px 0 10px"><a href="#" onclick="vqAvisoMarcar(false);return false" style="color:var(--muted)">🔔 aviso no celular</a></div>';
+  var bt='display:inline-block;margin:4px 6px 4px 0;padding:7px 12px;border-radius:10px;background:#fff;border:1px solid #E8C873;color:#5c4300;font-weight:700;font-size:13px;text-decoration:none';
+  return '<div class="card" style="padding:12px 14px;background:#FFF3D1;border-left:4px solid #E8C873;color:#5c4300">'
+    +'<b>🔔 Aviso no seu celular</b><div style="font-size:14px;line-height:1.5;margin-top:4px">Pra saber na hora quando o vaqueiro mandar:<br><b>1.</b> Baixe o app <b>ntfy</b> (grátis):</div>'
+    +'<a style="'+bt+'" href="https://play.google.com/store/apps/details?id=io.heckel.ntfy" target="_blank" rel="noopener">Android</a>'
+    +'<a style="'+bt+'" href="https://apps.apple.com/app/id1625396347" target="_blank" rel="noopener">iPhone</a>'
+    +'<div style="font-size:14px;line-height:1.5;margin-top:4px"><b>2.</b> No app, toque no <b>+</b> e cole este nome:</div>'
+    +'<div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin:6px 0"><span style="padding:7px 10px;border-radius:10px;background:#fff;font-family:monospace;font-size:13px;word-break:break-all">'+esc(D.meuCanal)+'</span>'
+    +'<button class="b p" id="cpC" onclick="vqCopiarCanal()">Copiar</button></div>'
+    +'<button class="b" onclick="vqAvisoMarcar(true)">Já liguei</button></div>';
+}
 function telaVaqueiro(){
   var nv=vqNovos().sort(function(a,b){ return String(b.criado).localeCompare(String(a.criado)); });
   var cf=vqConferir(), ja=D.vaq.filter(function(v){ return v.situacao&&v.situacao!=="novo"; }).sort(function(a,b){ return String(b.criado).localeCompare(String(a.criado)); }).slice(0,8);
   var x=VQ.msg?'<div class="erro">'+esc(VQ.msg)+'</div>':'';
+  x+=vqQuadroAviso();
   x+='<div class="dia">Chegou do campo</div>'+(nv.length?nv.map(vqCard).join(""):'<div class="vazio">Nada novo do campo.</div>');
   x+='<div class="dia">Feito, falta conferir</div>'+(cf.length?cf.map(function(p){
     return '<div class="card" style="padding:12px 14px;border-left:4px solid var(--warn)"><b>'+esc(p.acao)+'</b><div class="mini">'+esc(p.resp||"")+' · '+esc(p.fazenda)+(p.prazo?' · prazo '+brd(p.prazo):'')+'</div>'
